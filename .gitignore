@@ -1,0 +1,8 @@
+.vscode
+__pycache__/
+venv/
+node_modules/
+*.log
+config/
+.unotes
+temp

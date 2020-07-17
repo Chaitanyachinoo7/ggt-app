@@ -1,0 +1,78 @@
+Run query below,
+fix birthdays,
+remove first column from view
+mark sent records as 'With Lab"
+---copies rows from appointments to test_samples for a list of appointments
+
+INSERT INTO `ggt`.`test_samples`
+(`id`,
+`appointment_id`,
+`group_code`,
+`patient_id`,
+`patient_questionnaire_id`,
+`sample_collection_location_id`,
+`sample_collection_start_dt`,
+`sample_collection_end_dt`,
+`status`)
+
+
+SELECT 
+    id,
+    id,
+    group_code,
+    patient_id,
+    patient_questionnaire_id,
+    location_id,
+    test_start_dt,
+    test_end_dt,
+    'ready_to_tx' AS status
+FROM
+    ggt.appointments
+WHERE
+    id IN (id_list)
+
+----- run after FTP submission
+
+UPDATE `ggt`.`test_samples` 
+SET 
+    `lab_pysical_submission_dt` = '2020-07-13',
+    `lab_electronic_submission_dt` = NOW(),
+    `status` = 'with_lab'
+WHERE
+    id IN (id_list)
+
+
+
+-----
+
+UPDATE `ggt`.`test_samples` 
+SET 
+    `lab_pysical_submission_dt` = '2020-07-13',
+    `lab_electronic_submission_dt` = NOW(),
+    `status` = 'with_lab'
+WHERE
+    id IN (200696 , 200684,
+        200682,
+        200685,
+        200689,
+        200686,
+        200697,
+        200673,
+        200676,
+        200683,
+        200690,
+        200671,
+        200695,
+        200677,
+        200694,
+        200679,
+        200670,
+        200680,
+        200692,
+        200687,
+        200674,
+        200678,
+        200675,
+        200672,
+        200681,
+        200688)

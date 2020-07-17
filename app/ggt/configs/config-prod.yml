@@ -1,0 +1,43 @@
+app_name: COVID-19 Testing
+log_level: DEBUG
+base_url: https://start.GoGetTested.com
+
+aws:
+  region: us-east-1
+  access_key_id: AKIAIWUMFU2SPDC7KBAQ
+  secret_access_key: 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
+
+databases:
+  mysql:
+    host: wh-mobile-test-1.clwbkkblucao.us-east-1.rds.amazonaws.com
+    username: admin
+    password: Test##Test123
+    password2: gvMBO96Ohbq3mwFp
+    db: ggt
+
+twilio:
+    account_sid: AC9cef9b4155030ee2683281ccc72d4001
+    auth_token: 62ee76165984c54f91ee80aac9cb3f0e
+    from_number: "+19723099019"
+
+sendgrid:
+  sendgrid_api_key: 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
+
+email:
+  template_folder: /templates/email/
+  
+vendors:
+  healthtracrx:
+    ftp_server: sftp.healthtracrx.com
+    username: wellpay
+    password: 9cTE3fh@8H
+
+pfe:
+  signup:
+    special_phone_1: "+14158888888"
+    special_phone_2: "+14159999999"
+    special_phone_3: "4158888888"
+    special_phone_4: "4159999999"
+    override_otp_code: "000000"
+        
+    

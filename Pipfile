@@ -1,0 +1,29 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+pytest = "*"
+
+[packages]
+fastapi = "*"
+pyyaml = "*"
+jinja2 = "*"
+google-cloud-logging = "*"
+google-cloud = "*"
+pydantic = "*"
+pyotp = "*"
+twilio = "*"
+phonenumbers = "*"
+mysql-connector-python = "*"
+aiohttp = "*"
+uvicorn = "*"
+pathlib = "*"
+boto3 = "*"
+sendgrid = "*"
+openpyxl = "*"
+faker = "*"
+
+[requires]
+python_version = "3.7"

@@ -1,0 +1,406 @@
+from ggt.lib.utils import (
+    get_config_val,
+    generate_otp,
+    generate_token,
+    validate_phone_number_format,
+    log_generic
+)
+
+from ggt.lib.sms import (send_sms)
+
+from ggt.models.data_models.signups import (
+    create_pending_signup_record, 
+    get_signup_record_by_phone_otp,
+    get_signup_record_by_token
+)
+
+from ggt.models.data_models.patients import (
+    create_patient_record,
+)
+
+from ggt.models.data_models.questionnaires import (
+    create_patient_questionnaire
+)
+
+from ggt.models.data_models.appointments import (
+    create_appointment
+)
+
+from ggt.models.data_models.locations import (
+    get_location_by_id
+)
+
+from ggt.models.data_models.schedules import (
+    get_slot_information
+)
+
+from ggt.models.data_models.test_results import (
+    get_test_result_by_token
+)
+########################################################################################################
+# [Public] functions
+########################################################################################################
+def bp_initiate_verification_flow(phone_number, with_otp=True):
+    # Create a temp record until phone number is validated
+    try:
+
+        phone_number = validate_phone_number_format(phone_number)
+        otp_code, token = __create_pending_entry(phone_number)
+
+        if otp_code is None:
+            log_generic(type="error",
+                        phone_number=phone_number,
+                        otp_code=otp_code,
+                        token=token,
+                        function='initiate_verification_flow',
+                        error='NO OTP / Unable to create a Pending Record for Phone Verification')
+            return False
+
+        else:
+            activation_url = "{}/{}/{}".format(
+                get_config_val('base_url'), phone_number, token)
+
+            if with_otp:
+                message = "Enter the Code: {}\nOr click {}".format(
+                    otp_code, activation_url)
+            else:
+                message = "Thank you. You're now ready to schedule your GoGetTested COVID-19 test. To start follow this {} to schedule your test".format(
+                    activation_url)
+
+            # send SMS
+            if __send_otp_sms(phone_number, message):
+                log_generic(type="info", phone_number=phone_number, otp_code=otp_code, token=token, activation_url=activation_url,
+                            sms_message=message, function='initiate_verification_flow', info='OTP SMS Sent')
+                return True
+            else:
+                log_generic(type="error", phone_number=phone_number, otp_code=otp_code, token=token, activation_url=activation_url,
+                            sms_message=message, function='initiate_verification_flow', error='Unable to send OTP SMS')
+                return False
+
+    except Exception as err:
+        log_generic(type="error",
+            phone_number=phone_number,
+            function='bp_initiate_verification_flow',
+            error=err)
+        return False
+
+
+def bp_validate_phone_number(phone_number, otp):
+    # Override OTP under special circumstances
+    override_otp_code = get_config_val('pfe.signup.override_otp_code')
+    if otp == override_otp_code:
+        return {
+            "token": "NOVERIFY{}".format(generate_token()[8:])
+        }
+
+    row = get_signup_record_by_phone_otp(phone_number, otp)
+    token = row['token']
+
+    if token is None:
+        log_generic(
+            type = "error",
+            phone_number = phone_number,
+            otp = otp,
+            token = token,
+            function = 'validate_phone_number',
+            error = 'empty token'
+        )
+        return False
+
+    else:
+        log_generic(
+            type="info", 
+            phone_number=phone_number, 
+            otp=otp,
+            token=token, 
+            function='validate_phone_number'
+        )
+        return {
+            "token": token
+        }
+
+
+
+
+def bp_finalize_registration(data):
+    try:
+        if __is_valid_token(data['token']):
+            data['patient_id'] = __create_patient_record(data)
+            if not data['patient_id']:
+                return False
+
+            data['patient_questionnaire_id'] = create_patient_questionnaire(data)
+            if not data['patient_questionnaire_id']:
+                return False
+
+            # generate appointment
+            appointment = generate_appointment(
+                                    data['time_slot'],  
+                                    data['patient_id'], 
+                                    data['patient_questionnaire_id'],
+                                    data['group_code'])
+
+            if not appointment['appointment_id']:
+                return False
+
+            # Business usecase override
+            send_sms = handle_action_schedule_and_print(
+                data['phone_number'], 
+                appointment['appointment_id'])
+            if send_sms:
+                result = __send_qrcode_sms(data['phone_number'], appointment['appointment_id'])
+
+            return {
+                'date': appointment['date_text'],
+                'location': appointment['location_text'],
+                'appointment_id': appointment['appointment_id']
+            }
+
+    except Exception as err:
+        log_generic(type="error", data=data, function='finalize_signup', error=err)
+    
+    return False
+
+
+
+# todo use appt id
+def __send_qrcode_sms(phone_number, appointment_id):
+    message = "Click here for your Appointment Details\n {}/appointment/{}".format(
+        get_config_val('base_url'), str(appointment_id).rjust(6,'0'))
+
+    log_generic(
+        type="info", 
+        phone_number=phone_number, 
+        appointment_id=appointment_id,
+        message=message, 
+        function='__send_qrcode_sms'
+    )
+    return send_sms(phone_number, message)
+
+
+
+def handle_action_schedule_and_print(phone_number, appointment_id):
+    return True #TODO: REVISIT this and move to admin section maybe....
+    
+    send_sms = True
+    try:
+        p1 = get_config_val('pfe.signup.special_phone_1')
+        p2 = get_config_val('pfe.signup.special_phone_2')
+        p3 = get_config_val('pfe.signup.special_phone_3')
+        p4 = get_config_val('pfe.signup.special_phone_4')
+
+        if phone_number == p1:
+            appointment_begin_test(appointment_id, 2)
+            update_appointment_with_test_start(appointment_id)
+            send_sms=False
+        if phone_number == p2:
+            appointment_begin_test(appointment_id, 3)
+            send_sms=False
+        if phone_number == p3:
+            appointment_begin_test(appointment_id, 2)
+            send_sms=False
+        if phone_number == p4:
+            appointment_begin_test(appointment_id, 3)
+            send_sms=False
+    except Exception as err:
+        log_generic(type="error", phone_number=phone_number, appointment_id=appointment_id, function='handle_action_schedule_and_print', error=err)
+    
+    return send_sms
+
+
+def bp_get_test_result(token, dob):
+    try:
+        lab_result = get_test_result_by_token(token)
+
+        if lab_result:
+            patient_dob = lab_result['dob']
+            test_result = lab_result['test_result']
+
+            if test_result == 'neg':
+                result = 'Negative'
+            elif test_result == 'pos':
+                result = 'Positive'
+            else:
+                result = 'Unknown'
+
+            dob = dob.replace("/", "")
+            patient_dob = patient_dob.replace("/", "")
+            if len(patient_dob) != 8:
+                patient_dob = "{}19{}".format(patient_dob[0:4],patient_dob[4:2])
+
+            #TODO: Add resulting PDF link
+            if dob == patient_dob:
+                return {
+                        "result": result,
+                        "lab_report_url": ""
+                    }
+        
+        return {
+            "result": result,
+            "status": "success",
+            "lab_report_url": ""
+        }
+
+    except Exception as err:
+        log_generic(type="error", token=token, function='lookup_test_result_by_token', error=err)
+        return False
+
+
+def generate_appointment(slot_id, patient_id, patient_questionnaire_id, group_code):
+    # TODO: Prevent from looking up slots that are already assigned to an appointment
+    # TODO, doesn't check if it's already booked
+    slot = get_slot_information(slot_id)
+    if not slot:
+        log_generic(type="error", 
+                patient_id=patient_id, 
+                patient_questionnaire_id=patient_questionnaire_id, 
+                group_code=group_code,
+                function='generate_appointment', 
+                error='error_getting_slot_info')
+        return False
+
+    location = get_location_by_id(slot['location_id'])
+    if not location:
+        log_generic(type="error", 
+                patient_id=patient_id, 
+                patient_questionnaire_id=patient_questionnaire_id, 
+                group_code=group_code,
+                slot=slot, 
+                function='generate_appointment', 
+                error='error_getting_location')
+        return False
+
+    appointment_id = create_appointment(
+                                    slot['start_dt'],
+                                    slot['location_id'],
+                                    patient_id,
+                                    patient_questionnaire_id,
+                                    group_code)
+
+    if appointment_id:
+        # TODO: update = __update_slot_information(slot_id, appointment_id)
+
+        date_text = slot['start_dt'].strftime("%a, %-d %b %Y @ %-I:%M %p")
+        # e.g. 6155 Sports Village Rd, Frisco, TX 75033
+        location_text = "{}, {} {}  {}".format(location['addr1'],
+                                            location['city'],
+                                            location['st'],
+                                            location['zip'])
+
+        log_generic(type="info", 
+                    patient_id=patient_id, 
+                    patient_questionnaire_id=patient_questionnaire_id, 
+                    group_code=group_code,
+                    slot=slot, 
+                    location=location,
+                    function='generate_appointment', 
+                    info='appointment_created', 
+                    appointment_id=appointment_id, 
+                    appointment_dt=date_text, 
+                    appointment_location=location_text)
+
+        return  {
+            'is_success': True,
+            'appointment_id': appointment_id,
+            'date_text': date_text,
+            'location_text': location_text
+        }
+
+    else:
+        log_generic(type="error", 
+                    patient_id=patient_id, 
+                    patient_questionnaire_id=patient_questionnaire_id, 
+                    group_code=group_code,
+                    slot=slot, 
+                    function='generate_appointment', 
+                    error='error_creating_appointment')
+        return False
+########################################################################################################
+# [Protected] functions
+########################################################################################################
+
+def __create_pending_entry(phone_number):
+    try:
+        override, otp_code = __override_random_otp(phone_number)
+
+        if not override:
+            otp_code = generate_otp()
+
+        token = generate_token()
+
+        log_generic(type="info", phone_number=phone_number,
+                    otp_code=otp_code, token=token, function='__create_pending_entry')
+        record_id = create_pending_signup_record(
+            phone_number,
+            otp_code,
+            token
+        )
+        if record_id > 0:
+            return otp_code, token
+        else:
+            return None, None
+
+    except Exception as err:
+        log_generic(type="error", phone_number=phone_number,
+                    function='__create_pending_entry', error=err)
+        return None, None
+
+
+
+def __send_otp_sms(phone_number, message):
+    log_generic(
+            type="info",
+            phone_number=phone_number,
+            message=message,
+            function='__send_otp_sms'
+        )
+    return send_sms(phone_number, message)
+
+
+
+def __override_random_otp(phone_number):
+    p1 = get_config_val('pfe.signup.special_phone_1')
+    p2 = get_config_val('pfe.signup.special_phone_2')
+    override_otp_code = get_config_val('pfe.signup.override_otp_code')
+
+    if phone_number == p1 or phone_number == p2:
+        return True, override_otp_code
+    else:
+        return False, None
+
+
+
+def __is_valid_token(token):
+    # Allows overriding phone number validation
+    if token.startswith("NOVERIFY"):
+        return True
+    else:
+        return get_signup_record_by_token(token)
+
+
+
+def __create_patient_record(data):
+    return create_patient_record(
+        token = data["token"],
+        phone_number = validate_phone_number_format(data["phone_number"]),
+        first_name = data["first_name"],
+        middle_name = data["middle_name"],
+        last_name = data["last_name"],
+        gender = data["gender"],
+        phone_number_verified = '1',
+        addr1 = data["address"],
+        city = data["city"],
+        zip = data["zip"],
+        email = data["email"],
+        dob = data["dob"],
+        height_ft = data["height"],
+        weight_lb = data["weight"],
+        ethnicity = data["ethnicity"],
+        race = data["race"],
+        st = data["st"]
+    )
+
+########################################################################################################
+# [Protected] functions
+########################################################################################################
+

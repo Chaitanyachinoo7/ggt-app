@@ -1,0 +1,49 @@
+{
+	"groupCode": "QTCORP",
+	"phone_number": "8018602474",
+	"token": "8a7e9ce7-ebe9-47b6-b7b4-5a4d3211c841",
+	"isPatient": true,
+	"gender": "male",
+	"race": "race_american_indian",
+	"ethnicity": "hispanic_latino_spanish",
+	"symptoms": {
+		"symptom_fever": true,
+		"symptom_short_breath": false,
+		"symptom_cough": false,
+		"symptom_chest_pains": false,
+		"symptom_other": false,
+		"symptom_lack_of_smell": false
+	},
+	"contactTracing": true,
+	"patientDetails": {
+		"first_name": "Suresh",
+		"last_name": "Subasinghe",
+		"dob": "10311980"
+	},
+	"patientAddress": {
+		"state": "FL",
+		"street": "16303 Dobson Ct",
+		"city": "Tampa",
+		"zip_code": "33647",
+		"country": "United States"
+	},
+	"patientContact": {
+		"email": "sureshd@gmail.com"
+	},
+	"patientVitals": {
+		"medications": false,
+		"height": "112",
+		"weight": "123"
+	},
+	"preExistingConditions": {
+		"heart_disease": true,
+		"diabetes": false,
+		"respiratory_disease": false,
+		"autoimmune_disease": false,
+		"other_chronic_disease": false,
+		"allergies": false
+	},
+	"consent": {
+		"full_name": "Suresh Subasinghe"
+	}
+}
