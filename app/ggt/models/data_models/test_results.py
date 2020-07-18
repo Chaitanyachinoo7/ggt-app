@@ -16,8 +16,12 @@ from ggt.lib.adapters.mysql_adapter import (
 ########################################################################################################
 def get_test_result(id):
     try:
-        sql = """SELECT * FROM ggt.detailed_test_results 
-                where id = %s"""
+        sql = """
+                SELECT * 
+                FROM ggt.detailed_test_results 
+                WHERE id = %s
+                LIMIT 1
+                """
         val = (id,)
         return read_row(sql, val)
 
@@ -28,14 +32,80 @@ def get_test_result(id):
 
 def get_test_result_by_token(token):
     try:
-        sql = """SELECT * FROM ggt.detailed_test_results 
-                where token = %s"""
+        sql = """
+                SELECT * 
+                FROM ggt.detailed_test_results 
+                WHERE token = %s
+                ORDER by test_id DESC
+                LIMIT 1
+                """
         val = (token,)
         return read_row(sql, val)
 
     except Exception as err:
         log_generic(type="error", token=token,
                     function='get_test_result_by_token', error=err)
+        return False
+
+
+def get_test_details(test_id):
+    try:
+        sql = """
+                SELECT * 
+                FROM ggt.detailed_test_results 
+                WHERE test_id = %s
+                ORDER by test_id DESC
+                LIMIT 1
+                """
+        val = (test_id,)
+        return read_row(sql, val)
+
+    except Exception as err:
+        log_generic(type="error", test_id=test_id,
+                    function='get_test_details', error=err)
+        return False
+
+
+def search_tested_patients(last_name, dob):
+    try:
+        sql = """
+                SELECT 
+                    t.test_id,
+                    t.first_name,
+                    t.last_name,
+                    t.dob,
+                    t.phone_number,
+                    t.email,
+                    t.addr1 as p_addr1,
+                    t.city as p_city,
+                    t.st as p_st,
+                    t.zip as p_zip,
+                    t.sample_collection_start_dt,
+                    t.token,
+                    l.group_code,
+                    l.account,
+                    l.addr1,
+                    l.city,
+                    l.st,
+                    l.zip,
+                    (CASE
+                        WHEN (test_result IS NULL) THEN 'Pending'
+                        ELSE 'Available'
+                    END) AS result
+                FROM
+                    (detailed_test_results t
+                    JOIN locations l ON t.sample_collection_location_id = l.id)
+                WHERE
+                    last_name = %s
+                        AND dob = %s
+                ORDER BY t.test_id DESC
+                """
+        val = (last_name, dob)
+        return read_rows(sql, val)
+
+    except Exception as err:
+        log_generic(type="error", last_name=last_name, dob=dob,
+                    function='get_patient_search_results_with_tests', error=err)
         return False
 
 

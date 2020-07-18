@@ -40,7 +40,7 @@ def get_screen_flow_seq(group_code):
                     "patient-contact",
                     "patient-vitals",
                     "pre-existing-conditions",
-                    #"insurance-card",
+                    "insurance-card",
                     "consent",
                     "date",
                     "location",

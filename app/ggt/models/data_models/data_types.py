@@ -116,3 +116,17 @@ class ProviderUpdateAppointmentRequest(BaseModel):
 class ProviderLookupAppointmentRequest(BaseModel):
     appointment_id: str
     token: str
+
+
+class CcLoginRequest(BaseModel):
+    token: str
+
+class CcPatientSearchRequest(BaseModel):
+    auth_token: str
+    last_name: str
+    dob: str
+
+
+class CcTestLookupRequest(BaseModel):
+    auth_token: str
+    test_id: str

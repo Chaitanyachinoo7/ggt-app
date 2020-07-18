@@ -9,7 +9,7 @@ from fastapi.responses import StreamingResponse
 import uvicorn
 
 # local
-from ggt.routers import rt_redirect, rt_provider, rt_patient
+from ggt.routers import rt_redirect, rt_provider, rt_patient, rt_contact_center
 
 
 app = FastAPI()
@@ -51,6 +51,15 @@ app.include_router(
     rt_provider.router,
     prefix="/api/provider",
     tags=["Provider App"],
+    #dependencies=[Depends(get_token_header)],
+    responses={404: {"description": "Not found"}},
+)
+
+
+app.include_router(
+    rt_contact_center.router,
+    prefix="/api/cc",
+    tags=["Contact Center App"],
     #dependencies=[Depends(get_token_header)],
     responses={404: {"description": "Not found"}},
 )

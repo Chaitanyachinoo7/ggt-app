@@ -1,6 +1,6 @@
 app_name: COVID-19 Testing
 log_level: DEBUG
-base_url: https://start.GoGetTested.com
+base_url: https://start-dev.GoGetTested.com
 
 aws:
   region: us-east-1
@@ -12,7 +12,6 @@ databases:
     host: wh-mobile-test-1.clwbkkblucao.us-east-1.rds.amazonaws.com
     username: admin
     password: Test##Test123
-    password2: gvMBO96Ohbq3mwFp
     db: ggt
 
 twilio:
