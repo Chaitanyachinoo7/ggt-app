@@ -81,9 +81,21 @@ def bp_get_monthly_calendar(date, location_id):
         date_time_obj = datetime.datetime.strptime(date, '%Y-%m-%d')
         from_date = date_time_obj.date().replace(day=1)
         to_date = date_time_obj.date().replace(day=31)
-        return get_monthy_calendar(from_date, to_date, location_id)
-        # print(calendar_data)
-        
+        results = get_monthy_calendar(from_date, to_date, location_id)
+        # print(results)
+        response = []
+        for record in results:
+            # print(record)
+            appointment = {}
+            appointment['title'] = record['last_name'] + \
+                ", " + record['first_name']
+            appointment['start'] = record['scheduled_dt']
+            appointment['end'] = record['scheduled_dt'] + \
+                datetime.timedelta(minutes=10)
+            appointment['allDay'] = False
+            appointment['backgroundColor'] = "#3c8dbc"
+            response.append(appointment)
+        return response
     except Exception as err:
         log_generic(
             type="error",
@@ -141,7 +153,6 @@ def __next_action(appointment):
         'test_in_progress': 'end_test'
     }
     return switcher.get(appointment['status'], "")
-
 
 
 # TODO: Multilane printer setup
