@@ -85,12 +85,27 @@ def x_response(res, allow=True):
         log_generic(type="error", res=res, function="x_response", error=err)
     return failure_response()
 
+def y_response(res, allow=True):
+    try:
+        if allow and res:
+            return success_response_array(res)
+        
+    except Exception as err:
+        log_generic(type="error", res=res, function="y_response", error=err)
+    return failure_response()
 
 def success_response(kv=None):
     if kv is None or kv is True:
         kv = {}
     kv['status'] = 'success'
     return kv
+def success_response_array(kv=None):
+    if kv is None or kv is True:
+        kv = {}
+    res = {}
+    res['status'] = 'success'
+    res['results'] = kv
+    return res
 
 
 def failure_response(kv=None):

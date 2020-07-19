@@ -4,14 +4,16 @@ from ggt.models.data_models.data_types import (
     ProviderLoginRequest, 
     ProviderPatientCodeRequest, 
     ProviderUpdateAppointmentRequest, 
-    ProviderLookupAppointmentRequest
+    ProviderLookupAppointmentRequest,
+    ProviderGetMonthlyCalendarRequest
 )
 
 from ggt.models.workflow_models.provider_field_testing_flow import (
     provider_login, 
     provider_get_testing_locations, 
     provider_lookup_appointment, 
-    provider_update_appointment
+    provider_update_appointment,
+    provider_get_monthly_calendar
 )
 
 router = APIRouter()
@@ -42,3 +44,10 @@ async def api_provider_update_appointment(provider_update_appointment_request: P
             provider_update_appointment_request.auth_token, 
             provider_update_appointment_request.appointment_id, 
             provider_update_appointment_request.action)
+
+@router.post("/get_monthly_calendar")
+async def api_provider_get_monthly_calendar(provider_get_monthly_calendar_request: ProviderGetMonthlyCalendarRequest):
+    return provider_get_monthly_calendar(
+            provider_get_monthly_calendar_request.auth_token, 
+            provider_get_monthly_calendar_request.date, 
+            provider_get_monthly_calendar_request.location_id)
