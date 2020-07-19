@@ -47,6 +47,7 @@ async def api_provider_update_appointment(provider_update_appointment_request: P
 
 @router.post("/get_monthly_calendar")
 async def api_provider_get_monthly_calendar(provider_get_monthly_calendar_request: ProviderGetMonthlyCalendarRequest):
+    print(provider_get_monthly_calendar_request)
     return provider_get_monthly_calendar(
             provider_get_monthly_calendar_request.auth_token, 
             provider_get_monthly_calendar_request.date, 

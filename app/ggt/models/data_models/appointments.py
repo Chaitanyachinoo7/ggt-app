@@ -68,7 +68,7 @@ def get_appointment(appointment_id):
 def get_monthy_calendar(from_date, to_date, location_id):
     try:
         sql = """SELECT 
-                 * FROM appointments
+                 * FROM appointment_with_patient
                 WHERE
                     scheduled_dt between %s and %s
                     and location_id = %s
