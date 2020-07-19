@@ -91,8 +91,7 @@ def y_response(res, allow=True):
             return success_response_array(res)
         
     except Exception as err:
-        print(err)
-        # log_generic(type="error", res=res, function="y_response", error=err)
+        log_generic(type="error", res=res, function="y_response", error=err)
     return failure_response()
 
 def success_response(kv=None):
