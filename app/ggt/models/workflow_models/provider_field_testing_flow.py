@@ -1,6 +1,7 @@
 from ggt.lib.utils import (
     log_generic,
-    x_response
+    x_response,
+    y_response
 )
 
 from ggt.models.process_models.bp_appointments import (
@@ -56,7 +57,7 @@ def provider_update_appointment(auth_token, appointment_id, action):
 
 
 def provider_get_monthly_calendar(auth_token, date, location_id):
-    return x_response(
+    return y_response(
         bp_get_monthly_calendar(date, location_id),
         is_authenticated(auth_token)
     )
