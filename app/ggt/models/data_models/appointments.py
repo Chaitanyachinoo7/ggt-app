@@ -65,6 +65,23 @@ def get_appointment(appointment_id):
         return None
 
 
+def get_monthy_calendar(from_date, to_date, location_id):
+    try:
+        sql = """SELECT 
+                 * FROM appointments
+                WHERE
+                    scheduled_dt between %s and %s
+                    and location_id = %s
+                    """
+
+        val = (from_date, to_date, location_id)
+        return read_rows(sql, val)
+    except Exception as err:
+        log_generic(type="error", location_id=location_id, from_date=from_date, to_date=to_date,
+                    function='get_monthy_calendar', error=err)
+        return None
+
+
 def update_appointment_with_checkin(appointment_id):
     try:
         sql = """

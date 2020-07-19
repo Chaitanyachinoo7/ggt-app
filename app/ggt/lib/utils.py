@@ -82,7 +82,8 @@ def x_response(res, allow=True):
             return success_response(res)
         
     except Exception as err:
-        log_generic(type="error", res=res, function="x_response", error=err)
+        print(err)
+        # log_generic(type="error", res=res, function="x_response", error=err)
     return failure_response()
 
 

@@ -5,7 +5,8 @@ from ggt.lib.utils import (
 
 from ggt.models.process_models.bp_appointments import (
     bp_get_appointment_info,
-    bp_appointment_update
+    bp_appointment_update,
+    bp_get_monthly_calendar
 )
 
 # TODO: move this to a table for dynamic lookup
@@ -53,8 +54,17 @@ def provider_update_appointment(auth_token, appointment_id, action):
         is_authenticated(auth_token)
     )
 
+
+def provider_get_monthly_calendar(auth_token, date, location_id):
+    return x_response(
+        bp_get_monthly_calendar(date, location_id),
+        is_authenticated(auth_token)
+    )
+
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
+
+
 def is_authenticated(auth_token):
     return auth_token == ADMIN_TOKEN

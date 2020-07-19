@@ -113,6 +113,11 @@ class ProviderUpdateAppointmentRequest(BaseModel):
     auth_token: str
     action: str
 
+class ProviderGetMonthlyCalendarRequest(BaseModel):
+    date: str
+    auth_token: str
+    location_id: str
+
 class ProviderLookupAppointmentRequest(BaseModel):
     appointment_id: str
     token: str

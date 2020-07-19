@@ -7,9 +7,11 @@ from ggt.models.data_models.appointments import (
     update_appointment_with_checkin,
     update_appointment_with_test_start,
     update_appointment_with_test_completed,
+    get_monthy_calendar
 )
 
 from ggt.lib.sys_log import (write_syslog)
+import datetime
 '''
 from ggt.models.data_models.test_results import (
     update_appointment_with_checkin,
@@ -69,13 +71,35 @@ def bp_appointment_update(appointment_id, action):
             function='bp_get_appointment_info',
             error=err
         )
-    
+
     return False
 
 
-########################################################################################################
-# [Protected] functions
-########################################################################################################
+def bp_get_monthly_calendar(date, location_id):
+    try:
+        print(date, location_id)
+        date_time_obj = datetime.datetime.strptime(date, '%Y-%m-%d')
+        from_date = date_time_obj.date().replace(day=1)
+        to_date = date_time_obj.date().replace(day=31)
+        return get_monthy_calendar(from_date, to_date, location_id)
+        # print(calendar_data)
+        
+    except Exception as err:
+        log_generic(
+            type="error",
+            date=date,
+            location_id=location_id,
+            function='bp_get_monthly_calendar',
+            error=err
+        )
+
+        # return False
+
+        ########################################################################################################
+        # [Protected] functions
+        ########################################################################################################
+
+
 def __formatted_date_text(appointment):
     return appointment['scheduled_dt'].strftime("%a, %-d %b %Y @ %-I:%M %p")
 
@@ -117,9 +141,6 @@ def __next_action(appointment):
         'test_in_progress': 'end_test'
     }
     return switcher.get(appointment['status'], "")
-        
-
-
 
 
 
