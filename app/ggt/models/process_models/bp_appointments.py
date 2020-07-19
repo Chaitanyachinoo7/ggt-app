@@ -91,7 +91,7 @@ def bp_get_monthly_calendar(date, location_id):
                 ", " + record['first_name']
             appointment['start'] = record['scheduled_dt']
             appointment['end'] = record['scheduled_dt'] + \
-                datetime.timedelta(minutes=10)
+                datetime.timedelta(minutes=30)
             appointment['allDay'] = False
             appointment['backgroundColor'] = "#3c8dbc"
             response.append(appointment)
