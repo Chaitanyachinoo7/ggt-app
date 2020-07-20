@@ -51,7 +51,7 @@ def get_screen_flow_seq(group_code):
 def initiate_verification_flow(phone_number, with_otp=True):
     return x_response(
         bp_initiate_verification_flow(
-            phone_number, 
+            phone_number,
             with_otp
         )
     )
@@ -60,7 +60,7 @@ def initiate_verification_flow(phone_number, with_otp=True):
 def validate_phone_number(phone_number, otp):
     return x_response(
         bp_validate_phone_number(
-            phone_number, 
+            phone_number,
             otp
         )
     )
@@ -77,7 +77,7 @@ def get_schedule_dates_available(group_code='_DEFAULT_'):
 def get_schedule_locations_available(group_code, date):
     return x_response(
         bp_get_schedule_locations_available(
-            group_code, 
+            group_code,
             date
         )
     )
@@ -86,7 +86,7 @@ def get_schedule_locations_available(group_code, date):
 def get_schedule_times_available(location_id, date=date.today().strftime("%Y-%m-%d")):
     return x_response(
         bp_get_schedule_times_available(
-            location_id, 
+            location_id,
             date
         )
     )
@@ -103,7 +103,7 @@ def lookup_appointment(appointment_id):
 def lookup_test_result(token, dob):
     return x_response(
         bp_get_test_result(
-            token, 
+            token,
             dob
         )
     )
@@ -206,4 +206,3 @@ def finalize_registration(finalize_registration_request):
         }
     else:
         return {'status': 'failed'}
-

@@ -163,6 +163,47 @@ def bp_finalize_registration(data):
 
 
 
+def bp_finalize_booking(data):
+    try:
+        if __is_valid_token(data['token']):
+            data['patient_id'] = __create_patient_record(data)
+            if not data['patient_id']:
+                return False
+
+            data['patient_questionnaire_id'] = create_patient_questionnaire(data)
+            if not data['patient_questionnaire_id']:
+                return False
+
+            # generate appointment
+            appointment = generate_appointment(
+                                    data['time_slot'],  
+                                    data['patient_id'], 
+                                    data['patient_questionnaire_id'],
+                                    data['group_code'])
+
+            if not appointment['appointment_id']:
+                return False
+
+            # Business usecase override
+            send_sms = handle_action_schedule_and_print(
+                data['phone_number'], 
+                appointment['appointment_id'])
+            if send_sms:
+                result = __send_qrcode_sms(data['phone_number'], appointment['appointment_id'])
+
+            return {
+                'date': appointment['date_text'],
+                'location': appointment['location_text'],
+                'appointment_id': appointment['appointment_id']
+            }
+
+    except Exception as err:
+        log_generic(type="error", data=data, function='finalize_signup', error=err)
+    
+    return False
+
+
+
 # todo use appt id
 def __send_qrcode_sms(phone_number, appointment_id):
     message = "Click here for your Appointment Details\n {}/appointment/{}".format(

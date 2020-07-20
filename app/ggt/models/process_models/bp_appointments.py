@@ -216,15 +216,3 @@ def __appointment_begin_test(appointment_id, queue_id=1):
                     function='appointment_begin_test', error=err)
         write_syslog("print", "error", appointment_id)
         return False
-
-
-'''
-def begin_test(appointment_id, patient_id, patient_questionnaire_id, group_code, location_id):
-    __insert_record_test_samples(appointment_id, patient_id, patient_questionnaire_id, group_code, location_id)
-    return True
-
-
-def end_test(appointment_id):
-    #update = __update_test_sample_with_end(appointment_id)
-    return True
-'''
