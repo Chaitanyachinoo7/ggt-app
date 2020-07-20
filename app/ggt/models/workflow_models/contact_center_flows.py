@@ -1,11 +1,13 @@
 from ggt.lib.utils import (
     log_generic,
-    x_response
+    x_response,
+    y_response
 )
 
 from ggt.models.process_models.bp_contact_center_experience import (
     bp_cc_patient_search,
-    bp_cc_view_test_details
+    bp_cc_view_test_details,
+    bp_cc_patient_lookup
 )
 
 # TODO: move this to a table for dynamic lookup
@@ -15,6 +17,8 @@ ADMIN_TOKEN = "temptoken2020"
 # [Public] functions
 ########################################################################################################
 # TODO: return a token with claims
+
+
 def cc_login(auth_token):
     return x_response(
         {
@@ -27,12 +31,11 @@ def cc_login(auth_token):
 def cc_patient_search(auth_token, last_name, dob):
     return x_response(
         bp_cc_patient_search(
-            last_name, 
+            last_name,
             dob
         ),
         is_authenticated(auth_token)
     )
-
 
 
 def cc_view_test_details(auth_token, test_id):
@@ -42,10 +45,21 @@ def cc_view_test_details(auth_token, test_id):
         ),
         is_authenticated(auth_token)
     )
-    
+
+
+def cc_patient_lookup(fname, lname, dob):
+    print(fname)
+    return y_response(
+        bp_cc_patient_lookup(
+            fname, lname, dob
+        ),
+        True
+    )
 
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
+
+
 def is_authenticated(auth_token):
     return auth_token == ADMIN_TOKEN

@@ -82,6 +82,67 @@ def get_monthy_calendar(from_date, to_date, location_id):
         return None
 
 
+def positive_result_followup():
+    try:
+        sql = """SELECT 
+                    pos.patient_id,
+                    pos.test_id,
+                    pos.dob,
+                    pos.first_name, 
+                    pos.last_name, 
+                    pos.phone_number, 
+                    pos.email,
+                    pat.gender,
+                    pat.addr1,
+                    patq.heart_disease,
+                    patq.diabetes,
+                    patq.respiratory_diseases,
+                    patq.autoimmune_disease,
+                    patq.other_chronic,
+                    patq.allergies,
+                    patq.prescription_use,
+                    patq.symptom_fever,
+                    patq.symptom_shortness_breath,
+                    patq.symptom_cough,
+                    patq.symptom_chest_pain,
+                    patq.symptom_lack_of_smell,
+                    patq.symptom_lack_of_smell,
+                    patq.symptom_other_breathing,
+                    patq.covid_contact
+                FROM
+                    positive_result_followup_queue pos
+                INNER JOIN patients pat
+                    ON pos.patient_id = pat.id
+                INNER JOIN patient_questionnaires patq
+                    ON patq.patient_id = pat.id
+                WHERE
+                    overall_status = %s LIMIT 1
+                    """
+
+        val = ("scheduled",)
+        return read_row(sql, val)
+    except Exception as err:
+        log_generic(type="error", location_id=None,
+                    function='get_monthy_calendar', error=err)
+        return None
+
+
+def update_positive_result_followup(id, datetime):
+    try:
+        sql = """UPDATE positive_result_followup_queue
+                 SET overall_status = %s, update_dt = %s
+                WHERE
+                    test_id = %s
+                    """
+
+        val = ("pending", datetime, id)
+        return exec_update(sql, val)
+    except Exception as err:
+        log_generic(type="error", location_id=None,
+                    function='get_monthy_calendar', error=err)
+        return None
+
+
 def update_appointment_with_checkin(appointment_id):
     try:
         sql = """
@@ -127,7 +188,7 @@ def update_appointment_with_test_completed(appointment_id):
                     status = 'test_completed'
                 WHERE
                     id = %s
-        """
+            """
         val = (appointment_id,)
         return exec_update(sql, val)
     except Exception as err:
