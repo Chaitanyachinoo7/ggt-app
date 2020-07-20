@@ -7,7 +7,9 @@ from ggt.models.data_models.appointments import (
     update_appointment_with_checkin,
     update_appointment_with_test_start,
     update_appointment_with_test_completed,
-    get_monthy_calendar
+    get_monthy_calendar,
+    positive_result_followup,
+    update_positive_result_followup
 )
 
 from ggt.lib.sys_log import (write_syslog)
@@ -102,6 +104,33 @@ def bp_get_monthly_calendar(date, location_id):
             date=date,
             location_id=location_id,
             function='bp_get_monthly_calendar',
+            error=err
+        )
+
+
+def bp_provider_positive_result_followup():
+    try:
+        results = positive_result_followup()
+        update_positive_result_followup(results['test_id'], datetime.datetime.now())
+        # print(results)
+        # response = []
+        # for record in results:
+        #     # print(record)
+        #     appointment = {}
+        #     appointment['title'] = record['last_name'] + \
+        #         ", " + record['first_name']
+        #     appointment['start'] = record['scheduled_dt']
+        #     appointment['end'] = record['scheduled_dt'] + \
+        #         datetime.timedelta(minutes=10)
+        #     appointment['allDay'] = False
+        #     appointment['backgroundColor'] = "#3c8dbc"
+        #     response.append(appointment)
+        return results
+    except Exception as err:
+        log_generic(
+            type="error",
+            location_id="",
+            function='bp_provider_positive_result_followup',
             error=err
         )
 

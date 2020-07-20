@@ -66,6 +66,22 @@ def get_test_details(test_id):
         return False
 
 
+def cc_patient_lookup(fname, lname, dob):
+    try:
+        sql = """
+            SELECT * FROM detailed_test_results where first_name = %s 
+            AND last_name= %s 
+            AND dob = %s
+            """
+        val = (fname, lname, dob)
+        return read_rows(sql, val)
+
+    except Exception as err:
+        log_generic(type="error", fname=fname, lname=lname, dob=lname,
+                    function='cc_patient_lookup', error=err)
+        return False
+
+
 def search_tested_patients(last_name, dob):
     try:
         sql = """
