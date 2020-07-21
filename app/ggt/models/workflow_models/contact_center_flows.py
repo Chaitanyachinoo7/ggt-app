@@ -47,11 +47,11 @@ def cc_view_test_details(auth_token, test_id):
     )
 
 
-def cc_patient_lookup(fname, lname, dob):
-    print(fname)
+def cc_patient_lookup(lname, dob):
+    print(lname)
     return y_response(
         bp_cc_patient_lookup(
-            fname, lname, dob
+            lname, dob
         ),
         True
     )

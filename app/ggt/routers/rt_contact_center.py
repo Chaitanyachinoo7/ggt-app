@@ -3,7 +3,8 @@ from fastapi import APIRouter, Request
 from ggt.models.data_models.data_types import (
     CcLoginRequest,
     CcPatientSearchRequest,
-    CcTestLookupRequest
+    CcTestLookupRequest,
+    CcPatientLookupRequest
 )
 
 from ggt.models.workflow_models.contact_center_flows import (
@@ -39,20 +40,21 @@ async def api_cc_view_test_details(cc_test_lookup_request: CcTestLookupRequest):
     )
 
 
-@router.get("/patient_lookup")
-async def api_cc_patient_lookup(request: Request):
-    print(request)
+@router.post("/patient_lookup")
+async def api_cc_patient_lookup(patient_lookup_request: CcPatientLookupRequest):
+    print(patient_lookup_request.lname)
+    print(patient_lookup_request.dob)
+
     return cc_patient_lookup(
-        request.headers['fname'], request.headers['lname'], request.headers['dob']
+        patient_lookup_request.lname, patient_lookup_request.dob
     )
 
 
-@router.get("/sendsms")
-async def api_cc_send_sms(request: Request):
+@router.post("/sendsms")
+async def api_cc_send_sms(patient_lookup_request: CcPatientLookupRequest):
     try:
-        print(request)
         search_result = cc_patient_lookup(
-            request.headers['fname'], request.headers['lname'], request.headers['dob']
+            patient_lookup_request.lname, patient_lookup_request.dob
         )
         print(search_result)
         if search_result['status'] == "success" and search_result['results'][0]['test_result'] == "neg":

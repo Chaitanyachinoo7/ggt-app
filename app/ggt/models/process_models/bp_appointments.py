@@ -9,7 +9,9 @@ from ggt.models.data_models.appointments import (
     update_appointment_with_test_completed,
     get_monthy_calendar,
     positive_result_followup,
-    update_positive_result_followup
+    update_positive_result_followup,
+    get_user_role,
+    get_test_results
 )
 
 from ggt.lib.sys_log import (write_syslog)
@@ -111,20 +113,8 @@ def bp_get_monthly_calendar(date, location_id):
 def bp_provider_positive_result_followup():
     try:
         results = positive_result_followup()
-        update_positive_result_followup(results['test_id'], datetime.datetime.now())
-        # print(results)
-        # response = []
-        # for record in results:
-        #     # print(record)
-        #     appointment = {}
-        #     appointment['title'] = record['last_name'] + \
-        #         ", " + record['first_name']
-        #     appointment['start'] = record['scheduled_dt']
-        #     appointment['end'] = record['scheduled_dt'] + \
-        #         datetime.timedelta(minutes=10)
-        #     appointment['allDay'] = False
-        #     appointment['backgroundColor'] = "#3c8dbc"
-        #     response.append(appointment)
+        update_positive_result_followup(
+            results['test_id'], datetime.datetime.now())
         return results
     except Exception as err:
         log_generic(
@@ -134,6 +124,29 @@ def bp_provider_positive_result_followup():
             error=err
         )
 
+
+def bp_get_user_role(email):
+    try:
+        return get_user_role(email)
+    except Exception as err:
+        log_generic(
+            type="error",
+            email=email,
+            function='bp_get_user_role',
+            error=err
+        )
+
+
+def bp_get_test_results():
+    try:
+        return get_test_results()
+    except Exception as err:
+        log_generic(
+            type="error",
+            email="",
+            function='bp_get_test_results',
+            error=err
+        )
         # return False
 
         ########################################################################################################

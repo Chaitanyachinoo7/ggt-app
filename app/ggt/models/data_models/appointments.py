@@ -127,6 +127,51 @@ def positive_result_followup():
         return None
 
 
+def get_user_role(email):
+    try:
+        sql = """SELECT role 
+                FROM users 
+                WHERE
+                    email = %s
+                    """
+
+        val = (email,)
+        return read_row(sql, val)
+    except Exception as err:
+        log_generic(type="error", email=email,
+                    function='get_user_role', error=err)
+        return None
+
+
+def get_test_results():
+    try:
+        sql = """SELECT 
+                    pos.id as patient_id,
+                    ts.id as test_id,
+                    pos.dob,
+                    pos.first_name, 
+                    pos.last_name, 
+                    pos.phone_number, 
+                    pos.email,
+                    pat.gender,
+                    pat.addr1,
+                    ts.test_result,
+                    ts.status
+                FROM
+                    ggt_dev.patients pos
+                INNER JOIN ggt_dev.patients pat
+                    ON pos.id = pat.id
+                INNER JOIN ggt_dev.test_samples ts
+                    ON pos.id = ts.patient_id
+                    """
+        # val = ()
+        return read_rows(sql, )
+    except Exception as err:
+        log_generic(type="error", location_id=None,
+                    function='get_monthy_calendar', error=err)
+        return None
+
+
 def update_positive_result_followup(id, datetime):
     try:
         sql = """UPDATE positive_result_followup_queue

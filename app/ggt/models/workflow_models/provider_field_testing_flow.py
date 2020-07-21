@@ -9,7 +9,9 @@ from ggt.models.process_models.bp_appointments import (
     bp_appointment_update,
     bp_get_monthly_calendar,
     bp_get_monthly_calendar,
-    bp_provider_positive_result_followup
+    bp_provider_positive_result_followup,
+    bp_get_user_role,
+    bp_get_test_results
 )
 
 # TODO: move this to a table for dynamic lookup
@@ -70,6 +72,12 @@ def provider_positive_result_followup():
     return bp_provider_positive_result_followup()
     # is_authenticated(auth_token)
     # )
+
+def provider_get_user_role(email):
+    return bp_get_user_role(email)
+
+def provider_get_test_results():
+    return bp_get_test_results()
 
 ########################################################################################################
 # [Protected] functions
