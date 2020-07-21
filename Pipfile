@@ -25,6 +25,7 @@ sendgrid = "*"
 openpyxl = "*"
 faker = "*"
 paramiko = "*"
+requests = "*"
 
 [requires]
 python_version = "3.7"
