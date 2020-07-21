@@ -1,3 +1,5 @@
+import requests
+
 from ggt.lib.utils import (
     get_config_val,
     generate_otp,
@@ -23,7 +25,10 @@ from ggt.models.data_models.questionnaires import (
 )
 
 from ggt.models.data_models.appointments import (
-    create_appointment
+    get_appointment,
+    update_appointment_with_confirmed_scheduled,
+    create_appointment,
+    update_appointment_with_receipt_token
 )
 
 from ggt.models.data_models.locations import (
@@ -157,7 +162,7 @@ def bp_finalize_registration(data):
             }
 
     except Exception as err:
-        log_generic(type="error", data=data, function='finalize_signup', error=err)
+        log_generic(type="error", data=data, function='bp_finalize_registration', error=err)
     
     return False
 
@@ -184,23 +189,95 @@ def bp_finalize_booking(data):
             if not appointment['appointment_id']:
                 return False
 
-            # Business usecase override
-            send_sms = handle_action_schedule_and_print(
-                data['phone_number'], 
-                appointment['appointment_id'])
-            if send_sms:
-                result = __send_qrcode_sms(data['phone_number'], appointment['appointment_id'])
+            wp_customer = __create_wp_customer(data)
+            billed_amount = 7000 #TODO: get this from???
+            total_cost = 17500
+            wp_bill = __create_wp_bill(
+                        wp_customer['customer_info_id'], 
+                        billed_amount, appointment['appointment_id'])
 
-            return {
-                'date': appointment['date_text'],
-                'location': appointment['location_text'],
-                'appointment_id': appointment['appointment_id']
-            }
+            if update_appointment_with_receipt_token(
+                        wp_bill['receipt_token'], 
+                        wp_customer['customer_info_id'],
+                        appointment['appointment_id']):
+                return {
+                    'date': appointment['date_text'],
+                    'location': appointment['location_text'],
+                    'appointment_id': appointment['appointment_id'],
+                    'total_balance': billed_amount,
+                    'total_cost': total_cost,
+                    'payment_url': wp_bill['url']
+                }
 
     except Exception as err:
-        log_generic(type="error", data=data, function='finalize_signup', error=err)
+        log_generic(type="error", data=data, function='bp_finalize_booking', error=err)
     
     return False
+
+
+
+def __create_wp_customer(data):
+    url = "{}/customers".format(get_config_val('vendors.wellpay.endpoint'))
+    headers = {
+        'Authorization': 'Bearer {}'.format(get_config_val('vendors.wellpay.auth_token')),
+        'Content-Type': 'application/json'
+    }
+    payload = {
+        "date_of_birth": data["dob"],
+        "email": data["email"],
+        "first_name": data["first_name"],
+        "last_name": data["last_name"],
+        "phone": data["phone_number"],
+        "street_address": data["address"],
+        "city": data["city"],
+        "state": data["st"],
+        "zip_code": data["zip"]
+    }
+    r = requests.post(url, headers=headers, json=payload)
+    return r.json()
+
+
+
+
+def __create_wp_bill(customer_info_id, billed_amount, appointment_id):
+    url = "{}/bills".format(get_config_val('vendors.wellpay.endpoint'))
+    headers = {
+        'Authorization': 'Bearer {}'.format(get_config_val('vendors.wellpay.auth_token')),
+        'Content-Type': 'application/json'
+    }
+    payload = {
+        "customer_info_id": customer_info_id,
+        "staged": "true",
+        "billed_amount": billed_amount,
+        "external_bill_id": appointment_id,
+        "onSuccess": "{}/appointment/{}/pay/success".format(get_config_val('base_url'), appointment_id),
+        "onFailure": "{}/appointment/{}/pay/error".format(get_config_val('base_url'), appointment_id),
+    }
+    r = requests.post(url, headers=headers, json=payload)
+    return r.json()
+
+
+def bp_finalize_payment(appointment_id, wp_receipt_token):
+    try:
+        appointment = get_appointment(appointment_id)
+        if appointment['wp_receipt_token']==wp_receipt_token:
+            update_appointment_with_confirmed_scheduled(appointment_id)
+            result = __send_qrcode_sms(
+                        appointment['phone_number'], 
+                        appointment_id)
+            return True
+
+    except Exception as err:
+        log_generic(
+            type="error",
+            appointment_id=appointment_id,
+            wp_receipt_token=wp_receipt_token,
+            function='bp_finalize_payment',
+            error=err
+        )
+    
+    return False
+    
 
 
 

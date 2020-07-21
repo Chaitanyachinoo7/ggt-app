@@ -6,13 +6,14 @@ aws:
   region: us-east-1
   access_key_id: AKIAIWUMFU2SPDC7KBAQ
   secret_access_key: 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
+  sqs_print_queue_base_url: https://sqs.us-east-1.amazonaws.com/343550539982/ggt-print-queue
 
 databases:
   mysql:
-    host: wh-mobile-test-1.clwbkkblucao.us-east-1.rds.amazonaws.com
-    username: admin
-    password: Test##Test123
-    db: ggt
+    host: 35.184.98.83
+    username: root
+    password: Jr6EEMI2aBNguL1K
+    db: ggt_dev  
 
 twilio:
     account_sid: AC9cef9b4155030ee2683281ccc72d4001
@@ -26,10 +27,18 @@ email:
   template_folder: /templates/email/
   
 vendors:
-  healthtracrx:
-    ftp_server: sftp.healthtracrx.com
+  healthtrackrx:
+    hostname: sftp.healthtrackrx.com
     username: wellpay
     password: 9cTE3fh@8H
+    port: 22
+    remote_folder: /Reports
+    download_path: /tmp/ggt-tasks
+
+  wellpay:
+    endpoint: https://api-dev.getwellpay.com/api/public/v1
+    auth_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJob3N0IjoiYXBpLWRldi5nZXR3ZWxscGF5LmNvbSIsImV4cCI6MTYxMDkxMDkwNy4yNTUsImV4dGVybmFsX2tleSI6dHJ1ZSwicm9sZSI6InByb3ZpZGVyIiwicHJvdmlkZXJfaWQiOiIyNTAiLCJpYXQiOjE1OTUwMTMzMDcsImp0aSI6IjAxMjdkZWEzLTJjZWEtNGYwNC04ZjJlLWRhYzBiNWZhZjYyOSJ9.SGpt7I3M_eSHdUted22eT7wN-L-4_3Dd0oR2duO8FSA
+    
 
 pfe:
   signup:

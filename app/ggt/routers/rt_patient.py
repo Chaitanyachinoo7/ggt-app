@@ -6,7 +6,8 @@ from fastapi import APIRouter, Request
 from ggt.models.data_models.data_types import (
     ValidateOtpRequest,
     VerifyPhoneRequest,
-    FinalizeRegistrationRequest
+    FinalizeRegistrationRequest,
+    FinalizePaymentRequest
 )
 
 from ggt.models.workflow_models.patient_test_scheduling_flow import (
@@ -14,6 +15,7 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
     initiate_verification_flow,
     validate_phone_number,
     finalize_registration,
+    finalize_payment,
     get_schedule_dates_available,
     get_schedule_times_available,
     get_schedule_locations_available,
@@ -68,6 +70,11 @@ async def api_get_available_times_for_today(location_id: str):
 @router.post("/finalize_registration")
 async def api_finalize_registration(finalize_registration_request: FinalizeRegistrationRequest):
     return finalize_registration(finalize_registration_request)
+
+
+@router.post("/finalize_payment")
+async def api_finalize_payment(finalize_payment_request: FinalizePaymentRequest):
+    return finalize_payment(finalize_payment_request)
 
 
 @router.get("/lookup_appointment/{appointment_id}")

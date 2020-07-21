@@ -25,9 +25,9 @@ def task_process_inbound_lab_reports():
         task_session_id=session_id, 
         info='Begin Processing Inbound Lab Reports')
         
-    #download_ftp_files()
-    #parse_csv_files()
-    #update_test_samples_with_results()
+    download_ftp_files()
+    parse_csv_files()
+    update_test_samples_with_results()
 
     log_generic(
         type="info", 

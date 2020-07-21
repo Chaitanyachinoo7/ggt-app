@@ -1,5 +1,6 @@
 from ggt.lib.utils import (
-    log_generic
+    log_generic,
+    get_config_val
 )
 
 from ggt.models.data_models.appointments import (
@@ -29,15 +30,18 @@ from ggt.models.data_models.test_results import (
 def bp_get_appointment_info(appointment_id):
     try:
         appointment = get_appointment(appointment_id)
-        return {
-            "appointment_id": appointment_id,
-            "date": __formatted_date_text(appointment),
-            "location": __formatted_location_text(appointment),
-            "patient_dob": __formatted_patient_dob(appointment),
-            "patient_name": __formatted_patient_name(appointment),
-            "patient_address": __formatted_patient_address(appointment),
-            "next_action": __next_action(appointment)
-        }
+        if appointment['status']=='pending':
+            return False
+        else:
+            return {
+                "appointment_id": appointment_id,
+                "date": __formatted_date_text(appointment),
+                "location": __formatted_location_text(appointment),
+                "patient_dob": __formatted_patient_dob(appointment),
+                "patient_name": __formatted_patient_name(appointment),
+                "patient_address": __formatted_patient_address(appointment),
+                "next_action": __next_action(appointment)
+            }
     except Exception as err:
         log_generic(
             type="error",
@@ -45,22 +49,22 @@ def bp_get_appointment_info(appointment_id):
             function='bp_get_appointment_info',
             error=err
         )
-        return False
+    
+    return False
 
 
-def bp_appointment_update(appointment_id, action):
+def bp_appointment_update(appointment_id, action, workstation_id):
     try:
         appointment = get_appointment(appointment_id)
 
         if action == 'checkin' or action == 'check_in':
             update_appointment_with_checkin(appointment_id)
         elif action == 'start_test':
-            __appointment_begin_test(appointment_id)
+            __appointment_begin_test(appointment_id, workstation_id)
         elif action == 'end_test':
             update_appointment_with_test_completed(appointment_id)
         elif action == 'reprint':
-            # TODO: Handle reprint request
-            pass
+            __appointment_begin_test(appointment_id, workstation_id)
 
         return {
             'appointment_id': appointment_id,
@@ -169,10 +173,7 @@ def __formatted_patient_name(appointment):
 
 def __formatted_patient_dob(appointment):
     dob = appointment['dob']
-    if len(dob) == 8:
-        return "{}/{}/{}".format(dob[0:2], dob[2:4], dob[4:8])
-    else:
-        return "{}/{}/19{}".format(dob[0:2], dob[2:4], dob[4:6])
+    return dob.strftime("%m/%d/%Y")
 
 
 def __next_action(appointment):
@@ -201,8 +202,7 @@ def __appointment_begin_test(appointment_id, queue_id=1):
                                           appointment['first_name'],
                                           appointment['middle_name'],
                                           )
-
-        # TODO: Dynamic queue mamagement
+        '''TODO: Remove after validation
         # have a group code
         if appointment['group_code'] != "":
             queue_id = 3
@@ -213,6 +213,8 @@ def __appointment_begin_test(appointment_id, queue_id=1):
             queue_url = 'https://sqs.us-east-1.amazonaws.com/343550539982/ggt-print-queue-2'
         elif queue_id == 3:
             queue_url = 'https://sqs.us-east-1.amazonaws.com/343550539982/ggt-print-queue-3'
+        '''
+        queue_url = "{}-{}".format(get_config_val('aws.sqs_print_queue_base_url'), queue_id)
 
         write_syslog("print", "info", appointment_id)
 
@@ -220,7 +222,7 @@ def __appointment_begin_test(appointment_id, queue_id=1):
         payload = {
             "barcode_text": "{}".format(appointment_id),
             "name_text": patient_name,
-            "dob_text": appointment['dob'],
+            "dob_text": appointment['dob'].strftime("%m/%d/%Y"),
             "timestamp_text": date_text
         }
 
@@ -242,6 +244,6 @@ def __appointment_begin_test(appointment_id, queue_id=1):
 
     except Exception as err:
         log_generic(type="error", appointment_id=appointment_id,
-                    function='appointment_begin_test', error=err)
+                    function='__appointment_begin_test', error=err)
         write_syslog("print", "error", appointment_id)
         return False

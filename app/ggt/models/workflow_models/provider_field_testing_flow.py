@@ -30,13 +30,45 @@ def provider_login(auth_token):
 
 
 # TODO: return a dynamic list
-def provider_get_testing_locations(auth_token):
+def provider_get_workstations(auth_token):
     return x_response(
         {
-            'locations': [
+            'workstations': [
                 {
                     'id': 1,
-                    'label': 'Location X - Lane A'
+                    'label': 'METOHH1'
+                },
+                {
+                    'id': 2,
+                    'label': '0VPPP27'
+                },
+                {
+                    'id': 3,
+                    'label': '8B1I13S'
+                },
+                {
+                    'id': 4,
+                    'label': 'ARU68PR'
+                },
+                {
+                    'id': 5,
+                    'label': 'FLHRMLA'
+                },
+                {
+                    'id': 6,
+                    'label': 'J6M77BH'
+                },
+                {
+                    'id': 7,
+                    'label': 'OKQHIA1'
+                },
+                {
+                    'id': 8,
+                    'label': 'UNLL4LH'
+                },
+                {
+                    'id': 9,
+                    'label': 'LDAPD2UK'
                 }
             ]
         },
@@ -51,9 +83,9 @@ def provider_lookup_appointment(auth_token, appointment_id):
     )
 
 
-def provider_update_appointment(auth_token, appointment_id, action):
+def provider_update_appointment(auth_token, appointment_id, action, workstation_id):
     return x_response(
-        bp_appointment_update(appointment_id, action),
+        bp_appointment_update(appointment_id, action, workstation_id),
         is_authenticated(auth_token)
     )
 

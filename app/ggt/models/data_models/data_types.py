@@ -72,6 +72,7 @@ class FinalizeRegistrationRequest(BaseModel):
     patientContact: PatientContact
     patientVitals: PatientVitals
     preExistingConditions: PreExistingConditions
+    insurancePhoto: Optional[str] = None
     consent: Consent
     date: Optional[str] = None
     location: Optional[int] = None
@@ -112,6 +113,7 @@ class ProviderUpdateAppointmentRequest(BaseModel):
     appointment_id: str
     auth_token: str
     action: str
+    workstation_id: int
 
 class ProviderGetMonthlyCalendarRequest(BaseModel):
     date: str
@@ -135,3 +137,7 @@ class CcPatientSearchRequest(BaseModel):
 class CcTestLookupRequest(BaseModel):
     auth_token: str
     test_id: str
+
+class FinalizePaymentRequest(BaseModel):
+    appointment_id: str
+    receipt_token: str
