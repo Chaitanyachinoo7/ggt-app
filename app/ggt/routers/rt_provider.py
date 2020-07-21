@@ -89,10 +89,10 @@ async def get_user_role(user_role_request: UserRoleRequest, request: Request, re
 
 @router.post("/get_admin_test_results")
 async def get_test_results(request: Request, response: Response):
-    # if(verify_google_idtoken(request.headers['Authorization'])):
-    return provider_get_test_results(
-    )
-    # else:
-    #     return {
-    #         response.status_code: status.HTTP_401_UNAUTHORIZED
-    #     }
+    if(verify_google_idtoken(request.headers['Authorization'])):
+        return provider_get_test_results(
+        )
+    else:
+        return {
+            response.status_code: status.HTTP_401_UNAUTHORIZED
+        }
