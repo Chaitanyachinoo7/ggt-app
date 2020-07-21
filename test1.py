@@ -23,3 +23,10 @@ with pysftp.Connection(host, username=username, password=password, cnopts=cnopts
 
 '''
 
+import base64
+
+with open("/Users/suresh/Downloads/xxxxx.txt", 'r') as file:
+    data = file.read()
+
+with open("imageToSave.png", "wb") as fh:
+    fh.write(base64.decodebytes(data))

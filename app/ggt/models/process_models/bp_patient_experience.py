@@ -189,6 +189,17 @@ def bp_finalize_booking(data):
             if not appointment['appointment_id']:
                 return False
 
+
+            '''
+            # Business usecase override
+            send_sms = handle_action_schedule_and_print(
+                data['phone_number'], 
+                appointment['appointment_id'])
+            if send_sms:
+                result = __send_qrcode_sms(data['phone_number'], appointment['appointment_id'])
+            '''
+                
+
             wp_customer = __create_wp_customer(data)
             billed_amount = 7000 #TODO: get this from???
             total_cost = 17500
@@ -208,6 +219,8 @@ def bp_finalize_booking(data):
                     'total_cost': total_cost,
                     'payment_url': wp_bill['url']
                 }
+
+                
 
     except Exception as err:
         log_generic(type="error", data=data, function='bp_finalize_booking', error=err)

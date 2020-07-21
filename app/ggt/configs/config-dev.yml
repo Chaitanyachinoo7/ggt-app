@@ -13,7 +13,7 @@ databases:
     host: 35.184.98.83
     username: root
     password: Jr6EEMI2aBNguL1K
-    db: ggt_dev  
+    db: ggt_dev
 
 twilio:
     account_sid: AC9cef9b4155030ee2683281ccc72d4001
