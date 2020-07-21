@@ -161,10 +161,10 @@ def get_test_results():
                     ts.test_result,
                     ts.status
                 FROM
-                    ggt_dev.patients pos
-                INNER JOIN ggt_dev.patients pat
+                    patients pos
+                INNER JOIN patients pat
                     ON pos.id = pat.id
-                INNER JOIN ggt_dev.test_samples ts
+                INNER JOIN test_samples ts
                     ON pos.id = ts.patient_id
                     """
         return read_rows(sql, )
