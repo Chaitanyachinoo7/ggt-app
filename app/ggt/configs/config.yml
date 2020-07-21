@@ -10,11 +10,10 @@ aws:
 
 databases:
   mysql:
-    host: wh-mobile-test-1.clwbkkblucao.us-east-1.rds.amazonaws.com
-    username: admin
-    password: Test##Test123
-    password2: gvMBO96Ohbq3mwFp
-    db: ggt
+    host: "35.184.98.83"
+    username: root
+    password: "Jr6EEMI2aBNguL1K"
+    db: ggt_dev
 
 twilio:
     account_sid: AC9cef9b4155030ee2683281ccc72d4001

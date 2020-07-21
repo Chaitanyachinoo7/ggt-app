@@ -25,11 +25,10 @@ def bp_cc_view_test_details(test_id):
     }
 
 
-def bp_cc_patient_lookup(fname, lname, dob):
+def bp_cc_patient_lookup(lname, dob):
     try:
-        dob = str(dob).split("-")
-        formatted_dob = dob[1]+"/" + dob[2] + "/"+dob[0]
-        rows = cc_patient_lookup(fname, lname, formatted_dob)
+        print(lname)
+        rows = cc_patient_lookup(lname, dob)
         result = ""
         if rows[0]['test_result'] == "pos" or rows[0]['test_result'] == "neg":
                 result = "Received"

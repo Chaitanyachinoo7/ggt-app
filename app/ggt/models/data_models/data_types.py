@@ -9,7 +9,7 @@ class VerifyPhoneRequest(BaseModel):
 class ValidateOtpRequest(BaseModel):
     phone_number: str
     otp: str
-    
+
 
 class Symptoms(BaseModel):
     symptom_fever: bool
@@ -115,10 +115,16 @@ class ProviderUpdateAppointmentRequest(BaseModel):
     action: str
     workstation_id: int
 
+
+class UserRoleRequest(BaseModel):
+    email: str
+
+
 class ProviderGetMonthlyCalendarRequest(BaseModel):
     date: str
     auth_token: str
     location_id: str
+
 
 class ProviderLookupAppointmentRequest(BaseModel):
     appointment_id: str
@@ -127,6 +133,7 @@ class ProviderLookupAppointmentRequest(BaseModel):
 
 class CcLoginRequest(BaseModel):
     token: str
+
 
 class CcPatientSearchRequest(BaseModel):
     auth_token: str
@@ -138,6 +145,13 @@ class CcTestLookupRequest(BaseModel):
     auth_token: str
     test_id: str
 
+
+class CcPatientLookupRequest(BaseModel):
+    lname: str
+    dob: str
+
+      
 class FinalizePaymentRequest(BaseModel):
     appointment_id: str
     receipt_token: str
+
