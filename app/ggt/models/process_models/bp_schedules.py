@@ -7,7 +7,8 @@ from ggt.models.data_models.schedules import (
     get_available_dates,
     get_available_locations,
     get_available_times,
-    get_slot_information
+    get_slot_information,
+    get_schedule_generation_rules_by_location_id
 )
 
 ########################################################################################################
@@ -85,6 +86,53 @@ def bp_get_schedule_times_available(location_id, date):
     return {
         "available_times": available_times
     }
+
+
+
+
+
+def generate_full_schedule(location_id, start_date, day_count):
+    try:
+        record = get_schedule_generation_rules_by_location_id(location_id)
+        if(record):
+            sun = True if record['sun'] else False
+            mon = True if record['mon'] else False
+            tue = True if record['tue'] else False
+            wed = True if record['wed'] else False
+            thu = True if record['thu'] else False
+            fri = True if record['fri'] else False
+            sat = True if record['sat'] else False
+
+            start_date = record['active_start_dt']
+            end_date = record['active_end_dt']
+            start_time = record['start_time']
+            end_time = record['end_time']
+
+            slot_increment = record['slot_increment'] * 60
+            slot_multiplier = record['slot_multiplier']
+
+            start_time = datetime.datetime(2020,7,20,9,0,0)
+            end_time = datetime.datetime(2020,7,20,16,0,0)
+
+            curr_time = start_time
+
+            while curr_time < end_time:
+                for x in range(slot_multiplier):
+                    print(curr_time)
+
+            curr_time = curr_time + datetime.timedelta(0,slot_increment)
+
+    except Exception as err:
+        log_generic(type="error", 
+                location_id=location_id, 
+                start_date=start_date, 
+                day_count=day_count,
+                function='generate_full_schedule', 
+                error=err)
+    
+    return False
+
+
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################

@@ -9,6 +9,8 @@ from ggt.models.process_models.bp_patient_experience import (
     bp_initiate_verification_flow,
     bp_validate_phone_number,
     bp_finalize_registration,
+    bp_finalize_booking,
+    bp_finalize_payment,
     bp_get_test_result
 )
 
@@ -51,7 +53,7 @@ def get_screen_flow_seq(group_code):
 def initiate_verification_flow(phone_number, with_otp=True):
     return x_response(
         bp_initiate_verification_flow(
-            phone_number, 
+            phone_number,
             with_otp
         )
     )
@@ -60,7 +62,7 @@ def initiate_verification_flow(phone_number, with_otp=True):
 def validate_phone_number(phone_number, otp):
     return x_response(
         bp_validate_phone_number(
-            phone_number, 
+            phone_number,
             otp
         )
     )
@@ -77,7 +79,7 @@ def get_schedule_dates_available(group_code='_DEFAULT_'):
 def get_schedule_locations_available(group_code, date):
     return x_response(
         bp_get_schedule_locations_available(
-            group_code, 
+            group_code,
             date
         )
     )
@@ -86,7 +88,7 @@ def get_schedule_locations_available(group_code, date):
 def get_schedule_times_available(location_id, date=date.today().strftime("%Y-%m-%d")):
     return x_response(
         bp_get_schedule_times_available(
-            location_id, 
+            location_id,
             date
         )
     )
@@ -103,10 +105,20 @@ def lookup_appointment(appointment_id):
 def lookup_test_result(token, dob):
     return x_response(
         bp_get_test_result(
-            token, 
+            token,
             dob
         )
     )
+
+def finalize_payment(finalize_payment_request):
+    appointment_id = finalize_payment_request.appointment_id
+    wp_receipt_token = finalize_payment_request.receipt_token
+
+    if bp_finalize_payment(appointment_id, wp_receipt_token):
+        return {"status": "success"}
+    else:
+        return {'status': 'failed'}
+
 
 
 def finalize_registration(finalize_registration_request):
@@ -129,7 +141,7 @@ def finalize_registration(finalize_registration_request):
     ethnicity = finalize_registration_request.ethnicity
     race = finalize_registration_request.race
 
-    #register_for = finalize_registration_request.register_for
+    is_patient = finalize_registration_request.isPatient
     group_code = finalize_registration_request.groupCode
     symptom_fever = finalize_registration_request.symptoms.symptom_fever
 
@@ -148,6 +160,8 @@ def finalize_registration(finalize_registration_request):
     other_chronic_disease = finalize_registration_request.preExistingConditions.other_chronic_disease
     allergies = finalize_registration_request.preExistingConditions.allergies
     signature = finalize_registration_request.consent.full_name
+
+    insurance_photo = finalize_registration_request.insurancePhoto
 
     date = finalize_registration_request.date
     location = finalize_registration_request.location
@@ -171,7 +185,7 @@ def finalize_registration(finalize_registration_request):
         'zip': zip,
         'email': email,
 
-        # 'register_for' : register_for,
+        'is_patient': is_patient,
         'group_code': group_code.upper(),
 
         'symptom_fever': symptom_fever,
@@ -191,19 +205,24 @@ def finalize_registration(finalize_registration_request):
         'allergies': allergies,
         'signature': signature,
 
+        'insurance_photo': insurance_photo,
+
         'date': date,
         'location': location,
         'time_slot': time_slot
     }
-    appointment = bp_finalize_registration(data)
+    #appointment = bp_finalize_registration(data)
+    appointment = bp_finalize_booking(data)
 
     if appointment:
         return {
             "appointment_id": appointment['appointment_id'],
             "date": appointment['date'],
             "location": appointment['location'],
+            'total_balance': appointment['total_balance'],
+            'total_cost': appointment['total_cost'],
+            'payment_url': appointment['payment_url'],
             "status": "success"
         }
     else:
         return {'status': 'failed'}
-

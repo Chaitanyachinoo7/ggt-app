@@ -34,6 +34,7 @@ def get_appointment(appointment_id):
                     a.scheduled_dt,
                     a.group_code,
                     a.status,
+                    a.wp_receipt_token,
                     l.addr1,
                     l.addr2,
                     l.city,
@@ -43,6 +44,7 @@ def get_appointment(appointment_id):
                     p.first_name,
                     p.middle_name,
                     p.last_name,
+                    p.phone_number,
                     p.addr1 as patient_addr1,
                     p.city as patient_city,
                     p.st as patient_st,
@@ -127,6 +129,7 @@ def positive_result_followup():
         return None
 
 
+
 def get_user_role(email):
     try:
         sql = """SELECT role 
@@ -164,11 +167,44 @@ def get_test_results():
                 INNER JOIN test_samples ts
                     ON pos.id = ts.patient_id
                     """
-        # val = ()
         return read_rows(sql, )
     except Exception as err:
         log_generic(type="error", location_id=None,
                     function='get_monthy_calendar', error=err)
+
+def update_appointment_with_receipt_token(wp_receipt_token, wp_customer_info_id, appointment_id):
+    try:
+        sql = """
+            UPDATE appointments 
+                SET 
+                    wp_receipt_token = %s,
+                    wp_customer_info_id = %s
+                WHERE
+                    id = %s
+        """
+        val = (wp_receipt_token, wp_customer_info_id, appointment_id)
+        return exec_update(sql, val)
+    except Exception as err:
+        log_generic(type="error", appointment_id=appointment_id,
+                    function='update_appointment_with_receipt_token', error=err)
+        return None
+
+
+def update_appointment_with_confirmed_scheduled(appointment_id):
+    try:
+        sql = """
+            UPDATE appointments 
+                SET 
+                    status = 'scheduled'
+                WHERE
+                    id = %s
+        """
+        val = (appointment_id,)
+        return exec_update(sql, val)
+    except Exception as err:
+        log_generic(type="error", appointment_id=appointment_id,
+                    function='update_appointment_with_confirmed_scheduled', error=err)
+
         return None
 
 

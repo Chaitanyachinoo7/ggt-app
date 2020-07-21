@@ -33,7 +33,7 @@ def create_schedule_entry(location_id, start_dt, end_dt, duration, status):
 def get_schedule_generation_rules_by_location_id(location_id):
     try:
         sql = """
-        SELECT * 
+        SELECT id, location_id, slot_increment, start_time, end_time, date(active_start_dt) as active_start_dt, date(active_end_dt) as active_end_dt, slot_multiplier
         FROM schedule_generation_rules 
         WHERE location_id = %s; 
         LIMIT 1

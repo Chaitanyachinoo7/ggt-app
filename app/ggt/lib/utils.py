@@ -33,6 +33,8 @@ def generate_otp():
     otp = pyotp.TOTP('base32secret3232')
     return otp.now()
 
+def generate_session_id():
+    return generate_token()
 
 def generate_token():
     return str(uuid.uuid4())
@@ -73,7 +75,7 @@ def log_generic(**kwargs):
     else:
         logging.debug(pformat(kwargs))
 
-    pprint(kwargs)
+    #pprint(kwargs)
 
 
 def x_response(res, allow=True):

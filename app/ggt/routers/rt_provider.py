@@ -11,7 +11,7 @@ from ggt.models.data_models.data_types import (
 
 from ggt.models.workflow_models.provider_field_testing_flow import (
     provider_login,
-    provider_get_testing_locations,
+    provider_get_workstations,
     provider_lookup_appointment,
     provider_update_appointment,
     provider_get_monthly_calendar,
@@ -29,9 +29,9 @@ async def api_provider_login(provider_login_request: ProviderLoginRequest):
         provider_login_request.token)
 
 
-@router.get("/testing_locations/{auth_token}")
-async def api_provider_get_testing_locations(request: Request, auth_token: str):
-    return provider_get_testing_locations(
+@router.get("/get_workstations/{auth_token}")
+async def api_provider_get_workstations(request: Request, auth_token: str):
+    return provider_get_workstations(
         auth_token)
 
 
@@ -47,7 +47,8 @@ async def api_provider_update_appointment(provider_update_appointment_request: P
     return provider_update_appointment(
         provider_update_appointment_request.auth_token,
         provider_update_appointment_request.appointment_id,
-        provider_update_appointment_request.action)
+        provider_update_appointment_request.action,
+        provider_update_appointment_request.workstation_id)
 
 
 @router.post("/get_monthly_calendar")
