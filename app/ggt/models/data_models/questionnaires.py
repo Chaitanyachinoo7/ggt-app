@@ -29,6 +29,8 @@ def create_patient_questionnaire(data):
     symptom_lack_of_smell = convert_to_bool(data["symptom_lack_of_smell"])
     covid_contact = convert_to_bool(data["covid_contact"])
 
+    is_patient = convert_to_bool(data["is_patient"])
+
     meds = convert_to_bool(data["meds"])
     heart_disease = convert_to_bool(data["heart_disease"])
     diabetes = convert_to_bool(data["diabetes"])
@@ -41,6 +43,8 @@ def create_patient_questionnaire(data):
     patient_id = data["patient_id"]
     token = data["token"]
     group_code = data["group_code"]
+    
+    #insurance_photo = data["insurance_photo"]
 
     try:
         sql = """
@@ -48,14 +52,14 @@ def create_patient_questionnaire(data):
             (patient_id, group_code, symptom_fever, symptom_shortness_breath, symptom_cough, 
             symptom_chest_pain, symptom_lack_of_smell, symptom_other_breathing, covid_contact, 
             prescription_use, heart_disease, diabetes, respiratory_diseases, autoimmune_disease, 
-            other_chronic, allergies,  consent_signed, token)
+            other_chronic, allergies,  consent_signed, token, insurance_photo)
         
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
 
         val = (patient_id, group_code, symptom_fever, symptom_shortbreath, symptom_coughing, 
                 symptom_chestpains, symptom_lack_of_smell, symptom_others, covid_contact, meds, heart_disease,
-               diabetes, respiratory_disease, autoimmune_disease, other_chronic_disease, allergies,  signature, token)
+               diabetes, respiratory_disease, autoimmune_disease, other_chronic_disease, allergies,  signature, token, data["insurance_photo"])
 
         return exec_insert(sql, val)
 

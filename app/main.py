@@ -9,7 +9,7 @@ from fastapi.responses import StreamingResponse
 import uvicorn
 
 # local
-from ggt.routers import rt_redirect, rt_provider, rt_patient, rt_contact_center
+from ggt.routers import rt_redirect, rt_provider, rt_patient, rt_contact_center, rt_task
 
 
 app = FastAPI()
@@ -72,6 +72,15 @@ app.include_router(
     tags=["Patient Front End"],
     responses={404: {"description": "Not found"}},
 )
+
+
+app.include_router(
+    rt_task.router,
+    prefix="/task",
+    tags=["Background Tasks"],
+    responses={404: {"description": "Not found"}},
+)
+
 
 
 if __name__ == '__main__':
