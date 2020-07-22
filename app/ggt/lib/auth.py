@@ -8,7 +8,10 @@ def verify_google_idtoken(token):
         decoded_token = id_token.verify_oauth2_token(
             token, requests.Request(), CLIENT_ID)
         print(decoded_token['email'].split('@')[1])
-        if(decoded_token['email'].split('@')[1] == "wellpay.com"):
+        if(decoded_token['email'].split('@')[1] == "wellpay.com" or
+           decoded_token['email'].split('@')[1] == "wellhealth.studio" or
+           decoded_token['email'].split('@')[1] == "hrmdmanagement.com" or
+           decoded_token['email'].split('@')[1] == "flowermoundpain.co"):
             return True
         else:
             return False
