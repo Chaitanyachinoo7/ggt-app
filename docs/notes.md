@@ -34,3 +34,6 @@ ENUM('scheduled', 'checked_in', 'test_in_progress', 'test_completed', 'record_lo
 Host: sftp.healthtrackrx.com
 Username: WellPay
 Password: 9cTE3fh@8H
+
+
+docker run --name myadmin-dev -d -e PMA_HOST=35.184.98.83 -p 8090:80 phpmyadmin/phpmyadmin

@@ -201,15 +201,17 @@ def bp_finalize_booking(data):
                 
 
             wp_customer = __create_wp_customer(data)
+            customer_info_id = wp_customer[0]['customer_info_id']
             billed_amount = 7000 #TODO: get this from???
             total_cost = 17500
             wp_bill = __create_wp_bill(
-                        wp_customer['customer_info_id'], 
-                        billed_amount, appointment['appointment_id'])
+                        customer_info_id, 
+                        billed_amount, 
+                        appointment['appointment_id'])
 
             if update_appointment_with_receipt_token(
                         wp_bill['receipt_token'], 
-                        wp_customer['customer_info_id'],
+                        customer_info_id,
                         appointment['appointment_id']):
                 return {
                     'date': appointment['date_text'],
