@@ -6,14 +6,15 @@ from ggt.lib.utils import (
 
 from ggt.models.process_models.bp_appointments import (
     bp_get_appointment_info,
-    bp_appointment_update,
-    bp_get_monthly_calendar,
-    bp_get_monthly_calendar,
-    bp_provider_positive_result_followup,
-    bp_get_user_role,
-    bp_get_test_results
+    bp_appointment_update
 )
-
+'''
+bp_get_monthly_calendar,
+bp_get_monthly_calendar,
+bp_provider_positive_result_followup,
+bp_get_user_role,
+bp_get_test_results
+'''
 # TODO: move this to a table for dynamic lookup
 ADMIN_TOKEN = "entourage2020"
 
@@ -98,7 +99,7 @@ def provider_get_monthly_calendar(auth_token, date, location_id):
         is_authenticated(auth_token)
     )
 
-
+'''
 def provider_positive_result_followup():
     # return x_response(
     return bp_provider_positive_result_followup()
@@ -110,7 +111,7 @@ def provider_get_user_role(email):
 
 def provider_get_test_results():
     return bp_get_test_results()
-
+'''
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################

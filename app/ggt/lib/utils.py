@@ -33,8 +33,10 @@ def generate_otp():
     otp = pyotp.TOTP('base32secret3232')
     return otp.now()
 
+
 def generate_session_id():
     return generate_token()
+
 
 def generate_token():
     return str(uuid.uuid4())
@@ -75,32 +77,36 @@ def log_generic(**kwargs):
     else:
         logging.debug(pformat(kwargs))
 
-    #pprint(kwargs)
+    # pprint(kwargs)
 
 
 def x_response(res, allow=True):
     try:
         if allow and res:
             return success_response(res)
-        
+
     except Exception as err:
         log_generic(type="error", res=res, function="x_response", error=err)
     return failure_response()
+
 
 def y_response(res, allow=True):
     try:
         if allow and res:
             return success_response_array(res)
-        
+
     except Exception as err:
         log_generic(type="error", res=res, function="y_response", error=err)
     return failure_response()
+
 
 def success_response(kv=None):
     if kv is None or kv is True:
         kv = {}
     kv['status'] = 'success'
     return kv
+
+
 def success_response_array(kv=None):
     if kv is None or kv is True:
         kv = {}
@@ -117,6 +123,7 @@ def failure_response(kv=None):
     return kv
 
 
+'''
 def __sumo_log(payload):
     url = 'https://endpoint6.collection.us2.sumologic.com/receiver/v1/http/ZaVnC4dhaV089RJkF1MhGi12i2uKBw-BI23tO1u7ZLSkBwKlBGBfHG8UxS_m5RLU02_leUwIY8lm9PVNmWYdU02jbwj7BKjSV2H6TMPBoBjJm9W539bKnQ=='
     payload['timestamp'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
@@ -126,3 +133,4 @@ def __sumo_log(payload):
     except Exception as err:
         print(sys.exc_info()[0])
         print(err)
+'''

@@ -14,11 +14,14 @@ from ggt.lib.adapters.mysql_adapter import (
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-def create_appointment(scheduled_dt, location_id, patient_id, patient_questionnaire_id, group_code):
+def create_appointment(scheduled_dt, location_id, patient_id, patient_questionnaire_id, group_code, wp_customer_info_id, total_cost, billed_amount):
     try:
-        sql = "INSERT INTO appointments (scheduled_dt, location_id, patient_id, patient_questionnaire_id, group_code) VALUES (%s, %s, %s, %s, %s)"
-        val = (scheduled_dt, location_id, patient_id,
-               patient_questionnaire_id, group_code)
+        sql = """
+        INSERT INTO appointments 
+            (scheduled_dt, location_id, patient_id, patient_questionnaire_id, group_code, wp_customer_info_id, total_cost, billed_amount) 
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        val = (scheduled_dt, location_id, patient_id, patient_questionnaire_id, group_code, wp_customer_info_id, total_cost, billed_amount)
         return exec_insert(sql, val)
 
     except Exception as err:

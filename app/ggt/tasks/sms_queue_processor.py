@@ -14,7 +14,7 @@ from ggt.lib.sms import send_sms
 
 def task_process_sms_queue():
     sql = """
-    SELECT * FROM ggt.sms_notification_queue where status = 'pending'
+    SELECT * FROM sms_notification_queue where status = 'pending'
     """
     rows = read_rows(sql)
     for row in rows:

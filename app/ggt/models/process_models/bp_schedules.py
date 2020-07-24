@@ -15,23 +15,31 @@ from ggt.models.data_models.schedules import (
 # [Public] functions
 ########################################################################################################
 def bp_get_schedule_dates_available(group_code):
-    rows = get_available_dates(group_code)
-    available_dates = []
-    for row in rows:
-        date_str = row['available_date']
-        # label_str = datetime.strptime(date_str, '%Y-%m-%d').strftime("%A %B %d, %Y") #this works by itself, bu errors here
-        available_dates.append(
-            {
-                "label": date_str,
-                "value": date_str
-            }
-        )
+    try:
+        rows = get_available_dates(group_code)
+        available_dates = []
+        for row in rows:
+            date_str = row['available_date']
+            label_str = date_str.strftime("%A %B %d, %Y")
+            available_dates.append(
+                {
+                    "label": label_str,
+                    "value": date_str
+                }
+            )
 
-        log_generic(type="info", available_dates=available_dates, function='get_schedule_dates_available')
+            log_generic(type="info", available_dates=available_dates, function='get_schedule_dates_available')
 
-    return {
-        "available_dates": available_dates
-    }
+        return {
+            "available_dates": available_dates
+        }
+    except Exception as err:
+        log_generic(type="error", 
+                group_code=group_code, 
+                rows=rows,
+                function='bp_get_schedule_dates_available', 
+                error=err)
+    
 
 
 def bp_get_schedule_locations_available(date, group_code='_DEFAULT_'):
@@ -90,7 +98,7 @@ def bp_get_schedule_times_available(location_id, date):
 
 
 
-
+'''
 def generate_full_schedule(location_id, start_date, day_count):
     try:
         record = get_schedule_generation_rules_by_location_id(location_id)
@@ -131,7 +139,7 @@ def generate_full_schedule(location_id, start_date, day_count):
                 error=err)
     
     return False
-
+'''
 
 ########################################################################################################
 # [Protected] functions

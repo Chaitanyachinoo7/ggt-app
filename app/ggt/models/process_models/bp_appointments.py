@@ -7,13 +7,17 @@ from ggt.models.data_models.appointments import (
     get_appointment,
     update_appointment_with_checkin,
     update_appointment_with_test_start,
-    update_appointment_with_test_completed,
+    update_appointment_with_test_completed
+)
+
+'''
+,
     get_monthy_calendar,
     positive_result_followup,
     update_positive_result_followup,
     get_user_role,
     get_test_results
-)
+'''
 
 from ggt.lib.sys_log import (write_syslog)
 import datetime
@@ -82,7 +86,7 @@ def bp_appointment_update(appointment_id, action, workstation_id):
 
     return False
 
-
+'''
 def bp_get_monthly_calendar(date, location_id):
     try:
         print(date, location_id)
@@ -152,10 +156,10 @@ def bp_get_test_results():
             error=err
         )
         # return False
-
-        ########################################################################################################
-        # [Protected] functions
-        ########################################################################################################
+'''
+########################################################################################################
+# [Protected] functions
+########################################################################################################
 
 
 def __formatted_date_text(appointment):

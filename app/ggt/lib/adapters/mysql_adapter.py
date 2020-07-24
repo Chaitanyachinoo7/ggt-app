@@ -22,6 +22,7 @@ connection_config_dict = {
 
 def __append_to_sql_log(log_type, sql_type, statement, details=""):
     return
+    #TODO: temporarily bypassing
     if statement is None:
         statement=""
 

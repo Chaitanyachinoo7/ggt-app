@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request
-
+'''
 from ggt.models.data_models.data_types import (
     CcLoginRequest,
     CcPatientSearchRequest,
@@ -64,3 +64,4 @@ async def api_cc_send_sms(patient_lookup_request: CcPatientLookupRequest):
             return {"status": "failure"}
     except Exception as err:
         print(err)
+'''

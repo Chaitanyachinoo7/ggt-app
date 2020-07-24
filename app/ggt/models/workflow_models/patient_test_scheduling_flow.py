@@ -8,7 +8,6 @@ from ggt.lib.utils import (
 from ggt.models.process_models.bp_patient_experience import (
     bp_initiate_verification_flow,
     bp_validate_phone_number,
-    bp_finalize_registration,
     bp_finalize_booking,
     bp_finalize_payment,
     bp_get_test_result
@@ -30,24 +29,51 @@ from ggt.models.process_models.bp_appointments import (
 
 
 def get_screen_flow_seq(group_code):
-    return x_response({
-        "screens": ["is-patient",
-                    "gender",
-                    "race",
-                    "ethnicity",
-                    "symptoms",
-                    "contact-tracing",
-                    "patient-details",
-                    "patient-address",
-                    "patient-contact",
-                    "patient-vitals",
-                    "pre-existing-conditions",
-                    "insurance-card",
-                    "consent",
-                    "date",
-                    "location",
-                    "time"]
-    })
+    if group_code == 'QTCORP':
+        return x_response({
+            "screens": ["is-patient",
+                        "gender",
+                        "race",
+                        "ethnicity",
+                        "symptoms",
+                        "contact-tracing",
+                        "patient-details",
+                        "patient-address",
+                        "patient-contact",
+                        "patient-vitals",
+                        "pre-existing-conditions",
+                        "consent",
+                        "date",
+                        "location",
+                        "time"],
+            "validation": {}
+
+        })
+    else:
+        return x_response({
+            "screens": ["is-patient",
+                        "gender",
+                        "race",
+                        "ethnicity",
+                        "symptoms",
+                        "contact-tracing",
+                        "patient-details",
+                        "patient-address",
+                        "patient-contact",
+                        "patient-vitals",
+                        "pre-existing-conditions",
+                        "consent",
+                        "date",
+                        "location",
+                        "time",
+                        "insurance-card"],
+            "validation": {
+                "insurance-card": {
+                    "required": True
+                }
+            }
+
+        })
 
 
 def initiate_verification_flow(phone_number, with_otp=True):
@@ -110,6 +136,7 @@ def lookup_test_result(token, dob):
         )
     )
 
+
 def finalize_payment(finalize_payment_request):
     appointment_id = finalize_payment_request.appointment_id
     wp_receipt_token = finalize_payment_request.receipt_token
@@ -118,7 +145,6 @@ def finalize_payment(finalize_payment_request):
         return {"status": "success"}
     else:
         return {'status': 'failed'}
-
 
 
 def finalize_registration(finalize_registration_request):

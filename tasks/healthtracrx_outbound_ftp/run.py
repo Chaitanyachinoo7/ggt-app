@@ -15,7 +15,7 @@ from ..app.ggt.lib.mysql_adapter import (
 )
 
 sql = """
-INSERT INTO `ggt`.`healthtracrx_transmissions`
+INSERT INTO `healthtracrx_transmissions`
 (`test_id`,
 `patient_id`,
 `first_name`,
@@ -39,7 +39,7 @@ INSERT INTO `ggt`.`healthtracrx_transmissions`
 `date_of_collection`,
 `panel_code`,
 `panel_name`)
-SELECT * FROM ggt.tests_ready_to_tx_view;
+SELECT * FROM tests_ready_to_tx_view;
 """
 
 sql = """

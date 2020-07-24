@@ -45,10 +45,15 @@ async def api_validate_otp(validate_otp_request: ValidateOtpRequest):
         validate_otp_request.otp)
 
 
-# TODO: Add groupcode filter to dates
+# TODO: Deprecate soon
 @router.get("/get_available_dates")
-async def api_get_available_dates(request: Request):
+async def xxxx_api_get_available_dates(request: Request):
     return get_schedule_dates_available()
+
+
+@router.get("/get_available_dates/{group_code}")
+async def api_get_available_dates(request: Request, group_code: str):
+    return get_schedule_dates_available(group_code)
 
 
 @router.get("/get_available_locations/{group_code}/{date}")

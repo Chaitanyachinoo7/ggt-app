@@ -96,7 +96,7 @@ def copy_files_to_local(ftp_client, directory_list, remote_folder):
             remote_dir_path = "{}/{}".format(remote_folder, dir)
             print("Scanning dir: {}".format(dir)) ##
             try:
-                newpath = "{}{}".format(download_path, dir)
+                newpath = "{}/{}".format(download_path, dir)
                 if not os.path.exists(newpath):
                     os.makedirs(newpath)
 
@@ -148,18 +148,8 @@ def parse_csv_files():
         print(err)
 
 
-def append_to_processed_rrecords_list():
-    pass
-
-
-
-def update_test_sample_with_result():
-    pass
-
-
 
 def parse_csv_file(file_path):
-    add_to_processed_file(file_path)
     with open(file_path) as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
@@ -169,10 +159,10 @@ def parse_csv_file(file_path):
                 print("err:", err)
             
 
-
+'''
 def add_to_processed_file(file_name):
     print("{} added to processed list".format(file_name))
-
+'''
 
 def add_to_inbound_record(rec):
     print("==>", rec['requisition_id'], rec['order_number'], rec['first_name'], rec['last_name'], rec['DOB'], rec['assay_name'], rec['status'], rec['result'])

@@ -83,12 +83,9 @@ class PhoneData(BaseModel):
     cellphone: str
 
 
-class RegistrationWebhookRequest(BaseModel):
-    name: str
-    site: str
-    d: str
-    _id: str
-    data: PhoneData
+class FinalizePaymentRequest(BaseModel):
+    appointment_id: str
+    receipt_token: str
 
 
 class ValidatePhoneInputRequest(BaseModel):
@@ -116,21 +113,12 @@ class ProviderUpdateAppointmentRequest(BaseModel):
     workstation_id: int
 
 
-class UserRoleRequest(BaseModel):
-    email: str
-
-
-class ProviderGetMonthlyCalendarRequest(BaseModel):
-    date: str
-    auth_token: str
-    location_id: str
-
 
 class ProviderLookupAppointmentRequest(BaseModel):
     appointment_id: str
     token: str
 
-
+'''
 class CcLoginRequest(BaseModel):
     token: str
 
@@ -150,8 +138,22 @@ class CcPatientLookupRequest(BaseModel):
     lname: str
     dob: str
 
-      
-class FinalizePaymentRequest(BaseModel):
-    appointment_id: str
-    receipt_token: str
 
+
+class RegistrationWebhookRequest(BaseModel):
+    name: str
+    site: str
+    d: str
+    _id: str
+    data: PhoneData
+
+
+class UserRoleRequest(BaseModel):
+    email: str
+
+
+class ProviderGetMonthlyCalendarRequest(BaseModel):
+    date: str
+    auth_token: str
+    location_id: str
+'''

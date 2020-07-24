@@ -9,8 +9,9 @@ from fastapi.responses import StreamingResponse
 import uvicorn
 
 # local
-from ggt.routers import rt_redirect, rt_provider, rt_patient, rt_contact_center, rt_task
+from ggt.routers import rt_redirect, rt_provider, rt_patient, rt_task
 
+NOT_FOUND = "Not found"
 
 app = FastAPI()
 
@@ -51,18 +52,9 @@ app.include_router(
 app.include_router(
     rt_provider.router,
     prefix="/api/provider",
-    tags=["Provider App"],
+    tags=["Clinical Provider App"],
     #dependencies=[Depends(get_token_header)],
-    responses={404: {"description": "Not found"}},
-)
-
-
-app.include_router(
-    rt_contact_center.router,
-    prefix="/api/cc",
-    tags=["Contact Center App"],
-    #dependencies=[Depends(get_token_header)],
-    responses={404: {"description": "Not found"}},
+    responses={404: {"description": NOT_FOUND}},
 )
 
 
@@ -70,7 +62,7 @@ app.include_router(
     rt_patient.router,
     prefix="/api",
     tags=["Patient Front End"],
-    responses={404: {"description": "Not found"}},
+    responses={404: {"description": NOT_FOUND}},
 )
 
 
@@ -78,10 +70,20 @@ app.include_router(
     rt_task.router,
     prefix="/task",
     tags=["Background Tasks"],
-    responses={404: {"description": "Not found"}},
+    responses={404: {"description": NOT_FOUND}},
 )
 
 
+
+'''
+app.include_router(
+    rt_contact_center.router,
+    prefix="/api/cc",
+    tags=["Contact Center App"],
+    #dependencies=[Depends(get_token_header)],
+    responses={404: {"description": NOT_FOUND}},
+)
+'''
 
 if __name__ == '__main__':
     uvicorn.run(app, host='0.0.0.0', port=8000)

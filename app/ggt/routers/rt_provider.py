@@ -2,24 +2,30 @@ from fastapi import APIRouter, Request, Response, status
 
 from ggt.models.data_models.data_types import (
     ProviderLoginRequest,
-    ProviderPatientCodeRequest,
     ProviderUpdateAppointmentRequest,
     ProviderLookupAppointmentRequest,
+)
+
+'''    ProviderPatientCodeRequest,
+
     ProviderGetMonthlyCalendarRequest,
     UserRoleRequest
-)
+'''
 
 from ggt.models.workflow_models.provider_field_testing_flow import (
     provider_login,
     provider_get_workstations,
     provider_lookup_appointment,
-    provider_update_appointment,
+    provider_update_appointment
+)
+'''
     provider_get_monthly_calendar,
     provider_positive_result_followup,
     provider_get_user_role,
     provider_get_test_results
-)
+
 from ggt.lib.auth import (verify_google_idtoken)
+'''
 router = APIRouter()
 
 
@@ -50,7 +56,7 @@ async def api_provider_update_appointment(provider_update_appointment_request: P
         provider_update_appointment_request.action,
         provider_update_appointment_request.workstation_id)
 
-
+'''
 @router.post("/get_monthly_calendar")
 async def api_provider_get_monthly_calendar(provider_get_monthly_calendar_request: ProviderGetMonthlyCalendarRequest,
                                             request: Request, response: Response
@@ -96,3 +102,4 @@ async def get_test_results(request: Request, response: Response):
         return {
             response.status_code: status.HTTP_401_UNAUTHORIZED
         }
+'''
