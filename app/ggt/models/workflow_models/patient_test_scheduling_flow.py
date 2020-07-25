@@ -49,6 +49,55 @@ def get_screen_flow_seq(group_code):
             "validation": {}
 
         })
+    elif group_code == 'BMSC':
+        return x_response({
+            "screens": ["is-patient",
+                        "gender",
+                        "race",
+                        "ethnicity",
+                        "symptoms",
+                        "contact-tracing",
+                        "patient-details",
+                        "patient-address",
+                        "patient-contact",
+                        "patient-vitals",
+                        "pre-existing-conditions",
+                        "consent",
+                        "date",
+                        "location",
+                        "time",
+                        "insurance-card"],
+           "validation": {
+                "insurance-card": {
+                    "required": False
+                }
+            }
+
+        })
+    elif group_code == 'EATZ':
+        return x_response({
+            "screens": ["is-patient",
+                        "gender",
+                        "race",
+                        "ethnicity",
+                        "symptoms",
+                        "contact-tracing",
+                        "patient-details",
+                        "patient-address",
+                        "patient-contact",
+                        "patient-vitals",
+                        "pre-existing-conditions",
+                        "consent",
+                        "date",
+                        "location",
+                        "time"],
+            "validation": {
+                "insurance-card": {
+                    "required": False
+                }
+            }
+
+        })
     else:
         return x_response({
             "screens": ["is-patient",

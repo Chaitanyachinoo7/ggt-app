@@ -18,7 +18,7 @@ def get_test_result(id):
     try:
         sql = """
                 SELECT * 
-                FROM ggt.detailed_test_results 
+                FROM detailed_test_results 
                 WHERE id = %s
                 LIMIT 1
                 """
@@ -34,7 +34,7 @@ def get_test_result_by_token(token):
     try:
         sql = """
                 SELECT * 
-                FROM ggt.detailed_test_results 
+                FROM detailed_test_results 
                 WHERE token = %s
                 ORDER by test_id DESC
                 LIMIT 1
@@ -52,7 +52,7 @@ def get_test_details(test_id):
     try:
         sql = """
                 SELECT * 
-                FROM ggt.detailed_test_results 
+                FROM detailed_test_results 
                 WHERE test_id = %s
                 ORDER by test_id DESC
                 LIMIT 1

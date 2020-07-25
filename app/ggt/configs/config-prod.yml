@@ -34,6 +34,8 @@ vendors:
     port: 22
     remote_folder: /Reports
     download_path: /tmp/ggt-tasks
+    local_outbound_file_path: /tmp/ggt-tasks/outbound
+    outbound_file_prefix: ggt-outbound
 
   wellpay:
     endpoint: https://api.getwellpay.com/api/public/v1

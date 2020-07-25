@@ -177,8 +177,7 @@ def bp_finalize_booking(data):
             if not data['patient_id']:
                 return False
 
-            data['patient_questionnaire_id'] = create_patient_questionnaire(
-                data)
+            data['patient_questionnaire_id'] = create_patient_questionnaire(data)
             if not data['patient_questionnaire_id']:
                 return False
 
@@ -253,9 +252,9 @@ def __upfront_payment(group_code, location):
     total_cost = 17500
     billed_amount = 7000
 
-    if group_code == 'QTCORP':
+    if group_code == 'QTCORP' or group_code == 'BMSC' or group_code == 'EATZ':
         return False, 0, 0
-    if location == 11:
+    if location == 11 or location == 7 or location == 18 or location == 28 or location == 24 or location == 26 or location == 9 or location == 26:
         return False, 0, 0
     else:
         return True, total_cost, billed_amount
@@ -375,7 +374,7 @@ def bp_get_test_result(token, dob):
         lab_result = get_test_result_by_token(token)
 
         if lab_result:
-            patient_dob = lab_result['dob']
+            patient_dob = lab_result['dob'].strftime("%m%d%Y")
             test_result = lab_result['test_result']
 
             if test_result == 'neg':
@@ -385,12 +384,14 @@ def bp_get_test_result(token, dob):
             else:
                 result = 'Unknown'
 
+            '''
             dob = dob.replace("/", "")
             patient_dob = patient_dob.replace("/", "")
             if len(patient_dob) != 8:
                 patient_dob = "{}19{}".format(
                     patient_dob[0:4], patient_dob[4:2])
-
+            '''
+           
             # TODO: Add resulting PDF link
             if dob == patient_dob:
                 return {
@@ -398,16 +399,11 @@ def bp_get_test_result(token, dob):
                     "lab_report_url": ""
                 }
 
-        return {
-            "result": result,
-            "status": "success",
-            "lab_report_url": ""
-        }
-
     except Exception as err:
         log_generic(type="error", token=token,
                     function='lookup_test_result_by_token', error=err)
-        return False
+    
+    return False
 
 
 def generate_appointment(slot_id, patient_id, patient_questionnaire_id, group_code, wp_customer_info_id, total_cost, billed_amount):
