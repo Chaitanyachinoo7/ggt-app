@@ -26,6 +26,9 @@ faker = "*"
 paramiko = "*"
 requests = "*"
 fastapi = "*"
+google-cloud-storage = "*"
+six = "*"
+google-oauth = "*"
 
 [requires]
 python_version = "3.7"

@@ -42,6 +42,8 @@ from ggt.models.data_models.schedules import (
 from ggt.models.data_models.test_results import (
     get_test_result_by_token
 )
+
+from ggt.lib.storage import get_temporary_lab_report_url
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
@@ -376,6 +378,7 @@ def bp_get_test_result(token, dob):
         if lab_result:
             patient_dob = lab_result['dob'].strftime("%m%d%Y")
             test_result = lab_result['test_result']
+            test_id = lab_result['test_id']
 
             if test_result == 'neg':
                 result = 'Negative'
@@ -391,12 +394,19 @@ def bp_get_test_result(token, dob):
                 patient_dob = "{}19{}".format(
                     patient_dob[0:4], patient_dob[4:2])
             '''
-           
-            # TODO: Add resulting PDF link
+            
+            try:
+                url = get_temporary_lab_report_url('{}.pdf'.format(test_id))
+            except Exception as err:
+                url = ''
+
+            if url is None:
+                url = ''
+            
             if dob == patient_dob:
                 return {
                     "result": result,
-                    "lab_report_url": ""
+                    "lab_report_url": url
                 }
 
     except Exception as err:

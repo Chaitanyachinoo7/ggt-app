@@ -8,12 +8,18 @@ aws:
   secret_access_key: FWj/IaqvADJPB8ajnBeg/UuHkz/Qfyk/NsGQR7Vx
   sqs_print_queue_base_url: https://sqs.us-east-1.amazonaws.com/343550539982/ggt-print-queue
 
+gcp:
+  service_account_file: gcp-service-account-dev.json
+  default_link_expiration_time_limit: 300
+  lab_reports_bucket_name: ggt-lab-reports-dev
+  insurance_cards_bucket_name: ggt-insurance-cards-dev
+
 databases:
   mysql:
     host: 35.184.98.83
     username: root
     password: Jr6EEMI2aBNguL1K
-    db: ggt_dev  
+    db: ggt_dev
 
 twilio:
     account_sid: AC9cef9b4155030ee2683281ccc72d4001
@@ -34,7 +40,9 @@ vendors:
     port: 22
     remote_folder: /Reports
     download_path: /tmp/ggt-tasks
-
+    local_outbound_file_path: /tmp/ggt-tasks/outbound
+    outbound_file_prefix: ggt-outbound
+    
   wellpay:
     endpoint: https://api-dev.getwellpay.com/api/public/v1
     auth_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJob3N0IjoiYXBpLWRldi5nZXR3ZWxscGF5LmNvbSIsImV4cCI6MTYxMDkxMDkwNy4yNTUsImV4dGVybmFsX2tleSI6dHJ1ZSwicm9sZSI6InByb3ZpZGVyIiwicHJvdmlkZXJfaWQiOiIyNTAiLCJpYXQiOjE1OTUwMTMzMDcsImp0aSI6IjAxMjdkZWEzLTJjZWEtNGYwNC04ZjJlLWRhYzBiNWZhZjYyOSJ9.SGpt7I3M_eSHdUted22eT7wN-L-4_3Dd0oR2duO8FSA

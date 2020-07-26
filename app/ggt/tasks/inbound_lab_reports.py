@@ -18,6 +18,7 @@ from ggt.lib.adapters.mysql_adapter import (
 
 session_id = generate_session_id()
 
+#TODO: create a processed file list hash file to save time
 def task_process_inbound_lab_reports():
     log_generic(
         type="info", 
@@ -28,6 +29,7 @@ def task_process_inbound_lab_reports():
     download_ftp_files()
     parse_csv_files()
     update_test_samples_with_results()
+    upload_pdf_lab_reports()
 
     log_generic(
         type="info", 
@@ -142,10 +144,51 @@ def parse_csv_files():
     try:
         files = [f for f in glob.glob("{}/**/*.csv".format(download_path), recursive=True)]
         for filename in files:
-            parse_csv_file(filename)
+            parse_csv_file(filename) #TODO: change the flow to batch insert, currently processes 1 file at a time
 
     except Exception as err:
         print(err)
+
+
+def upload_pdf_lab_reports():
+    from ggt.lib.storage import (upload_lab_report)
+    download_path=get_config_val('vendors.healthtrackrx.download_path')
+    try:
+        files = [f for f in glob.glob("{}/**/*.pdf".format(download_path), recursive=True)]
+        for filename in files:
+            try:
+                __destination_file_name = destination_file_name(filename)
+                if __destination_file_name:
+                    upload_lab_report(
+                        filename, 
+                        __destination_file_name
+                    )
+            except Exception as err:
+                print('Error uploading {}'.format(filename))
+            
+
+    except Exception as err:
+        print(err)
+
+
+def destination_file_name(file_path):
+    arr = file_path.split('/')
+    file_name = arr[len(arr)-1]
+    requisition_id = file_name.split('-')[3]
+    sql = """
+            SELECT order_number 
+            FROM ggt_prod.healthtrackrx_inbound_data 
+            WHERE requisition_id = %s
+            """
+    vals = (requisition_id, )
+    row = read_row(sql, vals)
+    if row is None:
+        print('no record for: {}'.format(requisition_id))
+        return None
+
+    file_name = '{}.pdf'.format(row['order_number'])
+    print(file_name)
+    return file_name
 
 
 

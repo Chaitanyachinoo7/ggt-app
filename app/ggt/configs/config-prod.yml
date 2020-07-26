@@ -8,6 +8,12 @@ aws:
   secret_access_key: FWj/IaqvADJPB8ajnBeg/UuHkz/Qfyk/NsGQR7Vx
   sqs_print_queue_base_url: https://sqs.us-east-1.amazonaws.com/343550539982/ggt-print-queue
 
+gcp:
+  service_account_file: gcp-service-account-prod.json
+  default_link_expiration_time_limit: 300
+  lab_reports_bucket_name: ggt-lab-reports-prod
+  insurance_cards_bucket_name: ggt-insurance-cards-prod
+
 databases:
   mysql:
     host: 34.66.63.242
