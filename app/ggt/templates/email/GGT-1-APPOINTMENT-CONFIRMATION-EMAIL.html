@@ -1,0 +1,175 @@
+{% extends "email-layout-1.html" %}
+
+{% block preview_text %}
+
+This is preheader text. Some clients will show this text as a preview.
+
+{% endblock %}
+
+{% block content %}
+
+<!-- BEGIN MODULE: Transactional 21 -->
+<table width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation">
+  <tbody>
+    <tr>
+      <td height="8" style="font-size: 1px; line-height: 1px;">&nbsp;</td>
+    </tr>
+  </tbody>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
+  <tbody>
+    <tr>
+      <td class="pc-sm-p-30-10 pc-xs-p-25-0" bgcolor="#ffffff"
+        style="padding: 40px 20px; background: #ffffff; border-radius: 8px" valign="top">
+        <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
+          <tbody>
+            <tr>
+              <td class="pc-fb-font"
+                style="line-height: 20px; font-family: 'Open Sans', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 500; color: #01821a; padding: 0 20px"
+                valign="top">Test # : {{test_number}}</td>
+            </tr>
+            <tr>
+              <td style="line-height: 1px; font-size: 1px;" height="15">&nbsp;</td>
+            </tr>
+          </tbody>
+          <tbody>
+            <tr>
+              <td class="pc-sm-fs-30 pc-fb-font"
+                style="font-family: 'Open Sans', Helvetica, Arial, sans-serif; font-size: 36px; font-weight: 800; line-height: 46px; letter-spacing: -0.6px; color: #151515; padding: 0 20px"
+                valign="top">{{first_name}}, Your test has been scheduled.</td>
+            </tr>
+            <tr>
+              <td style="line-height: 1px; font-size: 1px;" height="15">&nbsp;</td>
+            </tr>
+          </tbody>
+          <tbody>
+            <tr>
+              <td class="pc-sm-fs-18 pc-xs-fs-16 pc-fb-font"
+                style="font-family: 'Open Sans', Helvetica, Arial, sans-serif; font-size: 20px; line-height: 30px; letter-spacing: -0.2px; color: #3f3f3f; padding: 0 20px"
+                valign="top">Thank you for scheduling your Covid-19 test with GoGetTested.com .<br><br>Your testing
+                Date, Time, and location can be found below.&nbsp;Please arrive at the testing location 5-10 minutes
+                early to avoid congestion. Also make sure to bring you Government Issued ID, and QR code.</td>
+            </tr>
+            <tr>
+              <td style="line-height: 1px; font-size: 1px;" height="30">&nbsp;</td>
+            </tr>
+          </tbody>
+          <tbody>
+            <tr>
+              <td style="font-size: 0;" valign="top">
+                <!--[if (gte mso 9)|(IE)]><table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"><tr><td width="280" style="vertical-align:top" valign="top"><![endif]-->
+                <div class="pc-sm-mw-100pc"
+                  style="display: inline-block; max-width: 280px; width: 100%; vertical-align: top;">
+                  <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
+                    <tbody>
+                      <tr>
+                        <td style="padding: 10px 20px;" valign="top">
+                          <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
+                            <tbody>
+                              <tr>
+                                <td class="pc-fb-font"
+                                  style="border-bottom: 1px solid #E5E5E5; padding: 0 0 10px; letter-spacing: -0.2px; line-height: 26px; font-family: 'Open Sans', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: bold; color: #151515"
+                                  valign="top">Test Location</td>
+                              </tr>
+                              <tr>
+                                <td height="10" style="font-size: 1px; line-height: 1px;">&nbsp;</td>
+                              </tr>
+                            </tbody>
+                            <tbody>
+                              <tr>
+                                <td class="pc-fb-font"
+                                  style="letter-spacing: -0.2px; line-height: 26px; font-family: 'Open Sans', Helvetica, Arial, sans-serif; font-size: 16px; color: #151515"
+                                  valign="top">
+                                  {{test_location_line1}} <br>{{test_location_line2}} <br>{{test_location_line3}}
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <!--[if (gte mso 9)|(IE)]></td><td width="280" style="vertical-align:top" valign="top"><![endif]-->
+                <div class="pc-sm-mw-100pc"
+                  style="display: inline-block; max-width: 280px; width: 100%; vertical-align: top;">
+                  <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
+                    <tbody>
+                      <tr>
+                        <td style="padding: 10px 20px;" valign="top">
+                          <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
+                            <tbody>
+                              <tr>
+                                <td class="pc-fb-font"
+                                  style="border-bottom: 1px solid #E5E5E5; padding: 0 0 10px; letter-spacing: -0.2px; line-height: 26px; font-family: 'Open Sans', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: bold; color: #151515"
+                                  valign="top">Testing Date & Time</td>
+                              </tr>
+                              <tr>
+                                <td height="10" style="font-size: 1px; line-height: 1px;">&nbsp;</td>
+                              </tr>
+                            </tbody>
+                            <tbody>
+                              <tr>
+                                <td class="pc-fb-font"
+                                  style="letter-spacing: -0.2px; line-height: 26px; font-family: 'Open Sans', Helvetica, Arial, sans-serif; font-size: 16px; color: #151515"
+                                  valign="top">{{test_date}}<br>{{test_time}}</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <!--[if (gte mso 9)|(IE)]></td></tr></table><![endif]-->
+              </td>
+            </tr>
+          </tbody>
+          <tbody>
+            <tr>
+              <td style="line-height: 1px; font-size: 1px;" height="15">&nbsp;</td>
+            </tr>
+            <tr>
+              <td style="padding: 0 10px;" valign="top">
+                <table>
+                  <tbody>
+                    <tr>
+                      <td style="padding: 5px 10px;" valign="top">
+                        <table border="0" cellpadding="0" cellspacing="0" role="presentation">
+                          <tbody>
+                            <tr>
+                              <td style="border-radius: 8px; padding: 14px 19px; background-color: #1595E7;"
+                                bgcolor="#1595E7" valign="top" align="center">
+                                <a class="pc-fb-font" href="{{appointment_link}}"
+                                  style="text-decoration: none; word-break: break-word; line-height: 24px; letter-spacing: -0.2px; font-family: 'Open Sans', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 500; color: #ffffff; display: block">View
+                                  My Appointment</a>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="line-height: 1px; font-size: 1px;" height="25">&nbsp;</td>
+            </tr>
+            <tr>
+              <td style="padding: 0 20px;" valign="top">
+                <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
+                  <tbody>
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<!-- END MODULE: Transactional 21 -->
+
+{% endblock %}

@@ -34,10 +34,10 @@ def task_process_outbound_lab_orders():
 
     if len(orders)>0:
         print('************* generating outbound file')
-        file_name, local_file_path = create_outbound_file(orders)
+        filename, local_file_path = create_outbound_file(orders)
 
         print('************* uploading file to FTP server')
-        upload_files_to_ftp(file_name, local_file_path)
+        upload_files_to_ftp(filename, local_file_path)
 
         print('************* marking records to "with_lab" status')
         update_to_with_lab_status(orders)
@@ -54,11 +54,11 @@ def task_process_outbound_lab_orders():
 
 
 def create_outbound_file(orders):
-    file_name = "{}-{}.csv".format(
+    filename = "{}-{}.csv".format(
         outbound_file_prefix,
         datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S")
     )
-    local_file_path = "{}/{}".format(local_outbound_file_path, file_name)
+    local_file_path = "{}/{}".format(local_outbound_file_path, filename)
 
     with open(local_file_path, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter=',')
@@ -71,7 +71,7 @@ def create_outbound_file(orders):
                 __get_formatted_row(order)
             )
 
-    return file_name, local_file_path
+    return filename, local_file_path
 
 
 def __get_header_row():
@@ -182,7 +182,7 @@ def get_orders_ready_to_transmit():
     return read_rows(sql,)
 
 
-def upload_files_to_ftp(file_name, local_file_path):
+def upload_files_to_ftp(filename, local_file_path):
     try:
         hostname = get_config_val('vendors.healthtrackrx.hostname')
         username = get_config_val('vendors.healthtrackrx.username')
@@ -200,7 +200,7 @@ def upload_files_to_ftp(file_name, local_file_path):
 
         ftp_client = ssh_client.open_sftp()
 
-        remotepath = "{}/{}".format('', file_name)
+        remotepath = "{}/{}".format('', filename)
         ftp_client.put(local_file_path, remotepath)
 
     except Exception as err:

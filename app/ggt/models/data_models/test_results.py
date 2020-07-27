@@ -66,24 +66,8 @@ def get_test_details(test_id):
         return False
 
 
-def cc_patient_lookup(lname, dob):
-    print(lname)
-    try:
-        sql = """
-            SELECT * FROM detailed_test_results where 
-            last_name= %s 
-            AND dob = %s
-            """
-        val = (lname, dob,)
-        return read_rows(sql, val)
 
-    except Exception as err:
-        log_generic(type="error", lname=lname, dob=lname,
-                    function='cc_patient_lookup', error=err)
-        return False
-
-
-def search_tested_patients(last_name, dob):
+def search_details_by_name_and_dob(last_name, dob):
     try:
         sql = """
                 SELECT 
@@ -111,19 +95,55 @@ def search_tested_patients(last_name, dob):
                     END) AS result
                 FROM
                     (detailed_test_results t
-                    JOIN locations l ON t.sample_collection_location_id = l.id)
+                    LEFT JOIN locations l ON t.sample_collection_location_id = l.id)
                 WHERE
-                    last_name = %s
+                    last_name LIKE %s
                         AND dob = %s
                 ORDER BY t.test_id DESC
                 """
-        val = (last_name, dob)
+        val = ('%'+last_name+'%', dob)
         return read_rows(sql, val)
 
     except Exception as err:
-        log_generic(type="error", last_name=last_name, dob=dob,
-                    function='get_patient_search_results_with_tests', error=err)
+        log_generic(
+            type="error", 
+            last_name=last_name, 
+            dob=dob,
+            function='get_masked_test_details_by_name_and_dob', 
+            error=err)
         return False
+
+
+
+
+
+def get_all_test_results():
+    try:
+        sql = """SELECT 
+                    pos.id as patient_id,
+                    ts.id as test_id,
+                    pos.dob,
+                    pos.first_name, 
+                    pos.last_name, 
+                    pos.phone_number, 
+                    pos.email,
+                    pat.gender,
+                    pat.addr1,
+                    ts.test_result,
+                    ts.status
+                FROM
+                    patients pos
+                INNER JOIN patients pat
+                    ON pos.id = pat.id
+                INNER JOIN test_samples ts
+                    ON pos.id = ts.patient_id
+                    """
+        return read_rows(sql, )
+    except Exception as err:
+        log_generic(
+            type="error", 
+            function='get_test_results', 
+            error=err)
 
 
 '''
@@ -156,40 +176,6 @@ def create_test_sample(appointment_id, patient_id, patient_questionnaire_id, gro
             function='create_test_sample', 
             error=err
         )
-        return None
-
-def update_test_with_test_start(appointment_id):
-    try:
-        sql = """
-            UPDATE test_samples 
-                SET 
-                    sample_collection_start_dt = NOW(),
-                    status = 'test_in_progress'
-                WHERE
-                    appointment_id = %s
-        """
-        val = (appointment_id,)
-        return exec_update(sql, val)
-    except Exception as err:
-        log_generic(type="error", appointment_id=appointment_id,
-                    function='update_appointment_with_test_start', error=err)
-        return None
-
-def update_test_with_test_completed(appointment_id):
-    try:
-        sql = """
-            UPDATE test_samples 
-                SET 
-                    sample_collection_end_dt = NOW(),
-                    status = 'test_completed'
-                WHERE
-                    appointment_id = %s
-        """
-        val = (appointment_id,)
-        return exec_update(sql, val)
-    except Exception as err:
-        log_generic(type="error", appointment_id=appointment_id,
-                    function='update_appointment_with_test_completed', error=err)
         return None
 '''
 ########################################################################################################

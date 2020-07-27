@@ -113,31 +113,49 @@ class ProviderUpdateAppointmentRequest(BaseModel):
     workstation_id: int
 
 
-
 class ProviderLookupAppointmentRequest(BaseModel):
     appointment_id: str
     token: str
 
-'''
-class CcLoginRequest(BaseModel):
+
+
+
+
+class PortalLoginRequest(BaseModel):
     token: str
 
 
-class CcPatientSearchRequest(BaseModel):
+class PortalUserRoleRequest(BaseModel):
+    email: str
+
+
+
+
+
+class ProviderGetMonthlyCalendarRequest(BaseModel):
+    date: str
+    auth_token: str
+    location_id: str
+
+
+
+
+class PortalCcPatientSearchRequest(BaseModel):
     auth_token: str
     last_name: str
     dob: str
 
 
-class CcTestLookupRequest(BaseModel):
+class PortalCcTestLookupRequest(BaseModel):
     auth_token: str
     test_id: str
 
 
-class CcPatientLookupRequest(BaseModel):
-    lname: str
+class PortalCcPatientLookupRequest(BaseModel):
+    last_name: str
     dob: str
 
+'''
 
 
 class RegistrationWebhookRequest(BaseModel):
@@ -146,14 +164,4 @@ class RegistrationWebhookRequest(BaseModel):
     d: str
     _id: str
     data: PhoneData
-
-
-class UserRoleRequest(BaseModel):
-    email: str
-
-
-class ProviderGetMonthlyCalendarRequest(BaseModel):
-    date: str
-    auth_token: str
-    location_id: str
 '''

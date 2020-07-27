@@ -83,7 +83,7 @@ def exec_update(sql, val):
         return True if __cursor.rowcount > 0 else False
 
     except mysql.connector.Error as err:
-        __append_to_sql_log('info', 'UPDATE', __cursor._executed, err)
+        __append_to_sql_log('error', 'UPDATE', __cursor._executed, err)
         return None
 
     finally:
@@ -103,7 +103,7 @@ def exec_delete(sql, val):
         return True if __cursor.rowcount > 0 else False
 
     except mysql.connector.Error as err:
-        __append_to_sql_log('info', 'DELETE', __cursor._executed, err)
+        __append_to_sql_log('error', 'DELETE', __cursor._executed, err)
         return None
 
     finally:
@@ -122,7 +122,7 @@ def read_row(sql, val):
         return __cursor.fetchone()
 
     except mysql.connector.Error as err:
-        __append_to_sql_log('info', 'SELECT', __cursor._executed, err)
+        __append_to_sql_log('error', 'SELECT', __cursor._executed, err)
         return None
 
     finally:
@@ -140,7 +140,7 @@ def read_rows(sql, val=()):
         return __cursor.fetchall()
 
     except mysql.connector.Error as err:
-        __append_to_sql_log('info', 'SELECT', __cursor._executed, err)
+        __append_to_sql_log('error', 'SELECT', __cursor._executed, err)
         return None
 
     finally:

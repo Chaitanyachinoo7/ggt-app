@@ -22,31 +22,52 @@ service_account_file = curr_file.parent.parent.parent.joinpath('configs/{}'.form
 default_link_expiration_time_limit = get_config_val('gcp.default_link_expiration_time_limit')
 lab_reports_bucket_name = get_config_val('gcp.lab_reports_bucket_name')
 insurance_cards_bucket_name = get_config_val('gcp.insurance_cards_bucket_name')
+all_inbound_files_bucket_name = get_config_val('gcp.all_inbound_files_bucket_name')
 
-def upload_lab_report(local_file_path, destination_file_name):
+
+def upload_lab_report(local_file_path, destination_filename):
     return upload_blob(
         lab_reports_bucket_name, 
         local_file_path, 
-        destination_file_name)
+        destination_filename)
 
 
-def upload_insurance_card(local_file_path, destination_file_name):
+def upload_insurance_card(local_file_path, destination_filename):
     return upload_blob(
         insurance_cards_bucket_name, 
         local_file_path, 
-        destination_file_name)
+        destination_filename)
 
 
-def get_temp_lab_report_url(file_name):
+def get_temp_lab_report_url(filename):
     return get_signed_url(
         lab_reports_bucket_name,
-        file_name)
+        filename)
 
 
-def get_temp_insurance_card_url(file_name):
+def get_temp_insurance_card_url(filename):
     return get_signed_url(
         insurance_cards_bucket_name,
-        file_name)
+        filename)
+
+
+def upload_to_all_inbound_files(local_file_path, destination_filename):
+    return upload_blob(
+        all_inbound_files_bucket_name, 
+        local_file_path, 
+        destination_filename)
+
+
+def file_exists_in_all_inbound_files(filename):
+    return blob_exists(all_inbound_files_bucket_name, filename)
+
+
+def file_exists_in_lab_reports(filename):
+    return blob_exists(lab_reports_bucket_name, filename)
+
+
+def file_exists_in_insurance_cards(filename):
+    return blob_exists(insurance_cards_bucket_name, filename)
 
 
 def get_bucket_list():
@@ -194,18 +215,21 @@ def get_signed_url(bucket_name,
 
     
 
-def upload_blob(bucket_name, source_file_name, destination_blob_name):
+def upload_blob(bucket_name, source_filename, destination_blob_name):
+    if blob_exists(bucket_name, destination_blob_name):
+        print('file_exists -- skipping')
+        return
     try:
         storage_client = storage.Client.from_service_account_json(service_account_file)
         bucket = storage_client.bucket(bucket_name)
         blob = bucket.blob(destination_blob_name)
 
-        blob.upload_from_filename(source_file_name)
+        blob.upload_from_filename(source_filename)
 
         log_generic(
             type="info",
             bucket_name=bucket_name,
-            source_file_name=source_file_name,
+            source_filename=source_filename,
             destination_blob_name=destination_blob_name,
             function='upload_blob'
         )
@@ -215,7 +239,7 @@ def upload_blob(bucket_name, source_file_name, destination_blob_name):
         log_generic(
             type="error",
             bucket_name=bucket_name,
-            source_file_name=source_file_name,
+            source_filename=source_filename,
             destination_blob_name=destination_blob_name,
             function='upload_blob',
             error=err

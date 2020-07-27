@@ -11,6 +11,7 @@ aws:
 gcp:
   service_account_file: gcp-service-account-qa.json
   default_link_expiration_time_limit: 300
+  all_inbound_files_bucket_name: ggt-all-inbound-files-qa
   lab_reports_bucket_name: ggt-lab-reports-qa
   insurance_cards_bucket_name: ggt-insurance-cards-qa
 

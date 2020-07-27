@@ -46,10 +46,11 @@ async def api_validate_otp(validate_otp_request: ValidateOtpRequest):
 
 
 # TODO: Deprecate soon
+'''
 @router.get("/get_available_dates")
 async def xxxx_api_get_available_dates(request: Request):
     return get_schedule_dates_available()
-
+'''
 
 @router.get("/get_available_dates/{group_code}")
 async def api_get_available_dates(request: Request, group_code: str):

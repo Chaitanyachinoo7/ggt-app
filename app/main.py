@@ -9,7 +9,13 @@ from fastapi.responses import StreamingResponse
 import uvicorn
 
 # local
-from ggt.routers import rt_redirect, rt_provider, rt_patient, rt_task
+from ggt.routers import (
+    rt_redirect, 
+    rt_provider, 
+    rt_patient, 
+    rt_task, 
+    rt_portal
+)
 
 NOT_FOUND = "Not found"
 
@@ -68,12 +74,17 @@ app.include_router(
 
 app.include_router(
     rt_task.router,
-    prefix="/task",
+    prefix="/api/task",
     tags=["Background Tasks"],
     responses={404: {"description": NOT_FOUND}},
 )
 
-
+app.include_router(
+    rt_portal.router,
+    prefix="/api/portal",
+    tags=["Admin Portal"],
+    responses={404: {"description": NOT_FOUND}},
+)
 
 '''
 app.include_router(

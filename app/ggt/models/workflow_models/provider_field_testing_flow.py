@@ -93,25 +93,6 @@ def provider_update_appointment(auth_token, appointment_id, action, workstation_
     )
 
 
-def provider_get_monthly_calendar(auth_token, date, location_id):
-    return y_response(
-        bp_get_monthly_calendar(date, location_id),
-        is_authenticated(auth_token)
-    )
-
-'''
-def provider_positive_result_followup():
-    # return x_response(
-    return bp_provider_positive_result_followup()
-    # is_authenticated(auth_token)
-    # )
-
-def provider_get_user_role(email):
-    return bp_get_user_role(email)
-
-def provider_get_test_results():
-    return bp_get_test_results()
-'''
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################

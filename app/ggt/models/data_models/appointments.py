@@ -21,7 +21,8 @@ def create_appointment(scheduled_dt, location_id, patient_id, patient_questionna
             (scheduled_dt, location_id, patient_id, patient_questionnaire_id, group_code, wp_customer_info_id, total_cost, billed_amount) 
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """
-        val = (scheduled_dt, location_id, patient_id, patient_questionnaire_id, group_code, wp_customer_info_id, total_cost, billed_amount)
+        val = (scheduled_dt, location_id, patient_id, patient_questionnaire_id,
+               group_code, wp_customer_info_id, total_cost, billed_amount)
         return exec_insert(sql, val)
 
     except Exception as err:
@@ -133,48 +134,6 @@ def positive_result_followup():
 
 
 
-def get_user_role(email):
-    try:
-        sql = """SELECT role 
-                FROM users 
-                WHERE
-                    email = %s
-                    """
-
-        val = (email,)
-        return read_row(sql, val)
-    except Exception as err:
-        log_generic(type="error", email=email,
-                    function='get_user_role', error=err)
-        return None
-
-
-def get_test_results():
-    try:
-        sql = """SELECT 
-                    pos.id as patient_id,
-                    ts.id as test_id,
-                    pos.dob,
-                    pos.first_name, 
-                    pos.last_name, 
-                    pos.phone_number, 
-                    pos.email,
-                    pat.gender,
-                    pat.addr1,
-                    ts.test_result,
-                    ts.status
-                FROM
-                    patients pos
-                INNER JOIN patients pat
-                    ON pos.id = pat.id
-                INNER JOIN test_samples ts
-                    ON pos.id = ts.patient_id
-                    """
-        return read_rows(sql, )
-    except Exception as err:
-        log_generic(type="error", location_id=None,
-                    function='get_monthy_calendar', error=err)
-
 def update_appointment_with_receipt_token(wp_receipt_token, wp_customer_info_id, appointment_id):
     try:
         sql = """
@@ -213,17 +172,23 @@ def update_appointment_with_confirmed_scheduled(appointment_id):
 
 def update_positive_result_followup(id, datetime):
     try:
-        sql = """UPDATE positive_result_followup_queue
-                 SET overall_status = %s, update_dt = %s
-                WHERE
-                    test_id = %s
-                    """
+        sql = """
+            UPDATE positive_result_followup_queue
+            SET 
+                overall_status = %s, update_dt = %s
+            WHERE
+                test_id = %s
+            """
 
         val = ("pending", datetime, id)
         return exec_update(sql, val)
+
     except Exception as err:
-        log_generic(type="error", location_id=None,
-                    function='get_monthy_calendar', error=err)
+        log_generic(
+            type="error", 
+            location_id=None,
+            function='update_positive_result_followup', 
+            error=err)
         return None
 
 

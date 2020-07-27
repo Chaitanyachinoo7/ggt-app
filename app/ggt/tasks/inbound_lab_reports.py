@@ -4,6 +4,7 @@ import csv
 import datetime
 import paramiko
 
+
 from ggt.lib.utils import (
     get_config_val,
     log_generic,
@@ -16,6 +17,23 @@ from ggt.lib.adapters.mysql_adapter import (
     read_row
 )
 
+from ggt.lib.storage import (
+    file_exists_in_all_inbound_files,
+    upload_lab_report,
+    upload_to_all_inbound_files
+)
+
+from ggt.lib.local_cache import (
+    init_local_cache,
+    record_exists_in_processed_records_cache,
+    file_exists_in_all_inbound_files_cache,
+    add_to_all_inbound_files_cache,
+    add_to_processed_records_cache,
+    mark_record_as_processed_in_records_cache,
+    get_pending_records_from_processed_records_cache
+)
+
+
 session_id = generate_session_id()
 
 #TODO: create a processed file list hash file to save time
@@ -25,11 +43,14 @@ def task_process_inbound_lab_reports():
         function='task_process_inbound_lab_reports', 
         task_session_id=session_id, 
         info='Begin Processing Inbound Lab Reports')
-        
+
+    init_local_cache()   
+    ftp_client, directory_list, remote_folder = init_ftp_connection()
+    
     download_ftp_files()
     parse_csv_files()
     update_test_samples_with_results()
-    upload_pdf_lab_reports()
+    #upload_pdf_lab_reports()
 
     log_generic(
         type="info", 
@@ -37,6 +58,41 @@ def task_process_inbound_lab_reports():
         task_session_id=session_id, 
         info='End Processing Inbound Lab Reports')
 
+
+def init_ftp_connection():
+    try:
+        hostname=get_config_val('vendors.healthtrackrx.hostname')
+        username=get_config_val('vendors.healthtrackrx.username')
+        password=get_config_val('vendors.healthtrackrx.password')
+        port=get_config_val('vendors.healthtrackrx.port')
+        remote_folder=get_config_val('vendors.healthtrackrx.remote_folder')
+
+        ssh_client = paramiko.SSHClient()
+        ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh_client.connect(
+            hostname=hostname,
+            username=username, 
+            password=password, 
+            port=port
+        )
+
+        ftp_client = ssh_client.open_sftp()
+        ftp_client.chdir(remote_folder)
+
+        paths = ftp_client.listdir()
+        directory_list = get_remote_directory_list(ftp_client, paths, remote_folder)
+        return ftp_client, directory_list, remote_folder
+
+
+    except Exception as err:
+        log_generic(
+            type="error", 
+            function='download_ftp_files', 
+            task_session_id=session_id, 
+            error=err
+        )
+    finally:
+        ftp_client.close()
 
 
 def download_ftp_files():
@@ -60,10 +116,9 @@ def download_ftp_files():
         ftp_client.chdir(remote_folder)
 
         paths = ftp_client.listdir()
-        print(paths)  ##
-
         directory_list = get_remote_directory_list(ftp_client, paths, remote_folder)
-        copy_files_to_local(ftp_client, directory_list, remote_folder)
+        #copy_files_to_local(ftp_client, directory_list, remote_folder)
+        copy_new_files_to_central_storage(ftp_client, directory_list, remote_folder)
 
     except Exception as err:
         log_generic(
@@ -88,6 +143,67 @@ def get_remote_directory_list(ftp_client, paths, remote_folder):
             pass
     print(directories)##
     return directories
+
+
+def copy_new_files_to_central_storage(ftp_client, directory_list, remote_folder):
+    
+    try:
+        download_path=get_config_val('vendors.healthtrackrx.download_path')
+    
+        for dir in directory_list:
+            remote_dir_path = "{}/{}".format(remote_folder, dir)
+            print("Scanning dir: {}".format(dir)) ##
+            try:
+                newpath = "{}/{}".format(download_path, dir)
+                if not os.path.exists(newpath):
+                    os.makedirs(newpath)
+
+                ftp_client.chdir(remote_dir_path)
+                filenames = ftp_client.listdir()
+
+                for filename in filenames:
+                    try:
+                        ''' TODO: allow switch between cache and cloud storage checks
+                        if file_exists_in_all_inbound_files(filename):
+                            print('{} exists. -- skipping.'.format(filename))
+                        '''
+                        ###checking against local cache to speed up
+                        if file_exists_in_all_inbound_files_cache(filename):
+                            print('{} exists in cache. -- skipping.'.format(filename))
+                        else:
+                            local_path = "{}/{}".format(newpath, filename)
+                            if not os.path.exists(local_path):
+                                print("copying {} to {}".format(filename, local_path)) ##
+                                ftp_client.get(filename, local_path)
+                                print("uploading {} to cloud".format(filename)) ##
+                                upload_to_all_inbound_files(local_path, filename)
+                                add_to_all_inbound_files_cache(filename)
+
+                    except Exception as err:
+                        log_generic(
+                            type="error", 
+                            function='copy_files_to_local --filelist', 
+                            task_session_id=session_id, 
+                            error=err
+                        )
+
+
+                #ftp_client.chdir(download_path)
+            except Exception as err:
+                log_generic(
+                            type="error", 
+                            function='copy_files_to_local --dirlist', 
+                            task_session_id=session_id, 
+                            error=err
+                        )
+
+    except Exception as err:
+        log_generic(
+            type="error", 
+            function='copy_files_to_local --final', 
+            task_session_id=session_id, 
+            error=err
+        )
 
 
 def copy_files_to_local(ftp_client, directory_list, remote_folder):
@@ -144,25 +260,26 @@ def parse_csv_files():
     try:
         files = [f for f in glob.glob("{}/**/*.csv".format(download_path), recursive=True)]
         for filename in files:
-            parse_csv_file(filename) #TODO: change the flow to batch insert, currently processes 1 file at a time
+            parse_csv_file(filename)
+            os.remove(filename)
 
     except Exception as err:
         print(err)
 
 
 def upload_pdf_lab_reports():
-    from ggt.lib.storage import (upload_lab_report)
     download_path=get_config_val('vendors.healthtrackrx.download_path')
     try:
         files = [f for f in glob.glob("{}/**/*.pdf".format(download_path), recursive=True)]
         for filename in files:
             try:
-                __destination_file_name = destination_file_name(filename)
-                if __destination_file_name:
+                __destination_filename = destination_filename(filename)
+                if __destination_filename:
                     upload_lab_report(
                         filename, 
-                        __destination_file_name
+                        __destination_filename
                     )
+                os.remove(filename)
             except Exception as err:
                 print('Error uploading {}'.format(filename))
             
@@ -171,10 +288,10 @@ def upload_pdf_lab_reports():
         print(err)
 
 
-def destination_file_name(file_path):
+def destination_filename(file_path):
     arr = file_path.split('/')
-    file_name = arr[len(arr)-1]
-    requisition_id = file_name.split('-')[3]
+    filename = arr[len(arr)-1]
+    requisition_id = filename.split('-')[3]
     sql = """
             SELECT order_number 
             FROM ggt_prod.healthtrackrx_inbound_data 
@@ -186,9 +303,9 @@ def destination_file_name(file_path):
         print('no record for: {}'.format(requisition_id))
         return None
 
-    file_name = '{}.pdf'.format(row['order_number'])
-    print(file_name)
-    return file_name
+    filename = '{}.pdf'.format(row['order_number'])
+    print(filename)
+    return filename
 
 
 
@@ -197,14 +314,48 @@ def parse_csv_file(file_path):
         reader = csv.DictReader(csvfile)
         for row in reader:
             try:
-                add_to_inbound_record(row)
+                #add_to_inbound_record(row)
+                add_to_processed_records_cache(row)
             except Exception as err:
                 print("err:", err)
+    
+    add_to_inbound_records_in_batch_mode()
             
 
 '''
-def add_to_processed_file(file_name):
-    print("{} added to processed list".format(file_name))
+def add_to_processed_file(filename):
+    print("{} added to processed list".format(filename))
+'''
+
+'''
+def add_to_inbound_records(rows):
+    try:
+        sql_rows = []
+        for rec in rows:
+            sql_row = "('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}')".format(
+                        str(rec['requisition_id']), 
+                        str(rec['order_number']), 
+                        str(rec['first_name']), 
+                        str(rec['last_name']), 
+                        str(rec['DOB']), 
+                        str(rec['assay_name']), 
+                        str(rec['status']), 
+                        str(rec['result'])
+            )
+            sql_rows.append(sql_row)
+
+        sql_rows_str = ", ".join(sql_rows)
+        sql = """
+        INSERT IGNORE INTO healthtrackrx_inbound_data
+        (requisition_id, order_number, first_name, last_name, DOB, assay_name, status, result)
+        VALUES %s ;
+        """
+        vals = (sql_rows_str)
+        exec_insert(sql, vals)
+
+    except Exception as err:
+        print("err:", err)
+
 '''
 
 def add_to_inbound_record(rec):
@@ -222,6 +373,23 @@ def add_to_inbound_record(rec):
             str(rec['status']), 
             str(rec['result']))
     exec_insert(sql, vals)
+
+
+def add_to_inbound_records_in_batch_mode():
+    rows = get_pending_records_from_processed_records_cache()
+    for row in rows:
+        rec = {}
+        rec['requisition_id'] = row[0]
+        rec['order_number'] = row[0]
+        rec['first_name'] = row[0]
+        rec['last_name'] = row[0]
+        rec['DOB'] = row[0]
+        rec['assay_name'] = row[0]
+        rec['status'] = row[0]
+        rec['result'] = row[0]
+        add_to_inbound_record(rec)
+        mark_record_as_processed_in_records_cache(row[0])
+
 
 
 

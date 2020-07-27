@@ -254,7 +254,7 @@ def __upfront_payment(group_code, location):
     total_cost = 17500
     billed_amount = 7000
 
-    if group_code == 'QTCORP' or group_code == 'BMSC' or group_code == 'EATZ':
+    if group_code == 'QTCORP' or group_code == 'BMSC' or group_code == 'EATZ' or group_code == 'LOWES' or group_code == 'LOWE\'S':
         return False, 0, 0
     if location == 11 or location == 7 or location == 18 or location == 28 or location == 24 or location == 26 or location == 9 or location == 26:
         return False, 0, 0

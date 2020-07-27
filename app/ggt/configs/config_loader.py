@@ -17,7 +17,6 @@ def __init_logging_config(path_to_file):
         config_data = yaml.safe_load(f.read())
         print(config_data)
         config.dictConfig(config_data)
-        print(config.dictConfig)
 
 
 def __init_config(path_to_file):

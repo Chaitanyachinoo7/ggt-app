@@ -133,29 +133,6 @@ def bp_provider_positive_result_followup():
         )
 
 
-def bp_get_user_role(email):
-    try:
-        return get_user_role(email)
-    except Exception as err:
-        log_generic(
-            type="error",
-            email=email,
-            function='bp_get_user_role',
-            error=err
-        )
-
-
-def bp_get_test_results():
-    try:
-        return get_test_results()
-    except Exception as err:
-        log_generic(
-            type="error",
-            email="",
-            function='bp_get_test_results',
-            error=err
-        )
-        # return False
 '''
 ########################################################################################################
 # [Protected] functions

@@ -1,7 +1,7 @@
 import os
 
 from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
+from sendgrid.helpers.mail import Mail, From
 
 from ggt.lib.utils import (
     get_config_val,
@@ -10,7 +10,7 @@ from ggt.lib.utils import (
 
 
 
-def send_sendgrid_email(from_email, to_email, subject, html_content, text_content=""):
+def send_sendgrid_email(from_email, from_name, to_email, subject, html_content, text_content=""):
     sendgrid_api_key = get_config_val('sendgrid.sendgrid_api_key')
 
     sg = SendGridAPIClient(sendgrid_api_key)
@@ -21,10 +21,11 @@ def send_sendgrid_email(from_email, to_email, subject, html_content, text_conten
         html_content=html_content)
 
     try:
+        # message.from_email = From('help@twilio.com', 'Twilio SendGrid')
         response = sg.send(message)
         log_generic(
             type="info", 
-            from_email=from_email, 
+            from_email=From(from_email, from_name), 
             to_email=to_email, 
             subject=subject, 
             html_content=html_content, 

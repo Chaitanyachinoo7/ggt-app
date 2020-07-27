@@ -29,7 +29,7 @@ from ggt.models.process_models.bp_appointments import (
 
 
 def get_screen_flow_seq(group_code):
-    if group_code == 'QTCORP':
+    if group_code == 'QTCORP' or group_code == 'LOWES' or group_code == 'LOWE\'S':
         return x_response({
             "screens": ["is-patient",
                         "gender",
