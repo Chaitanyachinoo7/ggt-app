@@ -23,34 +23,35 @@ outbound_file_prefix = get_config_val('vendors.healthtrackrx.outbound_file_prefi
 
 
 def task_process_outbound_lab_orders():
+    print('\n\n************************************************\n\n')
     log_generic(
         type="info",
         function='task_process_outbound_lab_orders',
         task_session_id=session_id,
         info='Begin Processing outbound Lab Reports')
 
-    print('************* looking up ready to transmit orders')
+    print('looking up ready to transmit orders')
     orders = get_orders_ready_to_transmit()
 
     if len(orders)>0:
-        print('************* generating outbound file')
+        print('generating outbound file')
         filename, local_file_path = create_outbound_file(orders)
 
-        print('************* uploading file to FTP server')
+        print('uploading file to FTP server')
         upload_files_to_ftp(filename, local_file_path)
 
-        print('************* marking records to "with_lab" status')
+        print('marking records to "with_lab" status')
         update_to_with_lab_status(orders)
     else:
         print('no orders to process')
-        
-    print('************* completed')
+
 
     log_generic(
         type="info",
         function='task_process_outbound_lab_orders',
         task_session_id=session_id,
         info='End Processing outbound Lab Reports')
+    print('\n\n************************************************\n\n')
 
 
 def create_outbound_file(orders):
@@ -130,10 +131,11 @@ def __get_formatted_row(order):
 def get_orders_ready_to_transmit():
     sql = """
         SELECT 
+            t.id AS id,
             t.patient_id AS patient_id,
             REPLACE(p.first_name, ',', '') AS first_name,
             REPLACE(p.last_name, ',', '') AS last_name,
-            DATE_FORMAT(p.dob,'%m/%d/%Y') AS dob,
+            DATE_FORMAT(p.dob, '%m/%d/%Y') AS dob,
             (CASE
                 WHEN (p.gender = 'male') THEN 'Male'
                 WHEN (p.gender = 'female') THEN 'Female'
@@ -167,15 +169,22 @@ def get_orders_ready_to_transmit():
             '22244887999' AS physician_npi,
             'Client Bill' AS bill,
             t.id AS client_order_number,
-            'Respiratory' AS sample_type,
-            'Nasopharynx' AS sample_source,
+            (CASE
+                WHEN (l.test_type_offered = 'oral') THEN 'Oral'
+                ELSE 'Respiratory'
+            END) AS sample_type,
+            (CASE
+                WHEN (l.test_type_offered = 'oral') THEN 'Oral'
+                ELSE 'Nasopharynx'
+            END) AS sample_source,
             DATE_FORMAT(t.sample_collection_start_dt,
                     '%m/%d/%y') AS date_of_collection,
             'RESPI507' AS panel_code,
             'COVID-19 Coronavirus (SARS-CoV-2)' AS panel_name
         FROM
-            (test_samples t
+            ((test_samples t
             JOIN patients p ON ((t.patient_id = p.id)))
+            LEFT JOIN locations l ON ((t.sample_collection_location_id = l.id)))
         WHERE
             (t.status = 'ready_to_tx')
             """

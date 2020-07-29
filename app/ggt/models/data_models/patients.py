@@ -67,6 +67,25 @@ def get_patient(patient_id):
         return None
 
 
+def get_patient_by_token(token):
+    try:
+        sql = "SELECT id, first_name, middle_name, last_name, dob, token FROM patients WHERE token=%s LIMIT 1"
+        val = (token,)
+        row = read_row(sql, val)
+        log_generic(
+            type="info", 
+            token=token, 
+            function='get_patient_by_token')
+        return (row['id'], row['first_name'], row['middle_name'], row['last_name'], row['dob'], row['token'])
+
+    except Exception as err:
+        log_generic(
+            type="error", 
+            id=id,
+            function='get_patient_by_token', 
+            error=err)
+        return None
+
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################

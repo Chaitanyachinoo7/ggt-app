@@ -3,6 +3,7 @@ import glob
 import csv
 import datetime
 import paramiko
+import itertools
 
 
 from ggt.lib.utils import (
@@ -13,8 +14,10 @@ from ggt.lib.utils import (
 
 from ggt.lib.adapters.mysql_adapter import (
     exec_insert,
+    exec_batch_insert,
     exec_update,
-    read_row
+    read_row,
+    read_rows
 )
 
 from ggt.lib.storage import (
@@ -23,34 +26,49 @@ from ggt.lib.storage import (
     upload_to_all_inbound_files
 )
 
-from ggt.lib.local_cache import (
+from ggt.models.data_models.tasks_local_cache import (
     init_local_cache,
-    record_exists_in_processed_records_cache,
-    file_exists_in_all_inbound_files_cache,
+    add_to_lab_test_records_cache,
+    get_all_lab_records_from_cache,
     add_to_all_inbound_files_cache,
-    add_to_processed_records_cache,
-    mark_record_as_processed_in_records_cache,
-    get_pending_records_from_processed_records_cache
+    file_exists_in_all_inbound_files_cache,
+    get_order_number_by_requisition_id,
+    add_to_files_in_remote_storage_cache,
+    file_exists_in_files_in_remote_storage_cache
 )
 
 
 session_id = generate_session_id()
 
-#TODO: create a processed file list hash file to save time
+#----What this does----
+#Delete/move files at the download directory
+#get a list of remote files
+#iterate over the files
+#       if file exists in cache, skip. Else download. Add name to cache
+#--
+#parse CSV files, add all records into the labrecords table in cache (insert ignore)
+#Take all the records in the cache and add to Mysql (results are available for reporting)
+#Scan the download folder and upload all the files to inboundfiles folder in GCP
+#Copy renamed PDF lab reports to GCP
 def task_process_inbound_lab_reports():
+    print('\n\n************************************************\n\n')
     log_generic(
         type="info", 
         function='task_process_inbound_lab_reports', 
         task_session_id=session_id, 
         info='Begin Processing Inbound Lab Reports')
 
-    init_local_cache()   
-    ftp_client, directory_list, remote_folder = init_ftp_connection()
-    
+    init_local_cache()  
+    load_data_from_remote_db_to_cache() 
+
+    clean_downloads_folder()
     download_ftp_files()
     parse_csv_files()
+        
+    add_to_healthtrackrx_inbound_data_table()
     update_test_samples_with_results()
-    #upload_pdf_lab_reports()
+    upload_pdf_lab_reports()
+    upload_all_inbound_files_to_central_storage()
 
     log_generic(
         type="info", 
@@ -58,6 +76,9 @@ def task_process_inbound_lab_reports():
         task_session_id=session_id, 
         info='End Processing Inbound Lab Reports')
 
+    print('\n\n************************************************\n\n')
+
+    
 
 def init_ftp_connection():
     try:
@@ -95,6 +116,21 @@ def init_ftp_connection():
         ftp_client.close()
 
 
+def clean_downloads_folder():
+    download_path=get_config_val('vendors.healthtrackrx.download_path')
+    try:
+        files = glob.glob("{}/*".format(download_path))
+        for f in files:
+            os.remove(f)
+
+    except Exception as err:
+        log_generic(
+            type="error", 
+            function='clean_downloads_folder',
+            error=err
+        )
+
+
 def download_ftp_files():
     try:
         hostname=get_config_val('vendors.healthtrackrx.hostname')
@@ -117,8 +153,8 @@ def download_ftp_files():
 
         paths = ftp_client.listdir()
         directory_list = get_remote_directory_list(ftp_client, paths, remote_folder)
-        #copy_files_to_local(ftp_client, directory_list, remote_folder)
-        copy_new_files_to_central_storage(ftp_client, directory_list, remote_folder)
+        copy_files_to_local(ftp_client, directory_list, remote_folder)
+        #copy_new_files_to_central_storage(ftp_client, directory_list, remote_folder)
 
     except Exception as err:
         log_generic(
@@ -145,67 +181,6 @@ def get_remote_directory_list(ftp_client, paths, remote_folder):
     return directories
 
 
-def copy_new_files_to_central_storage(ftp_client, directory_list, remote_folder):
-    
-    try:
-        download_path=get_config_val('vendors.healthtrackrx.download_path')
-    
-        for dir in directory_list:
-            remote_dir_path = "{}/{}".format(remote_folder, dir)
-            print("Scanning dir: {}".format(dir)) ##
-            try:
-                newpath = "{}/{}".format(download_path, dir)
-                if not os.path.exists(newpath):
-                    os.makedirs(newpath)
-
-                ftp_client.chdir(remote_dir_path)
-                filenames = ftp_client.listdir()
-
-                for filename in filenames:
-                    try:
-                        ''' TODO: allow switch between cache and cloud storage checks
-                        if file_exists_in_all_inbound_files(filename):
-                            print('{} exists. -- skipping.'.format(filename))
-                        '''
-                        ###checking against local cache to speed up
-                        if file_exists_in_all_inbound_files_cache(filename):
-                            print('{} exists in cache. -- skipping.'.format(filename))
-                        else:
-                            local_path = "{}/{}".format(newpath, filename)
-                            if not os.path.exists(local_path):
-                                print("copying {} to {}".format(filename, local_path)) ##
-                                ftp_client.get(filename, local_path)
-                                print("uploading {} to cloud".format(filename)) ##
-                                upload_to_all_inbound_files(local_path, filename)
-                                add_to_all_inbound_files_cache(filename)
-
-                    except Exception as err:
-                        log_generic(
-                            type="error", 
-                            function='copy_files_to_local --filelist', 
-                            task_session_id=session_id, 
-                            error=err
-                        )
-
-
-                #ftp_client.chdir(download_path)
-            except Exception as err:
-                log_generic(
-                            type="error", 
-                            function='copy_files_to_local --dirlist', 
-                            task_session_id=session_id, 
-                            error=err
-                        )
-
-    except Exception as err:
-        log_generic(
-            type="error", 
-            function='copy_files_to_local --final', 
-            task_session_id=session_id, 
-            error=err
-        )
-
-
 def copy_files_to_local(ftp_client, directory_list, remote_folder):
     try:
         download_path=get_config_val('vendors.healthtrackrx.download_path')
@@ -223,10 +198,15 @@ def copy_files_to_local(ftp_client, directory_list, remote_folder):
 
                 for filename in filenames:
                     try:
-                        local_path = "{}/{}".format(newpath, filename)
-                        print("copying {} to {}".format(filename, local_path)) ##
-                        if not os.path.exists(local_path):
+                        if file_exists_in_all_inbound_files_cache(filename):
+                            print('{} exists in cache. -- skipping.'.format(filename))
+                        else:
+                            local_path = "{}/{}".format(newpath, filename)
+
+                            print("copying {} to {}".format(filename, local_path)) ##
                             ftp_client.get(filename, local_path)
+                            add_to_all_inbound_files_cache(filename)
+
                     except Exception as err:
                         log_generic(
                             type="error", 
@@ -235,8 +215,6 @@ def copy_files_to_local(ftp_client, directory_list, remote_folder):
                             error=err
                         )
 
-
-                #ftp_client.chdir(download_path)
             except Exception as err:
                 log_generic(
                             type="error", 
@@ -254,17 +232,38 @@ def copy_files_to_local(ftp_client, directory_list, remote_folder):
         )
 
     
-
 def parse_csv_files():
     download_path=get_config_val('vendors.healthtrackrx.download_path')
     try:
         files = [f for f in glob.glob("{}/**/*.csv".format(download_path), recursive=True)]
         for filename in files:
             parse_csv_file(filename)
-            os.remove(filename)
 
     except Exception as err:
         print(err)
+
+
+def parse_csv_file(file_path):
+    with open(file_path) as csvfile:
+        reader = csv.DictReader(lower_first(csvfile))
+        for row in reader:
+            try:
+                add_to_lab_test_records_cache(row)
+            except Exception as err:
+                print("err:", err)
+
+
+def load_data_from_remote_db_to_cache():
+    sql = """
+        SELECT * 
+        FROM healthtrackrx_inbound_data 
+        """
+    rows = read_rows(sql)
+    
+    for row in rows:
+        add_to_lab_test_records_cache(row)
+    
+    print('sync completed')
 
 
 def upload_pdf_lab_reports():
@@ -273,13 +272,22 @@ def upload_pdf_lab_reports():
         files = [f for f in glob.glob("{}/**/*.pdf".format(download_path), recursive=True)]
         for filename in files:
             try:
-                __destination_filename = destination_filename(filename)
+                __destination_filename = generate_destination_filename(filename)
                 if __destination_filename:
-                    upload_lab_report(
-                        filename, 
-                        __destination_filename
-                    )
-                os.remove(filename)
+                    if file_exists_in_files_in_remote_storage_cache(__destination_filename):
+                        print('cache hit: ', __destination_filename)
+                    else:
+                        upload_status = upload_lab_report(
+                            filename, 
+                            __destination_filename
+                        )
+                        if upload_status is None:
+                            print('Error Uploading....')
+                        elif upload_status:
+                            print('upload success')
+                        else:
+                            print('file exsits... adding to local cache : {}'.format(__destination_filename))
+                            add_to_files_in_remote_storage_cache(__destination_filename)
             except Exception as err:
                 print('Error uploading {}'.format(filename))
             
@@ -288,145 +296,89 @@ def upload_pdf_lab_reports():
         print(err)
 
 
-def destination_filename(file_path):
+def upload_all_inbound_files_to_central_storage():
+    download_path=get_config_val('vendors.healthtrackrx.download_path')
+    try:
+        files = [f for f in glob.glob("{}/**/*".format(download_path), recursive=True)]
+        for file_path in files:
+            filename = extract_filename(file_path)
+            try:
+                if file_exists_in_files_in_remote_storage_cache(filename):
+                    print('cache hit: ', filename)
+                else:
+                    upload_status = upload_to_all_inbound_files(file_path, filename)
+                    if upload_status is None:
+                        print('Error Uploading....')
+                    elif upload_status:
+                        print('upload success')
+                    else:
+                        print('file exsits... adding to local cache : {}'.format(filename))
+                        add_to_files_in_remote_storage_cache(filename)
+            except Exception as err:
+                print('Error uploading {}'.format(filename))
+            
+
+    except Exception as err:
+        print(err)
+
+
+def extract_filename(file_path):
     arr = file_path.split('/')
     filename = arr[len(arr)-1]
-    requisition_id = filename.split('-')[3]
-    sql = """
-            SELECT order_number 
-            FROM ggt_prod.healthtrackrx_inbound_data 
-            WHERE requisition_id = %s
-            """
-    vals = (requisition_id, )
-    row = read_row(sql, vals)
-    if row is None:
-        print('no record for: {}'.format(requisition_id))
-        return None
-
-    filename = '{}.pdf'.format(row['order_number'])
-    print(filename)
     return filename
 
 
-
-def parse_csv_file(file_path):
-    with open(file_path) as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            try:
-                #add_to_inbound_record(row)
-                add_to_processed_records_cache(row)
-            except Exception as err:
-                print("err:", err)
+def generate_destination_filename(file_path):
+    arr = file_path.split('/')
+    filename = arr[len(arr)-1]
+    requisition_id = filename.split('-')[3]
     
-    add_to_inbound_records_in_batch_mode()
-            
+    order_number = get_order_number_by_requisition_id(requisition_id)
+    if order_number is None:
+        print('no record for: {}'.format(requisition_id))
+        return None
 
-'''
-def add_to_processed_file(filename):
-    print("{} added to processed list".format(filename))
-'''
+    filename = '{}.pdf'.format(order_number)
+    return filename
 
-'''
-def add_to_inbound_records(rows):
+
+def add_to_healthtrackrx_inbound_data_table():
+    rows = get_all_lab_records_from_cache()
     try:
-        sql_rows = []
-        for rec in rows:
-            sql_row = "('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}')".format(
-                        str(rec['requisition_id']), 
-                        str(rec['order_number']), 
-                        str(rec['first_name']), 
-                        str(rec['last_name']), 
-                        str(rec['DOB']), 
-                        str(rec['assay_name']), 
-                        str(rec['status']), 
-                        str(rec['result'])
-            )
-            sql_rows.append(sql_row)
-
-        sql_rows_str = ", ".join(sql_rows)
         sql = """
-        INSERT IGNORE INTO healthtrackrx_inbound_data
-        (requisition_id, order_number, first_name, last_name, DOB, assay_name, status, result)
-        VALUES %s ;
+            INSERT INTO healthtrackrx_inbound_data
+                (requisition_id, order_number, first_name, last_name, dob, assay_name, status, result)
+            VALUES (%s,%s,%s,%s, %s,%s,%s,%s)
+            ON DUPLICATE KEY UPDATE requisition_id=requisition_id
         """
-        vals = (sql_rows_str)
-        exec_insert(sql, vals)
+        exec_batch_insert(sql, rows)
 
     except Exception as err:
         print("err:", err)
 
-'''
-
-def add_to_inbound_record(rec):
-    print("==>", rec['requisition_id'], rec['order_number'], rec['first_name'], rec['last_name'], rec['DOB'], rec['assay_name'], rec['status'], rec['result'])
-    sql = """INSERT INTO healthtrackrx_inbound_data
-            (requisition_id, order_number, first_name, last_name, DOB, assay_name, status, result)
-        VALUES (%s,%s,%s,%s, %s,%s,%s,%s)
-        ON DUPLICATE KEY UPDATE requisition_id=requisition_id"""
-    vals = (str(rec['requisition_id']), 
-            str(rec['order_number']), 
-            str(rec['first_name']), 
-            str(rec['last_name']), 
-            str(rec['DOB']), 
-            str(rec['assay_name']), 
-            str(rec['status']), 
-            str(rec['result']))
-    exec_insert(sql, vals)
-
-
-def add_to_inbound_records_in_batch_mode():
-    rows = get_pending_records_from_processed_records_cache()
-    for row in rows:
-        rec = {}
-        rec['requisition_id'] = row[0]
-        rec['order_number'] = row[0]
-        rec['first_name'] = row[0]
-        rec['last_name'] = row[0]
-        rec['DOB'] = row[0]
-        rec['assay_name'] = row[0]
-        rec['status'] = row[0]
-        rec['result'] = row[0]
-        add_to_inbound_record(rec)
-        mark_record_as_processed_in_records_cache(row[0])
-
-
-
 
 def update_test_samples_with_results():
-    sql = """UPDATE test_samples
-                    INNER JOIN
-                healthtrackrx_inbound_data ON (test_samples.id = healthtrackrx_inbound_data.order_number) 
-            SET 
-                test_samples.lab_result_receive_dt = NOW(),
-                test_samples.test_result = (CASE
-                    WHEN (healthtrackrx_inbound_data.result = 'Negative') THEN 'neg'
-                    WHEN (healthtrackrx_inbound_data.result = 'Positive') THEN 'pos'
-                    ELSE 'inconclusive'
-                END),
-                test_samples.status = 'lab_result_received',
-                test_samples.update_dt = NOW()
-            WHERE
-                test_samples.test_result IS NULL
-                    AND test_samples.id = healthtrackrx_inbound_data.order_number
+    sql = """
+        UPDATE test_samples
+                INNER JOIN
+            healthtrackrx_inbound_data ON (test_samples.id = healthtrackrx_inbound_data.order_number) 
+        SET 
+            test_samples.lab_result_receive_dt = NOW(),
+            test_samples.test_result = (CASE
+                WHEN (healthtrackrx_inbound_data.result = 'Negative') THEN 'neg'
+                WHEN (healthtrackrx_inbound_data.result = 'Positive') THEN 'pos'
+                ELSE 'inconclusive'
+            END),
+            test_samples.status = 'lab_result_received',
+            test_samples.update_dt = NOW()
+        WHERE
+            test_samples.test_result IS NULL
+                AND test_samples.id = healthtrackrx_inbound_data.order_number
         """
     val = ()
     exec_update(sql, val)
 
 
 
-'''
-
-def publish_file_to_gcp_bucket():
-    pass
-
-
-def parse_pdf_files():
-    pass
-
-'''
-'''
-def append_to_processed_file_list():
-    pass
-
-'''
+def lower_first(iterator):
+    return itertools.chain([next(iterator).lower()], iterator)

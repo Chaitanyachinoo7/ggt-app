@@ -1,0 +1,76 @@
+SELECT 
+            MAX(id)
+        FROM
+            appointment_with_patient
+        WHERE
+            token = 'c3db815e-5fe6-4ae6-ae6d-926595e32abc'
+
+
+
+-------
+
+DELETE FROM appointments 
+WHERE
+    id IN (SELECT 
+        id
+    FROM
+        (SELECT 
+            `appointments`.`id` AS `id`
+        FROM
+            (`appointments`
+        JOIN `patients` `p` ON ((`p`.`id` = `appointments`.`patient_id`)))
+        
+        WHERE
+            `p`.`token` = 'c3db815e-5fe6-4ae6-ae6d-926595e32abc'
+            AND `appointments`.`id` <> (
+
+SELECT 
+            MAX(id)
+        FROM
+            appointment_with_patient
+        WHERE
+            token = 'c3db815e-5fe6-4ae6-ae6d-926595e32abc'
+
+            )
+        ORDER BY `appointments`.`id` DESC) foo)
+and id <> 0
+
+
+
+
+---
+
+
+
+
+DELETE FROM appointments 
+WHERE
+    id IN (SELECT 
+            id
+        FROM
+            (SELECT 
+                `appointments`.`id` AS `id`
+            FROM
+                (`appointments`
+            JOIN `patients` `p` ON ((`p`.`id` = `appointments`.`patient_id`)))
+            WHERE
+                `p`.`token` = '3ab13062-9a37-4ecf-9bd3-628e73fde058'
+                    AND `appointments`.`id` <> (SELECT 
+                        MAX(id)
+                    FROM
+                        appointment_with_patient
+                    WHERE
+                        token = '3ab13062-9a37-4ecf-9bd3-628e73fde058')
+            ORDER BY `appointments`.`id` DESC) foo)
+and id <> 0
+
+
+
+
+
+----
+Restore
+
+ CALL delete_duplicate_bookings('NOVERIFY-d71e-40c5-99e6-41e0aad52d26')
+ 30 rows
+`

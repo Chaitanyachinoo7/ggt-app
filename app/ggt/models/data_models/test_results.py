@@ -120,23 +120,25 @@ def search_details_by_name_and_dob(last_name, dob):
 def get_all_test_results():
     try:
         sql = """SELECT 
-                    pos.id as patient_id,
+                    pat.id as patient_id,
                     ts.id as test_id,
-                    pos.dob,
-                    pos.first_name, 
-                    pos.last_name, 
-                    pos.phone_number, 
-                    pos.email,
+                    pat.dob,
+                    pat.first_name, 
+                    pat.last_name, 
+                    pat.phone_number, 
+                    pat.email,
                     pat.gender,
                     pat.addr1,
+                    pat.city,
+                    pat.st,
+                    pat.zip,
+                    ts.group_code,
                     ts.test_result,
                     ts.status
                 FROM
-                    patients pos
-                INNER JOIN patients pat
-                    ON pos.id = pat.id
+                    patients pat
                 INNER JOIN test_samples ts
-                    ON pos.id = ts.patient_id
+                    ON pat.id = ts.patient_id
                     """
         return read_rows(sql, )
     except Exception as err:

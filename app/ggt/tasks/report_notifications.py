@@ -6,6 +6,7 @@ from ggt.lib.utils import (
 
 from ggt.lib.adapters.mysql_adapter import (
     exec_insert,
+    exec_batch_insert,
     exec_update,
     read_rows
 )
@@ -15,9 +16,11 @@ session_id = generate_session_id()
 
 
 def task_schedule_result_notifications_and_followups():
+    print('\n\n************************************************\n\n')
     schedule_negative_notifications()
     schedule_positive_notifications()
     schedule_negative_notification_using_sms()
+    print('\n\n************************************************\n\n')
 
 
 def schedule_negative_notifications():
@@ -113,7 +116,7 @@ def schedule_positive_notifications():
         task_session_id=session_id,
         info='COMPLETED - Scheduling Positive Report Followup sessions')
 
-
+'''
 def schedule_negative_notification_using_sms():
     sql = """
         SELECT * FROM negative_result_notification_queue
@@ -131,6 +134,70 @@ def schedule_negative_notification_using_sms():
                 formatted_sms_message(first_name, token)):
             # TODO: update to pending until patient acknowledges the message. If not, try other means of communication
             update_notification_queue_status_to_pending(test_id)
+'''
+
+
+def schedule_negative_notification_using_sms():
+    sql = """
+        SELECT * FROM negative_result_notification_queue
+        WHERE overall_status = 'scheduled'
+    """
+    rows = read_rows(sql)
+
+    ##---
+    data = []
+    for row in rows:
+        test_id = row['test_id']
+        first_name = row['first_name'].strip()
+        token = row['token']
+        phone_number = row['phone_number']
+        data.append(
+            (phone_number, formatted_sms_message(first_name, token))
+        )
+
+    ##---
+    try:
+        sql = """
+            INSERT INTO sms_notification_queue
+                (to_number,message)
+            VALUES
+                (%s, %s);
+        """
+        exec_batch_insert(sql, data)
+
+    except Exception as err:
+        print("err:", err)
+
+
+    ##---
+    try:
+        sql = """
+            INSERT INTO sms_notification_queue
+                (to_number,message)
+            VALUES
+                (%s, %s);
+        """
+        exec_batch_insert(sql, data)
+
+    except Exception as err:
+        print("err:", err)
+
+
+def add_to_healthtrackrx_inbound_data_table():
+    rows = get_all_lab_records_from_cache()
+    try:
+        sql = """
+            INSERT INTO healthtrackrx_inbound_data
+                (requisition_id, order_number, first_name, last_name, dob, assay_name, status, result)
+            VALUES (%s,%s,%s,%s, %s,%s,%s,%s)
+            ON DUPLICATE KEY UPDATE requisition_id=requisition_id
+        """
+        exec_batch_insert(sql, rows)
+
+    except Exception as err:
+        print("err:", err)
+
+
 
 
 def formatted_sms_message(first_name, token):

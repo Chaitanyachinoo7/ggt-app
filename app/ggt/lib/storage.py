@@ -6,7 +6,9 @@ from ggt.lib.adapters.google_adapter import (
     upload_insurance_card as __upload_insurance_card,
     upload_to_all_inbound_files as __upload_to_all_inbound_files,
     get_temp_lab_report_url as __get_temp_lab_report_url,
-    get_temp_insurance_card_url as __get_temp_insurance_card_url
+    get_temp_insurance_card_url as __get_temp_insurance_card_url,
+    get_list_of_all_uploaded_lab_reports as __get_list_of_all_uploaded_lab_reports,
+    get_list_of_all_uploaded_inbound_files as __get_list_of_all_uploaded_inbound_files
 )
 
 
@@ -40,6 +42,14 @@ def get_temporary_lab_report_url(filename):
 
 def get_temporary_insurance_card_url(filename):
     return __get_temp_insurance_card_url(filename)
+    
+
+def get_list_of_all_uploaded_lab_reports():
+    return __get_list_of_all_uploaded_lab_reports
+
+
+def get_list_of_all_uploaded_inbound_files():
+    return __get_list_of_all_uploaded_inbound_files
 
 
 ###TODO:

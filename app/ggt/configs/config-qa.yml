@@ -22,6 +22,9 @@ databases:
     password: Jr6EEMI2aBNguL1K
     db: ggt_qa
 
+  sqlite:
+    tasks_sqlite_db : /tmp/ggt-tasks/ggt_tasks_local_cache.db
+      
 twilio:
     account_sid: AC9cef9b4155030ee2683281ccc72d4001
     auth_token: 62ee76165984c54f91ee80aac9cb3f0e
@@ -40,7 +43,7 @@ vendors:
     password: 9cTE3fh@8H
     port: 22
     remote_folder: /Reports
-    download_path: /tmp/ggt-tasks
+    download_path: /tmp/ggt-tasks/downloads
     local_outbound_file_path: /tmp/ggt-tasks/outbound
     outbound_file_prefix: ggt-outbound
     

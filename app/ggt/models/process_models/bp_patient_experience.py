@@ -18,6 +18,7 @@ from ggt.models.data_models.signups import (
 
 from ggt.models.data_models.patients import (
     create_patient_record,
+    get_patient_by_token
 )
 
 from ggt.models.data_models.questionnaires import (
@@ -187,7 +188,8 @@ def bp_finalize_booking(data):
             wp_customer_info_id = __create_wp_customer(data)
 
             payment_required, total_cost, billed_amount = __upfront_payment(
-                data['group_code'], data['location'])
+                data['group_code'], data['location']
+            )
 
             # generate appointment
             appointment = generate_appointment(
@@ -203,28 +205,34 @@ def bp_finalize_booking(data):
                 return False
 
             if payment_required:
-                wp_bill = __create_wp_bill(
-                    wp_customer_info_id,
-                    billed_amount,
-                    appointment['appointment_id'])
-
-                if update_appointment_with_receipt_token(
-                        wp_bill['receipt_token'],
+                if wp_customer_info_id is None: #Customer creation failed, therefore payment cannot proceed.
+                    log_generic(type="error", data=data,
+                    function='bp_finalize_booking', error='Customer creation failed, therefore payment cannot proceed.')
+                    raise ValueError('Customer creation failed, therefore payment cannot proceed.')
+                else:
+                    wp_bill = __create_wp_bill(
                         wp_customer_info_id,
-                        appointment['appointment_id']):
-
-                    return __finalize_booking_response(
-                        appointment['date_text'],
-                        appointment['location_text'],
-                        appointment['appointment_id'],
                         billed_amount,
-                        total_cost,
-                        wp_bill['url']
-                    )
+                        appointment['appointment_id'])
+
+                    if update_appointment_with_receipt_token(
+                            wp_bill['receipt_token'],
+                            wp_customer_info_id,
+                            appointment['appointment_id']):
+
+                        return __finalize_booking_response(
+                            appointment['date_text'],
+                            appointment['location_text'],
+                            appointment['appointment_id'],
+                            billed_amount,
+                            total_cost,
+                            wp_bill['url']
+                        )
             else:
-                # payment is not required, confirm the appointment
-                update_appointment_with_confirmed_scheduled(
-                    appointment['appointment_id'])
+                # payment not required, confirm the appointment and notify
+                update_appointment_with_confirmed_scheduled(appointment['appointment_id'])
+                __send_qrcode_sms(data['phone_number'], appointment['appointment_id'])
+
                 return __finalize_booking_response(
                     appointment['date_text'],
                     appointment['location_text'],
@@ -263,44 +271,70 @@ def __upfront_payment(group_code, location):
 
 
 def __create_wp_customer(data):
-    url = "{}/customers".format(get_config_val('vendors.wellpay.endpoint'))
-    headers = {
-        'Authorization': 'Bearer {}'.format(get_config_val('vendors.wellpay.auth_token')),
-        'Content-Type': 'application/json'
-    }
-    payload = {
-        "date_of_birth": data["dob"],
-        "email": data["email"],
-        "first_name": data["first_name"],
-        "last_name": data["last_name"],
-        "phone": data["phone_number"],
-        "street_address": data["address"],
-        "city": data["city"],
-        "state": data["st"],
-        "zip_code": data["zip"]
-    }
-    r = requests.post(url, headers=headers, json=payload)
-    customer_info_id = r.json()[0]['customer_info_id']
+    try:
+        url = "{}/customers".format(get_config_val('vendors.wellpay.endpoint'))
+        headers = {
+            'Authorization': 'Bearer {}'.format(get_config_val('vendors.wellpay.auth_token')),
+            'Content-Type': 'application/json'
+        }
+        payload = {
+            "date_of_birth": data["dob"],
+            "email": data["email"],
+            "first_name": data["first_name"],
+            "last_name": data["last_name"],
+            "phone": data["phone_number"],
+            "street_address": data["address"],
+            "city": data["city"],
+            "state": data["st"],
+            "zip_code": data["zip"]
+        }
+        r = requests.post(url, headers=headers, json=payload)
+        customer_info_id = r.json()[0]['customer_info_id']
 
-    return customer_info_id
+        return customer_info_id
+
+    except Exception as err:
+        log_generic(
+            type="error",
+            data=data,
+            function='__create_wp_customer',
+            error=err
+        )
+        return None
+
+
+
 
 
 def __create_wp_bill(customer_info_id, billed_amount, appointment_id):
-    url = "{}/bills".format(get_config_val('vendors.wellpay.endpoint'))
-    headers = {
-        'Authorization': 'Bearer {}'.format(get_config_val('vendors.wellpay.auth_token')),
-        'Content-Type': 'application/json'
-    }
-    payload = {
-        "customer_info_id": customer_info_id,
-        "staged": "true",
-        "billed_amount": billed_amount,
-        "external_bill_id": appointment_id,
-        "onSuccess": "{}/appointment/{}/pay/success".format(get_config_val('base_url'), appointment_id),
-        "onFailure": "{}/appointment/{}/pay/error".format(get_config_val('base_url'), appointment_id),
-    }
-    r = requests.post(url, headers=headers, json=payload)
-    return r.json()
+    try:
+        url = "{}/bills".format(get_config_val('vendors.wellpay.endpoint'))
+        headers = {
+            'Authorization': 'Bearer {}'.format(get_config_val('vendors.wellpay.auth_token')),
+            'Content-Type': 'application/json'
+        }
+        payload = {
+            "customer_info_id": customer_info_id,
+            "staged": "true",
+            "billed_amount": billed_amount,
+            "external_bill_id": appointment_id,
+            "onSuccess": "{}/appointment/{}/pay/success".format(get_config_val('base_url'), appointment_id),
+            "onFailure": "{}/appointment/{}/pay/error".format(get_config_val('base_url'), appointment_id),
+        }
+        r = requests.post(url, headers=headers, json=payload)
+        return r.json()
+
+    except Exception as err:
+        log_generic(
+            type="error",
+            customer_info_id=customer_info_id, 
+            billed_amount=billed_amount, 
+            appointment_id=appointment_id,
+            function='__create_wp_bill',
+            error=err
+        )
+        return None
+
 
 
 def bp_finalize_payment(appointment_id, wp_receipt_token):
@@ -325,7 +359,7 @@ def bp_finalize_payment(appointment_id, wp_receipt_token):
     return False
 
 
-# todo use appt id
+# TODO: use appt id
 def __send_qrcode_sms(phone_number, appointment_id):
     message = "Click here for your Appointment Details\n {}/appointment/{}".format(
         get_config_val('base_url'), str(appointment_id).rjust(6, '0'))
@@ -543,6 +577,10 @@ def __override_random_otp(phone_number):
 
 
 def __is_valid_token(token):
+    #Duplicate Token
+    if get_patient_by_token(token):
+        return False
+
     # Allows overriding phone number validation
     if token.startswith("NOVERIFY"):
         return True

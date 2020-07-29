@@ -72,6 +72,27 @@ def exec_insert(sql, val):
             __cnx.close()
 
 
+
+def exec_batch_insert(sql, data):
+    try:
+        __cnx = mysql.connector.connect(**connection_config_dict)
+        __cursor = __cnx.cursor(dictionary=True, buffered=True)
+
+        __cursor.executemany(sql, data)
+        __cnx.commit()
+
+        return True
+
+    except Error as err:
+        __append_to_sql_log('error', 'INSERT MANY', "{}".format(sql), err)
+        return False
+
+    finally:
+        if (__cnx.is_connected()):
+            __cursor.close()
+            __cnx.close()
+
+
 def exec_update(sql, val):
     try:
         __cnx = mysql.connector.connect(**connection_config_dict)

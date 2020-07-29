@@ -13,6 +13,8 @@ from ggt.lib.adapters.mysql_adapter import (
 from ggt.lib.sms import send_sms
 
 def task_process_sms_queue():
+    print('\n\n************************************************\n\n')
+
     sql = """
     SELECT * FROM sms_notification_queue where status = 'pending'
     """
@@ -23,6 +25,8 @@ def task_process_sms_queue():
         message = row['message']
         if send_sms(to_number, message):
             update_sms_status_to_processed(id)
+
+    print('\n\n************************************************\n\n')
 
 
 def update_sms_status_to_processed(id):

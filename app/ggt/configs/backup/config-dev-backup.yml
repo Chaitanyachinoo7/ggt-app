@@ -22,6 +22,9 @@ databases:
     password: Jr6EEMI2aBNguL1K
     db: ggt_dev
 
+  sqlite:
+    tasks_sqlite_db : /tmp/ggt-tasks/ggt_tasks_local_cache.db
+
 twilio:
     account_sid: AC9cef9b4155030ee2683281ccc72d4001
     auth_token: 62ee76165984c54f91ee80aac9cb3f0e
@@ -48,7 +51,6 @@ vendors:
     endpoint: https://api-dev.getwellpay.com/api/public/v1
     auth_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJob3N0IjoiYXBpLWRldi5nZXR3ZWxscGF5LmNvbSIsImV4cCI6MTYxMDkxMDkwNy4yNTUsImV4dGVybmFsX2tleSI6dHJ1ZSwicm9sZSI6InByb3ZpZGVyIiwicHJvdmlkZXJfaWQiOiIyNTAiLCJpYXQiOjE1OTUwMTMzMDcsImp0aSI6IjAxMjdkZWEzLTJjZWEtNGYwNC04ZjJlLWRhYzBiNWZhZjYyOSJ9.SGpt7I3M_eSHdUted22eT7wN-L-4_3Dd0oR2duO8FSA
     
-
 pfe:
   signup:
     special_phone_1: "+14158888888"

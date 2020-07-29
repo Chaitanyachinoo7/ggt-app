@@ -198,16 +198,16 @@ def finalize_payment(finalize_payment_request):
 
 def finalize_registration(finalize_registration_request):
     token = finalize_registration_request.token
-    phone_number = finalize_registration_request.phone_number
-    first_name = finalize_registration_request.patientDetails.first_name
-    middle_name = finalize_registration_request.patientDetails.middle_name
-    last_name = finalize_registration_request.patientDetails.last_name
+    phone_number = finalize_registration_request.phone_number.strip()
+    first_name = finalize_registration_request.patientDetails.first_name.strip()
+    middle_name = finalize_registration_request.patientDetails.middle_name.strip()
+    last_name = finalize_registration_request.patientDetails.last_name.strip()
     gender = finalize_registration_request.gender
 
-    address = finalize_registration_request.patientAddress.street
-    city = finalize_registration_request.patientAddress.city
-    zip = finalize_registration_request.patientAddress.zip_code
-    email = finalize_registration_request.patientContact.email
+    address = finalize_registration_request.patientAddress.street.strip()
+    city = finalize_registration_request.patientAddress.city.strip()
+    zip = finalize_registration_request.patientAddress.zip_code.strip()
+    email = finalize_registration_request.patientContact.email.strip()
 
     st = finalize_registration_request.patientAddress.state
     dob = finalize_registration_request.patientDetails.dob
@@ -217,7 +217,7 @@ def finalize_registration(finalize_registration_request):
     race = finalize_registration_request.race
 
     is_patient = finalize_registration_request.isPatient
-    group_code = finalize_registration_request.groupCode
+    group_code = finalize_registration_request.groupCode.strip()
     symptom_fever = finalize_registration_request.symptoms.symptom_fever
 
     symptom_shortbreath = finalize_registration_request.symptoms.symptom_short_breath
@@ -234,7 +234,7 @@ def finalize_registration(finalize_registration_request):
     autoimmune_disease = finalize_registration_request.preExistingConditions.autoimmune_disease
     other_chronic_disease = finalize_registration_request.preExistingConditions.other_chronic_disease
     allergies = finalize_registration_request.preExistingConditions.allergies
-    signature = finalize_registration_request.consent.full_name
+    signature = finalize_registration_request.consent.full_name.strip()
 
     insurance_photo = finalize_registration_request.insurancePhoto
 

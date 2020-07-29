@@ -159,6 +159,7 @@ def get_available_times(location_id, date):
                 location_id = %s 
                 AND status = 'available' 
                 AND date(start_dt) IN (%s) 
+                AND start_dt >= CONVERT_TZ(NOW(), '+00:00', '-05:00')
             ORDER BY id
         """
         val = (location_id, date)

@@ -32,6 +32,14 @@ def upload_lab_report(local_file_path, destination_filename):
         destination_filename)
 
 
+def get_list_of_all_uploaded_lab_reports():
+    return get_file_list_in_bucket(lab_reports_bucket_name)
+
+
+def get_list_of_all_uploaded_inbound_files():
+    return get_file_list_in_bucket(all_inbound_files_bucket_name)
+
+
 def upload_insurance_card(local_file_path, destination_filename):
     return upload_blob(
         insurance_cards_bucket_name, 
@@ -82,6 +90,21 @@ def get_bucket_list():
             error=err
         )
     
+
+def get_file_list_in_bucket(bucket_name, prefix=''):
+    try:
+        storage_client = storage.Client.from_service_account_json(service_account_file)
+        file_list = []
+        for blob in storage_client.list_blobs(bucket_name, prefix=prefix):
+            file_list.append(str(blob))
+        
+        return file_list
+    except Exception as err:
+        log_generic(
+            type="error",
+            function='get_bucket_list',
+            error=err
+        )
 
 
 def blob_exists(bucket_name, filename):
@@ -218,7 +241,7 @@ def get_signed_url(bucket_name,
 def upload_blob(bucket_name, source_filename, destination_blob_name):
     if blob_exists(bucket_name, destination_blob_name):
         print('file_exists -- skipping')
-        return
+        return False
     try:
         storage_client = storage.Client.from_service_account_json(service_account_file)
         bucket = storage_client.bucket(bucket_name)
@@ -244,5 +267,5 @@ def upload_blob(bucket_name, source_filename, destination_blob_name):
             function='upload_blob',
             error=err
         )
-        return False
+        return None
     
