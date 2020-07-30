@@ -73,7 +73,7 @@ def exec_insert(sql, val):
 
 
 
-def exec_batch_insert(sql, data):
+def exec_batch_execute(sql, data):
     try:
         __cnx = mysql.connector.connect(**connection_config_dict)
         __cursor = __cnx.cursor(dictionary=True, buffered=True)
@@ -84,7 +84,7 @@ def exec_batch_insert(sql, data):
         return True
 
     except Error as err:
-        __append_to_sql_log('error', 'INSERT MANY', "{}".format(sql), err)
+        __append_to_sql_log('error', 'EXECUTE MANY', "{}".format(sql), err)
         return False
 
     finally:
@@ -93,14 +93,14 @@ def exec_batch_insert(sql, data):
             __cnx.close()
 
 
-def exec_update(sql, val):
+def exec_update(sql, val=()):
     try:
         __cnx = mysql.connector.connect(**connection_config_dict)
         __cursor = __cnx.cursor(dictionary=True, buffered=True)
 
         __cursor.execute(sql, val)
         __cnx.commit()
-        __append_to_sql_log('info', 'UPDATE', __cursor.statement, __cursor.rowcount)
+        #__append_to_sql_log('info', 'UPDATE', __cursor.statement, __cursor.rowcount)
         return True if __cursor.rowcount > 0 else False
 
     except mysql.connector.Error as err:

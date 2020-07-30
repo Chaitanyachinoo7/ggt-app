@@ -4,6 +4,7 @@ import csv
 import datetime
 import paramiko
 import itertools
+from pathlib import Path
 
 
 from ggt.lib.utils import (
@@ -14,7 +15,7 @@ from ggt.lib.utils import (
 
 from ggt.lib.adapters.mysql_adapter import (
     exec_insert,
-    exec_batch_insert,
+    exec_batch_execute,
     exec_update,
     read_row,
     read_rows
@@ -154,7 +155,6 @@ def download_ftp_files():
         paths = ftp_client.listdir()
         directory_list = get_remote_directory_list(ftp_client, paths, remote_folder)
         copy_files_to_local(ftp_client, directory_list, remote_folder)
-        #copy_new_files_to_central_storage(ftp_client, directory_list, remote_folder)
 
     except Exception as err:
         log_generic(
@@ -167,18 +167,6 @@ def download_ftp_files():
         ftp_client.close()
 
 
-def get_remote_directory_list(ftp_client, paths, remote_folder):
-    directories = []
-    for path in paths:
-        try:
-            ftp_client.chdir(path)
-            directories.append(path)
-            ftp_client.chdir(remote_folder)
-        except:
-            #print(path+" is not a dir")
-            pass
-    print(directories)##
-    return directories
 
 
 def copy_files_to_local(ftp_client, directory_list, remote_folder):
@@ -193,10 +181,9 @@ def copy_files_to_local(ftp_client, directory_list, remote_folder):
                 if not os.path.exists(newpath):
                     os.makedirs(newpath)
 
-                ftp_client.chdir(remote_dir_path)
-                filenames = ftp_client.listdir()
+                dir_list, file_list = get_remote_directories_and_files(ftp_client, remote_folder)
 
-                for filename in filenames:
+                for filename in file_list:
                     try:
                         if file_exists_in_all_inbound_files_cache(filename):
                             print('{} exists in cache. -- skipping.'.format(filename))
@@ -231,7 +218,38 @@ def copy_files_to_local(ftp_client, directory_list, remote_folder):
             error=err
         )
 
+
+
+def get_remote_directories_and_files(ftp_client, remote_folder):
+    ftp_client.chdir(remote_folder)
+    resources = ftp_client.listdir()
+
+    file_list = []
+    dir_list = []
     
+    for resource in resources:
+        lstatout=str(ftp_client.lstat(resource)).split()[0]
+        if 'd' in lstatout:
+            dir_list.append(resource)
+        else:
+            file_list.append(resource)
+    
+    return dir_list, file_list
+
+
+def get_remote_directory_list(ftp_client, paths, remote_folder):
+    directories = ['']
+    for path in paths:
+        try:
+            ftp_client.chdir(path)
+            directories.append(path)
+            ftp_client.chdir(remote_folder)
+        except:
+            #print(path+" is not a dir")
+            pass
+    print(directories)##
+    return directories
+
 def parse_csv_files():
     download_path=get_config_val('vendors.healthtrackrx.download_path')
     try:
@@ -282,11 +300,11 @@ def upload_pdf_lab_reports():
                             __destination_filename
                         )
                         if upload_status is None:
-                            print('Error Uploading....')
+                            print('pdf_lab_report - Error Uploading....')
                         elif upload_status:
-                            print('upload success')
+                            print('pdf_lab_report - upload success')
                         else:
-                            print('file exsits... adding to local cache : {}'.format(__destination_filename))
+                            print('pdf_lab_report exsits at destination... adding to local cache : {}'.format(__destination_filename))
                             add_to_files_in_remote_storage_cache(__destination_filename)
             except Exception as err:
                 print('Error uploading {}'.format(filename))
@@ -322,11 +340,6 @@ def upload_all_inbound_files_to_central_storage():
         print(err)
 
 
-def extract_filename(file_path):
-    arr = file_path.split('/')
-    filename = arr[len(arr)-1]
-    return filename
-
 
 def generate_destination_filename(file_path):
     arr = file_path.split('/')
@@ -351,7 +364,7 @@ def add_to_healthtrackrx_inbound_data_table():
             VALUES (%s,%s,%s,%s, %s,%s,%s,%s)
             ON DUPLICATE KEY UPDATE requisition_id=requisition_id
         """
-        exec_batch_insert(sql, rows)
+        exec_batch_execute(sql, rows)
 
     except Exception as err:
         print("err:", err)
@@ -380,5 +393,20 @@ def update_test_samples_with_results():
 
 
 
+
+def extract_filename(file_path):
+    arr = file_path.split('/')
+    filename = arr[len(arr)-1]
+    return filename
+
 def lower_first(iterator):
     return itertools.chain([next(iterator).lower()], iterator)
+
+'''
+TODO: replace file scanning with this new method
+
+from pathlib import Path
+
+for path in Path('src').rglob('*.c'):
+    print(path.name)
+'''

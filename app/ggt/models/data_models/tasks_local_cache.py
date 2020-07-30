@@ -66,7 +66,7 @@ def add_to_lab_test_records_cache(rec):
     except Exception as err:
         log_generic(
             type="error", 
-            function='init_local_cache', 
+            function='add_to_lab_test_records_cache', 
             error=err)
     finally:
         conn.close()
@@ -89,7 +89,7 @@ def get_order_number_by_requisition_id(requisition_id):
     except Exception as err:
         log_generic(
             type="error", 
-            function='init_local_cache', 
+            function='get_order_number_by_requisition_id', 
             error=err)
     finally:
         conn.close()
@@ -109,7 +109,7 @@ def get_all_lab_records_from_cache():
     except Exception as err:
         log_generic(
             type="error", 
-            function='init_local_cache', 
+            function='get_all_lab_records_from_cache', 
             error=err)
     finally:
         conn.close()

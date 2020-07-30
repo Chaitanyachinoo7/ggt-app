@@ -6,7 +6,7 @@ from ggt.lib.utils import (
 
 from ggt.lib.adapters.mysql_adapter import (
     exec_insert,
-    exec_batch_insert,
+    exec_batch_execute,
     exec_update,
     read_rows
 )
@@ -116,25 +116,6 @@ def schedule_positive_notifications():
         task_session_id=session_id,
         info='COMPLETED - Scheduling Positive Report Followup sessions')
 
-'''
-def schedule_negative_notification_using_sms():
-    sql = """
-        SELECT * FROM negative_result_notification_queue
-        WHERE overall_status = 'scheduled'
-    """
-    rows = read_rows(sql)
-    for row in rows:
-        test_id = row['test_id']
-        first_name = row['first_name'].strip()
-        token = row['token']
-        phone_number = row['phone_number']
-
-        if add_to_sms_queue(
-                phone_number,
-                formatted_sms_message(first_name, token)):
-            # TODO: update to pending until patient acknowledges the message. If not, try other means of communication
-            update_notification_queue_status_to_pending(test_id)
-'''
 
 
 def schedule_negative_notification_using_sms():
@@ -146,6 +127,8 @@ def schedule_negative_notification_using_sms():
 
     ##---
     data = []
+    test_id_list = []
+
     for row in rows:
         test_id = row['test_id']
         first_name = row['first_name'].strip()
@@ -154,33 +137,15 @@ def schedule_negative_notification_using_sms():
         data.append(
             (phone_number, formatted_sms_message(first_name, token))
         )
+        test_id_list.append(
+            test_id
+        )
 
-    ##---
-    try:
-        sql = """
-            INSERT INTO sms_notification_queue
-                (to_number,message)
-            VALUES
-                (%s, %s);
-        """
-        exec_batch_insert(sql, data)
+    batch_enqueue_sms_notifications(data)
+    batch_update_notification_queue_status_to_pending(
+        str(test_id_list).strip('[]')
+    )
 
-    except Exception as err:
-        print("err:", err)
-
-
-    ##---
-    try:
-        sql = """
-            INSERT INTO sms_notification_queue
-                (to_number,message)
-            VALUES
-                (%s, %s);
-        """
-        exec_batch_insert(sql, data)
-
-    except Exception as err:
-        print("err:", err)
 
 
 def add_to_healthtrackrx_inbound_data_table():
@@ -192,7 +157,7 @@ def add_to_healthtrackrx_inbound_data_table():
             VALUES (%s,%s,%s,%s, %s,%s,%s,%s)
             ON DUPLICATE KEY UPDATE requisition_id=requisition_id
         """
-        exec_batch_insert(sql, rows)
+        exec_batch_execute(sql, rows)
 
     except Exception as err:
         print("err:", err)
@@ -227,12 +192,64 @@ def add_to_sms_queue(phone_number, message):
 
 
 def update_notification_queue_status_to_pending(test_id):
+    try:
+        sql = """
+            UPDATE negative_result_notification_queue
+            SET
+            overall_status = 'pending',
+            update_dt = NOW()
+            WHERE test_id = %s
+            """
+        val = (test_id,)
+        exec_update(sql, val)
+
+    except Exception as err:
+        print("err:", err)
+
+
+def batch_enqueue_sms_notifications(data):
+    try:
+        sql = """
+            INSERT INTO sms_notification_queue
+                (to_number,message)
+            VALUES
+                (%s, %s);
+        """
+        exec_batch_execute(sql, data)
+
+    except Exception as err:
+        print("err:", err)
+
+
+def batch_update_notification_queue_status_to_pending(test_id_list):
     sql = """
         UPDATE negative_result_notification_queue
         SET
-        overall_status = 'pending',
-        update_dt = NOW()
-        WHERE test_id = %s
-        """
-    val = (test_id,)
-    exec_update(sql, val)
+            overall_status = 'pending',
+            update_dt = NOW()
+        WHERE 
+            test_id IN ({})
+            AND test_id <> 0
+        """.format(test_id_list)
+    exec_update(sql)
+
+
+'''
+def schedule_negative_notification_using_sms():
+    sql = """
+        SELECT * FROM negative_result_notification_queue
+        WHERE overall_status = 'scheduled'
+    """
+    rows = read_rows(sql)
+    for row in rows:
+        test_id = row['test_id']
+        first_name = row['first_name'].strip()
+        token = row['token']
+        phone_number = row['phone_number']
+
+        if add_to_sms_queue(
+                phone_number,
+                formatted_sms_message(first_name, token)):
+            # TODO: update to pending until patient acknowledges the message. If not, try other means of communication
+            update_notification_queue_status_to_pending(test_id)
+'''

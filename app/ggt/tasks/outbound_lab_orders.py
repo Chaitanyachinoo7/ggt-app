@@ -169,14 +169,11 @@ def get_orders_ready_to_transmit():
             '22244887999' AS physician_npi,
             'Client Bill' AS bill,
             t.id AS client_order_number,
+            'Respiratory' AS `sample_type`,
             (CASE
-                WHEN (l.test_type_offered = 'oral') THEN 'Oral'
-                ELSE 'Respiratory'
-            END) AS sample_type,
-            (CASE
-                WHEN (l.test_type_offered = 'oral') THEN 'Oral'
+                WHEN (`l`.`test_type_offered` = 'oral') THEN 'MOUTH'
                 ELSE 'Nasopharynx'
-            END) AS sample_source,
+            END) AS `sample_source`,
             DATE_FORMAT(t.sample_collection_start_dt,
                     '%m/%d/%y') AS date_of_collection,
             'RESPI507' AS panel_code,
