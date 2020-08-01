@@ -3,6 +3,8 @@ import glob
 import csv
 import datetime
 import paramiko
+import base64
+from PIL import Image
 
 from ggt.lib.utils import (
     get_config_val,
@@ -33,6 +35,8 @@ def task_process_outbound_lab_orders():
     print('looking up ready to transmit orders')
     orders = get_orders_ready_to_transmit()
 
+    upload_insurance_files(orders)
+
     if len(orders)>0:
         print('generating outbound file')
         filename, local_file_path = create_outbound_file(orders)
@@ -52,6 +56,44 @@ def task_process_outbound_lab_orders():
         task_session_id=session_id,
         info='End Processing outbound Lab Reports')
     print('\n\n************************************************\n\n')
+
+
+def upload_insurance_files(orders):
+    try:
+        for order in orders:
+            if order['bill'] == 'Insurance Attached':
+                insurance_photo_str = get_insurance_photo_base64(order['id'])
+                base64string = insurance_photo_str.split(",")[1]
+                file_path_png = "{}{}_001.png".format('/tmp/ggt-tasks/insurance_images/',order['id'])
+                filename = "{}_001.pdf".format(order['id'])
+                file_path_pdf = "{}{}".format('/tmp/ggt-tasks/insurance_images/',filename)
+                with open(file_path_png, "wb") as fh:
+                    fh.write(base64.b64decode(base64string + "=="))
+                Image.open(file_path_png).convert('RGB').save(file_path_pdf)
+                upload_files_to_ftp(filename, file_path_pdf)
+
+    except Exception as err:
+        print(err)
+    
+
+
+def get_insurance_photo_base64(appointment_id):
+    sql = """
+    SELECT 
+        q.insurance_photo
+    FROM
+        (appointments
+        JOIN patient_questionnaires q 
+            ON (appointments.patient_id = q.patient_id))
+    WHERE
+        appointments.id = %s
+    LIMIT 1
+    """
+    val = (appointment_id,)
+    row = read_row(sql, val)
+    return row['insurance_photo']
+
+
 
 
 def create_outbound_file(orders):
@@ -167,21 +209,24 @@ def get_orders_ready_to_transmit():
             p.phone_number AS phone_number,
             'WELLHLTX' AS client_site_code,
             '22244887999' AS physician_npi,
-            'Client Bill' AS bill,
-            t.id AS client_order_number,
-            'Respiratory' AS `sample_type`,
             (CASE
-                WHEN (`l`.`test_type_offered` = 'oral') THEN 'MOUTH'
+                WHEN (LENGTH(q.insurance_photo) > 100) THEN 'Insurance Attached'
+                ELSE 'Client Bill'
+            END) AS bill,
+            t.id AS client_order_number,
+            'Respiratory' AS sample_type,
+            (CASE
+                WHEN (l.test_type_offered = 'oral') THEN 'MOUTH'
                 ELSE 'Nasopharynx'
-            END) AS `sample_source`,
-            DATE_FORMAT(t.sample_collection_start_dt,
-                    '%m/%d/%y') AS date_of_collection,
+            END) AS sample_source,
+            DATE_FORMAT(t.sample_collection_start_dt, '%m/%d/%y') AS date_of_collection,
             'RESPI507' AS panel_code,
             'COVID-19 Coronavirus (SARS-CoV-2)' AS panel_name
         FROM
-            ((test_samples t
-            JOIN patients p ON ((t.patient_id = p.id)))
-            LEFT JOIN locations l ON ((t.sample_collection_location_id = l.id)))
+            (test_samples t
+            JOIN patients p ON (t.patient_id = p.id)
+            LEFT JOIN locations l ON (t.sample_collection_location_id = l.id)
+            LEFT JOIN patient_questionnaires q ON (p.id = q.patient_id))
         WHERE
             (t.status = 'ready_to_tx')
             """

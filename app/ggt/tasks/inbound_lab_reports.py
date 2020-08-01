@@ -2,6 +2,7 @@ import os
 import glob
 import csv
 import datetime
+import time
 import paramiko
 import itertools
 from pathlib import Path
@@ -52,7 +53,8 @@ session_id = generate_session_id()
 #Scan the download folder and upload all the files to inboundfiles folder in GCP
 #Copy renamed PDF lab reports to GCP
 def task_process_inbound_lab_reports():
-    print('\n\n************************************************\n\n')
+    start = time.time()
+    print('\n\n******************Inbound file processing [Start]******************************\n\n')
     log_generic(
         type="info", 
         function='task_process_inbound_lab_reports', 
@@ -77,7 +79,7 @@ def task_process_inbound_lab_reports():
         task_session_id=session_id, 
         info='End Processing Inbound Lab Reports')
 
-    print('\n\n************************************************\n\n')
+    print('\n\n****************** COMPLETED ******************************\nElapsed Time: {}\n'.format(time.time() - start))
 
     
 
@@ -181,7 +183,7 @@ def copy_files_to_local(ftp_client, directory_list, remote_folder):
                 if not os.path.exists(newpath):
                     os.makedirs(newpath)
 
-                dir_list, file_list = get_remote_directories_and_files(ftp_client, remote_folder)
+                dir_list, file_list = get_remote_directories_and_files(ftp_client, dir)
 
                 for filename in file_list:
                     try:
@@ -300,11 +302,11 @@ def upload_pdf_lab_reports():
                             __destination_filename
                         )
                         if upload_status is None:
-                            print('pdf_lab_report - Error Uploading....')
+                            print('pdf_lab_report - Error Uploading.... {} ==> {}'.format(filename, __destination_filename))
                         elif upload_status:
-                            print('pdf_lab_report - upload success')
+                            print('pdf_lab_report - upload success {} ==> {}'.format(filename, __destination_filename))
                         else:
-                            print('pdf_lab_report exsits at destination... adding to local cache : {}'.format(__destination_filename))
+                            print('pdf_lab_report exsits at destination... adding to local cache: {} ==> {}'.format(filename, __destination_filename))
                             add_to_files_in_remote_storage_cache(__destination_filename)
             except Exception as err:
                 print('Error uploading {}'.format(filename))
@@ -326,11 +328,11 @@ def upload_all_inbound_files_to_central_storage():
                 else:
                     upload_status = upload_to_all_inbound_files(file_path, filename)
                     if upload_status is None:
-                        print('Error Uploading....')
+                        print('Error Uploading.... {}'.format(filename))
                     elif upload_status:
-                        print('upload success')
+                        print('upload success {}'.format(filename))
                     else:
-                        print('file exsits... adding to local cache : {}'.format(filename))
+                        print('file exsits... adding to local cache: {}'.format(filename))
                         add_to_files_in_remote_storage_cache(filename)
             except Exception as err:
                 print('Error uploading {}'.format(filename))
@@ -348,7 +350,7 @@ def generate_destination_filename(file_path):
     
     order_number = get_order_number_by_requisition_id(requisition_id)
     if order_number is None:
-        print('no record for: {}'.format(requisition_id))
+        print('!!!!!!!!!!!!! \n\nno record for: {}\n\n!!!!!!!!!!!!! '.format(requisition_id))
         return None
 
     filename = '{}.pdf'.format(order_number)

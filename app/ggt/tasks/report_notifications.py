@@ -17,15 +17,16 @@ session_id = generate_session_id()
 
 def task_schedule_result_notifications_and_followups():
     print('\n\n************************************************\n\n')
-    schedule_negative_notifications()
-    schedule_positive_notifications()
-    schedule_negative_notification_using_sms()
+    create_result_notification_campaign()
+    schedule_notifications_using_sms()
+    schedule_positive_followups()
+    
     print('\n\n************************************************\n\n')
 
 
-def schedule_negative_notifications():
+def create_result_notification_campaign():
     sql = """
-    INSERT INTO negative_result_notification_queue
+    INSERT INTO result_notification_campaigns
         (test_id,
         patient_id,
         token,
@@ -48,7 +49,7 @@ def schedule_negative_notifications():
         (test_samples
         JOIN patients ON ((patients.id = test_samples.patient_id)))
     WHERE
-        test_samples.test_result = 'neg'
+        test_samples.test_result IS NOT NULL
             AND test_samples.status <> 'final'
         
     ON DUPLICATE KEY UPDATE test_id=test_id
@@ -58,20 +59,20 @@ def schedule_negative_notifications():
 
     log_generic(
         type="info",
-        function='task_process_negative_notifications',
+        function='create_result_notification_campaign',
         task_session_id=session_id,
-        info='BEGIN - Scheduling Negative Report Notifications for delivery')
+        info='BEGIN - Creating result notification campaign')
 
     exec_insert(sql, vals)
 
     log_generic(
         type="info",
-        function='task_process_negative_notifications',
+        function='create_result_notification_campaign',
         task_session_id=session_id,
-        info='COMPLETED - Scheduling Negative Report Notifications for delivery')
+        info='COMPLETED - Creating result notification campaign')
 
 
-def schedule_positive_notifications():
+def schedule_positive_followups():
     sql = """
     INSERT INTO positive_result_followup_queue
         (test_id,
@@ -118,9 +119,9 @@ def schedule_positive_notifications():
 
 
 
-def schedule_negative_notification_using_sms():
+def schedule_notifications_using_sms():
     sql = """
-        SELECT * FROM negative_result_notification_queue
+        SELECT * FROM result_notification_campaigns
         WHERE overall_status = 'scheduled'
     """
     rows = read_rows(sql)
@@ -194,7 +195,7 @@ def add_to_sms_queue(phone_number, message):
 def update_notification_queue_status_to_pending(test_id):
     try:
         sql = """
-            UPDATE negative_result_notification_queue
+            UPDATE result_notification_campaigns
             SET
             overall_status = 'pending',
             update_dt = NOW()
@@ -223,7 +224,7 @@ def batch_enqueue_sms_notifications(data):
 
 def batch_update_notification_queue_status_to_pending(test_id_list):
     sql = """
-        UPDATE negative_result_notification_queue
+        UPDATE result_notification_campaigns
         SET
             overall_status = 'pending',
             update_dt = NOW()
@@ -232,24 +233,3 @@ def batch_update_notification_queue_status_to_pending(test_id_list):
             AND test_id <> 0
         """.format(test_id_list)
     exec_update(sql)
-
-
-'''
-def schedule_negative_notification_using_sms():
-    sql = """
-        SELECT * FROM negative_result_notification_queue
-        WHERE overall_status = 'scheduled'
-    """
-    rows = read_rows(sql)
-    for row in rows:
-        test_id = row['test_id']
-        first_name = row['first_name'].strip()
-        token = row['token']
-        phone_number = row['phone_number']
-
-        if add_to_sms_queue(
-                phone_number,
-                formatted_sms_message(first_name, token)):
-            # TODO: update to pending until patient acknowledges the message. If not, try other means of communication
-            update_notification_queue_status_to_pending(test_id)
-'''

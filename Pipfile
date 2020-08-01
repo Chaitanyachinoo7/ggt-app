@@ -29,6 +29,7 @@ fastapi = "*"
 google-cloud-storage = "*"
 six = "*"
 google-oauth = "*"
+pillow = "*"
 
 [requires]
 python_version = "3.7"
