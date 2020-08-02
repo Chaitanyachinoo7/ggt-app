@@ -22,6 +22,7 @@ from ggt.lib.adapters.mysql_adapter import (
 session_id = generate_session_id()
 local_outbound_file_path = get_config_val('vendors.healthtrackrx.local_outbound_file_path')
 outbound_file_prefix = get_config_val('vendors.healthtrackrx.outbound_file_prefix')
+local_insurance_card_file_path = get_config_val('vendors.healthtrackrx.local_insurance_card_file_path')
 
 
 def task_process_outbound_lab_orders():
@@ -62,20 +63,22 @@ def upload_insurance_files(orders):
     try:
         for order in orders:
             if order['bill'] == 'Insurance Attached':
+                file_path_png = "{}/{}_001.png".format(local_insurance_card_file_path, order['id'])
+                filename = "{}_001.pdf".format(order['id'])
+                file_path_pdf = "{}/{}".format(local_insurance_card_file_path, filename)
+
                 insurance_photo_str = get_insurance_photo_base64(order['id'])
                 base64string = insurance_photo_str.split(",")[1]
-                file_path_png = "{}{}_001.png".format('/tmp/ggt-tasks/insurance_images/',order['id'])
-                filename = "{}_001.pdf".format(order['id'])
-                file_path_pdf = "{}{}".format('/tmp/ggt-tasks/insurance_images/',filename)
+
                 with open(file_path_png, "wb") as fh:
                     fh.write(base64.b64decode(base64string + "=="))
+
                 Image.open(file_path_png).convert('RGB').save(file_path_pdf)
                 upload_files_to_ftp(filename, file_path_pdf)
 
     except Exception as err:
         print(err)
     
-
 
 def get_insurance_photo_base64(appointment_id):
     sql = """
@@ -92,8 +95,6 @@ def get_insurance_photo_base64(appointment_id):
     val = (appointment_id,)
     row = read_row(sql, val)
     return row['insurance_photo']
-
-
 
 
 def create_outbound_file(orders):
@@ -140,7 +141,14 @@ def __get_header_row():
         'Sample Source',
         'Date of Collection',
         'Panel Code',
-        'Panel Name']
+        'Panel Name',
+        'First Test?',
+        'Employed in healthcare?',
+        'Symptomatic as defined by CDC?',
+        'Hospitalized?',
+        'ICU?',
+        'Resident in a congregate care setting?',
+        'Pregnant?']
 
 
 def __get_formatted_row(order):
@@ -166,7 +174,14 @@ def __get_formatted_row(order):
         order['sample_source'],
         order['date_of_collection'],
         order['panel_code'],
-        order['panel_name']
+        order['panel_name'],
+        order['is_first_test'],
+        order['is_healthcare_employee'],
+        order['is_cdc_symptomatic'],
+        order['is_hospitalized'],
+        order['is_in_icu'],
+        order['is_congregate_resident'],
+        order['is_pregnant']
     ]
 
 
@@ -221,7 +236,14 @@ def get_orders_ready_to_transmit():
             END) AS sample_source,
             DATE_FORMAT(t.sample_collection_start_dt, '%m/%d/%y') AS date_of_collection,
             'RESPI507' AS panel_code,
-            'COVID-19 Coronavirus (SARS-CoV-2)' AS panel_name
+            'COVID-19 Coronavirus (SARS-CoV-2)' AS panel_name,
+            'Unknown' AS is_first_test,
+            'Unknown' AS is_healthcare_employee,
+            'Unknown' AS is_cdc_symptomatic,
+            'Unknown' AS is_hospitalized,
+            'Unknown' AS is_in_icu,
+            'Unknown' AS is_congregate_resident,
+            'Unknown' AS is_pregnant
         FROM
             (test_samples t
             JOIN patients p ON (t.patient_id = p.id)
@@ -282,6 +304,3 @@ def update_to_with_lab_status(orders):
         """ % format_strings
         
     exec_update(sql, tuple(list_of_ids))
-
-
-

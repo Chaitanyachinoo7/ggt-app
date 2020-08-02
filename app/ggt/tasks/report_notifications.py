@@ -11,14 +11,20 @@ from ggt.lib.adapters.mysql_adapter import (
     read_rows
 )
 
+from ggt.lib.email import render_template
 
 session_id = generate_session_id()
 
 
 def task_schedule_result_notifications_and_followups():
     print('\n\n************************************************\n\n')
+    print('create_result_notification_campaign')
     create_result_notification_campaign()
+    print('schedule_notifications_using_sms')
     schedule_notifications_using_sms()
+    print('schedule_notifications_using_email')
+    schedule_notifications_using_email()
+    print('schedule_positive_followups')
     schedule_positive_followups()
     
     print('\n\n************************************************\n\n')
@@ -148,6 +154,62 @@ def schedule_notifications_using_sms():
     )
 
 
+def schedule_notifications_using_email():
+    sql = """
+        SELECT * 
+        FROM result_notification_campaigns 
+        WHERE overall_status <> 'final_notified' 
+            AND email_sent is NULL
+        LIMIT 250
+    """
+    rows = read_rows(sql)
+
+    data = []
+    test_id_list = []
+
+    for row in rows:
+        test_id = row['test_id']
+        email = formatted_email_message(row)
+
+        data.append(
+            (email['from_email'], email['from_name'], email['to_email'], email['subject'], email['html_content'])
+        )
+        test_id_list.append(
+            test_id
+        )
+
+    if batch_enqueue_email_notifications(data):
+        batch_update_notification_queue_status_for_email(
+            str(test_id_list).strip('[]')
+        )
+
+
+def formatted_email_message(row):
+    base_url = get_config_val('base_url')
+    from_email = get_config_val('notifications.from_email')
+    from_name = get_config_val('notifications.from_name')
+    subject = get_config_val('notifications.result_subject')
+
+    template_vars = {
+        "first_name": row['first_name'],
+        "result_link": "{}/r/{}".format(base_url, row['token'])
+    }
+
+    template_name = get_config_val('notifications.result_template')
+    html_content = render_template(template_name, **template_vars)
+
+    email_message = {
+        'from_email': from_email,
+        'from_name': from_name,
+        'to_email': row['email'],
+        'subject': subject,
+        'html_content': html_content
+    }
+    
+    return email_message
+
+        
+
 
 def add_to_healthtrackrx_inbound_data_table():
     rows = get_all_lab_records_from_cache()
@@ -192,6 +254,25 @@ def add_to_sms_queue(phone_number, message):
     return True
 
 
+#TODO: complete this
+def batch_update_notification_queue_status_for_email(test_id_list):
+    try:
+        sql = """
+            UPDATE result_notification_campaigns
+            SET
+                email_sent = 1,
+                email_dt = NOW(),
+                update_dt = NOW()
+            WHERE 
+                test_id IN ({})
+                AND test_id <> 0
+            """.format(test_id_list)
+        exec_update(sql)
+
+    except Exception as err:
+        print("err:", err)
+
+
 def update_notification_queue_status_to_pending(test_id):
     try:
         sql = """
@@ -222,11 +303,29 @@ def batch_enqueue_sms_notifications(data):
         print("err:", err)
 
 
+def batch_enqueue_email_notifications(data):
+    try:
+        sql = """
+            INSERT INTO email_notification_queue
+                (from_email, from_name, to_email, subject, html_content)
+            VALUES
+                (%s, %s, %s, %s, %s);
+        """
+        exec_batch_execute(sql, data)
+        return True
+
+    except Exception as err:
+        print("err:", err)
+        return False
+
+
 def batch_update_notification_queue_status_to_pending(test_id_list):
     sql = """
         UPDATE result_notification_campaigns
         SET
             overall_status = 'pending',
+            sms_sent = 1,
+            sms_dt = NOW(),
             update_dt = NOW()
         WHERE 
             test_id IN ({})

@@ -25,6 +25,14 @@ databases:
   sqlite:
     tasks_sqlite_db : /tmp/ggt-tasks/ggt_tasks_local_cache.db
       
+
+notifications:
+  from_email: support@gogettested.com
+  from_name: Go Get Tested
+  result_subject: COVID-19 Testing Result Available
+  result_template: GGT-5-RESULT-AVAILABLE-EMAIL.html
+
+
 twilio:
     account_sid: AC9cef9b4155030ee2683281ccc72d4001
     auth_token: 62ee76165984c54f91ee80aac9cb3f0e
@@ -45,6 +53,7 @@ vendors:
     remote_folder: /Reports
     download_path: /tmp/ggt-tasks/downloads
     local_outbound_file_path: /tmp/ggt-tasks/outbound
+    local_insurance_card_file_path: /tmp/ggt-tasks/insurance_images
     outbound_file_prefix: ggt-outbound
     
   wellpay:
