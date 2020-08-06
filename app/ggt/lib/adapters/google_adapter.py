@@ -240,7 +240,7 @@ def get_signed_url(bucket_name,
 
 def upload_blob(bucket_name, source_filename, destination_blob_name):
     if blob_exists(bucket_name, destination_blob_name):
-        print('file_exists -- skipping')
+        #print('file_exists -- skipping')
         return False
     try:
         storage_client = storage.Client.from_service_account_json(service_account_file)
@@ -259,13 +259,17 @@ def upload_blob(bucket_name, source_filename, destination_blob_name):
         return True
 
     except Exception as err:
-        log_generic(
-            type="error",
-            bucket_name=bucket_name,
-            source_filename=source_filename,
-            destination_blob_name=destination_blob_name,
-            function='upload_blob',
-            error=err
-        )
+        if err[0] and err[0] == 21:
+            #print('Is a Directory')
+            pass
+        else:
+            log_generic(
+                type="error",
+                bucket_name=bucket_name,
+                source_filename=source_filename,
+                destination_blob_name=destination_blob_name,
+                function='upload_blob',
+                error=err
+            )
         return None
     

@@ -120,6 +120,7 @@ def init_ftp_connection():
 
 
 def clean_downloads_folder():
+    print('cleaning up downloads folder')
     download_path=get_config_val('vendors.healthtrackrx.download_path')
     try:
         files = glob.glob("{}/*".format(download_path))
@@ -135,6 +136,7 @@ def clean_downloads_folder():
 
 
 def download_ftp_files():
+    print('downloading files from FTP')
     try:
         hostname=get_config_val('vendors.healthtrackrx.hostname')
         username=get_config_val('vendors.healthtrackrx.username')
@@ -172,6 +174,7 @@ def download_ftp_files():
 
 
 def copy_files_to_local(ftp_client, directory_list, remote_folder):
+    print('copying files from remote to local')
     try:
         download_path=get_config_val('vendors.healthtrackrx.download_path')
     
@@ -188,7 +191,8 @@ def copy_files_to_local(ftp_client, directory_list, remote_folder):
                 for filename in file_list:
                     try:
                         if file_exists_in_all_inbound_files_cache(filename):
-                            print('{} exists in cache. -- skipping.'.format(filename))
+                            #print('{} exists in cache. -- skipping.'.format(filename))
+                            pass
                         else:
                             local_path = "{}/{}".format(newpath, filename)
 
@@ -253,6 +257,7 @@ def get_remote_directory_list(ftp_client, paths, remote_folder):
     return directories
 
 def parse_csv_files():
+    print('parsing CSV files')
     download_path=get_config_val('vendors.healthtrackrx.download_path')
     try:
         files = [f for f in glob.glob("{}/**/*.csv".format(download_path), recursive=True)]
@@ -274,6 +279,7 @@ def parse_csv_file(file_path):
 
 
 def load_data_from_remote_db_to_cache():
+    print('loading data from remote db to local cache')
     sql = """
         SELECT * 
         FROM healthtrackrx_inbound_data 
@@ -287,6 +293,7 @@ def load_data_from_remote_db_to_cache():
 
 
 def upload_pdf_lab_reports():
+    print('uploading PDF lab reports')
     download_path=get_config_val('vendors.healthtrackrx.download_path')
     try:
         files = [f for f in glob.glob("{}/**/*.pdf".format(download_path), recursive=True)]
@@ -295,7 +302,8 @@ def upload_pdf_lab_reports():
                 __destination_filename = generate_destination_filename(filename)
                 if __destination_filename:
                     if file_exists_in_files_in_remote_storage_cache(__destination_filename):
-                        print('cache hit: ', __destination_filename)
+                        #print('cache hit: ', __destination_filename)
+                        pass
                     else:
                         upload_status = upload_lab_report(
                             filename, 
@@ -317,6 +325,7 @@ def upload_pdf_lab_reports():
 
 
 def upload_all_inbound_files_to_central_storage():
+    print('uploading all inbound raw files to remote storage')
     download_path=get_config_val('vendors.healthtrackrx.download_path')
     try:
         files = [f for f in glob.glob("{}/**/*".format(download_path), recursive=True)]
@@ -324,7 +333,8 @@ def upload_all_inbound_files_to_central_storage():
             filename = extract_filename(file_path)
             try:
                 if file_exists_in_files_in_remote_storage_cache(filename):
-                    print('cache hit: ', filename)
+                    #print('cache hit: ', filename)
+                    pass
                 else:
                     upload_status = upload_to_all_inbound_files(file_path, filename)
                     if upload_status is None:
@@ -350,14 +360,22 @@ def generate_destination_filename(file_path):
     
     order_number = get_order_number_by_requisition_id(requisition_id)
     if order_number is None:
-        print('!!!!!!!!!!!!! \n\nno record for: {}\n\n!!!!!!!!!!!!! '.format(requisition_id))
+        print('Requisition Not found - ID: {}'.format(requisition_id))
+        append_to_processing_summary('{} - no record found'.format(requisition_id))
         return None
 
     filename = '{}.pdf'.format(order_number)
     return filename
 
 
+def append_to_processing_summary(txt):
+    f = open("/tmp/ggt-tasks/process_summary/ggt-inbound-processing-summary.txt", "a")  # append mode 
+    f.write(txt + "\n") 
+    f.close() 
+
+
 def add_to_healthtrackrx_inbound_data_table():
+    print('syncing inbound cached records to remote DB')
     rows = get_all_lab_records_from_cache()
     try:
         sql = """
@@ -373,6 +391,7 @@ def add_to_healthtrackrx_inbound_data_table():
 
 
 def update_test_samples_with_results():
+    print('updating test results in remote DB')
     sql = """
         UPDATE test_samples
                 INNER JOIN

@@ -10,6 +10,7 @@ sqlite_db = get_config_val('databases.sqlite.tasks_sqlite_db')
 
     
 def init_local_cache():
+    print('Initializing Local Cache -- {}'.format(sqlite_db))
     try:
         conn = sqlite3.connect(sqlite_db)
         c = conn.cursor()
@@ -87,10 +88,14 @@ def get_order_number_by_requisition_id(requisition_id):
 
 
     except Exception as err:
-        log_generic(
-            type="error", 
-            function='get_order_number_by_requisition_id', 
-            error=err)
+        if err[0] and err[0]=="'NoneType' object is not subscriptable":
+            pass #This is expected for missing Requisition IDs
+        else:
+            log_generic(
+                type="error", 
+                requisition_id=requisition_id,
+                function='get_order_number_by_requisition_id', 
+                error=err)
     finally:
         conn.close()
 

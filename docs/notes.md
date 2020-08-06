@@ -37,3 +37,7 @@ Password: 9cTE3fh@8H
 
 
 docker run --name myadmin-dev -d -e PMA_HOST=35.184.98.83 -p 8090:80 phpmyadmin/phpmyadmin
+
+docker run --name myadmin-dev -d -e PMA_HOST=wh-mobile-test-1.clwbkkblucao.us-east-1.rds.amazonaws.com  -p 8090:80 phpmyadmin/phpmyadmin
+
+docker run --name myadmin-dev -d -e PMA_HOST=mysqlserver_hostname  -p 8090:80 phpmyadmin/phpmyadmin

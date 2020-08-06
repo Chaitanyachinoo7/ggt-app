@@ -54,6 +54,7 @@ vendors:
     download_path: /tmp/ggt-tasks/downloads
     local_outbound_file_path: /tmp/ggt-tasks/outbound
     local_insurance_card_file_path: /tmp/ggt-tasks/insurance_images
+    local_process_summary_path: /tmp/ggt-tasks/process_summary
     outbound_file_prefix: ggt-outbound
     
   wellpay:

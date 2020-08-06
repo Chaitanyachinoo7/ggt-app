@@ -24,7 +24,6 @@ local_outbound_file_path = get_config_val('vendors.healthtrackrx.local_outbound_
 outbound_file_prefix = get_config_val('vendors.healthtrackrx.outbound_file_prefix')
 local_insurance_card_file_path = get_config_val('vendors.healthtrackrx.local_insurance_card_file_path')
 
-
 def task_process_outbound_lab_orders():
     print('\n\n************************************************\n\n')
     log_generic(
@@ -43,7 +42,7 @@ def task_process_outbound_lab_orders():
         filename, local_file_path = create_outbound_file(orders)
 
         print('uploading file to FTP server')
-        upload_files_to_ftp(filename, local_file_path)
+        upload_file_to_ftp(filename, local_file_path)
 
         print('marking records to "with_lab" status')
         update_to_with_lab_status(orders)
@@ -61,6 +60,7 @@ def task_process_outbound_lab_orders():
 
 def upload_insurance_files(orders):
     try:
+        file_buffer = []
         for order in orders:
             if order['bill'] == 'Insurance Attached':
                 file_path_png = "{}/{}_001.png".format(local_insurance_card_file_path, order['id'])
@@ -74,11 +74,14 @@ def upload_insurance_files(orders):
                     fh.write(base64.b64decode(base64string + "=="))
 
                 Image.open(file_path_png).convert('RGB').save(file_path_pdf)
-                upload_files_to_ftp(filename, file_path_pdf)
+                file_buffer.append((filename, file_path_pdf))
+        
+        upload_file_list_to_ftp(file_buffer)
 
     except Exception as err:
         print(err)
     
+
 
 def get_insurance_photo_base64(appointment_id):
     sql = """
@@ -255,7 +258,44 @@ def get_orders_ready_to_transmit():
     return read_rows(sql,)
 
 
-def upload_files_to_ftp(filename, local_file_path):
+def upload_file_list_to_ftp(file_list):
+    try:
+        hostname = get_config_val('vendors.healthtrackrx.hostname')
+        username = get_config_val('vendors.healthtrackrx.username')
+        password = get_config_val('vendors.healthtrackrx.password')
+        port = get_config_val('vendors.healthtrackrx.port')
+
+        ssh_client = paramiko.SSHClient()
+        ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh_client.connect(
+            hostname=hostname,
+            username=username,
+            password=password,
+            port=port
+        )
+
+        ftp_client = ssh_client.open_sftp()
+
+        for f in file_list:
+            filename = f[0]
+            local_file_path = f[1]
+            remotepath = "{}/{}".format('', filename)
+            ftp_client.put(local_file_path, remotepath)
+
+
+    except Exception as err:
+        log_generic(
+            type="error",
+            function='upload_file_list_to_ftp',
+            task_session_id=session_id,
+            error=err
+        )
+    finally:
+        ftp_client.close()
+
+
+
+def upload_file_to_ftp(filename, local_file_path):
     try:
         hostname = get_config_val('vendors.healthtrackrx.hostname')
         username = get_config_val('vendors.healthtrackrx.username')
@@ -279,7 +319,7 @@ def upload_files_to_ftp(filename, local_file_path):
     except Exception as err:
         log_generic(
             type="error",
-            function='upload_files_to_ftp',
+            function='upload_file_to_ftp',
             task_session_id=session_id,
             error=err
         )
