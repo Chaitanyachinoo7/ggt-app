@@ -259,6 +259,8 @@ def __finalize_booking_response(date, location, appointment_id, total_balance=''
 
 # TODO: get this from???
 def __upfront_payment(group_code, location):
+    return False, 0, 0 #business decision to make all testing free 08/06/2020
+
     total_cost = 17500
     billed_amount = 7000
 
