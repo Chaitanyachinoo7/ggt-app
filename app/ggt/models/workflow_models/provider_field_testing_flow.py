@@ -58,6 +58,10 @@ def provider_get_workstations(auth_token):
                     'label': 'FLHRMLA'
                 },
                 {
+                    'id': 6,
+                    'label': '10Q890L'
+                },
+                {
                     'id': 7,
                     'label': 'OKQHIA1'
                 },
@@ -76,6 +80,22 @@ def provider_get_workstations(auth_token):
                 {
                     'id': 11,
                     'label': '6HIFU57'
+                },
+                {
+                    'id': 12,
+                    'label': 'KGDNA67'
+                },
+                {
+                    'id': 13,
+                    'label': 'OMHC0PV'
+                },
+                {
+                    'id': 14,
+                    'label': 'EIB8VMJ'
+                },
+                {
+                    'id': 15,
+                    'label': 'UHJ8AH7'
                 }
             ]
         },

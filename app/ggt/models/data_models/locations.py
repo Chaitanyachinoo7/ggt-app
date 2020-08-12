@@ -21,9 +21,18 @@ def get_location_by_id(location_id):
         return read_row(sql, val)
 
     except Exception as err:
-        log_generic(type="info", location_id=location_id, function='__read_record_locations_by_id', error=err)
+        log_generic(type="info", location_id=location_id, function='get_location_by_id', error=err)
         return None
 
+
+def get_all_locations():
+    try:
+        sql = "SELECT * FROM locations"
+        return read_rows(sql)
+
+    except Exception as err:
+        log_generic(type="info", function='get_all_locations', error=err)
+        return None
 
 ########################################################################################################
 # [Protected] functions

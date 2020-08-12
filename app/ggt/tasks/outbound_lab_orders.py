@@ -207,7 +207,7 @@ def get_orders_ready_to_transmit():
                 WHEN (p.race = 'race_black') THEN 'Black or African American'
                 WHEN (p.race = 'race_hawaiian') THEN 'Native Hawaiian or Other Pacific Islander'
                 WHEN (p.race = 'race_other') THEN 'Other'
-                WHEN (p.race = 'race_white') THEN 'Caucasian'
+                WHEN (p.race = 'race_white') THEN 'White'
                 ELSE 'Unknown'
             END) AS race,
             (CASE

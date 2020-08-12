@@ -152,12 +152,15 @@ def read_row(sql, val):
             __cnx.close()
 
 
-def read_rows(sql, val=()):
+def read_rows(sql, val=None):
     try:
         __cnx = mysql.connector.connect(**connection_config_dict)
-        __cursor = __cnx.cursor(dictionary=True, buffered=True)        
-        __cursor.execute(sql, val)
-        __append_to_sql_log('info', 'SELECT', __cursor.statement, __cursor.rowcount)
+        __cursor = __cnx.cursor(dictionary=True, buffered=True)     
+        if val is None:
+              __cursor.execute(sql)
+        else:
+            __cursor.execute(sql, val)
+        #__append_to_sql_log('info', 'SELECT', __cursor.statement, __cursor.rowcount)
         return __cursor.fetchall()
 
     except mysql.connector.Error as err:

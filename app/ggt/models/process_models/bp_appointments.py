@@ -196,18 +196,7 @@ def __appointment_begin_test(appointment_id, queue_id=1):
                                           appointment['first_name'],
                                           appointment['middle_name'],
                                           )
-        '''TODO: Remove after validation
-        # have a group code
-        if appointment['group_code'] != "":
-            queue_id = 3
 
-        if queue_id == 1:
-            queue_url = 'https://sqs.us-east-1.amazonaws.com/343550539982/ggt-print-queue'
-        elif queue_id == 2:
-            queue_url = 'https://sqs.us-east-1.amazonaws.com/343550539982/ggt-print-queue-2'
-        elif queue_id == 3:
-            queue_url = 'https://sqs.us-east-1.amazonaws.com/343550539982/ggt-print-queue-3'
-        '''
         queue_url = "{}-{}".format(get_config_val('aws.sqs_print_queue_base_url'), queue_id)
 
         write_syslog("print", "info", appointment_id)

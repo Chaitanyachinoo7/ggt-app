@@ -422,14 +422,6 @@ def bp_get_test_result(token, dob):
                 result = 'Positive'
             else:
                 result = 'Unknown'
-
-            '''
-            dob = dob.replace("/", "")
-            patient_dob = patient_dob.replace("/", "")
-            if len(patient_dob) != 8:
-                patient_dob = "{}19{}".format(
-                    patient_dob[0:4], patient_dob[4:2])
-            '''
             
             try:
                 url = get_temporary_lab_report_url('{}.pdf'.format(test_id))

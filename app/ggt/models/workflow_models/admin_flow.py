@@ -5,7 +5,8 @@ from ggt.lib.utils import (
 )
 
 from ggt.models.process_models.bp_portal_experience import (
-    bp_get_all_test_results
+    bp_get_all_test_results,
+    bp_get_general_search_results
 )
 
 
@@ -18,7 +19,10 @@ def admin_get_all_test_results():
         bp_get_all_test_results()
     )
 
-
+def admin_generic_search(search_arr):
+    return y_response(
+        bp_get_general_search_results(search_arr)
+    )
 
 ########################################################################################################
 # [Protected] functions

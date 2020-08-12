@@ -8,7 +8,8 @@ from ggt.lib.adapters.mysql_adapter import (
     exec_update,
     exec_delete,
     read_row,
-    read_rows
+    read_rows,
+    exec_batch_execute
 )
 
 
@@ -29,7 +30,7 @@ def create_schedule_entry(location_id, start_dt, end_dt, duration, status):
     except Exception as err:
         log_generic(
             type="error", 
-            function='__insert_record_schedules', 
+            function='create_schedule_entry', 
             location_id=location_id, 
             start_dt=start_dt, 
             end_dt=end_dt, 
@@ -44,31 +45,41 @@ def get_schedule_generation_rules_by_location_id(location_id):
     try:
         sql = """
             SELECT 
-                id,
-                location_id,
-                slot_increment,
-                start_time,
-                end_time,
-                DATE(active_start_dt) AS active_start_dt,
-                DATE(active_end_dt) AS active_end_dt,
-                slot_multiplier
+                l.site_code, 
+                l.time_zone, 
+                l.time_zone_offset, 
+                l.status, 
+                r.location_id,
+                r.slot_increment,
+                r.local_start_time,
+                r.local_end_time, 
+                r.sun,
+                r.mon,
+                r.tue,
+                r.wed,
+                r.thu,
+                r.fri,
+                r.sat,
+                r.slot_multiplier,
+                r.active_local_start_dt, 
+                r.active_local_end_dt
             FROM
-                schedule_generation_rules
+                schedule_generation_rules r
+                join locations l on (l.id = r.location_id)
             WHERE
                 location_id = %s
-            LIMIT 1
+
         """
         val = (location_id,)
-        return read_row(sql, val)
+        return read_rows(sql, val)
 
     except Exception as err:
         log_generic(
             type="error", 
-            function='__read_record_schedule_generation_rules_by_location_id', 
+            function='get_schedule_generation_rules_by_location_id', 
             location_id=location_id, 
             error=err)
         return None
-
 
 
 def get_available_dates(group_code):
@@ -126,7 +137,7 @@ def get_available_locations(date, group_code):
         val = (date, group_code)
         log_generic(
             type="info", 
-            function='__read_locations_available', 
+            function='get_available_locations', 
             group_code=group_code,
             date=date,
             info='looking_up_available_locations')
@@ -135,7 +146,7 @@ def get_available_locations(date, group_code):
     except Exception as err:
         log_generic(
             type="error", 
-            function='__read_locations_available', 
+            function='get_available_locations', 
             group_code=group_code,
             date=date,
             error=err)
@@ -165,7 +176,7 @@ def get_available_times(location_id, date):
         val = (location_id, date)
         log_generic(
             type="info", 
-            function='__read_times_available', 
+            function='get_available_times', 
             location_id=location_id,
             date=date,
             info='looking_up_available_times')
@@ -174,7 +185,7 @@ def get_available_times(location_id, date):
     except Exception as err:
         log_generic(
             type="error", 
-            function='__read_times_available', 
+            function='get_available_times', 
             error=err)
         return None
 
@@ -209,7 +220,7 @@ def get_slot_information(slot_id):
     except Exception as err:
         log_generic(
             type="error", 
-            function='__read_slot_information', 
+            function='get_slot_information', 
             error=err)
         return None
 
@@ -234,15 +245,26 @@ def update_slot_information(slot_id, appointment_id):
             type="error", 
             slot_id=slot_id, 
             appointment_id=appointment_id, 
-            function='__update_slot_information', 
+            function='update_slot_information', 
             error=err)
         return None
 
 
 
 
+def add_schedule_entries(rows):
+    try:
+        sql = """
+            INSERT INTO schedules
+                (location_id, start_dt, end_dt, time_zone, time_zone_offset, duration, status)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """
+        exec_batch_execute(sql, rows)
 
+    except Exception as err:
+        print("err:", err)
 
+    
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################

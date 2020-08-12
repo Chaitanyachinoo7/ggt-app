@@ -118,9 +118,6 @@ class ProviderLookupAppointmentRequest(BaseModel):
     token: str
 
 
-
-
-
 class PortalLoginRequest(BaseModel):
     token: str
 
@@ -129,15 +126,10 @@ class PortalUserRoleRequest(BaseModel):
     email: str
 
 
-
-
-
 class ProviderGetMonthlyCalendarRequest(BaseModel):
     date: str
     auth_token: str
     location_id: str
-
-
 
 
 class PortalCcPatientSearchRequest(BaseModel):
@@ -155,13 +147,16 @@ class PortalCcPatientLookupRequest(BaseModel):
     last_name: str
     dob: str
 
-'''
 
-
-class RegistrationWebhookRequest(BaseModel):
-    name: str
-    site: str
-    d: str
-    _id: str
-    data: PhoneData
-'''
+class PortalGeneralSearchRequest(BaseModel):
+    auth_token: str
+    first_name: str
+    middle_name: str
+    last_name: str
+    dob: str
+    phone_number: str
+    email: str
+    appointment_id: str
+    group_code: str
+    appointment_date: str
+    location_id: str

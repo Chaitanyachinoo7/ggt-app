@@ -3,7 +3,8 @@ from fastapi import APIRouter, Request, Response, status
 from ggt.models.data_models.data_types import (
     PortalUserRoleRequest,
     PortalCcPatientLookupRequest,
-    PortalCcPatientSearchRequest
+    PortalCcPatientSearchRequest,
+    PortalGeneralSearchRequest
 )
 
 from ggt.lib.auth import (
@@ -23,6 +24,12 @@ from ggt.models.workflow_models.admin_flow import (
     admin_get_all_test_results
 )
 
+from ggt.models.workflow_models.test_site_admin_flow import (
+    site_admin_general_search,
+    generate_schedule,
+    generate_all_schedules
+)
+
 router = APIRouter()
 
 
@@ -34,6 +41,35 @@ async def api_get_user_role(portal_user_role_request: PortalUserRoleRequest, req
         return {
             response.status_code: status.HTTP_401_UNAUTHORIZED
         }
+
+
+@router.post("/site-admin/general_search")
+async def api_site_admin_general_search(portal_general_search_request: PortalGeneralSearchRequest, request: Request, response: Response):
+    return site_admin_general_search(
+        portal_general_search_request.auth_token, 
+        portal_general_search_request.first_name, 
+        portal_general_search_request.middle_name, 
+        portal_general_search_request.last_name, 
+        portal_general_search_request.dob, 
+        portal_general_search_request.phone_number, 
+        portal_general_search_request.email, 
+        portal_general_search_request.appointment_id, 
+        portal_general_search_request.group_code,
+        portal_general_search_request.appointment_date, 
+        portal_general_search_request.location_id
+    )
+
+
+@router.post("/site-admin/generate_schedule/{location_id}")
+async def api_generate_schedule(location_id: str):
+    return generate_schedule(location_id)
+
+
+@router.post("/site-admin/generate_all_schedules")
+async def api_generate_all_schedules():
+    return generate_all_schedules()
+
+
 
 
 @router.post("/contact-center/patient_lookup")
