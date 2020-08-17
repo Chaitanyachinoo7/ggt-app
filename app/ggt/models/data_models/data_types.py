@@ -148,6 +148,12 @@ class PortalCcPatientLookupRequest(BaseModel):
     dob: str
 
 
+class CCSendSMSRequest(BaseModel):
+    first_name: str
+    token: str
+    to_number: str
+
+
 class PortalGeneralSearchRequest(BaseModel):
     auth_token: str
     first_name: str

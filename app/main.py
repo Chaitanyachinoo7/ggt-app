@@ -14,7 +14,8 @@ from ggt.routers import (
     rt_provider, 
     rt_patient, 
     rt_task, 
-    rt_portal
+    rt_portal,
+    rt_contact_center
 )
 
 NOT_FOUND = "Not found"
@@ -86,7 +87,6 @@ app.include_router(
     responses={404: {"description": NOT_FOUND}},
 )
 
-'''
 app.include_router(
     rt_contact_center.router,
     prefix="/api/cc",
@@ -94,7 +94,6 @@ app.include_router(
     #dependencies=[Depends(get_token_header)],
     responses={404: {"description": NOT_FOUND}},
 )
-'''
 
 if __name__ == '__main__':
     uvicorn.run(app, host='0.0.0.0', port=8000)
