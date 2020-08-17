@@ -9,11 +9,14 @@ from ggt.models.data_models.schedules import (
     get_available_times,
     get_slot_information,
     get_schedule_generation_rules_by_location_id,
-    add_schedule_entries
+    add_schedule_entries,
+    add_schedule_generation_rule,
+    delete_schedule_generation_rule
 )
 
 from ggt.models.data_models.locations import (
-    get_all_locations
+    get_all_locations,
+    get_all_available_dtl
 )
 
 ########################################################################################################
@@ -78,6 +81,41 @@ def bp_get_schedule_locations_available(date, group_code='_DEFAULT_'):
     }
 
 
+def bp_get_all_available_locations_and_times():
+    rows = get_all_available_dtl()
+    available_locations = []
+    try:
+        for row in rows:
+            location_text = "{}, {} {}  {}".format(
+                row['addr1'],
+                row['city'],
+                row['st'],
+                row['zip'])
+            available_locations.append(
+                {
+                    "label": location_text,
+                    "value": row['location_id']
+                }
+            )
+
+        log_generic(
+            type="info",
+            available_locations=available_locations,
+            function='get_all_available_locations_and_times')
+
+    except Exception as err:
+        log_generic(
+            type="error",
+            rows=rows,
+            function='get_all_available_locations_and_times',
+            error=err
+        )
+
+    return {
+        "available_location": available_locations
+    }
+
+
 def bp_get_schedule_times_available(location_id, date):
     rows = get_available_times(location_id, date)
     available_times = []
@@ -110,7 +148,7 @@ def bp_generate_all_schedules():
         locations = get_all_locations()
         for location in locations:
             bp_generate_full_schedule(location['id'])
-        
+
         return True
 
     except Exception as err:
@@ -121,7 +159,6 @@ def bp_generate_all_schedules():
     return False
 
 
-
 def bp_generate_full_schedule(location_id):
     try:
         rules = get_schedule_generation_rules_by_location_id(location_id)
@@ -130,19 +167,59 @@ def bp_generate_full_schedule(location_id):
             __process_schedule_rule(rule)
 
         return True
-            
+
     except Exception as err:
         log_generic(type="error",
                     location_id=location_id,
-                    function='generate_full_schedule',
+                    function='bp_generate_full_schedule',
                     error=err)
 
     return False
 
 
+def bp_add_schedule_generation_rule(data):
+    try:
+        return add_schedule_generation_rule(data)
+
+    except Exception as err:
+        log_generic(type="error",
+                    data=data,
+                    function='bp_add_schedule_generation_rule',
+                    error=err)
+
+    return False
+
+
+def bp_delete_schedule_generation_rule(id):
+    try:
+        return delete_schedule_generation_rule
+
+    except Exception as err:
+        log_generic(type="error",
+                    id=id,
+                    function='bp_delete_schedule_generation_rule',
+                    error=err)
+
+    return False
+
+
+def bp_get_schedule_generation_rules(location_id):
+    try:
+        return get_schedule_generation_rules_by_location_id(location_id)
+
+    except Exception as err:
+        log_generic(type="error",
+                    location_id=location_id,
+                    function='bp_get_schedule_generation_rules',
+                    error=err)
+
+    return False
+
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
+
+
 def __process_schedule_rule(rule):
     try:
         start_date = rule['active_local_start_dt']
@@ -153,24 +230,25 @@ def __process_schedule_rule(rule):
 
         rows = []
         valid_days = __get_valid_days(rule)
-        while schedule_date <= end_date: #day loop
-            if valid_days[schedule_date.strftime("%A")]: 
-                day_end_dt =  schedule_date + end_time
+        while schedule_date <= end_date:  # day loop
+            if valid_days[schedule_date.strftime("%A")]:
+                day_end_dt = schedule_date + end_time
                 day_curr_time = schedule_date + start_time
-                
-                while day_curr_time < day_end_dt: #time loop
+
+                while day_curr_time < day_end_dt:  # time loop
                     slot_increment = rule['slot_increment'] * 60
-                    day_curr_appointment_end_time = day_curr_time + timedelta(0, slot_increment)
+                    day_curr_appointment_end_time = day_curr_time + \
+                        timedelta(0, slot_increment)
 
                     row = (
-                        rule['location_id'], 
-                        day_curr_time.strftime('%Y-%m-%d %H:%M:%S'), 
-                        day_curr_appointment_end_time,  
+                        rule['location_id'],
+                        day_curr_time.strftime('%Y-%m-%d %H:%M:%S'),
+                        day_curr_appointment_end_time,
                         rule['time_zone'],
                         rule['time_zone_offset'],
                         rule['slot_increment'],
                         'available'
-                    ) 
+                    )
                     rows.append(row)
 
                     day_curr_time = day_curr_appointment_end_time

@@ -20,7 +20,8 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
     get_schedule_times_available,
     get_schedule_locations_available,
     lookup_appointment,
-    lookup_test_result
+    lookup_test_result,
+    get_all_available_locations_and_times
 )
 
 
@@ -71,6 +72,13 @@ async def api_get_available_times(location_id: str, date: str):
 @router.get("/get_available_times/{location_id}")
 async def api_get_available_times_for_today(location_id: str):
     return get_schedule_times_available(location_id)
+
+
+@router.get("/get_all_available_locations_and_times")
+async def api_get_all_available_locations_and_times():
+    return get_all_available_locations_and_times()
+
+    
 
 
 @router.post("/finalize_registration")

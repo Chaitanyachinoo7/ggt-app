@@ -51,11 +51,16 @@ vendors:
     password: 9cTE3fh@8H
     port: 22
     remote_folder: /Reports
-    download_path: /tmp/ggt-tasks/downloads
+    remote_insurance_images_path: /insurance_files
+    remote_backups_path: /backups
+    remote_processed_orders_path: /processed_order_files
+    local_download_path: /tmp/ggt-tasks/downloads
     local_outbound_file_path: /tmp/ggt-tasks/outbound
     local_insurance_card_file_path: /tmp/ggt-tasks/insurance_images
     local_process_summary_path: /tmp/ggt-tasks/process_summary
+    local_backups_path: /tmp/ggt-tasks/backups
     outbound_file_prefix: ggt-outbound
+    
 
   wellpay:
     endpoint: https://api.getwellpay.com/api/public/v1

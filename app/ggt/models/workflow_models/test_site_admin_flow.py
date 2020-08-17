@@ -5,22 +5,35 @@ from ggt.lib.utils import (
 )
 
 from ggt.models.process_models.bp_portal_experience import (
-    bp_get_general_search_results
+    bp_get_general_search_results,
+    bp_get_location_search_results
 )
 
 from ggt.models.process_models.bp_schedules import (
     bp_generate_full_schedule,
-    bp_generate_all_schedules
+    bp_generate_all_schedules,
+    bp_add_schedule_generation_rule,
+    bp_delete_schedule_generation_rule,
+    bp_get_schedule_generation_rules
 )
+
 
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
 
-def site_admin_general_search(auth_token, first_name, middle_name, last_name, dob, phone_number, email, appointment_id, group_code,appointment_date, location_id):
+def site_admin_general_search(auth_token, first_name, middle_name, last_name, dob, phone_number, email, appointment_id, group_code, appointment_date, location_id):
     return y_response(
         bp_get_general_search_results(
-            first_name, middle_name, last_name, dob, phone_number, email, appointment_id, group_code,appointment_date, location_id
+            first_name, middle_name, last_name, dob, phone_number, email, appointment_id, group_code, appointment_date, location_id
+        )
+    )
+
+
+def site_admin_location_search(account, group_code, site_code):
+    return y_response(
+        bp_get_location_search_results(
+            account, group_code, site_code
         )
     )
 
@@ -30,11 +43,28 @@ def generate_schedule(location_id):
         bp_generate_full_schedule(location_id)
     )
 
+
 def generate_all_schedules():
     return x_response(
         bp_generate_all_schedules()
     )
+
+
+def delete_schedule_generation_rule(id):
+    return x_response(
+        bp_delete_schedule_generation_rule(id)
+    )
+
+
+def add_schedule_generation_rule(data):
+    return x_response(
+        bp_add_schedule_generation_rule(data)
+    )
+
+def get_schedule_generation_rules(location_id):
+    return y_response(
+        bp_get_schedule_generation_rules(location_id)
+    )
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
-

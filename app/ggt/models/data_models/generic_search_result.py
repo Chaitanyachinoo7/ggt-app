@@ -124,7 +124,7 @@ class GenericSearchResult(BaseModel):
 class GenericSearchResults(BaseModel):
     search_results: Optional[GenericSearchResult] = None
 
-def find_patient(first_name='', middle_name='', last_name='', dob='', phone_number='', 
+def find_patients(first_name='', middle_name='', last_name='', dob='', phone_number='', 
                     email='', appointment_id='', group_code='',appointment_date='', location_id=''):
     try:
         where_conditions = '' 

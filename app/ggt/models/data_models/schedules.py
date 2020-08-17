@@ -49,6 +49,7 @@ def get_schedule_generation_rules_by_location_id(location_id):
                 l.time_zone, 
                 l.time_zone_offset, 
                 l.status, 
+                r.id,
                 r.location_id,
                 r.slot_increment,
                 r.local_start_time,
@@ -80,6 +81,75 @@ def get_schedule_generation_rules_by_location_id(location_id):
             location_id=location_id, 
             error=err)
         return None
+
+
+def add_schedule_generation_rule(data):
+    try:
+        sql = """
+        INSERT INTO schedule_generation_rules
+        (
+            location_id,
+            slot_increment,
+            local_start_time,
+            local_end_time,
+            sun,
+            mon,
+            tue,
+            wed,
+            thu,
+            fri,
+            sat,
+            slot_multiplier,
+            active_local_start_dt,
+            active_local_end_dt
+        )
+        VALUES
+        (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s )
+        """
+        vals = (
+            data.location_id, 
+            data.slot_increment,
+            data.local_start_time,
+            data.local_end_time,
+            data.sun,
+            data.mon,
+            data.tue,
+            data.wed,
+            data.thu,
+            data.fri,
+            data.sat,
+            data.slot_multiplier,
+            data.active_local_start_dt,
+            data.active_local_end_dt)
+
+        exec_insert(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type="error", 
+            function='add_schedule_generation_rule', 
+            error=err)
+        return None
+
+
+def delete_schedule_generation_rule(id):
+    try:
+        sql = """
+        DELETE FROM 
+            schedule_generation_rules
+        WHERE
+            id = %s
+        """
+        vals = (id,)
+        exec_delete(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type="error", 
+            function='delete_schedule_generation_rule', 
+            error=err)
+        return None
+
 
 
 def get_available_dates(group_code):
@@ -263,6 +333,9 @@ def add_schedule_entries(rows):
 
     except Exception as err:
         print("err:", err)
+
+
+
 
     
 ########################################################################################################

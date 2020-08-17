@@ -160,3 +160,26 @@ class PortalGeneralSearchRequest(BaseModel):
     group_code: str
     appointment_date: str
     location_id: str
+
+
+class PortalLocationSearchRequest(BaseModel):
+    account: str
+    group_code: str
+    site_code: str
+
+
+class ScheduleGenerationRule(BaseModel):
+    location_id: str
+    slot_increment: str
+    slot_multiplier: str
+    local_start_time: str
+    local_end_time: str
+    active_local_start_dt: str
+    active_local_end_dt: str
+    sun: bool
+    mon: bool
+    tue: bool
+    wed: bool
+    thu: bool
+    fri: bool
+    sat: bool

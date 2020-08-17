@@ -16,7 +16,8 @@ from ggt.models.process_models.bp_patient_experience import (
 from ggt.models.process_models.bp_schedules import (
     bp_get_schedule_dates_available,
     bp_get_schedule_locations_available,
-    bp_get_schedule_times_available
+    bp_get_schedule_times_available,
+    bp_get_all_available_locations_and_times
 )
 
 from ggt.models.process_models.bp_appointments import (
@@ -157,6 +158,12 @@ def get_schedule_locations_available(group_code, date):
             group_code,
             date
         )
+    )
+
+
+def get_all_available_locations_and_times():
+    return x_response(
+        bp_get_all_available_locations_and_times()
     )
 
 

@@ -5,6 +5,7 @@ import datetime
 import time
 import paramiko
 import itertools
+import shutil
 from pathlib import Path
 
 
@@ -42,6 +43,15 @@ from ggt.models.data_models.tasks_local_cache import (
 
 session_id = generate_session_id()
 
+hostname=get_config_val('vendors.healthtrackrx.hostname')
+username=get_config_val('vendors.healthtrackrx.username')
+password=get_config_val('vendors.healthtrackrx.password')
+port=get_config_val('vendors.healthtrackrx.port')
+remote_folder=get_config_val('vendors.healthtrackrx.remote_folder')
+
+local_backups_path=get_config_val('vendors.healthtrackrx.local_backups_path')
+local_download_path=get_config_val('vendors.healthtrackrx.local_download_path')
+
 #----What this does----
 #Delete/move files at the download directory
 #get a list of remote files
@@ -71,7 +81,7 @@ def task_process_inbound_lab_reports():
     add_to_healthtrackrx_inbound_data_table()
     update_test_samples_with_results()
     upload_pdf_lab_reports()
-    upload_all_inbound_files_to_central_storage()
+    upload_all_inbound_files_to_central_storage() 
 
     log_generic(
         type="info", 
@@ -85,12 +95,6 @@ def task_process_inbound_lab_reports():
 
 def init_ftp_connection():
     try:
-        hostname=get_config_val('vendors.healthtrackrx.hostname')
-        username=get_config_val('vendors.healthtrackrx.username')
-        password=get_config_val('vendors.healthtrackrx.password')
-        port=get_config_val('vendors.healthtrackrx.port')
-        remote_folder=get_config_val('vendors.healthtrackrx.remote_folder')
-
         ssh_client = paramiko.SSHClient()
         ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh_client.connect(
@@ -121,9 +125,8 @@ def init_ftp_connection():
 
 def clean_downloads_folder():
     print('cleaning up downloads folder')
-    download_path=get_config_val('vendors.healthtrackrx.download_path')
     try:
-        files = glob.glob("{}/*".format(download_path))
+        files = glob.glob("{}/*".format(local_download_path))
         for f in files:
             os.remove(f)
 
@@ -138,12 +141,6 @@ def clean_downloads_folder():
 def download_ftp_files():
     print('downloading files from FTP')
     try:
-        hostname=get_config_val('vendors.healthtrackrx.hostname')
-        username=get_config_val('vendors.healthtrackrx.username')
-        password=get_config_val('vendors.healthtrackrx.password')
-        port=get_config_val('vendors.healthtrackrx.port')
-        remote_folder=get_config_val('vendors.healthtrackrx.remote_folder')
-
         ssh_client = paramiko.SSHClient()
         ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh_client.connect(
@@ -176,13 +173,11 @@ def download_ftp_files():
 def copy_files_to_local(ftp_client, directory_list, remote_folder):
     print('copying files from remote to local')
     try:
-        download_path=get_config_val('vendors.healthtrackrx.download_path')
-    
         for dir in directory_list:
             remote_dir_path = "{}/{}".format(remote_folder, dir)
             print("Scanning dir: {}".format(dir)) ##
             try:
-                newpath = "{}/{}".format(download_path, dir)
+                newpath = "{}/{}".format(local_download_path, dir)
                 if not os.path.exists(newpath):
                     os.makedirs(newpath)
 
@@ -225,7 +220,6 @@ def copy_files_to_local(ftp_client, directory_list, remote_folder):
         )
 
 
-
 def get_remote_directories_and_files(ftp_client, remote_folder):
     ftp_client.chdir(remote_folder)
     resources = ftp_client.listdir()
@@ -258,9 +252,8 @@ def get_remote_directory_list(ftp_client, paths, remote_folder):
 
 def parse_csv_files():
     print('parsing CSV files')
-    download_path=get_config_val('vendors.healthtrackrx.download_path')
     try:
-        files = [f for f in glob.glob("{}/**/*.csv".format(download_path), recursive=True)]
+        files = [f for f in glob.glob("{}/**/**/*.csv".format(local_download_path), recursive=True)]
         for filename in files:
             parse_csv_file(filename)
 
@@ -294,12 +287,12 @@ def load_data_from_remote_db_to_cache():
 
 def upload_pdf_lab_reports():
     print('uploading PDF lab reports')
-    download_path=get_config_val('vendors.healthtrackrx.download_path')
     try:
-        files = [f for f in glob.glob("{}/**/*.pdf".format(download_path), recursive=True)]
+        files = [f for f in glob.glob("{}/**/**/*.pdf".format(local_download_path), recursive=True)]
         for filename in files:
             try:
                 __destination_filename = generate_destination_filename(filename)
+                shutil.copyfile(filename,'{}/{}'.format(local_backups_path, __destination_filename))
                 if __destination_filename:
                     if file_exists_in_files_in_remote_storage_cache(__destination_filename):
                         #print('cache hit: ', __destination_filename)
@@ -314,7 +307,7 @@ def upload_pdf_lab_reports():
                         elif upload_status:
                             print('pdf_lab_report - upload success {} ==> {}'.format(filename, __destination_filename))
                         else:
-                            print('pdf_lab_report exsits at destination... adding to local cache: {} ==> {}'.format(filename, __destination_filename))
+                            print('pdf_lab_report exists at destination... adding to local cache: {} ==> {}'.format(filename, __destination_filename))
                             add_to_files_in_remote_storage_cache(__destination_filename)
             except Exception as err:
                 print('Error uploading {}'.format(filename))
@@ -326,9 +319,8 @@ def upload_pdf_lab_reports():
 
 def upload_all_inbound_files_to_central_storage():
     print('uploading all inbound raw files to remote storage')
-    download_path=get_config_val('vendors.healthtrackrx.download_path')
     try:
-        files = [f for f in glob.glob("{}/**/*".format(download_path), recursive=True)]
+        files = [f for f in glob.glob("{}/**/*".format(local_download_path), recursive=True)]
         for file_path in files:
             filename = extract_filename(file_path)
             try:
@@ -354,18 +346,23 @@ def upload_all_inbound_files_to_central_storage():
 
 
 def generate_destination_filename(file_path):
-    arr = file_path.split('/')
-    filename = arr[len(arr)-1]
-    requisition_id = filename.split('-')[3]
-    
-    order_number = get_order_number_by_requisition_id(requisition_id)
-    if order_number is None:
-        print('Requisition Not found - ID: {}'.format(requisition_id))
-        append_to_processing_summary('{} - no record found'.format(requisition_id))
-        return None
+    try:
+        arr = file_path.split('/')
+        filename = arr[len(arr)-1]
+        requisition_id = filename.split('-')[3]
+        
+        order_number = get_order_number_by_requisition_id(requisition_id)
+        if order_number:
+            filename = '{}.pdf'.format(order_number)
+            return filename
 
-    filename = '{}.pdf'.format(order_number)
-    return filename
+    except Exception as err:
+        print("err:", err)
+
+    print('Requisition Not found - ID: {}'.format(requisition_id))
+    append_to_processing_summary('{} - no record found'.format(requisition_id))
+    return None
+    
 
 
 def append_to_processing_summary(txt):

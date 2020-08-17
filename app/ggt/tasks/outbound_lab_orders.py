@@ -334,7 +334,7 @@ def update_to_with_lab_status(orders):
     
     format_strings = ','.join(['%s'] * len(list_of_ids))
     sql = """
-        UPDATE ggt_prod.test_samples 
+        UPDATE test_samples 
         SET 
             status = 'with_lab',
             update_dt = NOW(),

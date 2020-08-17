@@ -1,5 +1,6 @@
 import sqlite3
 from sqlite3 import Error
+import json
 
 from ggt.lib.utils import (
     get_config_val,
@@ -55,8 +56,8 @@ def add_to_lab_test_records_cache(rec):
         '''.format(
                 str(rec['requisition_id']), 
                 str(rec['order_number']), 
-                str(rec['first_name']), 
-                str(rec['last_name']), 
+                str(rec['first_name']).replace('"', r'\"').replace("'", "''"), 
+                str(rec['last_name']).replace('"', r'\"').replace("'", "''"), 
                 str(rec['dob']), 
                 str(rec['assay_name']), 
                 str(rec['status']), 
@@ -67,6 +68,7 @@ def add_to_lab_test_records_cache(rec):
     except Exception as err:
         log_generic(
             type="error", 
+            rec=rec,
             function='add_to_lab_test_records_cache', 
             error=err)
     finally:
@@ -209,12 +211,9 @@ def file_exists_in_files_in_remote_storage_cache(filename):
                         filename
                 ))
         row = c.fetchone()
-        conn.close()
 
-        if row[0]>0:
+        if row and row[0]>0:
             return True
-        else:
-            return False
 
     except Exception as err:
         log_generic(
@@ -224,4 +223,6 @@ def file_exists_in_files_in_remote_storage_cache(filename):
             error=err)
     finally:
         conn.close()
+    
+    return False
 

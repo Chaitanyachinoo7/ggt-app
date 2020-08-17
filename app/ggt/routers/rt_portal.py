@@ -4,7 +4,9 @@ from ggt.models.data_models.data_types import (
     PortalUserRoleRequest,
     PortalCcPatientLookupRequest,
     PortalCcPatientSearchRequest,
-    PortalGeneralSearchRequest
+    PortalGeneralSearchRequest,
+    PortalLocationSearchRequest,
+    ScheduleGenerationRule
 )
 
 from ggt.lib.auth import (
@@ -27,7 +29,11 @@ from ggt.models.workflow_models.admin_flow import (
 from ggt.models.workflow_models.test_site_admin_flow import (
     site_admin_general_search,
     generate_schedule,
-    generate_all_schedules
+    generate_all_schedules,
+    site_admin_location_search,
+    add_schedule_generation_rule,
+    delete_schedule_generation_rule,
+    get_schedule_generation_rules
 )
 
 router = APIRouter()
@@ -60,7 +66,7 @@ async def api_site_admin_general_search(portal_general_search_request: PortalGen
     )
 
 
-@router.post("/site-admin/generate_schedule/{location_id}")
+@router.get("/site-admin/generate_schedule/{location_id}")
 async def api_generate_schedule(location_id: str):
     return generate_schedule(location_id)
 
@@ -70,6 +76,30 @@ async def api_generate_all_schedules():
     return generate_all_schedules()
 
 
+@router.post("/site-admin/location_search")
+async def api_site_admin_location_search(portal_location_search: PortalLocationSearchRequest, request: Request, response: Response):
+    return site_admin_location_search(
+        portal_location_search.account, 
+        portal_location_search.group_code, 
+        portal_location_search.site_code
+    )
+
+
+
+
+@router.post("/site-admin/add_schedule_generation_rule")
+async def api_add_schedule_generation_rule(schedule_generation_rule_request: ScheduleGenerationRule, request: Request, response: Response):
+    return add_schedule_generation_rule(schedule_generation_rule_request)
+
+    
+@router.get("/site-admin/delete_schedule_generation_rule/{id}")
+async def api_delete_schedule_generation_rule(id: str):
+    return delete_schedule_generation_rule(id)
+  
+
+@router.get("/site-admin/get_schedule_generation_rules/{location_id}")
+async def api_delete_schedule_generation_rule(location_id: str):
+    return get_schedule_generation_rules(location_id)
 
 
 @router.post("/contact-center/patient_lookup")
@@ -78,6 +108,8 @@ async def api_cc_patient_lookup(portal_cc_patient_lookup_request: PortalCcPatien
         portal_cc_patient_lookup_request.last_name, 
         portal_cc_patient_lookup_request.dob
     )
+
+  
     '''
     if(verify_google_idtoken(request.headers['Authorization'])):
         return cc_search_details_by_name_and_dob(
