@@ -11,7 +11,7 @@ SERVICE_NAME='ggt-pfe-services'
 REGION='us-central1'
 
 
-# gcloud config configurations activate ggt-pfe-${ENV}
+gcloud config configurations activate ggt-pfe-${ENV}
 
 pipenv lock --requirements > app/requirements.txt
 

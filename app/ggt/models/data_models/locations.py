@@ -77,9 +77,6 @@ def search_locations(account, group_code, site_code):
         log_generic(type="info", function='get_all_locations', error=err)
         return None
 
-
-def get_all_available_dtl():
-    pass
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################

@@ -29,6 +29,7 @@ origins = [
     "https://start-dev.gogettested.com",
     "https://start-qa.gogettested.com",
     "http://localhost",
+    "http://localhost:3000",
     "http://localhost:5000",
     "http://localhost:8000"
 ]

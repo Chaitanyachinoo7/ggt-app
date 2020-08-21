@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Dict, List, Optional
+import datetime
 
 
 class VerifyPhoneRequest(BaseModel):
@@ -175,13 +176,13 @@ class PortalLocationSearchRequest(BaseModel):
 
 
 class ScheduleGenerationRule(BaseModel):
-    location_id: str
-    slot_increment: str
-    slot_multiplier: str
-    local_start_time: str
-    local_end_time: str
-    active_local_start_dt: str
-    active_local_end_dt: str
+    location_id: int
+    slot_increment: int
+    slot_multiplier: int
+    local_start_time: datetime.time
+    local_end_time: datetime.time
+    active_local_start_dt: datetime.datetime
+    active_local_end_dt: datetime.datetime
     sun: bool
     mon: bool
     tue: bool

@@ -23,8 +23,7 @@ databases:
     db: ggt_qa
 
   sqlite:
-    tasks_sqlite_db : /tmp/ggt-tasks/ggt_tasks_local_cache.db
-      
+    tasks_sqlite_db: /tmp/ggt-tasks/ggt_tasks_local_cache.db
 
 notifications:
   from_email: support@gogettested.com
@@ -32,46 +31,42 @@ notifications:
   result_subject: COVID-19 Testing Result Available
   result_template: GGT-5-RESULT-AVAILABLE-EMAIL.html
 
-
 twilio:
-    account_sid: AC9cef9b4155030ee2683281ccc72d4001
-    auth_token: 62ee76165984c54f91ee80aac9cb3f0e
-    from_number: "+19723099019"
+  account_sid: AC9cef9b4155030ee2683281ccc72d4001
+  auth_token: 62ee76165984c54f91ee80aac9cb3f0e
+  from_number: '+19723099019'
 
 sendgrid:
   sendgrid_api_key: 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
 
 email:
   template_folder: /templates/email/
-  
-  vendors:
-    healthtrackrx:
-      hostname: sftp.healthtrackrx.com
-      username: wellpay
-      password: 9cTE3fh@8H
-      port: 22
-      remote_folder: /Reports
-      remote_insurance_images_path: /insurance_files
-      remote_backups_path: /backups
-      remote_processed_orders_path: /processed_order_files
-      local_download_path: /tmp/ggt-tasks/downloads
-      local_outbound_file_path: /tmp/ggt-tasks/outbound
-      local_insurance_card_file_path: /tmp/ggt-tasks/insurance_images
-      local_process_summary_path: /tmp/ggt-tasks/process_summary
-      local_backups_path: /tmp/ggt-tasks/backups
-      outbound_file_prefix: ggt-outbound
-    
-  wellpay:
-    endpoint: https://api-staging.getwellpay.com/api/public/v1
-    auth_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJob3N0IjoiYXBpLXN0YWdpbmcuZ2V0d2VsbHBheS5jb20iLCJleHAiOjE2MTEyNTM0NzkuNDA0LCJleHRlcm5hbF9rZXkiOnRydWUsInJvbGUiOiJwcm92aWRlciIsInByb3ZpZGVyX2lkIjoiNSIsImlhdCI6MTU5NTM1NTg3OSwianRpIjoiOWMwYmQ0YjktM2RiYy00Mjc5LWJkYWQtMDY5NjkxYTBhMmFlIn0.rHa7AhrUZZOtg2R6TfDtW4pxGdCCHJd-n5n5S_E1W1w
-    
+
+vendors:
+  healthtrackrx:
+    hostname: sftp.healthtrackrx.com
+    username: wellpay
+    password: 9cTE3fh@8H
+    port: 22
+    remote_folder: /Reports
+    remote_insurance_images_path: /insurance_files
+    remote_backups_path: /backups
+    remote_processed_orders_path: /processed_order_files
+    local_download_path: /tmp/ggt-tasks/downloads
+    local_outbound_file_path: /tmp/ggt-tasks/outbound
+    local_insurance_card_file_path: /tmp/ggt-tasks/insurance_images
+    local_process_summary_path: /tmp/ggt-tasks/process_summary
+    local_backups_path: /tmp/ggt-tasks/backups
+    outbound_file_prefix: ggt-outbound
+
+wellpay:
+  endpoint: https://api-staging.getwellpay.com/api/public/v1
+  auth_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJob3N0IjoiYXBpLXN0YWdpbmcuZ2V0d2VsbHBheS5jb20iLCJleHAiOjE2MTEyNTM0NzkuNDA0LCJleHRlcm5hbF9rZXkiOnRydWUsInJvbGUiOiJwcm92aWRlciIsInByb3ZpZGVyX2lkIjoiNSIsImlhdCI6MTU5NTM1NTg3OSwianRpIjoiOWMwYmQ0YjktM2RiYy00Mjc5LWJkYWQtMDY5NjkxYTBhMmFlIn0.rHa7AhrUZZOtg2R6TfDtW4pxGdCCHJd-n5n5S_E1W1w
 
 pfe:
   signup:
-    special_phone_1: "+14158888888"
-    special_phone_2: "+14159999999"
-    special_phone_3: "4158888888"
-    special_phone_4: "4159999999"
-    override_otp_code: "000000"
-        
-    
+    special_phone_1: '+14158888888'
+    special_phone_2: '+14159999999'
+    special_phone_3: '4158888888'
+    special_phone_4: '4159999999'
+    override_otp_code: '000000'

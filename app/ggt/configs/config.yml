@@ -23,7 +23,7 @@ databases:
     db: ggt_prod
 
   sqlite:
-    tasks_sqlite_db : /tmp/ggt-tasks/ggt_tasks_local_cache.db
+    tasks_sqlite_db: /tmp/ggt-tasks/ggt_tasks_local_cache.db
 
 notifications:
   from_email: support@gogettested.com
@@ -32,16 +32,16 @@ notifications:
   result_template: GGT-5-RESULT-AVAILABLE-EMAIL.html
 
 twilio:
-    account_sid: AC9cef9b4155030ee2683281ccc72d4001
-    auth_token: 62ee76165984c54f91ee80aac9cb3f0e
-    from_number: "+19723099019"
+  account_sid: AC9cef9b4155030ee2683281ccc72d4001
+  auth_token: 62ee76165984c54f91ee80aac9cb3f0e
+  from_number: '+19723099019'
 
 sendgrid:
   sendgrid_api_key: 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
 
 email:
   template_folder: /templates/email/
-  
+
 vendors:
   healthtrackrx:
     hostname: sftp.healthtrackrx.com
@@ -59,16 +59,14 @@ vendors:
     local_backups_path: /tmp/ggt-tasks/backups
     outbound_file_prefix: ggt-outbound
 
-  wellpay:
-    endpoint: https://api.getwellpay.com/api/public/v1
-    auth_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJob3N0IjoiYXBpLmdldHdlbGxwYXkuY29tIiwiZXhwIjoxNjExMjYyMzg3LjA5NywiZXh0ZXJuYWxfa2V5Ijp0cnVlLCJyb2xlIjoicHJvdmlkZXIiLCJwcm92aWRlcl9pZCI6IjEiLCJpYXQiOjE1OTUzNjQ3ODcsImp0aSI6ImM1OWMwYWYxLTA0NTItNDhjNC1iMTQwLWJhMWI1NzFiZDlhMyJ9.3luYvTE3svahAdFFStyHGzIhhL3Ly83d8nEA8vlC8ig
+wellpay:
+  endpoint: https://api.getwellpay.com/api/public/v1
+  auth_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJob3N0IjoiYXBpLmdldHdlbGxwYXkuY29tIiwiZXhwIjoxNjExMjYyMzg3LjA5NywiZXh0ZXJuYWxfa2V5Ijp0cnVlLCJyb2xlIjoicHJvdmlkZXIiLCJwcm92aWRlcl9pZCI6IjEiLCJpYXQiOjE1OTUzNjQ3ODcsImp0aSI6ImM1OWMwYWYxLTA0NTItNDhjNC1iMTQwLWJhMWI1NzFiZDlhMyJ9.3luYvTE3svahAdFFStyHGzIhhL3Ly83d8nEA8vlC8ig
 
 pfe:
   signup:
-    special_phone_1: "+14158888888"
-    special_phone_2: "+14159999999"
-    special_phone_3: "4158888888"
-    special_phone_4: "4159999999"
-    override_otp_code: "000000"
-        
-    
+    special_phone_1: '+14158888888'
+    special_phone_2: '+14159999999'
+    special_phone_3: '4158888888'
+    special_phone_4: '4159999999'
+    override_otp_code: '000000'

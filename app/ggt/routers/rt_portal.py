@@ -33,7 +33,8 @@ from ggt.models.workflow_models.test_site_admin_flow import (
     site_admin_location_search,
     add_schedule_generation_rule,
     delete_schedule_generation_rule,
-    get_schedule_generation_rules
+    get_schedule_generation_rules,
+    delete_schedule
 )
 
 router = APIRouter()
@@ -52,16 +53,16 @@ async def api_get_user_role(portal_user_role_request: PortalUserRoleRequest, req
 @router.post("/site-admin/general_search")
 async def api_site_admin_general_search(portal_general_search_request: PortalGeneralSearchRequest, request: Request, response: Response):
     return site_admin_general_search(
-        portal_general_search_request.auth_token, 
-        portal_general_search_request.first_name, 
-        portal_general_search_request.middle_name, 
-        portal_general_search_request.last_name, 
-        portal_general_search_request.dob, 
-        portal_general_search_request.phone_number, 
-        portal_general_search_request.email, 
-        portal_general_search_request.appointment_id, 
+        portal_general_search_request.auth_token,
+        portal_general_search_request.first_name,
+        portal_general_search_request.middle_name,
+        portal_general_search_request.last_name,
+        portal_general_search_request.dob,
+        portal_general_search_request.phone_number,
+        portal_general_search_request.email,
+        portal_general_search_request.appointment_id,
         portal_general_search_request.group_code,
-        portal_general_search_request.appointment_date, 
+        portal_general_search_request.appointment_date,
         portal_general_search_request.location_id
     )
 
@@ -79,37 +80,39 @@ async def api_generate_all_schedules():
 @router.post("/site-admin/location_search")
 async def api_site_admin_location_search(portal_location_search: PortalLocationSearchRequest, request: Request, response: Response):
     return site_admin_location_search(
-        portal_location_search.account, 
-        portal_location_search.group_code, 
+        portal_location_search.account,
+        portal_location_search.group_code,
         portal_location_search.site_code
     )
-
-
 
 
 @router.post("/site-admin/add_schedule_generation_rule")
 async def api_add_schedule_generation_rule(schedule_generation_rule_request: ScheduleGenerationRule, request: Request, response: Response):
     return add_schedule_generation_rule(schedule_generation_rule_request)
 
-    
+
 @router.get("/site-admin/delete_schedule_generation_rule/{id}")
 async def api_delete_schedule_generation_rule(id: str):
     return delete_schedule_generation_rule(id)
-  
+
+
+@router.get("/site-admin/delete_schedule/{location_id}")
+async def api_delete_schedule(location_id: str):
+    return delete_schedule(location_id)
+
 
 @router.get("/site-admin/get_schedule_generation_rules/{location_id}")
-async def api_delete_schedule_generation_rule(location_id: str):
+async def api_delete_schedule_generation_rules(location_id: str):
     return get_schedule_generation_rules(location_id)
 
 
 @router.post("/contact-center/patient_lookup")
 async def api_cc_patient_lookup(portal_cc_patient_lookup_request: PortalCcPatientLookupRequest, request: Request, response: Response):
     return cc_search_details_by_name_and_dob(
-        portal_cc_patient_lookup_request.last_name, 
+        portal_cc_patient_lookup_request.last_name,
         portal_cc_patient_lookup_request.dob
     )
 
-  
     '''
     if(verify_google_idtoken(request.headers['Authorization'])):
         return cc_search_details_by_name_and_dob(
@@ -121,6 +124,7 @@ async def api_cc_patient_lookup(portal_cc_patient_lookup_request: PortalCcPatien
             response.status_code: status.HTTP_401_UNAUTHORIZED
         }
     '''
+
 
 @router.post("/admin/get_all_test_results")
 async def api_admin_get_all_test_results(request: Request, response: Response):

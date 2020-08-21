@@ -53,6 +53,7 @@ async def xxxx_api_get_available_dates(request: Request):
     return get_schedule_dates_available()
 '''
 
+
 @router.get("/get_available_dates/{group_code}")
 async def api_get_available_dates(request: Request, group_code: str):
     return get_schedule_dates_available(group_code)
@@ -74,11 +75,9 @@ async def api_get_available_times_for_today(location_id: str):
     return get_schedule_times_available(location_id)
 
 
-@router.get("/get_all_available_locations_and_times")
+@router.get("/get_locations")
 async def api_get_all_available_locations_and_times():
     return get_all_available_locations_and_times()
-
-    
 
 
 @router.post("/finalize_registration")

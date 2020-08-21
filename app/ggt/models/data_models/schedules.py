@@ -132,6 +132,27 @@ def add_schedule_generation_rule(data):
         return None
 
 
+def delete_schedule_entries_by_location_id(location_id):
+    try:
+        sql = """
+        DELETE FROM 
+            schedules
+        WHERE
+            location_id = %s
+            AND id <> 0
+        """
+        vals = (location_id,)
+        exec_delete(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type="error", 
+            function='delete_schedule_entries_by_location_id', 
+            error=err)
+        return None
+
+
+
 def delete_schedule_generation_rule(id):
     try:
         sql = """
@@ -188,6 +209,7 @@ def get_available_locations(date, group_code):
         sql = """
             SELECT DISTINCT
                 s.location_id,
+                l.name as name,
                 l.addr1 as addr1,
                 l.addr2 as addr2,
                 l.city as city,
@@ -223,6 +245,71 @@ def get_available_locations(date, group_code):
         return None
 
 
+def get_all_available_dtl():
+    try:
+        sql = """
+        SELECT 
+            nd.location_id,
+            l.account AS account,
+            l.name AS name,
+            l.addr1 AS addr1,
+            l.addr2 AS addr2,
+            l.city AS city,
+            l.st AS st,
+            l.zip AS zip,
+            l.lat AS lat,
+            l.lng AS lng,
+            nd.first_date_available AS first_date_time_available,
+            (CASE
+                WHEN (pt.average_processing_time IS NULL) THEN 48
+                ELSE pt.average_processing_time
+            END) AS average_processing_time,
+            COUNT(DISTINCT (s.start_dt)) AS slot_count
+        FROM
+            schedules s
+                JOIN
+            locations l ON s.location_id = l.id
+                LEFT JOIN
+            schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
+                LEFT JOIN
+            average_processing_times_for_last_5_days pt ON (pt.location_id = s.location_id)
+        WHERE
+            DATE(nd.first_date_available) = DATE(s.start_dt)
+                AND s.status = 'available'
+                AND l.group_code = '_DEFAULT_'
+        GROUP BY nd.location_id , pt.average_processing_time
+        """
+        return read_rows(sql)
+
+    except Exception as err:
+        log_generic(type="info", function='get_all_available_dtl', error=err)
+        return None
+
+
+def get_processing_averages_by_location():
+    try:
+        sql = """
+            SELECT 
+                dtrwl.location_id AS location_id,
+                (CASE
+                    WHEN (AVG(HOUR(dtrwl.sample_processing_time)) > 48) THEN 48
+                    ELSE CAST(AVG(HOUR(dtrwl.sample_processing_time))
+                        AS DECIMAL (10 , 1 ))
+                END) AS average_processing_time
+            FROM
+                detailed_test_results_with_locations dtrwl
+            WHERE
+                ((TO_DAYS(NOW()) - TO_DAYS(dtrwl.lab_result_receive_dt)) < 5)
+            GROUP BY dtrwl.location_id
+        """
+        return read_rows(sql)
+
+    except Exception as err:
+        log_generic(
+            type="error", 
+            function='get_processing_averages_by_location', 
+            error=err)
+        return None
 
 
 def get_available_times(location_id, date):

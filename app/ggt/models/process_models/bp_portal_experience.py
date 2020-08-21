@@ -64,5 +64,3 @@ def bp_get_general_search_results(first_name, middle_name, last_name, dob, phone
 
 def bp_get_location_search_results(account, group_code, site_code):
     return search_locations(account, group_code, site_code)
-
-
