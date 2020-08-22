@@ -74,7 +74,7 @@ def task_process_inbound_lab_reports():
     init_local_cache()  
     load_data_from_remote_db_to_cache() 
 
-    clean_downloads_folder()
+    #clean_downloads_folder()
     download_ftp_files()
     parse_csv_files()
         

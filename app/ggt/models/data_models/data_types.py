@@ -155,6 +155,19 @@ class CCSendSMSRequest(BaseModel):
     to_number: str
 
 
+class CCSendEmailRequest(BaseModel):
+    first_name: str
+    token: str
+    to_email: str
+
+
+class CCSendNotiRequest(BaseModel):
+    first_name: str
+    token: str
+    to_email: str
+    to_number: str
+
+
 class PortalGeneralSearchRequest(BaseModel):
     auth_token: str
     first_name: str

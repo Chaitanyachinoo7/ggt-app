@@ -85,6 +85,7 @@ def exec_batch_execute(sql, data):
 
     except Error as err:
         __append_to_sql_log('error', 'EXECUTE MANY', "{}".format(sql), err)
+        print('error', 'EXECUTE MANY', "{}".format(sql), err)
         return False
 
     finally:
