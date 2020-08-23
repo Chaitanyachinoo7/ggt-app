@@ -48,7 +48,7 @@ vendors:
     username: wellpay
     password: 9cTE3fh@8H
     port: 22
-    remote_folder: /Reports
+    remote_downloads_folder: /Reports
     remote_insurance_images_path: /insurance_files
     remote_backups_path: /backups
     remote_processed_orders_path: /processed_order_files

@@ -71,8 +71,11 @@ def add_to_lab_test_records_cache(rec):
             rec=rec,
             function='add_to_lab_test_records_cache', 
             error=err)
+        return False
     finally:
         conn.close()
+    
+    return True
 
 
 
@@ -121,6 +124,8 @@ def get_all_lab_records_from_cache():
             error=err)
     finally:
         conn.close()
+    
+    return False
 
 
 
@@ -144,9 +149,12 @@ def add_to_all_inbound_files_cache(filename):
             error=err)
     finally:
         conn.close()
+    
+    return True
 
 
 def file_exists_in_all_inbound_files_cache(filename):
+    row = []
     try:
         conn = sqlite3.connect(sqlite_db)
         c = conn.cursor()
@@ -160,11 +168,6 @@ def file_exists_in_all_inbound_files_cache(filename):
         row = c.fetchone()
         conn.close()
 
-        if row[0]>0:
-            return True
-        else:
-            return False
-
     except Exception as err:
         log_generic(
             type="error", 
@@ -174,7 +177,10 @@ def file_exists_in_all_inbound_files_cache(filename):
     finally:
         conn.close()
 
-
+    if row[0]>0:
+        return True
+    else:
+        return False
 
 
 '''adds to cache if remote storage indicated that the file exists there'''
@@ -196,8 +202,11 @@ def add_to_files_in_remote_storage_cache(filename):
             filename=filename,
             function='add_to_files_in_remote_storage_cache', 
             error=err)
+        return False
     finally:
         conn.close()
+    
+    return True
 
 
 def file_exists_in_files_in_remote_storage_cache(filename):

@@ -47,7 +47,7 @@ hostname=get_config_val('vendors.healthtrackrx.hostname')
 username=get_config_val('vendors.healthtrackrx.username')
 password=get_config_val('vendors.healthtrackrx.password')
 port=get_config_val('vendors.healthtrackrx.port')
-remote_folder=get_config_val('vendors.healthtrackrx.remote_folder')
+remote_downloads_folder=get_config_val('vendors.healthtrackrx.remote_downloads_folder')
 
 local_backups_path=get_config_val('vendors.healthtrackrx.local_backups_path')
 local_download_path=get_config_val('vendors.healthtrackrx.local_download_path')
@@ -151,11 +151,11 @@ def download_ftp_files():
         )
 
         ftp_client = ssh_client.open_sftp()
-        ftp_client.chdir(remote_folder)
+        ftp_client.chdir(remote_downloads_folder)
 
         paths = ftp_client.listdir()
-        directory_list = get_remote_directory_list(ftp_client, paths, remote_folder)
-        copy_files_to_local(ftp_client, directory_list, remote_folder)
+        directory_list = get_remote_directory_list(ftp_client, paths, remote_downloads_folder)
+        copy_files_to_local(ftp_client, directory_list, remote_downloads_folder)
 
     except Exception as err:
         log_generic(
@@ -175,27 +175,37 @@ def copy_files_to_local(ftp_client, directory_list, remote_folder):
     try:
         for dir in directory_list:
             remote_dir_path = "{}/{}".format(remote_folder, dir)
-            print("Scanning dir: {}".format(dir)) ##
+            print("Scanning dir: {}".format(remote_dir_path)) ##
+            total_files = 0
+            cache_hits = 0
+            cache_misses = 0
+            download_errors = 0
             try:
-                newpath = "{}/{}".format(local_download_path, dir)
+                newpath = "{}/{}".format(local_download_path, remote_dir_path)
                 if not os.path.exists(newpath):
                     os.makedirs(newpath)
 
-                dir_list, file_list = get_remote_directories_and_files(ftp_client, dir)
+                dir_list, file_list = get_remote_directories_and_files(ftp_client, remote_dir_path)
 
                 for filename in file_list:
+                    total_files+=1
                     try:
                         if file_exists_in_all_inbound_files_cache(filename):
                             #print('{} exists in cache. -- skipping.'.format(filename))
-                            pass
-                        else:
-                            local_path = "{}/{}".format(newpath, filename)
+                            cache_hits+=1
+                        else:    
+                            cache_misses+=1
+                            local_path = "{}/{}".format(newpath, filename).replace('//','/')
 
                             print("copying {} to {}".format(filename, local_path)) ##
                             ftp_client.get(filename, local_path)
-                            add_to_all_inbound_files_cache(filename)
+                            if add_to_all_inbound_files_cache(filename):
+                                old_path = '{}/{}'.format(remote_dir_path, filename)
+                                new_path = '{}{}/{}'.format('/backups', remote_dir_path, filename)
+                                ftp_client.rename(old_path, new_path)
 
                     except Exception as err:
+                        download_errors+=1
                         log_generic(
                             type="error", 
                             function='copy_files_to_local --filelist', 
@@ -210,6 +220,11 @@ def copy_files_to_local(ftp_client, directory_list, remote_folder):
                             task_session_id=session_id, 
                             error=err
                         )
+            finally:
+                print('total_files: ', total_files)
+                print('cache_hits: ', cache_hits)
+                print('cache_misses: ', cache_misses)
+                print('download_errors: ', download_errors)
 
     except Exception as err:
         log_generic(
@@ -221,18 +236,26 @@ def copy_files_to_local(ftp_client, directory_list, remote_folder):
 
 
 def get_remote_directories_and_files(ftp_client, remote_folder):
-    ftp_client.chdir(remote_folder)
-    resources = ftp_client.listdir()
-
     file_list = []
     dir_list = []
-    
-    for resource in resources:
-        lstatout=str(ftp_client.lstat(resource)).split()[0]
-        if 'd' in lstatout:
-            dir_list.append(resource)
-        else:
-            file_list.append(resource)
+
+    try:
+        ftp_client.chdir(remote_folder)
+        resources = ftp_client.listdir()
+
+        for resource in resources:
+            lstatout=str(ftp_client.lstat(resource)).split()[0]
+            if 'd' in lstatout:
+                dir_list.append(resource)
+            else:
+                file_list.append(resource)
+    except Exception as err:
+        log_generic(
+            type="error", 
+            function='get_remote_directories_and_files --final', 
+            remote_folder=remote_folder, 
+            error=err
+        )
     
     return dir_list, file_list
 
