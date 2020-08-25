@@ -122,7 +122,7 @@ def add_schedule_generation_rule(data):
             data.active_local_start_dt,
             data.active_local_end_dt)
 
-        exec_insert(sql, vals)
+        return exec_insert(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -142,7 +142,7 @@ def delete_schedule_entries_by_location_id(location_id):
             AND id <> 0
         """
         vals = (location_id,)
-        exec_delete(sql, vals)
+        return exec_delete(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -162,7 +162,7 @@ def delete_schedule_generation_rule(id):
             id = %s
         """
         vals = (id,)
-        exec_delete(sql, vals)
+        return exec_delete(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -275,6 +275,7 @@ def get_all_available_dtl():
             average_processing_times_for_last_5_days pt ON (pt.location_id = s.location_id)
         WHERE
             DATE(nd.first_date_available) = DATE(s.start_dt)
+                AND s.start_dt > (NOW() - INTERVAL 5 HOUR)
                 AND s.status = 'available'
                 AND l.group_code = '_DEFAULT_'
         GROUP BY nd.location_id , pt.average_processing_time
@@ -416,7 +417,7 @@ def add_schedule_entries(rows):
                 (location_id, start_dt, end_dt, time_zone, time_zone_offset, duration, status)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
-        exec_batch_execute(sql, rows)
+        return exec_batch_execute(sql, rows)
 
     except Exception as err:
         print("err:", err)

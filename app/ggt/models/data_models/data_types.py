@@ -190,16 +190,16 @@ class PortalLocationSearchRequest(BaseModel):
 
 class ScheduleGenerationRule(BaseModel):
     location_id: int
-    slot_increment: int
-    slot_multiplier: int
-    local_start_time: datetime.time
-    local_end_time: datetime.time
-    active_local_start_dt: datetime.datetime
-    active_local_end_dt: datetime.datetime
-    sun: bool
-    mon: bool
-    tue: bool
-    wed: bool
-    thu: bool
-    fri: bool
-    sat: bool
+    slot_increment: Optional[int] = 10
+    slot_multiplier: Optional[int] = 1
+    local_start_time: Optional[datetime.time] = '12:00:00'
+    local_end_time: Optional[datetime.time] = '12:00:00'
+    active_local_start_dt: Optional[datetime.datetime] = '2020-01-01 00:00:00'
+    active_local_end_dt: Optional[datetime.datetime] = '2020-01-01 00:00:00'
+    sun: Optional[bool] = False
+    mon: Optional[bool] = False
+    tue: Optional[bool] = False
+    wed: Optional[bool] = False
+    thu: Optional[bool] = False
+    fri: Optional[bool] = False
+    sat: Optional[bool] = False

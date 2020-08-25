@@ -230,7 +230,7 @@ def bp_add_schedule_generation_rule(data):
 
 def bp_delete_schedule_generation_rule(id):
     try:
-        return delete_schedule_generation_rule
+        return delete_schedule_generation_rule(id)
 
     except Exception as err:
         log_generic(type="error",
