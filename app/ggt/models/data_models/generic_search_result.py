@@ -263,7 +263,6 @@ def find_patients(first_name='', middle_name='', last_name='', dob='', phone_num
         ORDER BY register_dt DESC
         LIMIT {}
         """.format(where_conditions, limit)
-        print(sql)
         rows = read_rows(sql)
         return rows
 
