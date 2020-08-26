@@ -104,6 +104,22 @@ def provider_get_workstations(auth_token):
                 {
                     'id': 17,
                     'label': 'CJP046R'
+                },
+                {
+                    'id': 18,
+                    'label': 'PJEDL36'
+                },
+                {
+                    'id': 19,
+                    'label': 'LNGO7I4'
+                },
+                {
+                    'id': 20,
+                    'label': '72LL69B'
+                },
+                {
+                    'id': 21,
+                    'label': 'IICLC73'
                 }
             ]
         },
