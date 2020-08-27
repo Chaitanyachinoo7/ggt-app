@@ -141,7 +141,7 @@ def find_patients(first_name='', middle_name='', last_name='', dob='', phone_num
         if email != '':
             where_conditions = "{} AND p.email LIKE '%{}%'".format(where_conditions, email)
         if appointment_id != '':
-            where_conditions = "{} AND p.appointment_id = '{}'".format(where_conditions, appointment_id)
+            where_conditions = "{} AND a.id = '{}'".format(where_conditions, appointment_id)
         if group_code != '':
             where_conditions = "{} AND p.group_code LIKE '%{}%'".format(where_conditions, group_code)
         if appointment_date != '':
