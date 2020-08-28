@@ -60,14 +60,35 @@ def bp_get_schedule_locations_available(date, group_code='_DEFAULT_'):
     available_locations = []
     try:
         for row in rows:
-            location_text = "{} — {}, {} {}  {}".format(
-                row['name'],
-                row['addr1'],
-                row['city'],
-                row['st'],
-                row['zip'])
+            if row['addr2']:
+                location_text = "{} {}, {}, {}  {}".format(
+                    row['addr1'],
+                    row['addr2'],
+                    row['city'],
+                    row['st'],
+                    row['zip']
+                )
+            else:
+                location_text = "{}, {}, {}  {}".format(
+                    row['addr1'],
+                    row['city'],
+                    row['st'],
+                    row['zip']
+                )
+            
+            map_thumbnail = 'https://maps.googleapis.com/maps/api/staticmap?center={}&zoom=10&size=110x110&markers=color:red|size:tiny|{}&maptype=roadmap&key=AIzaSyBJmU3ueSBRmXz4mU1MRgdOxAWcfImbQNQ'.format(location_text, location_text)
+            
             available_locations.append(
                 {
+                    'id': row['location_id'],
+                    'name': row['name'],
+                    'address': location_text,
+                    'next_test_date': row['first_date_time_available'].strftime("%a, %-d %b %Y @ %-I:%M %p"),
+                    'wait_time_mins': '< 5m',
+                    'result_time_hours': '{}h'.format(row['average_processing_time']),
+                    'slots_available': row['slot_count']*8,
+                    'type': 'public',
+                    'map_thumbnail': map_thumbnail,
                     "label": location_text,
                     "value": row['location_id']
                 }
@@ -106,6 +127,7 @@ def bp_get_all_available_locations_and_times():
                     row['zip']
                 )
 
+            map_thumbnail = 'https://maps.googleapis.com/maps/api/staticmap?center={}&zoom=10&size=110x110&markers=color:red|size:tiny|{}&maptype=roadmap&key=AIzaSyBJmU3ueSBRmXz4mU1MRgdOxAWcfImbQNQ'.format(location_text, location_text)
 
             available_dtl.append(
                 {
@@ -116,7 +138,8 @@ def bp_get_all_available_locations_and_times():
                     'wait_time_mins': '< 5m',
                     'result_time_hours': '{}h'.format(row['average_processing_time']),
                     'slots_available': row['slot_count']*8,
-                    'type': 'public'
+                    'type': 'public',
+                    'map_thumbnail': map_thumbnail
                 }
             )
 

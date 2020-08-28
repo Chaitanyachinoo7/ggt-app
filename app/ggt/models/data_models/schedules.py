@@ -207,24 +207,37 @@ def get_available_dates(group_code):
 def get_available_locations(date, group_code):
     try:
         sql = """
-            SELECT DISTINCT
-                s.location_id,
-                l.name as name,
-                l.addr1 as addr1,
-                l.addr2 as addr2,
-                l.city as city,
-                l.st as st,
-                l.zip as zip,
-                l.lat as lat,
-                l.lng as lng
-            FROM
-                schedules s
-                    JOIN
-                locations l ON s.location_id = l.id
-            WHERE
-                s.status = 'available'
-                    AND DATE(start_dt) IN (%s) 
-                    AND l.group_code = %s
+            SELECT 
+            nd.location_id,
+            l.account AS account,
+            l.name AS name,
+            l.addr1 AS addr1,
+            l.addr2 AS addr2,
+            l.city AS city,
+            l.st AS st,
+            l.zip AS zip,
+            l.lat AS lat,
+            l.lng AS lng,
+            nd.first_date_available AS first_date_time_available,
+            (CASE
+                WHEN (pt.average_processing_time IS NULL) THEN 48
+                ELSE pt.average_processing_time
+            END) AS average_processing_time,
+            COUNT(DISTINCT (s.start_dt)) AS slot_count
+        FROM
+            schedules s
+                JOIN
+            locations l ON s.location_id = l.id
+                LEFT JOIN
+            schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
+                LEFT JOIN
+            average_processing_times_for_last_5_days pt ON (pt.location_id = s.location_id)
+        WHERE
+            DATE(nd.first_date_available) = DATE(s.start_dt)
+                AND DATE(s.start_dt) = %s
+                AND s.status = 'available'
+                AND l.group_code = %s
+        GROUP BY nd.location_id , pt.average_processing_time
         """
         val = (date, group_code)
         log_generic(

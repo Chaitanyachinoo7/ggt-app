@@ -27,4 +27,4 @@ gcloud run deploy --image gcr.io/${PROJECT_ID}/${SERVICE_NAME} --platform manage
 
 
 gcloud run services update-traffic --to-revisions=LATEST=100
-gcloud run services update-traffic ${SERVICE_NAME} --to-revisions=LATEST=100
+#gcloud run services update-traffic ${SERVICE_NAME} --to-revisions=LATEST=100
