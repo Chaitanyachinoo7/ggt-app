@@ -29,16 +29,15 @@ def create_schedule_entry(location_id, start_dt, end_dt, duration, status):
 
     except Exception as err:
         log_generic(
-            type="error", 
-            function='create_schedule_entry', 
-            location_id=location_id, 
-            start_dt=start_dt, 
-            end_dt=end_dt, 
-            duration=duration, 
-            status=status, 
+            type="error",
+            function='create_schedule_entry',
+            location_id=location_id,
+            start_dt=start_dt,
+            end_dt=end_dt,
+            duration=duration,
+            status=status,
             error=err)
         return None
-
 
 
 def get_schedule_generation_rules_by_location_id(location_id):
@@ -76,9 +75,9 @@ def get_schedule_generation_rules_by_location_id(location_id):
 
     except Exception as err:
         log_generic(
-            type="error", 
-            function='get_schedule_generation_rules_by_location_id', 
-            location_id=location_id, 
+            type="error",
+            function='get_schedule_generation_rules_by_location_id',
+            location_id=location_id,
             error=err)
         return None
 
@@ -107,7 +106,7 @@ def add_schedule_generation_rule(data):
         (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s )
         """
         vals = (
-            data.location_id, 
+            data.location_id,
             data.slot_increment,
             data.local_start_time,
             data.local_end_time,
@@ -126,8 +125,8 @@ def add_schedule_generation_rule(data):
 
     except Exception as err:
         log_generic(
-            type="error", 
-            function='add_schedule_generation_rule', 
+            type="error",
+            function='add_schedule_generation_rule',
             error=err)
         return None
 
@@ -146,11 +145,10 @@ def delete_schedule_entries_by_location_id(location_id):
 
     except Exception as err:
         log_generic(
-            type="error", 
-            function='delete_schedule_entries_by_location_id', 
+            type="error",
+            function='delete_schedule_entries_by_location_id',
             error=err)
         return None
-
 
 
 def delete_schedule_generation_rule(id):
@@ -166,11 +164,10 @@ def delete_schedule_generation_rule(id):
 
     except Exception as err:
         log_generic(
-            type="error", 
-            function='delete_schedule_generation_rule', 
+            type="error",
+            function='delete_schedule_generation_rule',
             error=err)
         return None
-
 
 
 def get_available_dates(group_code):
@@ -193,67 +190,12 @@ def get_available_dates(group_code):
             ORDER BY DATE(start_dt)
         """
         val = (group_code, today)
-        return read_rows(sql,val)
-
-    except Exception as err:
-        log_generic(
-            type="error", 
-            function='get_dates_available', 
-            error=err)
-        return None
-
-
-
-def get_available_locations(date, group_code):
-    try:
-        sql = """
-            SELECT 
-            nd.location_id,
-            l.account AS account,
-            l.name AS name,
-            l.addr1 AS addr1,
-            l.addr2 AS addr2,
-            l.city AS city,
-            l.st AS st,
-            l.zip AS zip,
-            l.lat AS lat,
-            l.lng AS lng,
-            nd.first_date_available AS first_date_time_available,
-            (CASE
-                WHEN (pt.average_processing_time IS NULL) THEN 48
-                ELSE pt.average_processing_time
-            END) AS average_processing_time,
-            COUNT(DISTINCT (s.start_dt)) AS slot_count
-        FROM
-            schedules s
-                JOIN
-            locations l ON s.location_id = l.id
-                LEFT JOIN
-            schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
-                LEFT JOIN
-            average_processing_times_for_last_5_days pt ON (pt.location_id = s.location_id)
-        WHERE
-            DATE(nd.first_date_available) = DATE(s.start_dt)
-                AND DATE(s.start_dt) = %s
-                AND s.status = 'available'
-                AND l.group_code = %s
-        GROUP BY nd.location_id , pt.average_processing_time
-        """
-        val = (date, group_code)
-        log_generic(
-            type="info", 
-            function='get_available_locations', 
-            group_code=group_code,
-            date=date,
-            info='looking_up_available_locations')
         return read_rows(sql, val)
-    
+
     except Exception as err:
         log_generic(
-            type="error", 
-            function='get_available_locations', 
-            group_code=group_code,
-            date=date,
+            type="error",
+            function='get_dates_available',
             error=err)
         return None
 
@@ -288,7 +230,7 @@ def get_all_available_dtl():
             average_processing_times_for_last_5_days pt ON (pt.location_id = s.location_id)
         WHERE
             DATE(nd.first_date_available) = DATE(s.start_dt)
-                AND s.start_dt > (NOW() - INTERVAL 5 HOUR)
+                AND start_dt >= CONVERT_TZ(NOW(), '+00:00', '-05:00')
                 AND s.status = 'available'
                 AND l.group_code = '_DEFAULT_'
         GROUP BY nd.location_id , pt.average_processing_time
@@ -298,6 +240,15 @@ def get_all_available_dtl():
     except Exception as err:
         log_generic(type="info", function='get_all_available_dtl', error=err)
         return None
+
+
+def get_available_locations(date_str, group_code):
+    today = date.today().strftime("%Y-%m-%d")
+    if date_str == today:
+        return __get_available_locations_for_current_day(date_str, group_code)
+    else:
+        return __get_available_locations_beyond_current_day(date_str, group_code)
+        
 
 
 def get_processing_averages_by_location():
@@ -320,8 +271,8 @@ def get_processing_averages_by_location():
 
     except Exception as err:
         log_generic(
-            type="error", 
-            function='get_processing_averages_by_location', 
+            type="error",
+            function='get_processing_averages_by_location',
             error=err)
         return None
 
@@ -346,8 +297,8 @@ def get_available_times(location_id, date):
         """
         val = (location_id, date)
         log_generic(
-            type="info", 
-            function='get_available_times', 
+            type="info",
+            function='get_available_times',
             location_id=location_id,
             date=date,
             info='looking_up_available_times')
@@ -355,12 +306,10 @@ def get_available_times(location_id, date):
 
     except Exception as err:
         log_generic(
-            type="error", 
-            function='get_available_times', 
+            type="error",
+            function='get_available_times',
             error=err)
         return None
-
-
 
 
 def get_slot_information(slot_id):
@@ -390,12 +339,10 @@ def get_slot_information(slot_id):
 
     except Exception as err:
         log_generic(
-            type="error", 
-            function='get_slot_information', 
+            type="error",
+            function='get_slot_information',
             error=err)
         return None
-
-
 
 
 def update_slot_information(slot_id, appointment_id):
@@ -413,14 +360,12 @@ def update_slot_information(slot_id, appointment_id):
 
     except Exception as err:
         log_generic(
-            type="error", 
-            slot_id=slot_id, 
-            appointment_id=appointment_id, 
-            function='update_slot_information', 
+            type="error",
+            slot_id=slot_id,
+            appointment_id=appointment_id,
+            function='update_slot_information',
             error=err)
         return None
-
-
 
 
 def add_schedule_entries(rows):
@@ -436,10 +381,109 @@ def add_schedule_entries(rows):
         print("err:", err)
 
 
-
-
-    
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
+def __get_available_locations_beyond_current_day(date_str, group_code):
+    try:
+        sql = """
+            SELECT 
+                s.location_id,
+                l.account AS account,
+                l.name AS name,
+                l.addr1 AS addr1,
+                l.addr2 AS addr2,
+                l.city AS city,
+                l.st AS st,
+                l.zip AS zip,
+                l.lat AS lat,
+                l.lng AS lng,
+                MIN(s.start_dt) AS first_date_time_available,
+                (CASE
+                    WHEN (pt.average_processing_time IS NULL) THEN 48
+                    ELSE pt.average_processing_time
+                END) AS average_processing_time,
+                COUNT(DISTINCT (s.start_dt)) AS slot_count
+            FROM
+                schedules s
+                    JOIN
+                locations l ON s.location_id = l.id
+                    LEFT JOIN
+                average_processing_times_for_last_5_days pt ON (pt.location_id = s.location_id)
+            WHERE
+                1 AND DATE(s.start_dt) = %s
+                    AND s.status = 'available'
+                    AND l.group_code = %s
+            GROUP BY s.location_id, pt.average_processing_time
+        """
+        val = (date_str, group_code)
+        log_generic(
+            type="info",
+            function='get_available_locations_beyond_current_day',
+            group_code=group_code,
+            date=date_str,
+            info='looking_up_available_locations_beyond_current_day')
+        return read_rows(sql, val)
 
+    except Exception as err:
+        log_generic(
+            type="error",
+            function='get_available_locations_beyond_current_day',
+            group_code=group_code,
+            date=date_str,
+            error=err)
+        return None
+
+
+def __get_available_locations_for_current_day(date_str, group_code):
+    try:
+        sql = """
+            SELECT 
+            nd.location_id,
+            l.account AS account,
+            l.name AS name,
+            l.addr1 AS addr1,
+            l.addr2 AS addr2,
+            l.city AS city,
+            l.st AS st,
+            l.zip AS zip,
+            l.lat AS lat,
+            l.lng AS lng,
+            nd.first_date_available AS first_date_time_available,
+            (CASE
+                WHEN (pt.average_processing_time IS NULL) THEN 48
+                ELSE pt.average_processing_time
+            END) AS average_processing_time,
+            COUNT(DISTINCT (s.start_dt)) AS slot_count
+        FROM
+            schedules s
+                JOIN
+            locations l ON s.location_id = l.id
+                LEFT JOIN
+            schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
+                LEFT JOIN
+            average_processing_times_for_last_5_days pt ON (pt.location_id = s.location_id)
+        WHERE
+            DATE(nd.first_date_available) = DATE(s.start_dt)
+                AND DATE(s.start_dt) = %s
+                AND s.status = 'available'
+                AND l.group_code = %s
+        GROUP BY nd.location_id , pt.average_processing_time
+        """
+        val = (date_str, group_code)
+        log_generic(
+            type="info",
+            function='get_available_locations_for_current_day',
+            group_code=group_code,
+            date=date_str,
+            info='looking_up_available_locations_for_current_day')
+        return read_rows(sql, val)
+
+    except Exception as err:
+        log_generic(
+            type="error",
+            function='get_available_locations_for_current_day',
+            group_code=group_code,
+            date=date_str,
+            error=err)
+        return None

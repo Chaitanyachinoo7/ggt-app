@@ -32,6 +32,9 @@ def provider_login(auth_token):
     )
 
 
+def printer_queue_check(printer_id, printer_token):
+    return x_response(bp_printer_queue_check)
+
 # TODO: return a dynamic list
 def provider_get_workstations(auth_token):
     return x_response(
@@ -120,6 +123,22 @@ def provider_get_workstations(auth_token):
                 {
                     'id': 21,
                     'label': 'IICLC73'
+                },
+                {
+                    'id': 22,
+                    'label': '1CH1QVFS'
+                },
+                {
+                    'id': 23,
+                    'label': '32VI4T29'
+                },
+                {
+                    'id': 24,
+                    'label': 'PUIUF6FD'
+                },
+                {
+                    'id': 25,
+                    'label': 'FLLO76J'
                 }
             ]
         },
