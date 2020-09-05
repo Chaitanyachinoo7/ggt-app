@@ -238,7 +238,7 @@ def get_all_available_dtl():
         return read_rows(sql)
 
     except Exception as err:
-        log_generic(type="info", function='get_all_available_dtl', error=err)
+        log_generic(type="error", function='get_all_available_dtl', error=err)
         return None
 
 

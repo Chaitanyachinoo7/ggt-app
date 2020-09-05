@@ -21,7 +21,7 @@ def get_location_by_id(location_id):
         return read_row(sql, val)
 
     except Exception as err:
-        log_generic(type="info", location_id=location_id, function='get_location_by_id', error=err)
+        log_generic(type="error", location_id=location_id, function='get_location_by_id', error=err)
         return None
 
 
@@ -31,7 +31,7 @@ def get_all_locations():
         return read_rows(sql)
 
     except Exception as err:
-        log_generic(type="info", function='get_all_locations', error=err)
+        log_generic(type="error", function='get_all_locations', error=err)
         return None
 
 
@@ -74,7 +74,7 @@ def search_locations(account, group_code, site_code):
         return read_rows(sql)
 
     except Exception as err:
-        log_generic(type="info", function='get_all_locations', error=err)
+        log_generic(type="error", function='get_all_locations', error=err)
         return None
 
 ########################################################################################################

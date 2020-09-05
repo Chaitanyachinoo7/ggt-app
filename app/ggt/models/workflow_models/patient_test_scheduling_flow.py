@@ -30,7 +30,7 @@ from ggt.models.process_models.bp_appointments import (
 
 
 def get_screen_flow_seq(group_code):
-    if group_code == 'QTCORP' or group_code == 'LOWES' or group_code == 'LOWE\'S':
+    if group_code == 'QTCORP' or group_code == 'LOWES' or group_code == 'LOWE\'S' or group_code == 'EATZ':
         return x_response({
             "screens": ["is-patient",
                         "gender",
@@ -75,7 +75,7 @@ def get_screen_flow_seq(group_code):
             }
 
         })
-    elif group_code == 'EATZ':
+    elif group_code == 'THRDENTON':
         return x_response({
             "screens": ["is-patient",
                         "gender",
@@ -89,12 +89,13 @@ def get_screen_flow_seq(group_code):
                         "patient-vitals",
                         "pre-existing-conditions",
                         "consent",
+                        "consent_thr",
                         "date",
                         "location",
                         "time"],
             "validation": {
-                "insurance-card": {
-                    "required": False
+                "consent_thr": {
+                    "required": True
                 }
             }
 

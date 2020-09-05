@@ -31,9 +31,10 @@ def provider_login(auth_token):
         is_authenticated(auth_token)
     )
 
-
+'''
 def printer_queue_check(printer_id, printer_token):
     return x_response(bp_printer_queue_check)
+'''
 
 # TODO: return a dynamic list
 def provider_get_workstations(auth_token):

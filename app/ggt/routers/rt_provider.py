@@ -10,8 +10,7 @@ from ggt.models.workflow_models.provider_field_testing_flow import (
     provider_login,
     provider_get_workstations,
     provider_lookup_appointment,
-    provider_update_appointment,
-    printer_queue_check
+    provider_update_appointment
 )
 
 router = APIRouter()
@@ -43,9 +42,3 @@ async def api_provider_update_appointment(provider_update_appointment_request: P
         provider_update_appointment_request.appointment_id,
         provider_update_appointment_request.action,
         provider_update_appointment_request.workstation_id)
-
-
-
-@router.post("/printer_queue_check/{printer_id}/{printer_token}")
-async def api_printer_queue_check(request: Request, printer_id: str, printer_token: str):
-    return printer_queue_check(printer_id, printer_token)
