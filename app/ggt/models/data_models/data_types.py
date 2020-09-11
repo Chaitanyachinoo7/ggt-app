@@ -168,6 +168,7 @@ class CCSendNotiRequest(BaseModel):
     to_number: str
 
 class CCOutboundResultRequest(BaseModel):
+    test_id: str
     first_name: str
     test_date: str
     dob: str
@@ -175,6 +176,17 @@ class CCOutboundResultRequest(BaseModel):
     to_email: str
     to_number: str
     test_result: str
+
+class CCOutboundResultStatusRequest(BaseModel):
+    test_id: str
+    first_name: str
+    test_date: str
+    dob: str
+    token: str
+    to_email: str
+    to_number: str
+    test_result: str
+    call_status: str
 
 class PortalGeneralSearchRequest(BaseModel):
     auth_token: str

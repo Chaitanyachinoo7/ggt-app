@@ -5,7 +5,11 @@ from ggt.models.data_models.data_types import (
     CCSendSMSRequest,
     CCSendEmailRequest,
     CCSendNotiRequest,
-    CCOutboundResultRequest
+    CCOutboundResultRequest,
+    CCOutboundResultStatusRequest
+)
+from ggt.models.workflow_models.contact_center_flow import(
+    cc_update_outbound_call_status
 )
 from ggt.lib.utils import (
     get_config_val,
@@ -102,6 +106,7 @@ def api_cc_outbound_result(CCOutboundResultRequest: CCOutboundResultRequest):
         elif CCOutboundResultRequest.test_result == "pos":
             result_prompt = "Your test results for sample collected on " + CCOutboundResultRequest.test_date + " were positive, meaning Coronavirus, the virus causing COVID-19, WAS detected. A positive test means the virus WAS present in the sample you provided.   Be assured that MOST cases of COVID-19 are MILD and can be treated in your home.  If you are not already doing so, isolate in your home for 14 days.  It is recommended to get others in your home tested as well.  Still, continue to monitor for symptoms for up to 14 days, including chest pain, shortness of breath or cough.  If your symptoms get worse, seek medical care immediately. A GoGetTested provider will also be giving you a call to discuss your symptoms and result and provide a consultation. Please be on the lookout for that call."
         attr = {
+            "test_id": CCOutboundResultRequest.test_id,
             "first_name": CCOutboundResultRequest.first_name,
             "test_date": CCOutboundResultRequest.test_date,
             "dob": CCOutboundResultRequest.dob[5:7] + CCOutboundResultRequest.dob[8:10] + CCOutboundResultRequest.dob[0:4],
@@ -124,6 +129,33 @@ def api_cc_outbound_result(CCOutboundResultRequest: CCOutboundResultRequest):
             SourcePhoneNumber='+14692505321',
             Attributes=attr
         )
+        cc_update_outbound_call_status(CCOutboundResultRequest.test_id,
+                                       CCOutboundResultRequest.first_name,
+                                       CCOutboundResultRequest.test_date,
+                                       CCOutboundResultRequest.dob[5:7] +
+                                       CCOutboundResultRequest.dob[8:10] +
+                                       CCOutboundResultRequest.dob[0:4],
+                                       CCOutboundResultRequest.token,
+                                       CCOutboundResultRequest.to_email,
+                                       CCOutboundResultRequest.to_number,
+                                       CCOutboundResultRequest.test_result,
+                                       'call_attempted')
         return {"status": "success"}
+    except Exception as err:
+        print(err)
+
+
+@router.post("/outbound_result_status")
+def outbound_result_status(CCOutboundResultStatusRequest: CCOutboundResultStatusRequest):
+    try:
+        cc_update_outbound_call_status(CCOutboundResultStatusRequest.test_id,
+                                       CCOutboundResultStatusRequest.first_name,
+                                       CCOutboundResultStatusRequest.test_date,
+                                       CCOutboundResultStatusRequest.dob,
+                                       CCOutboundResultStatusRequest.token,
+                                       CCOutboundResultStatusRequest.to_email,
+                                       CCOutboundResultStatusRequest.to_number,
+                                       CCOutboundResultStatusRequest.test_result,
+                                       CCOutboundResultStatusRequest.call_status)
     except Exception as err:
         print(err)
