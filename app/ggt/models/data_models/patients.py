@@ -41,13 +41,13 @@ def create_patient_record(**kwargs):
                 gender, height_ft, weight_lb, ethnicity, race,  dob, phone_number, phone_number_verified, email, token) \
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
 
-        val = (first_name, middle_name, last_name, addr1, city, st, zip,
+        vals = (first_name, middle_name, last_name, addr1, city, st, zip,
                gender, height_ft, weight_lb, ethnicity, race,  dob, phone_number, phone_number_verified, email, token)
 
-        return exec_insert(sql, val)
+        return exec_insert(sql, vals)
 
     except Exception as err:
-        log_generic(type="error", data=data, locals=locals(),
+        log_generic(type="error", vals=vals, locals=locals(),
                     function='create_patient_record', error=err)
         return None
 
@@ -55,8 +55,8 @@ def create_patient_record(**kwargs):
 def get_patient(patient_id):
     try:
         sql = "SELECT id, first_name, middle_name, last_name, dob, token FROM patients WHERE id=%s LIMIT 1"
-        val = (id,)
-        row = read_row(sql, val)
+        vals = (id,)
+        row = read_row(sql, vals)
         log_generic(type="info", id=id, row=row,
                     function='__read_record_patients_by_id')
         return (row['id'], row['first_name'], row['middle_name'], row['last_name'], row['dob'], row['token'])
@@ -70,8 +70,8 @@ def get_patient(patient_id):
 def get_patient_by_token(token):
     try:
         sql = "SELECT id, first_name, middle_name, last_name, dob, token FROM patients WHERE token=%s LIMIT 1"
-        val = (token,)
-        row = read_row(sql, val)
+        vals = (token,)
+        row = read_row(sql, vals)
         log_generic(
             type="info", 
             token=token, 

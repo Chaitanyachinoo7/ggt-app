@@ -11,7 +11,7 @@ def render_template(template, **kwargs):
     import jinja2    
     from pathlib import Path
     curr_file = Path(__file__)
-    template_path = curr_file.parent.parent.joinpath('templates/email/{}'.format(''))
+    template_path = curr_file.parent.parent.joinpath('templates/email/')
 
     template_loader = jinja2.FileSystemLoader(searchpath=template_path)
     template_env = jinja2.Environment(loader=template_loader)

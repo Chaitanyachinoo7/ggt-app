@@ -30,6 +30,8 @@ google-cloud-storage = "*"
 six = "*"
 google-oauth = "*"
 pillow = "*"
+python-barcode = "*"
+aiofiles = "*"
 
 [requires]
 python_version = "3.7"

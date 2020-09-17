@@ -21,9 +21,9 @@ def create_appointment(scheduled_dt, location_id, patient_id, patient_questionna
             (scheduled_dt, location_id, patient_id, patient_questionnaire_id, group_code, wp_customer_info_id, total_cost, billed_amount) 
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """
-        val = (scheduled_dt, location_id, patient_id, patient_questionnaire_id,
+        vals = (scheduled_dt, location_id, patient_id, patient_questionnaire_id,
                group_code, wp_customer_info_id, total_cost, billed_amount)
-        return exec_insert(sql, val)
+        return exec_insert(sql, vals)
 
     except Exception as err:
         log_generic(type="error", function='create_appointment', scheduled_dt=scheduled_dt, location_id=location_id,
@@ -63,8 +63,8 @@ def get_appointment(appointment_id):
                 WHERE
                     a.id = %s"""
 
-        val = (appointment_id,)
-        return read_row(sql, val)
+        vals = (appointment_id,)
+        return read_row(sql, vals)
     except Exception as err:
         log_generic(type="error", appointment_id=appointment_id,
                     function='get_appointment', error=err)
@@ -80,8 +80,8 @@ def get_monthy_calendar(from_date, to_date, location_id):
                     and location_id = %s
                     """
 
-        val = (from_date, to_date, location_id)
-        return read_rows(sql, val)
+        vals = (from_date, to_date, location_id)
+        return read_rows(sql, vals)
     except Exception as err:
         log_generic(type="error", location_id=location_id, from_date=from_date, to_date=to_date,
                     function='get_monthy_calendar', error=err)
@@ -125,8 +125,8 @@ def positive_result_followup():
                     overall_status = %s LIMIT 1
                     """
 
-        val = ("scheduled",)
-        return read_row(sql, val)
+        vals = ("scheduled",)
+        return read_row(sql, vals)
     except Exception as err:
         log_generic(type="error", location_id=None,
                     function='get_monthy_calendar', error=err)
@@ -144,8 +144,8 @@ def update_appointment_with_receipt_token(wp_receipt_token, wp_customer_info_id,
                 WHERE
                     id = %s
         """
-        val = (wp_receipt_token, wp_customer_info_id, appointment_id)
-        return exec_update(sql, val)
+        vals = (wp_receipt_token, wp_customer_info_id, appointment_id)
+        return exec_update(sql, vals)
     except Exception as err:
         log_generic(type="error", appointment_id=appointment_id,
                     function='update_appointment_with_receipt_token', error=err)
@@ -161,8 +161,8 @@ def update_appointment_with_confirmed_scheduled(appointment_id):
                 WHERE
                     id = %s
         """
-        val = (appointment_id,)
-        return exec_update(sql, val)
+        vals = (appointment_id,)
+        return exec_update(sql, vals)
     except Exception as err:
         log_generic(type="error", appointment_id=appointment_id,
                     function='update_appointment_with_confirmed_scheduled', error=err)
@@ -180,8 +180,8 @@ def update_positive_result_followup(id, datetime):
                 test_id = %s
             """
 
-        val = ("pending", datetime, id)
-        return exec_update(sql, val)
+        vals = ("pending", datetime, id)
+        return exec_update(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -202,8 +202,8 @@ def update_appointment_with_checkin(appointment_id):
                 WHERE
                     id = %s
         """
-        val = (appointment_id,)
-        return exec_update(sql, val)
+        vals = (appointment_id,)
+        return exec_update(sql, vals)
     except Exception as err:
         log_generic(type="error", appointment_id=appointment_id,
                     function='update_appointment_with_checkin', error=err)
@@ -220,8 +220,8 @@ def update_appointment_with_test_start(appointment_id):
                 WHERE
                     id = %s
         """
-        val = (appointment_id,)
-        return exec_update(sql, val)
+        vals = (appointment_id,)
+        return exec_update(sql, vals)
     except Exception as err:
         log_generic(type="error", appointment_id=appointment_id,
                     function='update_appointment_with_test_start', error=err)
@@ -238,8 +238,8 @@ def update_appointment_with_test_completed(appointment_id):
                 WHERE
                     id = %s
             """
-        val = (appointment_id,)
-        return exec_update(sql, val)
+        vals = (appointment_id,)
+        return exec_update(sql, vals)
     except Exception as err:
         log_generic(type="error", appointment_id=appointment_id,
                     function='update_appointment_with_test_completed', error=err)

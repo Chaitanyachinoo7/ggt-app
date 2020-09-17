@@ -24,8 +24,8 @@ def get_user_by_email(email):
                 email = %s
             LIMIT 1
             """
-        val = (email,)
-        return read_row(sql, val)
+        vals = (email,)
+        return read_row(sql, vals)
 
     except Exception as err:
         log_generic(

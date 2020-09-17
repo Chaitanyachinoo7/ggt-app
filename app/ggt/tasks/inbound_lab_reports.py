@@ -92,7 +92,7 @@ def task_process_inbound_lab_reports():
     print('\n\n****************** COMPLETED ******************************\nElapsed Time: {}\n'.format(time.time() - start))
 
     
-
+'''
 def init_ftp_connection():
     try:
         ssh_client = paramiko.SSHClient()
@@ -121,7 +121,7 @@ def init_ftp_connection():
         )
     finally:
         ftp_client.close()
-
+'''
 
 def clean_downloads_folder():
     print('cleaning up downloads folder')
@@ -429,8 +429,8 @@ def update_test_samples_with_results():
             test_samples.test_result IS NULL
                 AND test_samples.id = healthtrackrx_inbound_data.order_number
         """
-    val = ()
-    exec_update(sql, val)
+    vals = ()
+    exec_update(sql, vals)
 
 
 

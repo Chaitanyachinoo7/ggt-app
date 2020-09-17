@@ -211,8 +211,8 @@ def __appointment_begin_test(appointment_id, queue_id=1):
 
         sqs = boto3.client(
             "sqs",
-            aws_access_key_id='AKIAIWUMFU2SPDC7KBAQ',
-            aws_secret_access_key='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',
+            aws_access_key_id=get_config_val('aws.access_key_id'),
+            aws_secret_access_key=get_config_val('aws.secret_access_key'),
             region_name='us-east-1'
         )
         response = sqs.send_message(
@@ -221,8 +221,11 @@ def __appointment_begin_test(appointment_id, queue_id=1):
             MessageBody=(json.dumps(payload))
         )
         print(response['MessageId'])
+
+        
         # __log_generic(payload)
         #add_syslog_entry("print", "info", barcode_text)
+
         return True
 
     except Exception as err:

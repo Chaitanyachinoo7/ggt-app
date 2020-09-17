@@ -8,6 +8,10 @@ from ggt.models.process_models.bp_appointments import (
     bp_get_appointment_info,
     bp_appointment_update
 )
+
+from ggt.models.process_models.bp_printers import (
+    bp_provider_get_workstations
+)
 '''
 bp_get_monthly_calendar,
 bp_get_monthly_calendar,
@@ -36,113 +40,9 @@ def printer_queue_check(printer_id, printer_token):
     return x_response(bp_printer_queue_check)
 '''
 
-# TODO: return a dynamic list
 def provider_get_workstations(auth_token):
     return x_response(
-        {
-            'workstations': [
-                {
-                    'id': 1,
-                    'label': 'METOHH1'
-                },
-                {
-                    'id': 2,
-                    'label': '0VPPP27'
-                },
-                {
-                    'id': 3,
-                    'label': '8B1I13S'
-                },
-                {
-                    'id': 4,
-                    'label': 'ARU68PR'
-                },
-                {
-                    'id': 5,
-                    'label': 'FLHRMLA'
-                },
-                {
-                    'id': 6,
-                    'label': '10Q890L'
-                },
-                {
-                    'id': 7,
-                    'label': 'OKQHIA1'
-                },
-                {
-                    'id': 8,
-                    'label': 'UNLL4LH'
-                },
-                {
-                    'id': 9,
-                    'label': 'LDAPD2UK'
-                },
-                {
-                    'id': 10,
-                    'label': 'PVO7LFT'
-                },
-                {
-                    'id': 11,
-                    'label': '6HIFU57'
-                },
-                {
-                    'id': 12,
-                    'label': 'KGDNA67'
-                },
-                {
-                    'id': 13,
-                    'label': 'OMHC0PV'
-                },
-                {
-                    'id': 14,
-                    'label': 'EIB8VMJ'
-                },
-                {
-                    'id': 15,
-                    'label': 'UHJ8AH7'
-                },
-                {
-                    'id': 16,
-                    'label': '92AV085'
-                },
-                {
-                    'id': 17,
-                    'label': 'CJP046R'
-                },
-                {
-                    'id': 18,
-                    'label': 'PJEDL36'
-                },
-                {
-                    'id': 19,
-                    'label': 'LNGO7I4'
-                },
-                {
-                    'id': 20,
-                    'label': '72LL69B'
-                },
-                {
-                    'id': 21,
-                    'label': 'IICLC73'
-                },
-                {
-                    'id': 22,
-                    'label': '1CH1QVFS'
-                },
-                {
-                    'id': 23,
-                    'label': '32VI4T29'
-                },
-                {
-                    'id': 24,
-                    'label': 'PUIUF6FD'
-                },
-                {
-                    'id': 25,
-                    'label': 'FLLO76J'
-                }
-            ]
-        },
+        bp_provider_get_workstations(),
         is_authenticated(auth_token)
     )
 

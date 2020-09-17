@@ -41,8 +41,8 @@ def update_email_status_to_processed(id):
         update_dt = NOW()
         WHERE `id` = %s
     """
-    val = (id,)
-    exec_update(sql, val)    
+    vals = (id,)
+    exec_update(sql, vals)    
 
 
 '''

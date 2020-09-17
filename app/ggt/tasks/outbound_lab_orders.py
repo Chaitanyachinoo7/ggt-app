@@ -95,8 +95,8 @@ def get_insurance_photo_base64(appointment_id):
         appointments.id = %s
     LIMIT 1
     """
-    val = (appointment_id,)
-    row = read_row(sql, val)
+    vals = (appointment_id,)
+    row = read_row(sql, vals)
     return row['insurance_photo']
 
 

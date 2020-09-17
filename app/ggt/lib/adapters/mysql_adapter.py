@@ -34,14 +34,14 @@ def __append_to_sql_log(log_type, sql_type, statement, details=""):
             INSERT INTO sql_log (log_type, sql_type, statement, details)
             VALUES (%s, %s, %s, %s)
         """
-        val = (log_type, sql_type, statement, details)
-        __cursor.execute(sql, val)
+        vals = (log_type, sql_type, statement, details)
+        __cursor.execute(sql, vals)
         __cnx.commit()
 
         return __cursor.lastrowid
 
     except Exception as err:
-        log_generic(type="error", sql=sql, val=val, function='__append_to_sql_log', error=err)
+        log_generic(type="error", sql=sql, vals=vals, function='__append_to_sql_log', error=err)
         return None
 
     finally:
@@ -153,14 +153,14 @@ def read_row(sql, val):
             __cnx.close()
 
 
-def read_rows(sql, val=None):
+def read_rows(sql, vals=None):
     try:
         __cnx = mysql.connector.connect(**connection_config_dict)
         __cursor = __cnx.cursor(dictionary=True, buffered=True)     
-        if val is None:
+        if vals is None:
               __cursor.execute(sql)
         else:
-            __cursor.execute(sql, val)
+            __cursor.execute(sql, vals)
         #__append_to_sql_log('info', 'SELECT', __cursor.statement, __cursor.rowcount)
         return __cursor.fetchall()
 

@@ -282,8 +282,8 @@ def update_notification_queue_status_to_pending(test_id):
             update_dt = NOW()
             WHERE test_id = %s
             """
-        val = (test_id,)
-        exec_update(sql, val)
+        vals = (test_id,)
+        exec_update(sql, vals)
 
     except Exception as err:
         print("err:", err)

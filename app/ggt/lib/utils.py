@@ -122,15 +122,12 @@ def failure_response(kv=None):
     kv['status'] = 'failure'
     return kv
 
-
 '''
-def __sumo_log(payload):
-    url = 'https://endpoint6.collection.us2.sumologic.com/receiver/v1/http/ZaVnC4dhaV089RJkF1MhGi12i2uKBw-BI23tO1u7ZLSkBwKlBGBfHG8UxS_m5RLU02_leUwIY8lm9PVNmWYdU02jbwj7BKjSV2H6TMPBoBjJm9W539bKnQ=='
-    payload['timestamp'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-    pprint(payload)
-    try:
-        requests.post(url, json=payload)
-    except Exception as err:
-        print(sys.exc_info()[0])
-        print(err)
+import random
+import string
+
+def get_random_string(length):
+    letters = string.ascii_lowercase
+    result_str = ''.join(random.choice(letters) for i in range(length))
+    return result_str
 '''

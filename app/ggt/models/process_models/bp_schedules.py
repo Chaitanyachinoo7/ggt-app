@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+
 from ggt.lib.utils import (
     log_generic
 )
@@ -10,6 +11,7 @@ from ggt.models.data_models.schedules import (
     get_slot_information,
     get_schedule_generation_rules_by_location_id,
     delete_schedule_entries_by_location_id,
+    delete_schedule_entries_by_location_id_for_date,
     add_schedule_entries,
     add_schedule_generation_rule,
     delete_schedule_generation_rule,
@@ -218,15 +220,31 @@ def bp_delete_schedule(location_id):
     return False
 
 
+def bp_delete_schedule_for_date(location_id, date_str):
+    try:
+        return delete_schedule_entries_by_location_id_for_date(location_id, date_str)
+
+    except Exception as err:
+        log_generic(type="error",
+                    location_id=location_id,
+                    date_str=date_str,
+                    function='bp_delete_schedule_for_date',
+                    error=err)
+
+    return False
+
+
 
 def bp_generate_full_schedule(location_id):
     try:
+        print('START schedule generation / location id: {} / at: {}'.format(location_id, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
         delete_schedule_entries_by_location_id(location_id)
         rules = get_schedule_generation_rules_by_location_id(location_id)
 
         for rule in rules:
             __process_schedule_rule(rule)
 
+        print('END schedule generation / location id: {} / at: {}'.format(location_id, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
         return True
 
     except Exception as err:
@@ -283,11 +301,17 @@ def bp_get_schedule_generation_rules(location_id):
 
 def __process_schedule_rule(rule):
     try:
+        location_id = rule['location_id']
+        rule_type = rule['rule_type']
         start_date = rule['active_local_start_dt']
+        start_date_str = start_date.strftime('%Y-%m-%d')
         end_date = rule['active_local_end_dt']
         start_time = rule['local_start_time']
         end_time = rule['local_end_time']
         schedule_date = start_date
+
+        if rule_type == 'exception':
+            bp_delete_schedule_for_date(location_id, start_date_str)
 
         rows = []
         valid_days = __get_valid_days(rule)
@@ -302,12 +326,12 @@ def __process_schedule_rule(rule):
                         timedelta(0, slot_increment)
 
                     row = (
-                        rule['location_id'],
+                        location_id,
                         day_curr_time.strftime('%Y-%m-%d %H:%M:%S'),
                         day_curr_appointment_end_time,
                         rule['time_zone'],
                         rule['time_zone_offset'],
-                        rule['slot_increment'],
+                        slot_increment,
                         'available'
                     )
                     rows.append(row)

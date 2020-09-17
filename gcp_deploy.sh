@@ -26,5 +26,5 @@ gcloud builds submit --tag gcr.io/${PROJECT_ID}/${SERVICE_NAME}
 gcloud run deploy --image gcr.io/${PROJECT_ID}/${SERVICE_NAME} --platform managed  --allow-unauthenticated --region ${REGION} ${SERVICE_NAME} 
 
 
-gcloud run services update-traffic --to-revisions=LATEST=100
+#gcloud run services update-traffic --to-revisions=LATEST=100
 #gcloud run services update-traffic ${SERVICE_NAME} --to-revisions=LATEST=100

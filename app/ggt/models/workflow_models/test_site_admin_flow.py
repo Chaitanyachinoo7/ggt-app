@@ -40,15 +40,11 @@ def site_admin_location_search(account, group_code, site_code):
 
 
 def generate_schedule(location_id):
-    return x_response(
-        bp_generate_full_schedule(location_id)
-    )
+    bp_generate_full_schedule(location_id)
 
 
 def generate_all_schedules():
-    return x_response(
-        bp_generate_all_schedules()
-    )
+    bp_generate_all_schedules()
 
 
 def delete_schedule_generation_rule(id):
@@ -56,15 +52,18 @@ def delete_schedule_generation_rule(id):
         bp_delete_schedule_generation_rule(id)
     )
 
+
 def delete_schedule(location_id):
     return x_response(
         bp_delete_schedule(location_id)
     )
 
+
 def add_schedule_generation_rule(data):
     return x_response(
         bp_add_schedule_generation_rule(data)
     )
+
 
 def get_schedule_generation_rules(location_id):
     return y_response(

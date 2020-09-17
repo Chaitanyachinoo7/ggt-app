@@ -24,8 +24,8 @@ def create_schedule_entry(location_id, start_dt, end_dt, duration, status):
             VALUES 
                 (%s, %s, %s, %s, %s)
         """
-        val = (location_id, start_dt, end_dt, duration, status)
-        return exec_insert(sql, val)
+        vals = (location_id, start_dt, end_dt, duration, status)
+        return exec_insert(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -49,6 +49,7 @@ def get_schedule_generation_rules_by_location_id(location_id):
                 l.time_zone_offset, 
                 l.status, 
                 r.id,
+                r.rule_type,
                 r.location_id,
                 r.slot_increment,
                 r.local_start_time,
@@ -68,10 +69,11 @@ def get_schedule_generation_rules_by_location_id(location_id):
                 join locations l on (l.id = r.location_id)
             WHERE
                 location_id = %s
+            ORDER BY rule_type ASC
 
         """
-        val = (location_id,)
-        return read_rows(sql, val)
+        vals = (location_id,)
+        return read_rows(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -88,6 +90,7 @@ def add_schedule_generation_rule(data):
         INSERT INTO schedule_generation_rules
         (
             location_id,
+            rule_type,
             slot_increment,
             local_start_time,
             local_end_time,
@@ -103,10 +106,11 @@ def add_schedule_generation_rule(data):
             active_local_end_dt
         )
         VALUES
-        (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s )
+        (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s )
         """
         vals = (
             data.location_id,
+            data.rule_type,
             data.slot_increment,
             data.local_start_time,
             data.local_end_time,
@@ -146,7 +150,30 @@ def delete_schedule_entries_by_location_id(location_id):
     except Exception as err:
         log_generic(
             type="error",
+            location_id=location_id,
             function='delete_schedule_entries_by_location_id',
+            error=err)
+        return None
+
+
+def delete_schedule_entries_by_location_id_for_date(location_id, date_str):
+    try:
+        sql = """
+        DELETE FROM ggt_prod.schedules 
+        WHERE
+            location_id = %s
+            AND DATE(start_dt) = %s
+            AND id <> 0
+        """
+        vals = (location_id, date_str)
+        return exec_delete(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type="error",
+            location_id=location_id,
+            date_str=date_str,
+            function='delete_schedule_entries_by_location_id_for_date',
             error=err)
         return None
 
@@ -175,22 +202,25 @@ def get_available_dates(group_code):
         today = date.today().strftime("%Y-%m-%d")
         sql = """
             SELECT DISTINCT
-                DATE(start_dt) AS available_date
+                DATE(s.start_dt) AS available_date
             FROM
-                schedules
+                schedules s
             WHERE
-                location_id IN (SELECT 
-                        id
+                location_id IN (
+                    SELECT 
+                        m.location_id
                     FROM
-                        locations
+                        group_codes_to_locations_mapping m
+                            INNER JOIN
+                        groups g ON (g.id = m.group_id)
                     WHERE
-                        group_code = %s)
+                        g.group_code = %s)
                     AND status = 'available'
                     AND DATE(start_dt) >= %s
             ORDER BY DATE(start_dt)
         """
-        val = (group_code, today)
-        return read_rows(sql, val)
+        vals = (group_code, today)
+        return read_rows(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -232,7 +262,15 @@ def get_all_available_dtl():
             DATE(nd.first_date_available) = DATE(s.start_dt)
                 AND start_dt >= CONVERT_TZ(NOW(), '+00:00', '-05:00')
                 AND s.status = 'available'
-                AND l.group_code = '_DEFAULT_'
+                AND s.location_id IN (
+                    SELECT 
+                        m.location_id
+                    FROM
+                        group_codes_to_locations_mapping m
+                            INNER JOIN
+                        groups g ON (g.id = m.group_id)
+                    WHERE
+                        g.group_code = '_DEFAULT_')
         GROUP BY nd.location_id , pt.average_processing_time
         """
         return read_rows(sql)
@@ -248,7 +286,6 @@ def get_available_locations(date_str, group_code):
         return __get_available_locations_for_current_day(date_str, group_code)
     else:
         return __get_available_locations_beyond_current_day(date_str, group_code)
-        
 
 
 def get_processing_averages_by_location():
@@ -295,14 +332,14 @@ def get_available_times(location_id, date):
                 AND start_dt >= CONVERT_TZ(NOW(), '+00:00', '-05:00')
             ORDER BY id
         """
-        val = (location_id, date)
+        vals = (location_id, date)
         log_generic(
             type="info",
             function='get_available_times',
             location_id=location_id,
             date=date,
             info='looking_up_available_times')
-        return read_rows(sql, val)
+        return read_rows(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -328,14 +365,14 @@ def get_slot_information(slot_id):
             WHERE 
                 id = %s
         """
-        val = (slot_id,)
+        vals = (slot_id,)
         '''
         log_generic(type="info", 
                     function='__read_slot_information', 
                     slot_id=slot_id,
                     info='looking_up_slot_info')
         '''
-        return read_row(sql, val)
+        return read_row(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -355,8 +392,8 @@ def update_slot_information(slot_id, appointment_id):
             WHERE 
                 id = %s
         """
-        val = (appointment_id, slot_id)
-        return exec_update(sql, val)
+        vals = (appointment_id, slot_id)
+        return exec_update(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -413,17 +450,25 @@ def __get_available_locations_beyond_current_day(date_str, group_code):
             WHERE
                 1 AND DATE(s.start_dt) = %s
                     AND s.status = 'available'
-                    AND l.group_code = %s
+                    AND s.location_id IN (
+                        SELECT 
+                            m.location_id
+                        FROM
+                            group_codes_to_locations_mapping m
+                                INNER JOIN
+                            groups g ON (g.id = m.group_id)
+                        WHERE
+                            g.group_code = %s)
             GROUP BY s.location_id, pt.average_processing_time
         """
-        val = (date_str, group_code)
+        vals = (date_str, group_code)
         log_generic(
             type="info",
             function='get_available_locations_beyond_current_day',
             group_code=group_code,
             date=date_str,
             info='looking_up_available_locations_beyond_current_day')
-        return read_rows(sql, val)
+        return read_rows(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -467,17 +512,25 @@ def __get_available_locations_for_current_day(date_str, group_code):
             DATE(nd.first_date_available) = DATE(s.start_dt)
                 AND DATE(s.start_dt) = %s
                 AND s.status = 'available'
-                AND l.group_code = %s
+                AND s.location_id IN (
+                    SELECT 
+                        m.location_id
+                    FROM
+                        group_codes_to_locations_mapping m
+                            INNER JOIN
+                        groups g ON (g.id = m.group_id)
+                    WHERE
+                        g.group_code = %s)
         GROUP BY nd.location_id , pt.average_processing_time
         """
-        val = (date_str, group_code)
+        vals = (date_str, group_code)
         log_generic(
             type="info",
             function='get_available_locations_for_current_day',
             group_code=group_code,
             date=date_str,
             info='looking_up_available_locations_for_current_day')
-        return read_rows(sql, val)
+        return read_rows(sql, vals)
 
     except Exception as err:
         log_generic(

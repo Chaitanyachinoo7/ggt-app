@@ -17,8 +17,8 @@ from ggt.lib.adapters.mysql_adapter import (
 def get_location_by_id(location_id):
     try:
         sql = "SELECT * FROM locations where id = %s LIMIT 1"
-        val = (location_id,)
-        return read_row(sql, val)
+        vals = (location_id,)
+        return read_row(sql, vals)
 
     except Exception as err:
         log_generic(type="error", location_id=location_id, function='get_location_by_id', error=err)
@@ -41,7 +41,7 @@ def search_locations(account, group_code, site_code):
         if account != '':
             where_conditions = "{} AND account LIKE '%{}%'".format(where_conditions, account)
         if group_code != '':
-            where_conditions = "{} AND group_code LIKE '%{}%'".format(where_conditions, group_code)
+            where_conditions = "{} AND g.group_code LIKE '%{}%'".format(where_conditions, group_code)
         if site_code != '':
             where_conditions = "{} AND site_code LIKE '%{}%'".format(where_conditions, site_code)
 
@@ -49,26 +49,29 @@ def search_locations(account, group_code, site_code):
 
         sql = """
         SELECT 
-            id as location_id,
-            site_code,
-            group_code,
-            account,
-            addr1,
-            addr2,
-            addr3,
-            city,
-            st,
-            zip,
-            time_zone,
-            time_zone_offset,
-            test_type_offered,
-            status
+            l.id AS location_id,
+            l.site_code,
+            g.group_code,
+            g.account,
+            l.addr1,
+            l.addr2,
+            l.addr3,
+            l.city,
+            l.st,
+            l.zip,
+            l.time_zone,
+            l.time_zone_offset,
+            l.test_type_offered,
+            l.status
         FROM
-            locations
+            locations l
+                INNER JOIN
+            group_codes_to_locations_mapping m ON l.id = m.location_id
+                INNER JOIN
+            groups g ON (g.id = m.group_id)
         WHERE 1=1
             {}
-        ORDER BY 
-            id DESC
+        ORDER BY l.id DESC
         LIMIT {}
         """.format(where_conditions, limit)
         return read_rows(sql)

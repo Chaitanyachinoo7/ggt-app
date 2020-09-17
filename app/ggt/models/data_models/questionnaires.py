@@ -19,7 +19,7 @@ from ggt.lib.adapters.mysql_adapter import (
 # [Protected] functions
 ########################################################################################################
 
-#TODO: isPatient?
+# TODO: isPatient?
 def create_patient_questionnaire(data):
     symptom_fever = convert_to_bool(data["symptom_fever"])
     symptom_shortbreath = convert_to_bool(data["symptom_shortbreath"])
@@ -43,7 +43,7 @@ def create_patient_questionnaire(data):
     patient_id = data["patient_id"]
     token = data["token"]
     group_code = data["group_code"]
-    
+
     #insurance_photo = data["insurance_photo"]
 
     try:
@@ -57,11 +57,11 @@ def create_patient_questionnaire(data):
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
 
-        val = (patient_id, group_code, symptom_fever, symptom_shortbreath, symptom_coughing, 
+        vals = (patient_id, group_code, symptom_fever, symptom_shortbreath, symptom_coughing,
                 symptom_chestpains, symptom_lack_of_smell, symptom_others, covid_contact, meds, heart_disease,
-               diabetes, respiratory_disease, autoimmune_disease, other_chronic_disease, allergies,  signature, token, data["insurance_photo"])
+                diabetes, respiratory_disease, autoimmune_disease, other_chronic_disease, allergies,  signature, token, data["insurance_photo"])
 
-        return exec_insert(sql, val)
+        return exec_insert(sql, vals)
 
     except Exception as err:
         log_generic(type="error", data=data, locals=locals(),

@@ -31,11 +31,6 @@ State Machine for Appointments
 status
 ENUM('scheduled', 'checked_in', 'test_in_progress', 'test_completed', 'record_locked')
 
-Host: sftp.healthtrackrx.com
-Username: WellPay
-Password: 9cTE3fh@8H
-
-
 docker run --name myadmin-dev -d -e PMA_HOST=35.184.98.83 -p 8090:80 phpmyadmin/phpmyadmin
 
 docker run --name myadmin-dev -d -e PMA_HOST=wh-mobile-test-1.clwbkkblucao.us-east-1.rds.amazonaws.com  -p 8090:80 phpmyadmin/phpmyadmin

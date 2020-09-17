@@ -6,6 +6,7 @@ from ggt.lib.utils import (
 )
 
 from ggt.models.process_models.bp_patient_experience import (
+    bp_get_screen_flow_seq,
     bp_initiate_verification_flow,
     bp_validate_phone_number,
     bp_finalize_booking,
@@ -24,107 +25,16 @@ from ggt.models.process_models.bp_appointments import (
     bp_get_appointment_info
 )
 
+DEFAULT_GROUP_CODE = '_DEFAULT_'
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
 
 
 def get_screen_flow_seq(group_code):
-    if group_code == 'QTCORP' or group_code == 'LOWES' or group_code == 'LOWE\'S' or group_code == 'EATZ':
-        return x_response({
-            "screens": ["is-patient",
-                        "gender",
-                        "race",
-                        "ethnicity",
-                        "symptoms",
-                        "contact-tracing",
-                        "patient-details",
-                        "patient-address",
-                        "patient-contact",
-                        "patient-vitals",
-                        "pre-existing-conditions",
-                        "consent",
-                        "date",
-                        "location",
-                        "time"],
-            "validation": {}
-
-        })
-    elif group_code == 'BMSC':
-        return x_response({
-            "screens": ["is-patient",
-                        "gender",
-                        "race",
-                        "ethnicity",
-                        "symptoms",
-                        "contact-tracing",
-                        "patient-details",
-                        "patient-address",
-                        "patient-contact",
-                        "patient-vitals",
-                        "pre-existing-conditions",
-                        "consent",
-                        "date",
-                        "location",
-                        "time",
-                        "insurance-card"],
-           "validation": {
-                "insurance-card": {
-                    "required": False
-                }
-            }
-
-        })
-    elif group_code == 'THRDENTON':
-        return x_response({
-            "screens": ["is-patient",
-                        "gender",
-                        "race",
-                        "ethnicity",
-                        "symptoms",
-                        "contact-tracing",
-                        "patient-details",
-                        "patient-address",
-                        "patient-contact",
-                        "patient-vitals",
-                        "pre-existing-conditions",
-                        "consent",
-                        "consent_thr",
-                        "date",
-                        "location",
-                        "time"],
-            "validation": {
-                "consent_thr": {
-                    "required": True
-                }
-            }
-
-        })
-    else:
-        return x_response({
-            "screens": ["is-patient",
-                        "gender",
-                        "race",
-                        "ethnicity",
-                        "symptoms",
-                        "contact-tracing",
-                        "patient-details",
-                        "patient-address",
-                        "patient-contact",
-                        "patient-vitals",
-                        "pre-existing-conditions",
-                        "consent",
-                        "date",
-                        "location",
-                        "time",
-                        "insurance-card"],
-            "validation": {
-                "insurance-card": {
-                    "required": True
-                }
-            }
-
-        })
+    return x_response(
+        bp_get_screen_flow_seq(group_code)
+    )
 
 
 def initiate_verification_flow(phone_number, with_otp=True):
@@ -145,7 +55,7 @@ def validate_phone_number(phone_number, otp):
     )
 
 
-def get_schedule_dates_available(group_code='_DEFAULT_'):
+def get_schedule_dates_available(group_code=DEFAULT_GROUP_CODE):
     return x_response(
         bp_get_schedule_dates_available(
             group_code

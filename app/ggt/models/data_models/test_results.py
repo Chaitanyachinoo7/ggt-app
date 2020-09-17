@@ -21,9 +21,9 @@ def get_test_result(id):
                 FROM detailed_test_results 
                 WHERE id = %s
                 LIMIT 1
-                """
-        val = (id,)
-        return read_row(sql, val)
+            """
+        vals = (id,)
+        return read_row(sql, vals)
 
     except Exception as err:
         log_generic(type="error", id=id, function='get_test_result', error=err)
@@ -38,9 +38,9 @@ def get_test_result_by_token(token):
                 WHERE token = %s
                 ORDER by test_id DESC
                 LIMIT 1
-                """
-        val = (token,)
-        return read_row(sql, val)
+            """
+        vals = (token,)
+        return read_row(sql, vals)
 
     except Exception as err:
         log_generic(type="error", token=token,
@@ -56,15 +56,14 @@ def get_test_details(test_id):
                 WHERE test_id = %s
                 ORDER by test_id DESC
                 LIMIT 1
-                """
-        val = (test_id,)
-        return read_row(sql, val)
+            """
+        vals = (test_id,)
+        return read_row(sql, vals)
 
     except Exception as err:
         log_generic(type="error", test_id=test_id,
                     function='get_test_details', error=err)
         return False
-
 
 
 def search_details_by_name_and_dob(last_name, dob):
@@ -83,8 +82,8 @@ def search_details_by_name_and_dob(last_name, dob):
                     t.zip as p_zip,
                     t.sample_collection_start_dt,
                     t.token,
-                    l.group_code,
-                    l.account,
+                    g.group_code,
+                    g.account,
                     l.addr1,
                     l.city,
                     l.st,
@@ -94,32 +93,32 @@ def search_details_by_name_and_dob(last_name, dob):
                         ELSE 'Available'
                     END) AS result
                 FROM
-                    (detailed_test_results t
-                    LEFT JOIN locations l ON t.sample_collection_location_id = l.id)
+                    detailed_test_results t
+                    LEFT JOIN locations l ON t.sample_collection_location_id = l.id
+                    INNER JOIN group_codes_to_locations_mapping m ON t.sample_collection_location_id = m.location_id
+                    INNER JOIN groups g ON g.id = m.group_id
                 WHERE
                     last_name LIKE %s
                         AND dob = %s
                 ORDER BY t.test_id DESC
-                """
-        val = ('%'+last_name+'%', dob)
-        return read_rows(sql, val)
+            """
+        vals = ('%'+last_name+'%', dob)
+        return read_rows(sql, vals)
 
     except Exception as err:
         log_generic(
-            type="error", 
-            last_name=last_name, 
+            type="error",
+            last_name=last_name,
             dob=dob,
-            function='get_masked_test_details_by_name_and_dob', 
+            function='get_masked_test_details_by_name_and_dob',
             error=err)
         return False
 
 
-
-
-
 def get_all_test_results():
     try:
-        sql = """SELECT 
+        sql = """
+                SELECT 
                     pat.id as patient_id,
                     ts.id as test_id,
                     pat.dob,
@@ -139,12 +138,12 @@ def get_all_test_results():
                     patients pat
                 INNER JOIN test_samples ts
                     ON pat.id = ts.patient_id
-                    """
+            """
         return read_rows(sql, )
     except Exception as err:
         log_generic(
-            type="error", 
-            function='get_test_results', 
+            type="error",
+            function='get_test_results',
             error=err)
 
 
@@ -164,8 +163,8 @@ def create_test_sample(appointment_id, patient_id, patient_questionnaire_id, gro
                     sample_collection_start_dt
                 ) 
                 VALUES (%s, %s, %s, %s, %s, %s, NOW())"""
-        val = (appointment_id, appointment_id, patient_id, patient_questionnaire_id, group_code, location_id)
-        return exec_insert(sql, val)
+        vals = (appointment_id, appointment_id, patient_id, patient_questionnaire_id, group_code, location_id)
+        return exec_insert(sql, vals)
 
     except Exception as err:
         log_generic(

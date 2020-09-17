@@ -1,4 +1,10 @@
-from fastapi import APIRouter, Request, Response, status
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Request,
+    Response, 
+    status
+)
 
 from ggt.models.data_models.data_types import (
     PortalUserRoleRequest,
@@ -66,15 +72,21 @@ async def api_site_admin_general_search(portal_general_search_request: PortalGen
         portal_general_search_request.location_id
     )
 
-
 @router.get("/site-admin/generate_schedule/{location_id}")
-async def api_generate_schedule(location_id: str):
-    return generate_schedule(location_id)
-
+async def api_generate_schedule(location_id: str, background_tasks: BackgroundTasks):
+    background_tasks.add_task(generate_schedule, location_id)
+    return {
+        "status": "success",
+        "description": "Background Task Initiated"
+    } 
 
 @router.post("/site-admin/generate_all_schedules")
-async def api_generate_all_schedules():
-    return generate_all_schedules()
+async def api_generate_all_schedules(background_tasks: BackgroundTasks):
+    background_tasks.add_task(generate_all_schedules)
+    return {
+        "status": "success",
+        "description": "Background Task Initiated"
+    } 
 
 
 @router.post("/site-admin/location_search")

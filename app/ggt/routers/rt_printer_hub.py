@@ -1,24 +1,20 @@
 
 from fastapi import APIRouter, Request, Response, status
 
-from ggt.models.data_models.data_types import (
-    ProviderLoginRequest,
-    ProviderUpdateAppointmentRequest,
-    ProviderLookupAppointmentRequest
-)
-
-from ggt.models.workflow_models.provider_field_testing_flow import (
-    provider_login,
-    provider_get_workstations,
-    provider_lookup_appointment,
-    provider_update_appointment,
-    printer_queue_check
+from ggt.models.workflow_models.printer_flow import (
+    printer_queue_check,
+    printer_get_next_label
 )
 
 router = APIRouter()
 
 
 
-@router.post("/printer_queue_check/{printer_id}/{printer_token}")
-async def api_printer_queue_check(request: Request, printer_id: str, printer_token: str):
-    return printer_queue_check(printer_id, printer_token)
+@router.get("/printer_queue_check/{workstation_id}/{workstation_token}")
+async def api_printer_queue_check(request: Request, workstation_id: str, workstation_token: str):
+    return printer_queue_check(workstation_id, workstation_token)
+
+
+@router.get("/printer_get_next_label/{workstation_id}/{workstation_token}")
+async def api_printer_get_next_label(request: Request, workstation_id: str, workstation_token: str):
+    return printer_get_next_label(workstation_id, workstation_token)

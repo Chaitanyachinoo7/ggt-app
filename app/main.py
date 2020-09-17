@@ -4,7 +4,6 @@
 from fastapi import FastAPI, Request, Response, Depends, Header, BackgroundTasks, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
 
 import uvicorn
 
@@ -15,7 +14,8 @@ from ggt.routers import (
     rt_patient, 
     rt_task, 
     rt_portal,
-    rt_contact_center
+    rt_contact_center,
+    rt_printer_hub
 )
 
 NOT_FOUND = "Not found"
@@ -93,6 +93,13 @@ app.include_router(
     prefix="/api/cc",
     tags=["Contact Center App"],
     #dependencies=[Depends(get_token_header)],
+    responses={404: {"description": NOT_FOUND}},
+)
+
+app.include_router(
+    rt_printer_hub.router,
+    prefix="/api/print",
+    tags=["Printer Hub"],
     responses={404: {"description": NOT_FOUND}},
 )
 
