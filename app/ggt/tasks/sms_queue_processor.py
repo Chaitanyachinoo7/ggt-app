@@ -12,6 +12,14 @@ from ggt.lib.adapters.mysql_adapter import (
 
 from ggt.lib.sms import send_sms
 
+'''
+def _task_process_sms_queue():
+    to_number = '+14159873454'
+    message = """Hi Mo, your GoGetTested.com COVID-19 test results are available. 
+    Please follow this link to view your results https://start.GoGetTested.com/r/c304407c-0624-4012-b10d-437b734adb7d"""
+    send_sms(to_number, message)
+'''
+
 def task_process_sms_queue():
     print('\n\n************************************************\n\n')
 

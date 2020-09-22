@@ -23,7 +23,7 @@ databases:
     db: ggt_prod
 
   sqlite:
-    tasks_sqlite_db: /tmp/ggt-tasks/ggt_tasks_local_cache.db
+    tasks_sqlite_db: /Users/suresh/ggt-tasks/ggt_tasks_local_cache.db
 
 notifications:
   from_email: support@gogettested.com
@@ -52,11 +52,11 @@ vendors:
     remote_insurance_images_path: /insurance_files
     remote_backups_path: /backups
     remote_processed_orders_path: /processed_order_files
-    local_download_path: /tmp/ggt-tasks/downloads
-    local_outbound_file_path: /tmp/ggt-tasks/outbound
-    local_insurance_card_file_path: /tmp/ggt-tasks/insurance_images
-    local_process_summary_path: /tmp/ggt-tasks/process_summary
-    local_backups_path: /tmp/ggt-tasks/backups
+    local_download_path: /Users/suresh/ggt-tasks/downloads
+    local_outbound_file_path: /Users/suresh/ggt-tasks/outbound
+    local_insurance_card_file_path: /Users/suresh/ggt-tasks/insurance_images
+    local_process_summary_path: /Users/suresh/ggt-tasks/process_summary
+    local_backups_path: /Users/suresh/ggt-tasks/backups
     outbound_file_prefix: ggt-outbound
 
 wellpay:

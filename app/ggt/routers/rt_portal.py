@@ -38,6 +38,7 @@ from ggt.models.workflow_models.test_site_admin_flow import (
     generate_all_schedules,
     site_admin_location_search,
     add_schedule_generation_rule,
+    update_schedule_generation_rule,
     delete_schedule_generation_rule,
     get_schedule_generation_rules,
     delete_schedule
@@ -103,7 +104,12 @@ async def api_add_schedule_generation_rule(schedule_generation_rule_request: Sch
     return add_schedule_generation_rule(schedule_generation_rule_request)
 
 
-@router.get("/site-admin/delete_schedule_generation_rule/{id}")
+@router.post("/site-admin/edit_schedule_generation_rule")
+async def api_update_schedule_generation_rule(schedule_generation_rule_request: ScheduleGenerationRule, request: Request, response: Response):
+    return update_schedule_generation_rule(schedule_generation_rule_request)
+
+
+@router.post("/site-admin/delete_schedule_generation_rule/{id}")
 async def api_delete_schedule_generation_rule(id: str):
     return delete_schedule_generation_rule(id)
 

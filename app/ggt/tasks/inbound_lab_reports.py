@@ -1,4 +1,6 @@
 import os
+import os.path
+from os import path
 import glob
 import csv
 import datetime
@@ -37,7 +39,8 @@ from ggt.models.data_models.tasks_local_cache import (
     file_exists_in_all_inbound_files_cache,
     get_order_number_by_requisition_id,
     add_to_files_in_remote_storage_cache,
-    file_exists_in_files_in_remote_storage_cache
+    file_exists_in_files_in_remote_storage_cache,
+    add_to_csv_pdf_sync_cache
 )
 
 
@@ -74,7 +77,7 @@ def task_process_inbound_lab_reports():
     init_local_cache()  
     load_data_from_remote_db_to_cache() 
 
-    #clean_downloads_folder()
+    ####clean_downloads_folder()
     download_ftp_files()
     parse_csv_files()
         
@@ -197,12 +200,19 @@ def copy_files_to_local(ftp_client, directory_list, remote_folder):
                             cache_misses+=1
                             local_path = "{}/{}".format(newpath, filename).replace('//','/')
 
-                            print("copying {} to {}".format(filename, local_path)) ##
-                            ftp_client.get(filename, local_path)
+                            if path.exists(local_path):
+                                #print("file {} exists".format(local_path))
+                                pass
+                            else:
+                                print("copying {} to {}".format(filename, local_path)) ##
+                                ftp_client.get(filename, local_path)
+                            '''
+                            #TODO Move files to backup in remote FTP Server
                             if add_to_all_inbound_files_cache(filename):
-                                old_path = '{}/{}'.format(remote_dir_path, filename)
-                                new_path = '{}{}/{}'.format('/backups', remote_dir_path, filename)
+                                old_path = '{}/{}'.format(remote_dir_path, filename).replace('//','/')
+                                new_path = '{}{}/{}'.format('/backups', remote_dir_path, filename).replace('//','/')
                                 ftp_client.rename(old_path, new_path)
+                            '''
 
                     except Exception as err:
                         download_errors+=1
@@ -276,8 +286,7 @@ def get_remote_directory_list(ftp_client, paths, remote_folder):
 def parse_csv_files():
     print('parsing CSV files')
     try:
-        files = [f for f in glob.glob("{}/**/**/*.csv".format(local_download_path), recursive=True)]
-        for filename in files:
+        for filename in glob.iglob('{}/**/*.csv'.format(local_download_path), recursive = True):
             parse_csv_file(filename)
 
     except Exception as err:
@@ -290,6 +299,7 @@ def parse_csv_file(file_path):
         for row in reader:
             try:
                 add_to_lab_test_records_cache(row)
+                add_to_csv_pdf_sync_cache(row)
             except Exception as err:
                 print("err:", err)
 
@@ -311,10 +321,11 @@ def load_data_from_remote_db_to_cache():
 def upload_pdf_lab_reports():
     print('uploading PDF lab reports')
     try:
-        files = [f for f in glob.glob("{}/**/**/*.pdf".format(local_download_path), recursive=True)]
-        for filename in files:
+        for filename in glob.iglob('{}/**/*.pdf'.format(local_download_path), recursive = True): 
             try:
-                __destination_filename = generate_destination_filename(filename)
+                __requisition_id, __order_number, __destination_filename = generate_destination_filename(filename)
+                add_to_csv_pdf_sync_cache({'requisition_id':__requisition_id}, 'pdf' )
+
                 shutil.copyfile(filename,'{}/{}'.format(local_backups_path, __destination_filename))
                 if __destination_filename:
                     if file_exists_in_files_in_remote_storage_cache(__destination_filename):
@@ -343,22 +354,26 @@ def upload_pdf_lab_reports():
 def upload_all_inbound_files_to_central_storage():
     print('uploading all inbound raw files to remote storage')
     try:
-        files = [f for f in glob.glob("{}/**/*".format(local_download_path), recursive=True)]
-        for file_path in files:
+        for file_path in glob.iglob('{}/**/*'.format(local_download_path), recursive = True):
             filename = extract_filename(file_path)
             try:
                 if file_exists_in_files_in_remote_storage_cache(filename):
                     #print('cache hit: ', filename)
                     pass
                 else:
-                    upload_status = upload_to_all_inbound_files(file_path, filename)
-                    if upload_status is None:
-                        print('Error Uploading.... {}'.format(filename))
-                    elif upload_status:
-                        print('upload success {}'.format(filename))
+                    if path.isdir(file_path):
+                        #print('Skipping uploading Directory {}'.format(file_path))
+                        pass
                     else:
-                        print('file exsits... adding to local cache: {}'.format(filename))
-                        add_to_files_in_remote_storage_cache(filename)
+                        upload_status = upload_to_all_inbound_files(file_path, filename)
+                        if upload_status is None:
+                            print('Error Uploading.... {}'.format(filename))
+                        elif upload_status:
+                            #print('upload success {}'.format(filename))
+                            pass
+                        else:
+                            #print('file exsits... adding to local cache: {}'.format(filename))
+                            add_to_files_in_remote_storage_cache(filename)
             except Exception as err:
                 print('Error uploading {}'.format(filename))
             
@@ -377,19 +392,19 @@ def generate_destination_filename(file_path):
         order_number = get_order_number_by_requisition_id(requisition_id)
         if order_number:
             filename = '{}.pdf'.format(order_number)
-            return filename
+        else:
+            print('Requisition Not found - ID: {}'.format(requisition_id))
+            append_to_processing_summary('{} - no record found'.format(requisition_id))
 
     except Exception as err:
         print("err:", err)
 
-    print('Requisition Not found - ID: {}'.format(requisition_id))
-    append_to_processing_summary('{} - no record found'.format(requisition_id))
-    return None
+    return requisition_id, order_number, filename
     
 
 
 def append_to_processing_summary(txt):
-    f = open("/tmp/ggt-tasks/process_summary/ggt-inbound-processing-summary.txt", "a")  # append mode 
+    f = open("/Users/suresh/ggt-tasks/process_summary/ggt-inbound-processing-summary.txt", "a")  # append mode 
     f.write(txt + "\n") 
     f.close() 
 

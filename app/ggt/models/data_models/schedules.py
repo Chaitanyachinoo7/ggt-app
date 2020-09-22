@@ -125,12 +125,68 @@ def add_schedule_generation_rule(data):
             data.active_local_start_dt,
             data.active_local_end_dt)
 
-        return exec_insert(sql, vals)
+        if exec_insert(sql, vals):
+            return True
+        else:
+            return False
 
     except Exception as err:
         log_generic(
             type="error",
             function='add_schedule_generation_rule',
+            error=err)
+        return None
+
+
+def update_schedule_generation_rule(data):
+    try:
+        sql = """
+        UPDATE schedule_generation_rules
+        SET 
+            rule_type = %s,
+            location_id = %s,
+            slot_increment = %s,
+            local_start_time = %s,
+            local_end_time = %s,
+            sun = %s,
+            mon = %s,
+            tue = %s,
+            wed = %s,
+            thu = %s,
+            fri = %s,
+            sat = %s,
+            slot_multiplier = %s,
+            active_local_start_dt = %s,
+            active_local_end_dt = %s,
+            modify_dt = NOW()
+        WHERE
+            id = %s
+        """
+        vals = (
+            data.rule_type,
+            data.location_id,
+            data.slot_increment,
+            data.local_start_time,
+            data.local_end_time,
+            data.sun,
+            data.mon,
+            data.tue,
+            data.wed,
+            data.thu,
+            data.fri,
+            data.sat,
+            data.slot_multiplier,
+            data.active_local_start_dt,
+            data.active_local_end_dt,
+            data.id
+        )
+
+        return exec_update(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type="error",
+            function='update_schedule_generation_rule',
             error=err)
         return None
 
@@ -272,6 +328,7 @@ def get_all_available_dtl():
                     WHERE
                         g.group_code = '_DEFAULT_')
         GROUP BY nd.location_id , pt.average_processing_time
+        ORDER BY l.city
         """
         return read_rows(sql)
 

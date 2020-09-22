@@ -16,6 +16,17 @@ from ggt.configs.config_loader import cfg
 # TODO: Enahancd logging context with user session and client device/ip info etc.
 
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
 def get_config_val(key):
     key_list = key.split('.')
     key_depth = len(key_list)
@@ -121,6 +132,7 @@ def failure_response(kv=None):
         kv = {}
     kv['status'] = 'failure'
     return kv
+
 
 '''
 import random

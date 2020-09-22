@@ -209,6 +209,11 @@ class PortalLocationSearchRequest(BaseModel):
 
 
 class ScheduleGenerationRule(BaseModel):
+    id: Optional[int] = None
+    rule_type: Optional[str] = 'regular'
+    time_zone: Optional[str] = None
+    time_zone_offset: Optional[str] = None
+    status: Optional[str] = 'enabled'
     location_id: int
     slot_increment: Optional[int] = 10
     slot_multiplier: Optional[int] = 1

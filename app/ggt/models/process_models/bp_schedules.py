@@ -14,6 +14,7 @@ from ggt.models.data_models.schedules import (
     delete_schedule_entries_by_location_id_for_date,
     add_schedule_entries,
     add_schedule_generation_rule,
+    update_schedule_generation_rule,
     delete_schedule_generation_rule,
     get_all_available_dtl
 )
@@ -264,6 +265,19 @@ def bp_add_schedule_generation_rule(data):
         log_generic(type="error",
                     data=data,
                     function='bp_add_schedule_generation_rule',
+                    error=err)
+
+    return False
+
+
+def bp_update_schedule_generation_rule(data):
+    try:
+        return update_schedule_generation_rule(data)
+
+    except Exception as err:
+        log_generic(type="error",
+                    data=data,
+                    function='bp_update_schedule_generation_rule',
                     error=err)
 
     return False

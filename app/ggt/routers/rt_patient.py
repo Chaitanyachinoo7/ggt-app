@@ -94,6 +94,11 @@ async def api_finalize_payment(finalize_payment_request: FinalizePaymentRequest)
 async def api_lookup_appointment(appointment_id: str):
     return lookup_appointment(appointment_id)
 
+'''
+@router.get("/lookup_appointment/{appointment_id}/{dob}")
+async def api_lookup_appointment(appointment_id: str, dob: str):
+    return lookup_appointment(appointment_id, dob)
+'''
 
 @router.get("/appointment/result/{token}/{dob}")
 async def api_lookup_test_result(token: str, dob: str):

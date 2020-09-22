@@ -13,6 +13,7 @@ from ggt.models.process_models.bp_schedules import (
     bp_generate_full_schedule,
     bp_generate_all_schedules,
     bp_add_schedule_generation_rule,
+    bp_update_schedule_generation_rule,
     bp_delete_schedule_generation_rule,
     bp_get_schedule_generation_rules,
     bp_delete_schedule
@@ -62,6 +63,12 @@ def delete_schedule(location_id):
 def add_schedule_generation_rule(data):
     return x_response(
         bp_add_schedule_generation_rule(data)
+    )
+
+
+def update_schedule_generation_rule(data):
+    return x_response(
+        bp_update_schedule_generation_rule(data)
     )
 
 

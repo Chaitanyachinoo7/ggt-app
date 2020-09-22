@@ -41,6 +41,28 @@ async def api_schedule_result_notifications_and_followups(request: Request, back
     }
 
 
+@router.post("/process_voice_queue")
+async def api_process_voice_queue(request: Request, background_tasks: BackgroundTasks):
+    background_tasks.add_task(task_process_voice_queue)
+    return {
+        "status": "success",
+        "description": "Background Task Initiated"
+    }
+
+
+@router.post("/process_email_queue")
+async def api_process_email_queue(request: Request):
+    task_process_email_queue()
+    return {"status": "success"}
+
+
+@router.post("/process_sms_queue")
+async def api_process_sms_queue(request: Request):
+    task_process_sms_queue()
+    return {"status": "success"}
+
+
+'''
 @router.post("/process_email_queue")
 async def api_process_email_queue(request: Request, background_tasks: BackgroundTasks):
     background_tasks.add_task(task_process_email_queue)
@@ -59,15 +81,8 @@ async def api_process_sms_queue(request: Request, background_tasks: BackgroundTa
     }
 
 
-@router.post("/process_voice_queue")
-async def api_process_voice_queue(request: Request, background_tasks: BackgroundTasks):
-    background_tasks.add_task(task_process_voice_queue)
-    return {
-        "status": "success",
-        "description": "Background Task Initiated"
-    }
 
-'''
+
 @router.post("/process_process_outbound_lab_orders")
 async def api_process_outbound_lab_orders(request: Request):
     task_process_outbound_lab_orders()
@@ -79,17 +94,6 @@ async def api_schedule_result_notifications_and_followups(request: Request):
     task_schedule_result_notifications_and_followups()
     return {"status": "success"}
 
-
-@router.post("/process_email_queue")
-async def api_process_email_queue(request: Request):
-    task_process_email_queue()
-    return {"status": "success"}
-
-
-@router.post("/process_sms_queue")
-async def api_process_sms_queue(request: Request):
-    task_process_sms_queue()
-    return {"status": "success"}
 
 
 @router.post("/process_voice_queue")
