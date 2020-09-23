@@ -1,12 +1,12 @@
 app_name: COVID-19 Testing
 log_level: DEBUG
-base_url: https://start.GoGetTested.com
+base_url: https://start-dev.GoGetTested.com
 
 aws:
   region: us-east-1
-  access_key_id: AKIAR7AATMMMGKHVWYP6
-  secret_access_key: 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
-  sqs_print_queue_base_url: https://sqs.us-east-1.amazonaws.com/135292740376/ggt-print-queue
+  access_key_id: AKIAIWUMFU2SPDC7KBAQ
+  secret_access_key: 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
+  sqs_print_queue_base_url: https://sqs.us-east-1.amazonaws.com/343550539982/ggt-print-queue
 
 gcp:
   service_account_file: gcp-service-account-prod.json
@@ -70,4 +70,3 @@ pfe:
     special_phone_3: '4158888888'
     special_phone_4: '4159999999'
     override_otp_code: '000000'
-

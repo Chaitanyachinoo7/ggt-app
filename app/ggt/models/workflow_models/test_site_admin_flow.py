@@ -61,14 +61,26 @@ def delete_schedule(location_id):
 
 
 def add_schedule_generation_rule(data):
+    status = False
+    if bp_add_schedule_generation_rule(data):
+        bp_generate_full_schedule(data.location_id)
+        status = True
+    return x_response(
+        status
+    )
+
     return x_response(
         bp_add_schedule_generation_rule(data)
     )
 
 
 def update_schedule_generation_rule(data):
+    status = False
+    if bp_update_schedule_generation_rule(data):
+        bp_generate_full_schedule(data.location_id)
+        status = True
     return x_response(
-        bp_update_schedule_generation_rule(data)
+        status
     )
 
 

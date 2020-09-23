@@ -87,10 +87,11 @@ def get_schedule_times_available(location_id, date=date.today().strftime("%Y-%m-
     )
 
 
-def lookup_appointment(appointment_id):
+def lookup_appointment(appointment_id, dob):
     return x_response(
         bp_get_appointment_info(
-            appointment_id
+            appointment_id, 
+            dob
         )
     )
 

@@ -49,7 +49,7 @@ def provider_get_workstations(auth_token):
 
 def provider_lookup_appointment(auth_token, appointment_id):
     return x_response(
-        bp_get_appointment_info(appointment_id),
+        bp_get_appointment_info(appointment_id, 'allowdoboverride'),
         is_authenticated(auth_token)
     )
 

@@ -228,3 +228,7 @@ class ScheduleGenerationRule(BaseModel):
     thu: Optional[bool] = False
     fri: Optional[bool] = False
     sat: Optional[bool] = False
+
+class LookupAppointmentRequest(BaseModel):
+    appointment_id: str
+    dob: str

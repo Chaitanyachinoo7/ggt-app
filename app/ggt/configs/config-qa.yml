@@ -1,26 +1,26 @@
 app_name: COVID-19 Testing
 log_level: DEBUG
-base_url: https://start-qa.GoGetTested.com
+base_url: https://start.GoGetTested.com
 
 aws:
   region: us-east-1
-  access_key_id: AKIAIWUMFU2SPDC7KBAQ
-  secret_access_key: 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
-  sqs_print_queue_base_url: https://sqs.us-east-1.amazonaws.com/343550539982/ggt-print-queue
+  access_key_id: AKIAR7AATMMMGKHVWYP6
+  secret_access_key: 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
+  sqs_print_queue_base_url: https://sqs.us-east-1.amazonaws.com/135292740376/ggt-print-queue
 
 gcp:
-  service_account_file: gcp-service-account-qa.json
+  service_account_file: gcp-service-account-prod.json
   default_link_expiration_time_limit: 300
-  all_inbound_files_bucket_name: ggt-all-inbound-files-qa
-  lab_reports_bucket_name: ggt-lab-reports-qa
-  insurance_cards_bucket_name: ggt-insurance-cards-qa
+  all_inbound_files_bucket_name: ggt-all-inbound-files-prod
+  lab_reports_bucket_name: ggt-lab-reports-prod
+  insurance_cards_bucket_name: ggt-insurance-cards-prod
 
 databases:
   mysql:
-    host: 35.184.98.83
+    host: 34.66.63.242
     username: root
-    password: Jr6EEMI2aBNguL1K
-    db: ggt_qa
+    password: gvMBO96Ohbq3mwFp
+    db: ggt_prod
 
   sqlite:
     tasks_sqlite_db: /Users/suresh/ggt-tasks/ggt_tasks_local_cache.db
@@ -60,8 +60,8 @@ vendors:
     outbound_file_prefix: ggt-outbound
 
 wellpay:
-  endpoint: https://api-staging.getwellpay.com/api/public/v1
-  auth_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJob3N0IjoiYXBpLXN0YWdpbmcuZ2V0d2VsbHBheS5jb20iLCJleHAiOjE2MTEyNTM0NzkuNDA0LCJleHRlcm5hbF9rZXkiOnRydWUsInJvbGUiOiJwcm92aWRlciIsInByb3ZpZGVyX2lkIjoiNSIsImlhdCI6MTU5NTM1NTg3OSwianRpIjoiOWMwYmQ0YjktM2RiYy00Mjc5LWJkYWQtMDY5NjkxYTBhMmFlIn0.rHa7AhrUZZOtg2R6TfDtW4pxGdCCHJd-n5n5S_E1W1w
+  endpoint: https://api.getwellpay.com/api/public/v1
+  auth_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJob3N0IjoiYXBpLmdldHdlbGxwYXkuY29tIiwiZXhwIjoxNjExMjYyMzg3LjA5NywiZXh0ZXJuYWxfa2V5Ijp0cnVlLCJyb2xlIjoicHJvdmlkZXIiLCJwcm92aWRlcl9pZCI6IjEiLCJpYXQiOjE1OTUzNjQ3ODcsImp0aSI6ImM1OWMwYWYxLTA0NTItNDhjNC1iMTQwLWJhMWI1NzFiZDlhMyJ9.3luYvTE3svahAdFFStyHGzIhhL3Ly83d8nEA8vlC8ig
 
 pfe:
   signup:
@@ -70,3 +70,4 @@ pfe:
     special_phone_3: '4158888888'
     special_phone_4: '4159999999'
     override_otp_code: '000000'
+

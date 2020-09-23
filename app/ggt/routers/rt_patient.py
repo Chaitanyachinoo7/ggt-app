@@ -7,7 +7,8 @@ from ggt.models.data_models.data_types import (
     ValidateOtpRequest,
     VerifyPhoneRequest,
     FinalizeRegistrationRequest,
-    FinalizePaymentRequest
+    FinalizePaymentRequest,
+    LookupAppointmentRequest
 )
 
 from ggt.models.workflow_models.patient_test_scheduling_flow import (
@@ -90,9 +91,9 @@ async def api_finalize_payment(finalize_payment_request: FinalizePaymentRequest)
     return finalize_payment(finalize_payment_request)
 
 
-@router.get("/lookup_appointment/{appointment_id}")
-async def api_lookup_appointment(appointment_id: str):
-    return lookup_appointment(appointment_id)
+@router.post("/lookup_appointment")
+async def api_lookup_appointment(lookup_appointment_request: LookupAppointmentRequest):
+    return lookup_appointment(lookup_appointment_request.appointment_id, lookup_appointment_request.dob)
 
 '''
 @router.get("/lookup_appointment/{appointment_id}/{dob}")

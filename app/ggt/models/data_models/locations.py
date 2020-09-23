@@ -39,16 +39,16 @@ def search_locations(account, group_code, site_code):
     try:
         where_conditions = '' 
         if account != '':
-            where_conditions = "{} AND account LIKE '%{}%'".format(where_conditions, account)
+            where_conditions = "{} AND g.account LIKE '%{}%'".format(where_conditions, account)
         if group_code != '':
             where_conditions = "{} AND g.group_code LIKE '%{}%'".format(where_conditions, group_code)
         if site_code != '':
-            where_conditions = "{} AND site_code LIKE '%{}%'".format(where_conditions, site_code)
+            where_conditions = "{} AND l.site_code LIKE '%{}%'".format(where_conditions, site_code)
 
         limit = 500
 
         sql = """
-        SELECT 
+        SELECT DISTINCT
             l.id AS location_id,
             l.site_code,
             g.group_code,

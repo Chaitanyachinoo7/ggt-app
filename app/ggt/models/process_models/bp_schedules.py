@@ -259,6 +259,12 @@ def bp_generate_full_schedule(location_id):
 
 def bp_add_schedule_generation_rule(data):
     try:
+        #Zero out the seconds and hours for dt fields
+        data.local_start_time = data.local_start_time.replace(second=0)
+        data.local_end_time = data.local_start_time.replace(second=0)
+        data.active_local_start_dt = data.active_local_start_dt.replace(hour=0,minute=0,second=0)
+        data.active_local_end_dt = data.active_local_end_dt.replace(hour=0,minute=0,second=0)
+
         return add_schedule_generation_rule(data)
 
     except Exception as err:
@@ -272,6 +278,12 @@ def bp_add_schedule_generation_rule(data):
 
 def bp_update_schedule_generation_rule(data):
     try:
+        #Zero out the seconds and hours for dt fields
+        data.local_start_time = data.local_start_time.replace(second=0)
+        data.local_end_time = data.local_end_time.replace(second=0)
+        data.active_local_start_dt = data.active_local_start_dt.replace(hour=0,minute=0,second=0)
+        data.active_local_end_dt = data.active_local_end_dt.replace(hour=0,minute=0,second=0)
+
         return update_schedule_generation_rule(data)
 
     except Exception as err:

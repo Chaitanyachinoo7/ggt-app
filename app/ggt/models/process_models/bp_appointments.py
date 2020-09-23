@@ -33,9 +33,12 @@ from ggt.models.data_models.test_results import (
 ########################################################################################################
 
 
-def bp_get_appointment_info(appointment_id):
+def bp_get_appointment_info(appointment_id, dob):
     try:
         appointment = get_appointment(appointment_id)
+        if dob != 'allowdoboverride' and appointment['dob'].strftime("%Y%m%d") != dob:
+            return False
+
         if appointment['status']=='pending':
             return False
         else:
