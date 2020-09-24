@@ -58,7 +58,7 @@ def bp_get_screen_flow_seq(group_code):
         screens = []
 
         if screen_seq['screen_seq']:
-            screens = screen_seq['screen_seq'].split(',')            
+            screens = screen_seq['screen_seq'].split(',')
 
         if screen_seq['required_screens']:
             required_screens = screen_seq['required_screens'].split(',')
@@ -163,125 +163,105 @@ def bp_validate_phone_number(phone_number, otp):
         }
 
 
-'''
-def bp_finalize_registration(data):
-    try:
-        if __is_valid_token(data['token']):
-            data['patient_id'] = __create_patient_record(data)
-            if not data['patient_id']:
-                return False
-
-            data['patient_questionnaire_id'] = create_patient_questionnaire(data)
-            if not data['patient_questionnaire_id']:
-                return False
-
-            # generate appointment
-            appointment = generate_appointment(
-                                    data['time_slot'],  
-                                    data['patient_id'], 
-                                    data['patient_questionnaire_id'],
-                                    data['group_code'])
-
-            if not appointment['appointment_id']:
-                return False
-
-            # Business usecase override
-            send_sms = handle_action_schedule_and_print(
-                data['phone_number'], 
-                appointment['appointment_id'])
-            if send_sms:
-                result = __send_qrcode_sms(data['phone_number'], appointment['appointment_id'])
-
-            return {
-                'date': appointment['date_text'],
-                'location': appointment['location_text'],
-                'appointment_id': appointment['appointment_id']
-            }
-
-    except Exception as err:
-        log_generic(type="error", data=data, function='bp_finalize_registration', error=err)
-    
-    return False
-
-'''
-
-
 def bp_finalize_booking(data):
     try:
-        if __is_valid_token(data['token']):
-            data['patient_id'] = __create_patient_record(data)
-            if not data['patient_id']:
-                return False
+        if not __is_valid_token(data['token']):
+            raise ValueError('Invalid Token')
 
-            data['patient_questionnaire_id'] = create_patient_questionnaire(
-                data)
-            if not data['patient_questionnaire_id']:
-                return False
+        data['patient_id'] = __create_patient_record(data)
+        if not data['patient_id']:
+            raise ValueError('Invalid Patient ID')
 
-            # for every registration create a wellpay user
-            wp_customer_info_id = __create_wp_customer(data)
+        data['patient_questionnaire_id'] = create_patient_questionnaire(data)
+        if not data['patient_questionnaire_id']:
+            raise ValueError('Invalid Patient Questionnaire ID')
 
-            payment_required, total_cost, billed_amount = __upfront_payment(
-                data['group_code'], data['location']
+        # for every registration, create a wellpay user
+        wp_customer_info_id = __create_wp_customer(data)
+
+        payment_required, total_cost, billed_amount = __upfront_payment(
+            data['group_code'], data['location']
+        )
+
+        # generate appointment
+        appointment = generate_appointment(
+            data['time_slot'],
+            data['patient_id'],
+            data['patient_questionnaire_id'],
+            data['group_code'],
+            wp_customer_info_id,
+            total_cost/100,
+            billed_amount/100
+        )
+
+        appointment_id = appointment['appointment_id']
+
+        if not appointment_id:
+            raise ValueError('Invalid Appointment info')
+
+        wp_bill_url = ''
+        if payment_required:
+            wp_bill_url = __inject_payment_flow(
+                wp_customer_info_id, billed_amount, appointment_id, total_cost)
+
+        else:  # payment not required, confirm the appointment and notify
+            update_appointment_with_confirmed_scheduled(appointment_id)
+            __send_qrcode_sms(
+                data['phone_number'],
+                appointment_id,
+                data['dob']
             )
 
-            # generate appointment
-            appointment = generate_appointment(
-                data['time_slot'],
-                data['patient_id'],
-                data['patient_questionnaire_id'],
-                data['group_code'],
-                wp_customer_info_id,
-                total_cost/100,
-                billed_amount/100)
-
-            if not appointment['appointment_id']:
-                return False
-
-            if payment_required:
-                # Customer creation failed, therefore payment cannot proceed.
-                if wp_customer_info_id is None:
-                    log_generic(type="error", data=data,
-                                function='bp_finalize_booking', error='Customer creation failed, therefore payment cannot proceed.')
-                    raise ValueError(
-                        'Customer creation failed, therefore payment cannot proceed.')
-                else:
-                    wp_bill = __create_wp_bill(
-                        wp_customer_info_id,
-                        billed_amount,
-                        appointment['appointment_id'])
-
-                    if update_appointment_with_receipt_token(
-                            wp_bill['receipt_token'],
-                            wp_customer_info_id,
-                            appointment['appointment_id']):
-
-                        return __finalize_booking_response(
-                            appointment['date_text'],
-                            appointment['location_text'],
-                            appointment['appointment_id'],
-                            billed_amount,
-                            total_cost,
-                            wp_bill['url']
-                        )
-            else:
-                # payment not required, confirm the appointment and notify
-                update_appointment_with_confirmed_scheduled(
-                    appointment['appointment_id'])
-                __send_qrcode_sms(data['phone_number'],
-                                  appointment['appointment_id'])
-
-                return __finalize_booking_response(
-                    appointment['date_text'],
-                    appointment['location_text'],
-                    appointment['appointment_id']
-                )
+            return __finalize_booking_response(
+                appointment['date_text'],
+                appointment['location_text'],
+                appointment_id,
+                billed_amount,
+                total_cost,
+                wp_bill_url
+            )
 
     except Exception as err:
-        log_generic(type="error", data=data,
-                    function='bp_finalize_booking', error=err)
+        log_generic(
+            type="error",
+            data=data,
+            function='bp_finalize_booking',
+            error=err)
 
     return False
+
+
+def __inject_payment_flow(wp_customer_info_id, billed_amount, appointment_id, total_cost):
+    try:
+        if wp_customer_info_id is None:
+            raise ValueError('Invalid Customer ID')
+
+        else:
+            wp_bill = __create_wp_bill(
+                wp_customer_info_id,
+                billed_amount,
+                appointment_id
+            )
+
+            if update_appointment_with_receipt_token(
+                    wp_bill['receipt_token'],
+                    wp_customer_info_id,
+                    appointment_id):
+                return wp_bill['url']
+
+            else:
+                raise ValueError('Appointment update failed')
+
+    except Exception as err:
+        log_generic(
+            type="error",
+            wp_customer_info_id=wp_customer_info_id,
+            billed_amount=billed_amount,
+            appointment_id=appointment_id,
+            total_cost=total_cost,
+            function='__inject_payment_flow',
+            error=err)
+        return None
 
 
 def __finalize_booking_response(date, location, appointment_id, total_balance='', total_cost='', payment_url=''):
@@ -294,10 +274,12 @@ def __finalize_booking_response(date, location, appointment_id, total_balance=''
         'payment_url': payment_url
     }
 
-#Returns payment_required, total_cost, billed_amount
+# Returns payment_required, total_cost, billed_amount
+
+
 def __upfront_payment(group_code, location):
     return False, 0, 0  # business decision to make all testing free 08/06/2020
-    
+
     total_cost = 17500
     billed_amount = 7000
 
@@ -337,7 +319,8 @@ def __create_wp_customer(data):
             type="error",
             data=data,
             function='__create_wp_customer',
-            error=err
+            error='Customer creation failed',
+            error_details=err
         )
         return None
 
@@ -567,10 +550,9 @@ def __create_pending_entry(phone_number):
         return None, None
 
 
-# TODO: use appt id
-def __send_qrcode_sms(phone_number, appointment_id):
-    message = "Click here for your Appointment Details\n {}/appointment/{}".format(
-        get_config_val('base_url'), str(appointment_id).rjust(6, '0'))
+def __send_qrcode_sms(phone_number, appointment_id, dob):
+    message = "Click here for your Appointment Details\n {}/appointment/{}/{}".format(
+        get_config_val('base_url'), str(appointment_id).rjust(6, '0'), dob.replace('-',''))
 
     log_generic(
         type="info",
