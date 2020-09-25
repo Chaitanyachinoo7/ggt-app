@@ -288,7 +288,7 @@ def get_available_dates(group_code):
 
 def get_all_available_dtl():
     try:
-        sql = """
+        sql1 = """
         SELECT 
             nd.location_id,
             l.account AS account,
@@ -328,6 +328,45 @@ def get_all_available_dtl():
                     WHERE
                         g.group_code = '_DEFAULT_')
         GROUP BY nd.location_id , pt.average_processing_time
+        ORDER BY l.city
+        """
+        
+                
+        sql = """
+            SELECT 
+            nd.location_id,
+            l.account AS account,
+            l.name AS name,
+            l.addr1 AS addr1,
+            l.addr2 AS addr2,
+            l.city AS city,
+            l.st AS st,
+            l.zip AS zip,
+            l.lat AS lat,
+            l.lng AS lng,
+            nd.first_date_available AS first_date_time_available,
+            '48' AS average_processing_time,
+            COUNT(DISTINCT (s.start_dt)) AS slot_count
+        FROM
+            schedules s
+                JOIN
+            locations l ON s.location_id = l.id
+                LEFT JOIN
+            schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
+        WHERE
+            DATE(nd.first_date_available) = DATE(s.start_dt)
+                AND start_dt >= CONVERT_TZ(NOW(), '+00:00', '-05:00')
+                AND s.status = 'available'
+                AND s.location_id IN (
+                    SELECT 
+                        m.location_id
+                    FROM
+                        group_codes_to_locations_mapping m
+                            INNER JOIN
+                        groups g ON (g.id = m.group_id)
+                    WHERE
+                        g.group_code = '_DEFAULT_')
+        GROUP BY nd.location_id
         ORDER BY l.city
         """
         return read_rows(sql)
@@ -480,7 +519,7 @@ def add_schedule_entries(rows):
 ########################################################################################################
 def __get_available_locations_beyond_current_day(date_str, group_code):
     try:
-        sql = """
+        sql1 = """
             SELECT 
                 s.location_id,
                 l.account AS account,
@@ -518,6 +557,39 @@ def __get_available_locations_beyond_current_day(date_str, group_code):
                             g.group_code = %s)
             GROUP BY s.location_id, pt.average_processing_time
         """
+        sql = """
+            SELECT 
+                s.location_id,
+                l.account AS account,
+                l.name AS name,
+                l.addr1 AS addr1,
+                l.addr2 AS addr2,
+                l.city AS city,
+                l.st AS st,
+                l.zip AS zip,
+                l.lat AS lat,
+                l.lng AS lng,
+                MIN(s.start_dt) AS first_date_time_available,
+                '48' AS average_processing_time,
+                COUNT(DISTINCT (s.start_dt)) AS slot_count
+            FROM
+                schedules s
+                    JOIN
+                locations l ON s.location_id = l.id
+            WHERE
+                1 AND DATE(s.start_dt) = %s
+                    AND s.status = 'available'
+                    AND s.location_id IN (
+                        SELECT 
+                            m.location_id
+                        FROM
+                            group_codes_to_locations_mapping m
+                                INNER JOIN
+                            groups g ON (g.id = m.group_id)
+                        WHERE
+                            g.group_code = %s)
+            GROUP BY s.location_id
+        """
         vals = (date_str, group_code)
         log_generic(
             type="info",
@@ -539,7 +611,7 @@ def __get_available_locations_beyond_current_day(date_str, group_code):
 
 def __get_available_locations_for_current_day(date_str, group_code):
     try:
-        sql = """
+        sql1 = """
             SELECT 
             nd.location_id,
             l.account AS account,
@@ -567,7 +639,6 @@ def __get_available_locations_for_current_day(date_str, group_code):
             average_processing_times_for_last_5_days pt ON (pt.location_id = s.location_id)
         WHERE
             DATE(nd.first_date_available) = DATE(s.start_dt)
-                AND DATE(s.start_dt) = %s
                 AND s.status = 'available'
                 AND s.location_id IN (
                     SELECT 
@@ -580,7 +651,42 @@ def __get_available_locations_for_current_day(date_str, group_code):
                         g.group_code = %s)
         GROUP BY nd.location_id , pt.average_processing_time
         """
-        vals = (date_str, group_code)
+        sql = """
+            SELECT 
+            nd.location_id,
+            l.account AS account,
+            l.name AS name,
+            l.addr1 AS addr1,
+            l.addr2 AS addr2,
+            l.city AS city,
+            l.st AS st,
+            l.zip AS zip,
+            l.lat AS lat,
+            l.lng AS lng,
+            nd.first_date_available AS first_date_time_available,
+            '48' AS average_processing_time,
+            COUNT(DISTINCT (s.start_dt)) AS slot_count
+        FROM
+            schedules s
+                JOIN
+            locations l ON s.location_id = l.id
+                LEFT JOIN
+            schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
+        WHERE
+            DATE(nd.first_date_available) = DATE(s.start_dt)
+                AND s.status = 'available'
+                AND s.location_id IN (
+                    SELECT 
+                        m.location_id
+                    FROM
+                        group_codes_to_locations_mapping m
+                            INNER JOIN
+                        groups g ON (g.id = m.group_id)
+                    WHERE
+                        g.group_code = %s)
+        GROUP BY nd.location_id
+        """
+        vals = (group_code,)
         log_generic(
             type="info",
             function='get_available_locations_for_current_day',

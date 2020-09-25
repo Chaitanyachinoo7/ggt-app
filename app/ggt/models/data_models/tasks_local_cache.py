@@ -265,7 +265,7 @@ def get_all_lab_records_from_cache():
         c.execute('''
                     SELECT *
                     FROM lab_test_records
-                    WHERE status = 'Approved'
+                    WHERE status IN ('Approved', 'Resulted')
                 ''')
         rows = c.fetchall()
         result = rows

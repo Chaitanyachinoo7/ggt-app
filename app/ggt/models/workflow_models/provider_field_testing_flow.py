@@ -12,6 +12,11 @@ from ggt.models.process_models.bp_appointments import (
 from ggt.models.process_models.bp_printers import (
     bp_provider_get_workstations
 )
+
+from ggt.models.process_models.bp_portal_experience import (
+    bp_record_label_scan,
+    bp_create_test_sample_from_appointment
+)
 '''
 bp_get_monthly_calendar,
 bp_get_monthly_calendar,
@@ -60,6 +65,11 @@ def provider_update_appointment(auth_token, appointment_id, action, workstation_
         is_authenticated(auth_token)
     )
 
+def scan_label(appointment_id):
+    bp_create_test_sample_from_appointment(appointment_id)
+    return x_response(
+        bp_record_label_scan(appointment_id)
+    )
 
 ########################################################################################################
 # [Protected] functions

@@ -111,7 +111,7 @@ def schedule_positive_followups():
 
     log_generic(
         type="info",
-        function='task_process_positive_notifications',
+        function='schedule_positive_followups',
         task_session_id=session_id,
         info='BEGIN - Scheduling Positive Report Followup sessions')
 
@@ -119,7 +119,7 @@ def schedule_positive_followups():
 
     log_generic(
         type="info",
-        function='task_process_positive_notifications',
+        function='schedule_positive_followups',
         task_session_id=session_id,
         info='COMPLETED - Scheduling Positive Report Followup sessions')
 

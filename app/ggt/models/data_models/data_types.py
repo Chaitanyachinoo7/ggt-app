@@ -232,3 +232,8 @@ class ScheduleGenerationRule(BaseModel):
 class LookupAppointmentRequest(BaseModel):
     appointment_id: str
     dob: str
+
+
+class ScanLabelRequest(BaseModel):
+    appointment_id: str
+    

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from ggt.lib.utils import (
     log_generic
 )
@@ -10,6 +12,11 @@ from ggt.models.data_models.test_results import (
     get_all_test_results,
     search_details_by_name_and_dob,
     get_test_details
+)
+
+from ggt.models.data_models.test_sample import (
+    create_test_sample_from_appointment,
+    record_label_scan
 )
 
 from ggt.models.data_models.generic_search_result import (
@@ -56,11 +63,26 @@ def bp_get_all_test_results():
         )
         # return False
 
-def bp_get_general_search_results(first_name, middle_name, last_name, dob, phone_number, 
-                                    email, appointment_id, group_code,appointment_date, location_id):
-    return find_patients(first_name, middle_name, last_name, dob, phone_number, 
-                            email, appointment_id, group_code,appointment_date, location_id)
+def bp_get_general_search_results(first_name, middle_name, last_name, dob, phone_number, email, appointment_id, group_code, appointment_date, location_id):
+    try:
+        appointment_date = datetime.strptime(appointment_date, "%m%d%Y")
+        return find_patients(first_name, middle_name, last_name, dob, phone_number, 
+                                email, appointment_id, group_code, appointment_date, location_id)
+    except Exception as err:
+        log_generic(
+            type="error",
+            function='bp_get_general_search_results',
+            error=err
+        )
 
 
 def bp_get_location_search_results(account, group_code, site_code):
     return search_locations(account, group_code, site_code)
+
+
+def bp_create_test_sample_from_appointment(appointment_id):
+    return create_test_sample_from_appointment(appointment_id)
+
+
+def bp_record_label_scan(appointment_id):
+    return record_label_scan(appointment_id)

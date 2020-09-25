@@ -3,14 +3,16 @@ from fastapi import APIRouter, Request, Response, status
 from ggt.models.data_models.data_types import (
     ProviderLoginRequest,
     ProviderUpdateAppointmentRequest,
-    ProviderLookupAppointmentRequest
+    ProviderLookupAppointmentRequest,
+    ScanLabelRequest
 )
 
 from ggt.models.workflow_models.provider_field_testing_flow import (
     provider_login,
     provider_get_workstations,
     provider_lookup_appointment,
-    provider_update_appointment
+    provider_update_appointment,
+    scan_label
 )
 
 router = APIRouter()
@@ -42,3 +44,8 @@ async def api_provider_update_appointment(provider_update_appointment_request: P
         provider_update_appointment_request.appointment_id,
         provider_update_appointment_request.action,
         provider_update_appointment_request.workstation_id)
+
+
+@router.post("/scan_label")
+async def api_scan_label(scan_label_request: ScanLabelRequest):
+    return scan_label(scan_label_request.appointment_id)

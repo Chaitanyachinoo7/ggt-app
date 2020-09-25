@@ -143,13 +143,13 @@ def find_patients(first_name='', middle_name='', last_name='', dob='', phone_num
         if appointment_id != '':
             where_conditions = "{} AND a.id = '{}'".format(where_conditions, appointment_id)
         if group_code != '':
-            where_conditions = "{} AND p.group_code LIKE '%{}%'".format(where_conditions, group_code)
+            where_conditions = "{} AND a.group_code LIKE '%{}%'".format(where_conditions, group_code)
         if appointment_date != '':
-            where_conditions = "{} AND p.appointment_date = '{}'".format(where_conditions, appointment_date)
+            where_conditions = "{} AND DATE(a.scheduled_dt) = '{}'".format(where_conditions, appointment_date)
         if location_id != '':
-            where_conditions = "{} AND p.location_id = '{}'".format(where_conditions, location_id)
+            where_conditions = "{} AND a.location_id = '{}'".format(where_conditions, location_id)
 
-        limit = 25
+        limit = 250
 
         sql = """
         SELECT 
