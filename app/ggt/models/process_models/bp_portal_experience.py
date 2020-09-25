@@ -65,7 +65,9 @@ def bp_get_all_test_results():
 
 def bp_get_general_search_results(first_name, middle_name, last_name, dob, phone_number, email, appointment_id, group_code, appointment_date, location_id):
     try:
-        appointment_date = datetime.strptime(appointment_date, "%m%d%Y")
+        if appointment_date != '':
+            appointment_date = datetime.strptime(appointment_date, "%m%d%Y")
+    
         return find_patients(first_name, middle_name, last_name, dob, phone_number, 
                                 email, appointment_id, group_code, appointment_date, location_id)
     except Exception as err:

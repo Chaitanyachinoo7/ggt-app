@@ -400,6 +400,7 @@ def get_processing_averages_by_location():
                 ((TO_DAYS(NOW()) - TO_DAYS(dtrwl.lab_result_receive_dt)) < 5)
             GROUP BY dtrwl.location_id
         """
+        #ORDER BY l.city
         return read_rows(sql)
 
     except Exception as err:
@@ -556,6 +557,7 @@ def __get_available_locations_beyond_current_day(date_str, group_code):
                         WHERE
                             g.group_code = %s)
             GROUP BY s.location_id, pt.average_processing_time
+            ORDER BY l.city
         """
         sql = """
             SELECT 
@@ -589,6 +591,7 @@ def __get_available_locations_beyond_current_day(date_str, group_code):
                         WHERE
                             g.group_code = %s)
             GROUP BY s.location_id
+            ORDER BY l.city
         """
         vals = (date_str, group_code)
         log_generic(
@@ -650,6 +653,7 @@ def __get_available_locations_for_current_day(date_str, group_code):
                     WHERE
                         g.group_code = %s)
         GROUP BY nd.location_id , pt.average_processing_time
+        ORDER BY l.city
         """
         sql = """
             SELECT 
@@ -685,6 +689,7 @@ def __get_available_locations_for_current_day(date_str, group_code):
                     WHERE
                         g.group_code = %s)
         GROUP BY nd.location_id
+        ORDER BY l.city
         """
         vals = (group_code,)
         log_generic(

@@ -66,6 +66,7 @@ def provider_update_appointment(auth_token, appointment_id, action, workstation_
     )
 
 def scan_label(appointment_id):
+    #TODO add to sys log, multiple scans can happen, keeps only latest scan
     bp_create_test_sample_from_appointment(appointment_id)
     return x_response(
         bp_record_label_scan(appointment_id)
