@@ -206,13 +206,12 @@ def copy_files_to_local(ftp_client, directory_list, remote_folder):
                             else:
                                 print("copying {} to {}".format(filename, local_path)) ##
                                 ftp_client.get(filename, local_path)
-                            '''
-                            #TODO Move files to backup in remote FTP Server
-                            if add_to_all_inbound_files_cache(filename):
-                                old_path = '{}/{}'.format(remote_dir_path, filename).replace('//','/')
-                                new_path = '{}{}/{}'.format('/backups', remote_dir_path, filename).replace('//','/')
-                                ftp_client.rename(old_path, new_path)
-                            '''
+                            
+                            #if add_to_all_inbound_files_cache(filename):
+                            add_to_all_inbound_files_cache(filename)
+                            old_path = '{}/{}'.format(remote_dir_path, filename).replace('//','/')
+                            new_path = '{}{}/{}'.format('/backups/processed', remote_dir_path, filename).replace('//','/')
+                            ftp_move_file(ftp_client, old_path, new_path)
 
                     except Exception as err:
                         download_errors+=1
@@ -243,6 +242,29 @@ def copy_files_to_local(ftp_client, directory_list, remote_folder):
             task_session_id=session_id, 
             error=err
         )
+
+
+def ftp_move_file(ftp_client, old_path, new_path):
+    dir_path, file_name = os.path.split(new_path.rstrip('/'))
+
+    try:
+        ftp_client.chdir(dir_path)
+    except IOError:
+        ftp_create_dir_path(ftp_client, dir_path)
+
+    ftp_client.rename(old_path, new_path)    
+
+
+def ftp_create_dir_path(ftp_client, dir_path):
+    #Test if sub directories to the remote path exists. If not recursively create them
+    dir_chain = dir_path.split('/')
+    sub_dir_path = ''
+    for directory in dir_chain:
+        sub_dir_path = '{}/{}'.format(sub_dir_path, directory).replace('//','/')
+        try:
+            ftp_client.chdir(sub_dir_path)
+        except IOError:
+            ftp_client.mkdir(sub_dir_path)
 
 
 def get_remote_directories_and_files(ftp_client, remote_folder):
@@ -283,10 +305,23 @@ def get_remote_directory_list(ftp_client, paths, remote_folder):
     print(directories)##
     return directories
 
+
 def parse_csv_files():
-    print('parsing CSV files')
+    #print('parsing CSV files ——— this takes a few seconds depending on the number of files...')
     try:
-        for filename in glob.iglob('{}/**/*.csv'.format(local_download_path), recursive = True):
+        file_list = glob.iglob('{}/**/*.csv'.format(local_download_path), recursive = True)
+        
+        file_count = 0
+        for filename in file_list:
+            file_count += 1
+
+        file_list = glob.iglob('{}/**/*.csv'.format(local_download_path), recursive = True)
+        i = 0
+        p = 0
+        for filename in file_list:
+            i += 1
+            p = i/file_count*100
+            print('Parsing CSV files [%d%%]\r'%p, end="")
             parse_csv_file(filename)
 
     except Exception as err:
@@ -352,9 +387,19 @@ def upload_pdf_lab_reports():
 
 
 def upload_all_inbound_files_to_central_storage():
-    print('uploading all inbound raw files to remote storage')
+    #print('uploading all original inbound files to remote storage')
     try:
+        file_count = 0
         for file_path in glob.iglob('{}/**/*'.format(local_download_path), recursive = True):
+            file_count += 1
+
+        i = 0
+        p = 0
+        for file_path in glob.iglob('{}/**/*'.format(local_download_path), recursive = True):
+            i += 1
+            p = i/file_count*100
+            print('uploading all original inbound files to remote storage [%d%%]\r'%p, end="")
+
             filename = extract_filename(file_path)
             try:
                 if file_exists_in_files_in_remote_storage_cache(filename):
@@ -372,7 +417,7 @@ def upload_all_inbound_files_to_central_storage():
                             #print('upload success {}'.format(filename))
                             pass
                         else:
-                            #print('file exsits... adding to local cache: {}'.format(filename))
+                            #print('file exists... adding to local cache: {}'.format(filename))
                             add_to_files_in_remote_storage_cache(filename)
             except Exception as err:
                 print('Error uploading {}'.format(filename))
@@ -388,13 +433,17 @@ def generate_destination_filename(file_path):
         arr = file_path.split('/')
         filename = arr[len(arr)-1]
         requisition_id = filename.split('-')[3]
-        
-        order_number = get_order_number_by_requisition_id(requisition_id)
-        if order_number:
-            filename = '{}.pdf'.format(order_number)
+
+        if filename.startswith('requisitionReport'):
+            print('Rejected file: {}'.format(filename))
+            pass
         else:
-            print('Requisition Not found - ID: {}'.format(requisition_id))
-            append_to_processing_summary('{} - no record found'.format(requisition_id))
+            order_number = get_order_number_by_requisition_id(requisition_id)
+            if order_number:
+                filename = '{}.pdf'.format(order_number)
+            else:
+                print('Requisition Not found - ID: {}'.format(requisition_id))
+                append_to_processing_summary('{} - no record found'.format(requisition_id))
 
     except Exception as err:
         print("err:", err)

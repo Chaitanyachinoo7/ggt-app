@@ -240,17 +240,16 @@ def get_order_number_by_requisition_id(requisition_id):
                     where requisition_id = {}
                 '''.format(requisition_id))
         row = c.fetchone()
-        result = row[0]
+
+        if row:
+            result = row[0]
 
     except Exception as err:
-        if err[0] and err[0] == "'NoneType' object is not subscriptable":
-            pass  # This is expected for missing Requisition IDs
-        else:
-            log_generic(
-                type="error",
-                requisition_id=requisition_id,
-                function='get_order_number_by_requisition_id',
-                error=err)
+        log_generic(
+            type="error",
+            requisition_id=requisition_id,
+            function='get_order_number_by_requisition_id',
+            error=err)
     finally:
         conn.close()
 
