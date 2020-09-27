@@ -67,7 +67,7 @@ local_download_path=get_config_val('vendors.healthtrackrx.local_download_path')
 #Copy renamed PDF lab reports to GCP
 def task_process_inbound_lab_reports():
     start = time.time()
-    print('\n\n******************Inbound file processing [Start]******************************\n\n')
+    print_header('\n\n******************Inbound file processing [Start]******************************\n\n')
     log_generic(
         type="info", 
         function='task_process_inbound_lab_reports', 
@@ -92,7 +92,7 @@ def task_process_inbound_lab_reports():
         task_session_id=session_id, 
         info='End Processing Inbound Lab Reports')
 
-    print('\n\n****************** COMPLETED ******************************\nElapsed Time: {}\n'.format(time.time() - start))
+    print_header('\n\n****************** COMPLETED ******************************\nElapsed Time: {}\n'.format(time.time() - start))
 
     
 '''
@@ -142,7 +142,7 @@ def clean_downloads_folder():
 
 
 def download_ftp_files():
-    print('downloading files from FTP')
+    print_ok2('downloading files from FTP...')
     try:
         ssh_client = paramiko.SSHClient()
         ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -174,11 +174,11 @@ def download_ftp_files():
 
 
 def copy_files_to_local(ftp_client, directory_list, remote_folder):
-    print('copying files from remote to local')
+    print_ok2('copying files from remote to local')
     try:
         for dir in directory_list:
             remote_dir_path = "{}/{}".format(remote_folder, dir)
-            print("Scanning dir: {}".format(remote_dir_path)) ##
+            print_ok2("Scanning dir: {}".format(remote_dir_path)) ##
             total_files = 0
             cache_hits = 0
             cache_misses = 0
@@ -205,13 +205,11 @@ def copy_files_to_local(ftp_client, directory_list, remote_folder):
                                 pass
                             else:
                                 print("copying {} to {}".format(filename, local_path)) ##
-                                ftp_client.get(filename, local_path)
-                            
-                            #if add_to_all_inbound_files_cache(filename):
-                            add_to_all_inbound_files_cache(filename)
-                            old_path = '{}/{}'.format(remote_dir_path, filename).replace('//','/')
-                            new_path = '{}{}/{}'.format('/backups/processed', remote_dir_path, filename).replace('//','/')
-                            ftp_move_file(ftp_client, old_path, new_path)
+                                if ftp_client.get(filename, local_path) and add_to_all_inbound_files_cache(filename):
+                                        add_to_all_inbound_files_cache(filename)
+                                        old_path = '{}/{}'.format(remote_dir_path, filename).replace('//','/')
+                                        new_path = '{}{}/{}'.format('/backups/processed', remote_dir_path, filename).replace('//','/')
+                                        ftp_move_file(ftp_client, old_path, new_path)
 
                     except Exception as err:
                         download_errors+=1
@@ -230,10 +228,10 @@ def copy_files_to_local(ftp_client, directory_list, remote_folder):
                             error=err
                         )
             finally:
-                print('total_files: ', total_files)
-                print('cache_hits: ', cache_hits)
-                print('cache_misses: ', cache_misses)
-                print('download_errors: ', download_errors)
+                print_ok1('total_files: {}'.format(total_files))
+                print_ok1('cache_hits: {}'.format(cache_hits))
+                print_ok1('cache_misses: {}'.format(cache_misses))
+                print_ok1('download_errors: {}'.format(download_errors))
 
     except Exception as err:
         log_generic(
@@ -340,23 +338,36 @@ def parse_csv_file(file_path):
 
 
 def load_data_from_remote_db_to_cache():
-    print('loading data from remote db to local cache')
     sql = """
         SELECT * 
         FROM healthtrackrx_inbound_data 
         """
     rows = read_rows(sql)
-    
+
+    row_count = len(rows)
+    i = 0
+    p = 0
     for row in rows:
+        i += 1
+        p = i/row_count*100
+        print('loading data from remote db to local cache [%d%%]\r'%p, end="")
         add_to_lab_test_records_cache(row)
-    
-    print('sync completed')
 
 
 def upload_pdf_lab_reports():
     print('uploading PDF lab reports')
     try:
+        file_count = 0
         for filename in glob.iglob('{}/**/*.pdf'.format(local_download_path), recursive = True): 
+            file_count += 1
+
+        i = 0
+        p = 0
+        for filename in glob.iglob('{}/**/*.pdf'.format(local_download_path), recursive = True): 
+            i += 1
+            p = i/file_count*100
+            print('uploading PDF lab reports [%d%%]\r'%p, end="")
+
             try:
                 __requisition_id, __order_number, __destination_filename = generate_destination_filename(filename)
                 add_to_csv_pdf_sync_cache({'requisition_id':__requisition_id}, 'pdf' )
@@ -364,20 +375,24 @@ def upload_pdf_lab_reports():
                 shutil.copyfile(filename,'{}/{}'.format(local_backups_path, __destination_filename))
                 if __destination_filename:
                     if file_exists_in_files_in_remote_storage_cache(__destination_filename):
-                        #print('cache hit: ', __destination_filename)
+                        #print_ok2('cache hit: {}'.format(__destination_filename))
                         pass
                     else:
-                        upload_status = upload_lab_report(
-                            filename, 
-                            __destination_filename
-                        )
-                        if upload_status is None:
-                            print('pdf_lab_report - Error Uploading.... {} ==> {}'.format(filename, __destination_filename))
-                        elif upload_status:
-                            print('pdf_lab_report - upload success {} ==> {}'.format(filename, __destination_filename))
+                        if __order_number:
+                            upload_status = upload_lab_report(
+                                filename, 
+                                __destination_filename
+                            )
+                            if upload_status is None:
+                                print('pdf_lab_report - Error Uploading.... {} ==> {}'.format(filename, __destination_filename))
+                            elif upload_status:
+                                print('pdf_lab_report - upload success {} ==> {}'.format(filename, __destination_filename))
+                            else:
+                                print('pdf_lab_report exists at destination... adding to local cache: {} ==> {}'.format(filename, __destination_filename))
+                                add_to_files_in_remote_storage_cache(__destination_filename)
                         else:
-                            print('pdf_lab_report exists at destination... adding to local cache: {} ==> {}'.format(filename, __destination_filename))
-                            add_to_files_in_remote_storage_cache(__destination_filename)
+                            print_ok2('Lab report upload skipped for rejected lab test')
+                            pass
             except Exception as err:
                 print('Error uploading {}'.format(filename))
             
@@ -412,9 +427,9 @@ def upload_all_inbound_files_to_central_storage():
                     else:
                         upload_status = upload_to_all_inbound_files(file_path, filename)
                         if upload_status is None:
-                            print('Error Uploading.... {}'.format(filename))
+                            print_error('Error Uploading.... {}'.format(filename))
                         elif upload_status:
-                            #print('upload success {}'.format(filename))
+                            print_ok2('upload success {}'.format(filename))
                             pass
                         else:
                             #print('file exists... adding to local cache: {}'.format(filename))
@@ -429,20 +444,23 @@ def upload_all_inbound_files_to_central_storage():
 
 
 def generate_destination_filename(file_path):
+    filename = None
+    requisition_id = None
+    order_number = None
     try:
         arr = file_path.split('/')
         filename = arr[len(arr)-1]
         requisition_id = filename.split('-')[3]
-
+        
         if filename.startswith('requisitionReport'):
-            print('Rejected file: {}'.format(filename))
+            print_warning('Skipping reject file: {}'.format(filename))
             pass
         else:
             order_number = get_order_number_by_requisition_id(requisition_id)
             if order_number:
                 filename = '{}.pdf'.format(order_number)
             else:
-                print('Requisition Not found - ID: {}'.format(requisition_id))
+                print_error('Requisition Not found - ID: {} —/— {}'.format(requisition_id, filename))
                 append_to_processing_summary('{} - no record found'.format(requisition_id))
 
     except Exception as err:
@@ -459,7 +477,7 @@ def append_to_processing_summary(txt):
 
 
 def add_to_healthtrackrx_inbound_data_table():
-    print('syncing inbound cached records to remote DB')
+    print('syncing cached healthtrackrx_inbound_data to remote DB')
     rows = get_all_lab_records_from_cache()
     try:
         sql = """
@@ -515,3 +533,40 @@ from pathlib import Path
 for path in Path('src').rglob('*.c'):
     print(path.name)
 '''
+
+
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+
+    def disable(self):
+        self.HEADER = ''
+        self.OKBLUE = ''
+        self.OKGREEN = ''
+        self.WARNING = ''
+        self.FAIL = ''
+        self.ENDC = ''
+
+
+def print_header(message):
+    print('{.HEADER}{}{.ENDC}'.format(bcolors, message, bcolors))
+
+def print_ok1(message):
+    print('{.OKGREEN}{}{.ENDC}'.format(bcolors, message, bcolors))
+
+def print_ok2(message):
+    print('{.OKBLUE}{}{.ENDC}'.format(bcolors, message, bcolors))
+
+def print_warning(message):
+    print('{.WARNING}{}{.ENDC}'.format(bcolors, message, bcolors))
+
+def print_error(message):
+    print('{.FAIL}{}{.ENDC}'.format(bcolors, message, bcolors))
+
+def print_progress_bar_message(message):
+    print('{.OKBLUE}{}{.ENDC}'.format(bcolors, message, bcolors))
