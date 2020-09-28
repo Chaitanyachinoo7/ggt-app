@@ -142,7 +142,7 @@ def clean_downloads_folder():
 
 
 def download_ftp_files():
-    print_ok2('downloading files from FTP...')
+    print_ok2('Connecting to FTP server...')
     try:
         ssh_client = paramiko.SSHClient()
         ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -174,42 +174,28 @@ def download_ftp_files():
 
 
 def copy_files_to_local(ftp_client, directory_list, remote_folder):
-    print_ok2('copying files from remote to local')
     try:
         for dir in directory_list:
             remote_dir_path = "{}/{}".format(remote_folder, dir)
-            print_ok2("Scanning dir: {}".format(remote_dir_path)) ##
             total_files = 0
             cache_hits = 0
             cache_misses = 0
             download_errors = 0
             try:
-                newpath = "{}/{}".format(local_download_path, remote_dir_path)
-                if not os.path.exists(newpath):
-                    os.makedirs(newpath)
-
                 dir_list, file_list = get_remote_directories_and_files(ftp_client, remote_dir_path)
 
+                file_count = len(file_list)
+                i = 0
+                p = 0
+                PROGRESS_LABEL = 'copying files from FTP to local'
                 for filename in file_list:
+                    i += 1
+                    p = i/file_count*100
+                    print_progress_bar_message("{} {} —— {:.1f}%".format(PROGRESS_LABEL, remote_dir_path, p))
+
                     total_files+=1
                     try:
-                        if file_exists_in_all_inbound_files_cache(filename):
-                            #print('{} exists in cache. -- skipping.'.format(filename))
-                            cache_hits+=1
-                        else:    
-                            cache_misses+=1
-                            local_path = "{}/{}".format(newpath, filename).replace('//','/')
-
-                            if path.exists(local_path):
-                                #print("file {} exists".format(local_path))
-                                pass
-                            else:
-                                print("copying {} to {}".format(filename, local_path)) ##
-                                if ftp_client.get(filename, local_path) and add_to_all_inbound_files_cache(filename):
-                                        add_to_all_inbound_files_cache(filename)
-                                        old_path = '{}/{}'.format(remote_dir_path, filename).replace('//','/')
-                                        new_path = '{}{}/{}'.format('/backups/processed', remote_dir_path, filename).replace('//','/')
-                                        ftp_move_file(ftp_client, old_path, new_path)
+                        cache_hits, cache_misses, download_errors = download_and_cleanup(ftp_client, filename, remote_dir_path, cache_hits, cache_misses, download_errors)
 
                     except Exception as err:
                         download_errors+=1
@@ -219,6 +205,8 @@ def copy_files_to_local(ftp_client, directory_list, remote_folder):
                             task_session_id=session_id, 
                             error=err
                         )
+                
+                print_ok2("{} {} —— 100%            ".format(PROGRESS_LABEL, remote_dir_path))
 
             except Exception as err:
                 log_generic(
@@ -240,6 +228,52 @@ def copy_files_to_local(ftp_client, directory_list, remote_folder):
             task_session_id=session_id, 
             error=err
         )
+
+def prep_local_downloads_dir(remote_dir_path):
+    newpath = "{}/{}".format(local_download_path, remote_dir_path)
+    if not os.path.exists(newpath):
+        os.makedirs(newpath)
+    return newpath
+
+
+def download_and_cleanup(ftp_client, filename, remote_dir_path, cache_hits, cache_misses, download_errors):
+    local_downloads_dir = prep_local_downloads_dir(remote_dir_path)
+    if file_exists_in_all_inbound_files_cache(filename):
+        cache_hits+=1
+        old_path = '{}/{}'.format(remote_dir_path, filename).replace('//','/')
+        new_path = '{}{}/{}'.format('/backups/processed', remote_dir_path, filename).replace('//','/')
+        print('Archiving FTP file {}'.format(old_path))
+        ftp_move_file(ftp_client, old_path, new_path) #Archive file
+        
+    else:    
+        cache_misses+=1
+        local_path = "{}/{}".format(local_downloads_dir, filename).replace('//','/')
+        if path.exists(local_path):
+            print("file {} exists".format(local_path))
+            if os.stat(local_path).st_size > 0:
+                add_to_all_inbound_files_cache(filename)
+            else:
+                print_error('Deleting empty downloaded file : {}'.format(local_path))
+                download_errors+=1
+                os.remove(local_path)
+        else:
+            print_ok1("copying {} to {}".format(filename, local_path))
+            try:
+                ftp_client.get(filename, local_path)                                   
+            except Exception as err:
+                print_error(err)
+                raise ValueError('Error downloading from FTP —— {}'.format(filename))
+
+            if os.stat(local_path).st_size > 0:
+                add_to_all_inbound_files_cache(filename)
+            else:
+                print_error('Deleting empty downloaded file : {}'.format(local_path))
+                download_errors+=1
+                os.remove(local_path)
+                raise ValueError('Error downloading from FTP —— {}'.format(filename))
+    
+    return cache_hits, cache_misses, download_errors
+
 
 
 def ftp_move_file(ftp_client, old_path, new_path):
@@ -305,7 +339,6 @@ def get_remote_directory_list(ftp_client, paths, remote_folder):
 
 
 def parse_csv_files():
-    #print('parsing CSV files ——— this takes a few seconds depending on the number of files...')
     try:
         file_list = glob.iglob('{}/**/*.csv'.format(local_download_path), recursive = True)
         
@@ -316,11 +349,14 @@ def parse_csv_files():
         file_list = glob.iglob('{}/**/*.csv'.format(local_download_path), recursive = True)
         i = 0
         p = 0
+        PROGRESS_LABEL = 'Parsing CSV files'
         for filename in file_list:
             i += 1
             p = i/file_count*100
-            print('Parsing CSV files [%d%%]\r'%p, end="")
+            print_progress_bar_message('Parsing CSV files {:.1f}%'.format(p))
             parse_csv_file(filename)
+        
+        print_ok2('{} 100%            '.format(PROGRESS_LABEL))
 
     except Exception as err:
         print(err)
@@ -347,11 +383,14 @@ def load_data_from_remote_db_to_cache():
     row_count = len(rows)
     i = 0
     p = 0
+    PROGRESS_LABEL = 'copying data from remote db to local cache'
     for row in rows:
         i += 1
         p = i/row_count*100
-        print('loading data from remote db to local cache [%d%%]\r'%p, end="")
+        print_progress_bar_message('{} {:.1f}%'.format(PROGRESS_LABEL, p))
         add_to_lab_test_records_cache(row)
+    
+    print_ok2('{} 100%            '.format(PROGRESS_LABEL))
 
 
 def upload_pdf_lab_reports():
@@ -363,10 +402,11 @@ def upload_pdf_lab_reports():
 
         i = 0
         p = 0
+        PROGRESS_LABEL = 'uploading PDF lab reports'
         for filename in glob.iglob('{}/**/*.pdf'.format(local_download_path), recursive = True): 
             i += 1
             p = i/file_count*100
-            print('uploading PDF lab reports [%d%%]\r'%p, end="")
+            print_progress_bar_message('{} {:.1f}%'.format(PROGRESS_LABEL, p))
 
             try:
                 __requisition_id, __order_number, __destination_filename = generate_destination_filename(filename)
@@ -395,6 +435,8 @@ def upload_pdf_lab_reports():
                             pass
             except Exception as err:
                 print('Error uploading {}'.format(filename))
+        
+        print_ok2('{} 100%            '.format(PROGRESS_LABEL))
             
 
     except Exception as err:
@@ -402,7 +444,6 @@ def upload_pdf_lab_reports():
 
 
 def upload_all_inbound_files_to_central_storage():
-    #print('uploading all original inbound files to remote storage')
     try:
         file_count = 0
         for file_path in glob.iglob('{}/**/*'.format(local_download_path), recursive = True):
@@ -410,10 +451,11 @@ def upload_all_inbound_files_to_central_storage():
 
         i = 0
         p = 0
+        PROGRESS_LABEL = 'uploading all original inbound files to remote storage'
         for file_path in glob.iglob('{}/**/*'.format(local_download_path), recursive = True):
             i += 1
             p = i/file_count*100
-            print('uploading all original inbound files to remote storage [%d%%]\r'%p, end="")
+            print_progress_bar_message('{} {:.1f}%'.format(PROGRESS_LABEL, p))
 
             filename = extract_filename(file_path)
             try:
@@ -429,13 +471,15 @@ def upload_all_inbound_files_to_central_storage():
                         if upload_status is None:
                             print_error('Error Uploading.... {}'.format(filename))
                         elif upload_status:
-                            print_ok2('upload success {}'.format(filename))
+                            print('upload success {}'.format(filename))
                             pass
                         else:
                             #print('file exists... adding to local cache: {}'.format(filename))
                             add_to_files_in_remote_storage_cache(filename)
             except Exception as err:
                 print('Error uploading {}'.format(filename))
+
+        print_ok2('{} 100%            '.format(PROGRESS_LABEL))
             
 
     except Exception as err:
@@ -453,7 +497,7 @@ def generate_destination_filename(file_path):
         requisition_id = filename.split('-')[3]
         
         if filename.startswith('requisitionReport'):
-            print_warning('Skipping reject file: {}'.format(filename))
+            #print_warning('Skipping reject file: {}'.format(filename))
             pass
         else:
             order_number = get_order_number_by_requisition_id(requisition_id)
@@ -569,4 +613,4 @@ def print_error(message):
     print('{.FAIL}{}{.ENDC}'.format(bcolors, message, bcolors))
 
 def print_progress_bar_message(message):
-    print('{.OKBLUE}{}{.ENDC}'.format(bcolors, message, bcolors))
+    print('{.OKBLUE}{}{.ENDC}\r'.format(bcolors, message, bcolors), end="")
