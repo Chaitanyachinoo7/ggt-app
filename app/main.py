@@ -2,6 +2,7 @@
 
 # third party
 from fastapi import FastAPI, Request, Response, Depends, Header, BackgroundTasks, HTTPException
+from fastapi.security import OAuth2PasswordBearer
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -21,6 +22,13 @@ from ggt.routers import (
 NOT_FOUND = "Not found"
 
 app = FastAPI()
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+#Disable pubishing API documentation
+#app.redoc_url = None
+#app.docs_url = None
+
 
 origins = [
     "https://gogettested.com",
@@ -44,12 +52,10 @@ app.add_middleware(
 )
 
 
-'''
-async def get_token_header(x_token: str = Header(...)):
-    return
-    if x_token != "fake-super-secret-token":
-        raise HTTPException(status_code=400, detail="X-Token header invalid")
-'''
+@app.get("/private/")
+async def read_items(token: str = Depends(oauth2_scheme)):
+    return {"token": token}
+
 
 app.include_router(
     rt_redirect.router,

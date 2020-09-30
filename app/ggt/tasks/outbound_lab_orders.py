@@ -155,7 +155,9 @@ def __get_header_row():
 
 
 def __get_formatted_row(order):
-    return [
+    formatted_row = []
+    try:
+        formatted_row = [
         order['patient_id'],
         order['first_name'],
         order['last_name'],
@@ -186,11 +188,15 @@ def __get_formatted_row(order):
         order['is_congregate_resident'],
         order['is_pregnant']
     ]
+    except Exception as err:
+        print(err)
+
+    return formatted_row
 
 
 def get_orders_ready_to_transmit():
     sql = """
-        SELECT 
+         SELECT 
             t.id AS id,
             t.patient_id AS patient_id,
             REPLACE(p.first_name, ',', '') AS first_name,
@@ -225,10 +231,21 @@ def get_orders_ready_to_transmit():
             REPLACE(p.st, ',', '') AS st,
             REPLACE(p.zip, ',', '') AS zip,
             p.phone_number AS phone_number,
-            'WELLHLTX' AS client_site_code,
-            '22244887999' AS physician_npi,
             (CASE
-                WHEN (LENGTH(q.insurance_photo) > 100) THEN 'Insurance Attached'
+                WHEN (l.billing_type = 'insurance') THEN 'WELLHLD'
+                ELSE 'WELLHLTX'
+            END) AS client_site_code,
+            (CASE
+                WHEN (l.billing_type = 'insurance') THEN '1780944496'
+                ELSE '22244887999'
+            END) AS physician_npi,
+            (CASE
+                WHEN
+                    ((l.billing_type = 'insurance')
+                        AND (LENGTH(q.insurance_photo) > 100))
+                THEN
+                    'Insurance Attached'
+                WHEN (l.billing_type = 'insurance') THEN 'Self-Pay'
                 ELSE 'Client Bill'
             END) AS bill,
             t.id AS client_order_number,
@@ -237,7 +254,8 @@ def get_orders_ready_to_transmit():
                 WHEN (l.test_type_offered = 'oral') THEN 'MOUTH'
                 ELSE 'Nasopharynx'
             END) AS sample_source,
-            DATE_FORMAT(t.sample_collection_start_dt, '%m/%d/%y') AS date_of_collection,
+            DATE_FORMAT(t.sample_collection_start_dt,
+                    '%m/%d/%y') AS date_of_collection,
             'RESPI507' AS panel_code,
             'COVID-19 Coronavirus (SARS-CoV-2)' AS panel_name,
             'Unknown' AS is_first_test,
@@ -248,10 +266,10 @@ def get_orders_ready_to_transmit():
             'Unknown' AS is_congregate_resident,
             'Unknown' AS is_pregnant
         FROM
-            (test_samples t
-            JOIN patients p ON (t.patient_id = p.id)
-            LEFT JOIN locations l ON (t.sample_collection_location_id = l.id)
-            LEFT JOIN patient_questionnaires q ON (p.id = q.patient_id))
+            (((test_samples t
+            JOIN patients p ON ((t.patient_id = p.id)))
+            LEFT JOIN locations l ON ((t.sample_collection_location_id = l.id)))
+            LEFT JOIN patient_questionnaires q ON ((p.id = q.patient_id)))
         WHERE
             (t.status = 'ready_to_tx')
             """
