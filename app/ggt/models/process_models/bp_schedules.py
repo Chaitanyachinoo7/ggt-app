@@ -109,8 +109,11 @@ def bp_get_schedule_locations_available(date, group_code='_DEFAULT_'):
     }
 
 
-def bp_get_all_available_locations_and_times():
-    rows = get_all_available_dtl()
+def bp_get_all_available_locations_and_times(group_code='_DEFAULT_'):
+    if not group_code:
+        group_code='_DEFAULT_'
+
+    rows = get_all_available_dtl(group_code)
     available_dtl = []
     try:
         for row in rows:
@@ -130,19 +133,32 @@ def bp_get_all_available_locations_and_times():
                     row['zip']
                 )
 
-            map_thumbnail = 'https://maps.googleapis.com/maps/api/staticmap?center={}&zoom=10&size=110x110&markers=color:red|size:tiny|{}&maptype=roadmap&key=AIzaSyBJmU3ueSBRmXz4mU1MRgdOxAWcfImbQNQ'.format(location_text, location_text)
+            if row['image_thumbnail']:
+                map_thumbnail = 'data:image/jpeg;base64,{}'.format(row['image_thumbnail'])
+            else:
+                map_thumbnail = 'https://maps.googleapis.com/maps/api/staticmap?center={}&zoom=10&size=110x110&markers=color:red|size:tiny|{}&maptype=roadmap&key=AIzaSyBJmU3ueSBRmXz4mU1MRgdOxAWcfImbQNQ'.format(location_text, location_text)
+
+            services_available = []
+            if row['test_covid19']:
+                services_available.append('COVID_19_TEST')
+            if row['test_flu']:
+                services_available.append('FLU_SHOT')
+            if row['test_consult']:
+                services_available.append('CONSULT')
 
             available_dtl.append(
                 {
                     'id': row['location_id'],
                     'name': row['name'],
                     'address': location_text,
+                    'label': location_text,
                     'next_test_date': row['first_date_time_available'].strftime("%a, %-d %b %Y @ %-I:%M %p"),
                     'wait_time_mins': '< 5m',
                     'result_time_hours': '{}h'.format(row['average_processing_time']),
                     'slots_available': row['slot_count']*8,
                     'type': 'public',
-                    'map_thumbnail': map_thumbnail
+                    'map_thumbnail': map_thumbnail,
+                    'services_available': services_available
                 }
             )
 

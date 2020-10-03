@@ -286,7 +286,7 @@ def get_available_dates(group_code):
         return None
 
 
-def get_all_available_dtl():
+def get_all_available_dtl(group_code):
     try:
         sql1 = """
         SELECT 
@@ -300,6 +300,10 @@ def get_all_available_dtl():
             l.zip AS zip,
             l.lat AS lat,
             l.lng AS lng,
+            l.test_covid19,
+            l.test_flu,
+            l.test_consult,
+            l.image_thumbnail,
             nd.first_date_available AS first_date_time_available,
             (CASE
                 WHEN (pt.average_processing_time IS NULL) THEN 48
@@ -326,7 +330,7 @@ def get_all_available_dtl():
                             INNER JOIN
                         groups g ON (g.id = m.group_id)
                     WHERE
-                        g.group_code = '_DEFAULT_')
+                        g.group_code = %s)
         GROUP BY nd.location_id , pt.average_processing_time
         ORDER BY l.city
         """
@@ -344,6 +348,10 @@ def get_all_available_dtl():
             l.zip AS zip,
             l.lat AS lat,
             l.lng AS lng,
+            l.test_covid19,
+            l.test_flu,
+            l.test_consult,
+            l.image_thumbnail,
             nd.first_date_available AS first_date_time_available,
             '48' AS average_processing_time,
             COUNT(DISTINCT (s.start_dt)) AS slot_count
@@ -365,11 +373,13 @@ def get_all_available_dtl():
                             INNER JOIN
                         groups g ON (g.id = m.group_id)
                     WHERE
-                        g.group_code = '_DEFAULT_')
+                        g.group_code = %s)
         GROUP BY nd.location_id
         ORDER BY l.city
         """
-        return read_rows(sql)
+
+        vals = (group_code,)
+        return read_rows(sql, vals)
 
     except Exception as err:
         log_generic(type="error", function='get_all_available_dtl', error=err)

@@ -36,3 +36,12 @@ docker run --name myadmin-dev -d -e PMA_HOST=35.184.98.83 -p 8090:80 phpmyadmin/
 docker run --name myadmin-dev -d -e PMA_HOST=wh-mobile-test-1.clwbkkblucao.us-east-1.rds.amazonaws.com  -p 8090:80 phpmyadmin/phpmyadmin
 
 docker run --name myadmin-dev -d -e PMA_HOST=mysqlserver_hostname  -p 8090:80 phpmyadmin/phpmyadmin
+
+
+GCP Storage
+
+get a list of files from GS bucket, can be used for checking file errors e.g. 0 Byte files.
+gsutil ls -l gs://ggt-lab-reports-prod/ | sort -k 2 > gcp_reports_data.txt
+
+delete a file
+gsutil rm gs://ggt-lab-reports-prod/xxx.ext

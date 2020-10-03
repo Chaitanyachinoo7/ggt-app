@@ -73,7 +73,7 @@ def bp_appointment_update(appointment_id, action, workstation_id):
         elif action == 'end_test':
             update_appointment_with_test_completed(appointment_id)
         elif action == 'reprint':
-            __appointment_begin_test(appointment_id, workstation_id)
+            __appointment_reprint_label(appointment_id, workstation_id)
 
         return {
             'appointment_id': appointment_id,
@@ -182,12 +182,16 @@ def __next_action(appointment):
     return switcher.get(appointment['status'], "")
 
 
-# TODO: Multilane printer setup
-def __appointment_begin_test(appointment_id, queue_id=1):
-    update1 = update_appointment_with_test_start(appointment_id)
-    #update2 = begin_test(appointment_id, patient_id)
+def __appointment_begin_test(appointment_id, workstation_id=1):
+    update_appointment_with_test_start(appointment_id)
+    return __send_label_to_printer(appointment_id, workstation_id)
+    
 
-    # send label to printer
+def __appointment_reprint_label(appointment_id, workstation_id=1):
+    return __send_label_to_printer(appointment_id, workstation_id)
+
+
+def __send_label_to_printer(appointment_id, queue_id):
     import json
     import boto3
 
@@ -225,14 +229,10 @@ def __appointment_begin_test(appointment_id, queue_id=1):
         )
         print(response['MessageId'])
 
-        
-        # __log_generic(payload)
-        #add_syslog_entry("print", "info", barcode_text)
-
         return True
 
     except Exception as err:
         log_generic(type="error", appointment_id=appointment_id,
-                    function='__appointment_begin_test', error=err)
+                    function='__print_label', error=err)
         write_syslog("print", "error", appointment_id)
         return False

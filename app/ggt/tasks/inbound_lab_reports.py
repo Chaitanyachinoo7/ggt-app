@@ -397,22 +397,25 @@ def upload_pdf_lab_reports():
     print('uploading PDF lab reports')
     try:
         file_count = 0
-        for filename in glob.iglob('{}/**/*.pdf'.format(local_download_path), recursive = True): 
+        for local_file_path in glob.iglob('{}/**/*.pdf'.format(local_download_path), recursive = True): 
             file_count += 1
 
         i = 0
         p = 0
         PROGRESS_LABEL = 'uploading PDF lab reports'
-        for filename in glob.iglob('{}/**/*.pdf'.format(local_download_path), recursive = True): 
+        for local_file_path in glob.iglob('{}/**/*.pdf'.format(local_download_path), recursive = True): 
             i += 1
             p = i/file_count*100
             print_progress_bar_message('{} {:.1f}%'.format(PROGRESS_LABEL, p))
 
             try:
-                __requisition_id, __order_number, __destination_filename = generate_destination_filename(filename)
+                if os.stat(local_file_path).st_size == 0:
+                    raise ValueError('Empty File')
+
+                __requisition_id, __order_number, __destination_filename = generate_destination_filename(local_file_path)
                 add_to_csv_pdf_sync_cache({'requisition_id':__requisition_id}, 'pdf' )
 
-                shutil.copyfile(filename,'{}/{}'.format(local_backups_path, __destination_filename))
+                shutil.copyfile(local_file_path,'{}/{}'.format(local_backups_path, __destination_filename))
                 if __destination_filename:
                     if file_exists_in_files_in_remote_storage_cache(__destination_filename):
                         #print_ok2('cache hit: {}'.format(__destination_filename))
@@ -420,21 +423,21 @@ def upload_pdf_lab_reports():
                     else:
                         if __order_number:
                             upload_status = upload_lab_report(
-                                filename, 
+                                local_file_path, 
                                 __destination_filename
                             )
                             if upload_status is None:
-                                print('pdf_lab_report - Error Uploading.... {} ==> {}'.format(filename, __destination_filename))
+                                print('pdf_lab_report - Error Uploading.... {} ==> {}'.format(local_file_path, __destination_filename))
                             elif upload_status:
-                                print('pdf_lab_report - upload success {} ==> {}'.format(filename, __destination_filename))
+                                print('pdf_lab_report - upload success {} ==> {}'.format(local_file_path, __destination_filename))
                             else:
-                                print('pdf_lab_report exists at destination... adding to local cache: {} ==> {}'.format(filename, __destination_filename))
+                                print('pdf_lab_report exists at destination... adding to local cache: {} ==> {}'.format(local_file_path, __destination_filename))
                                 add_to_files_in_remote_storage_cache(__destination_filename)
                         else:
                             print_ok2('Lab report upload skipped for rejected lab test')
                             pass
             except Exception as err:
-                print('Error uploading {}'.format(filename))
+                print('Error uploading — {} — {}'.format(err, local_file_path))
         
         print_ok2('{} 100%            '.format(PROGRESS_LABEL))
             
@@ -446,28 +449,31 @@ def upload_pdf_lab_reports():
 def upload_all_inbound_files_to_central_storage():
     try:
         file_count = 0
-        for file_path in glob.iglob('{}/**/*'.format(local_download_path), recursive = True):
+        for local_file_path in glob.iglob('{}/**/*'.format(local_download_path), recursive = True):
             file_count += 1
 
         i = 0
         p = 0
         PROGRESS_LABEL = 'uploading all original inbound files to remote storage'
-        for file_path in glob.iglob('{}/**/*'.format(local_download_path), recursive = True):
+        for local_file_path in glob.iglob('{}/**/*'.format(local_download_path), recursive = True):
             i += 1
             p = i/file_count*100
             print_progress_bar_message('{} {:.1f}%'.format(PROGRESS_LABEL, p))
 
-            filename = extract_filename(file_path)
+            filename = extract_filename(local_file_path)
             try:
+                if os.stat(local_file_path).st_size == 0:
+                    raise ValueError('Empty File')
+
                 if file_exists_in_files_in_remote_storage_cache(filename):
                     #print('cache hit: ', filename)
                     pass
                 else:
-                    if path.isdir(file_path):
-                        #print('Skipping uploading Directory {}'.format(file_path))
+                    if path.isdir(local_file_path):
+                        #print('Skipping uploading Directory {}'.format(local_file_path))
                         pass
                     else:
-                        upload_status = upload_to_all_inbound_files(file_path, filename)
+                        upload_status = upload_to_all_inbound_files(local_file_path, filename)
                         if upload_status is None:
                             print_error('Error Uploading.... {}'.format(filename))
                         elif upload_status:

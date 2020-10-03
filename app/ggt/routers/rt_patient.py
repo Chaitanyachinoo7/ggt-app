@@ -2,6 +2,7 @@
 #from datetime import date
 
 from fastapi import APIRouter, Request
+from typing import Optional
 
 from ggt.models.data_models.data_types import (
     ValidateOtpRequest,
@@ -77,8 +78,9 @@ async def api_get_available_times_for_today(location_id: str):
 
 
 @router.get("/get_locations")
-async def api_get_all_available_locations_and_times():
-    return get_all_available_locations_and_times()
+@router.get("/get_locations/{group_code}")
+async def api_get_all_available_locations_and_times(group_code: str = None):
+    return get_all_available_locations_and_times(group_code)
 
 
 @router.post("/finalize_registration")

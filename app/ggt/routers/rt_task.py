@@ -10,6 +10,7 @@ from ggt.tasks.report_notifications import task_schedule_result_notifications_an
 from ggt.tasks.email_queue_processor import task_process_email_queue
 from ggt.tasks.sms_queue_processor import task_process_sms_queue
 from ggt.tasks.call_queue_processor import task_process_voice_queue
+from ggt.tasks.locations_processor import task_populate_location_thumbnails
 
 router = APIRouter()
 
@@ -60,6 +61,13 @@ async def api_process_email_queue(request: Request):
 async def api_process_sms_queue(request: Request):
     task_process_sms_queue()
     return {"status": "success"}
+
+
+@router.post("/populate_location_thumbnails")
+async def api_process_sms_queue(request: Request):
+    task_populate_location_thumbnails()
+    return {"status": "success"}
+
 
 
 '''

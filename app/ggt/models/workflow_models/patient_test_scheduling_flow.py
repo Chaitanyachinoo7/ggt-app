@@ -72,9 +72,9 @@ def get_schedule_locations_available(group_code, date):
     )
 
 
-def get_all_available_locations_and_times():
+def get_all_available_locations_and_times(group_code):
     return x_response(
-        bp_get_all_available_locations_and_times()
+        bp_get_all_available_locations_and_times(group_code)
     )
 
 
