@@ -44,6 +44,14 @@ from ggt.models.workflow_models.test_site_admin_flow import (
     delete_schedule
 )
 
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
+)
+
 router = APIRouter()
 
 
@@ -77,7 +85,7 @@ async def api_site_admin_general_search(portal_general_search_request: PortalGen
 async def api_generate_schedule(location_id: str, background_tasks: BackgroundTasks):
     background_tasks.add_task(generate_schedule, location_id)
     return {
-        "status": "success",
+        STATUS: SUCCESS,
         "description": "Background Task Initiated"
     } 
 
@@ -85,7 +93,7 @@ async def api_generate_schedule(location_id: str, background_tasks: BackgroundTa
 async def api_generate_all_schedules(background_tasks: BackgroundTasks):
     background_tasks.add_task(generate_all_schedules)
     return {
-        "status": "success",
+        STATUS: SUCCESS,
         "description": "Background Task Initiated"
     } 
 
@@ -201,11 +209,11 @@ async def api_cc_send_sms(patient_lookup_request: CcPatientLookupRequest):
             patient_lookup_request.last_name, patient_lookup_request.dob
         )
         print(search_result)
-        if search_result['status'] == "success" and search_result['results'][0]['test_result'] == "neg":
+        if search_result[STATUS] == SUCCESS and search_result['results'][0]['test_result'] == "neg":
             send_sms("+14372309014", "Hi There")
-            return {"status": "success"}
+            return {STATUS: SUCCESS}
         else:
-            return {"status": "failure"}
+            return {STATUS: "failure"}
     except Exception as err:
         print(err)
 '''

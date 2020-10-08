@@ -1,5 +1,15 @@
 from ggt.lib.utils import (
-    log_generic
+    get_config_val,
+    log_generic,
+    whoami
+)
+
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
 )
 
 from ggt.lib.adapters.mysql_adapter import (
@@ -8,6 +18,14 @@ from ggt.lib.adapters.mysql_adapter import (
     exec_delete,
     read_row,
     read_rows
+)
+
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
 )
 
 
@@ -20,7 +38,7 @@ def get_all_printer_hubs():
         return read_rows(sql)
 
     except Exception as err:
-        log_generic(type="error", function='get_all_printer_hubs', error=err)
+        log_generic(type=ERROR, function=whoami(), error=err)
         return None
 
 
@@ -53,7 +71,7 @@ def __enqueue(workstation_id, appointment_id):
         return exec_insert(sql, vals)
 
     except Exception as err:
-        log_generic(type="error", function='printers.__enqueue', error=err)
+        log_generic(type=ERROR, function=whoami(), error=err)
         return None
 
 
@@ -72,7 +90,7 @@ def __dequeue(print_job_id):
         return exec_update(sql, vals)
 
     except Exception as err:
-        log_generic(type="error", function='printers.__dequeue', error=err)
+        log_generic(type=ERROR, function=whoami(), error=err)
         return None
 
 
@@ -105,5 +123,5 @@ def __peek(workstation_id, workstation_token):
         return read_row(sql, vals)
 
     except Exception as err:
-        log_generic(type="error", function='printers.__peek', error=err)
+        log_generic(type=ERROR, function=whoami(), error=err)
         return None

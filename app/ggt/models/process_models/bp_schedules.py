@@ -1,7 +1,17 @@
 from datetime import datetime, timedelta
 
 from ggt.lib.utils import (
-    log_generic
+    get_config_val,
+    log_generic,
+    whoami
+)
+
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
 )
 
 from ggt.models.data_models.schedules import (
@@ -23,6 +33,7 @@ from ggt.models.data_models.locations import (
     get_all_locations
 )
 
+
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
@@ -43,17 +54,17 @@ def bp_get_schedule_dates_available(group_code):
                 }
             )
 
-            log_generic(type="info", available_dates=available_dates,
-                        function='get_schedule_dates_available')
+            log_generic(type=INFO, available_dates=available_dates,
+                        function=whoami())
 
         return {
             "available_dates": available_dates
         }
     except Exception as err:
-        log_generic(type="error",
+        log_generic(type=ERROR,
                     group_code=group_code,
                     rows=rows,
-                    function='bp_get_schedule_dates_available',
+                    function=whoami(),
                     error=err)
 
 
@@ -97,12 +108,12 @@ def bp_get_schedule_locations_available(date, group_code='_DEFAULT_'):
                 }
             )
 
-        log_generic(type="info", date=date, group_code=group_code,
-                    available_locations=available_locations, function='bp_get_schedule_locations_available')
+        log_generic(type=INFO, date=date, group_code=group_code,
+                    available_locations=available_locations, function=whoami())
 
     except Exception as err:
-        log_generic(type="error", group_code=group_code, date=date,
-                    rows=rows, function='bp_get_schedule_locations_available', error=err)
+        log_generic(type=ERROR, group_code=group_code, date=date,
+                    rows=rows, function=whoami(), error=err)
 
     return {
         "available_location": available_locations
@@ -139,6 +150,27 @@ def bp_get_all_available_locations_and_times(group_code='_DEFAULT_'):
                 map_thumbnail = 'https://maps.googleapis.com/maps/api/staticmap?center={}&zoom=10&size=110x110&markers=color:red|size:tiny|{}&maptype=roadmap&key=AIzaSyBJmU3ueSBRmXz4mU1MRgdOxAWcfImbQNQ'.format(location_text, location_text)
 
             services_available = []
+            ''' 
+            if row['test_covid19']:
+                services_available.append({
+                    'sku': 'COVID_19_TEST',
+                    'name': 'Covid-19 Test',
+                    'cost': 0
+                })
+            if row['test_flu']:
+                services_available.append({
+                    'sku': 'FLU_SHOT',
+                    'name': 'Flu Shot',
+                    'cost': 3000
+                })
+            if row['test_consult']:
+                services_available.append({
+                    'sku': 'CONSULT',
+                    'name': 'Consultation',
+                    'cost': 0
+                })
+            '''
+            ##To be removed####    
             if row['test_covid19']:
                 services_available.append('COVID_19_TEST')
             if row['test_flu']:
@@ -163,15 +195,15 @@ def bp_get_all_available_locations_and_times(group_code='_DEFAULT_'):
             )
 
         log_generic(
-            type="info",
+            type=INFO,
             available_dtl=available_dtl,
-            function='bp_get_all_available_locations_and_times')
+            function=whoami())
 
     except Exception as err:
         log_generic(
-            type="error",
+            type=ERROR,
             rows=rows,
-            function='bp_get_all_available_locations_and_times',
+            function=whoami(),
             error=err
         )
 
@@ -195,11 +227,11 @@ def bp_get_schedule_times_available(location_id, date):
             )
 
     except Exception as err:
-        log_generic(type="error",
+        log_generic(type=ERROR,
                     location_id=location_id,
                     date=date,
                     rows=rows,
-                    function='bp_get_schedule_times_available',
+                    function=whoami(),
                     error=err)
 
     return {
@@ -216,8 +248,8 @@ def bp_generate_all_schedules():
         return True
 
     except Exception as err:
-        log_generic(type="error",
-                    function='bp_generate_all_schedules',
+        log_generic(type=ERROR,
+                    function=whoami(),
                     error=err)
 
     return False
@@ -229,9 +261,9 @@ def bp_delete_schedule(location_id):
         return delete_schedule_entries_by_location_id(location_id)
 
     except Exception as err:
-        log_generic(type="error",
+        log_generic(type=ERROR,
                     location_id=location_id,
-                    function='bp_delete_schedule_generation_rule',
+                    function=whoami(),
                     error=err)
 
     return False
@@ -242,10 +274,10 @@ def bp_delete_schedule_for_date(location_id, date_str):
         return delete_schedule_entries_by_location_id_for_date(location_id, date_str)
 
     except Exception as err:
-        log_generic(type="error",
+        log_generic(type=ERROR,
                     location_id=location_id,
                     date_str=date_str,
-                    function='bp_delete_schedule_for_date',
+                    function=whoami(),
                     error=err)
 
     return False
@@ -265,9 +297,9 @@ def bp_generate_full_schedule(location_id):
         return True
 
     except Exception as err:
-        log_generic(type="error",
+        log_generic(type=ERROR,
                     location_id=location_id,
-                    function='bp_generate_full_schedule',
+                    function=whoami(),
                     error=err)
 
     return False
@@ -284,9 +316,9 @@ def bp_add_schedule_generation_rule(data):
         return add_schedule_generation_rule(data)
 
     except Exception as err:
-        log_generic(type="error",
+        log_generic(type=ERROR,
                     data=data,
-                    function='bp_add_schedule_generation_rule',
+                    function=whoami(),
                     error=err)
 
     return False
@@ -303,9 +335,9 @@ def bp_update_schedule_generation_rule(data):
         return update_schedule_generation_rule(data)
 
     except Exception as err:
-        log_generic(type="error",
+        log_generic(type=ERROR,
                     data=data,
-                    function='bp_update_schedule_generation_rule',
+                    function=whoami(),
                     error=err)
 
     return False
@@ -316,9 +348,9 @@ def bp_delete_schedule_generation_rule(id):
         return delete_schedule_generation_rule(id)
 
     except Exception as err:
-        log_generic(type="error",
+        log_generic(type=ERROR,
                     id=id,
-                    function='bp_delete_schedule_generation_rule',
+                    function=whoami(),
                     error=err)
 
     return False
@@ -329,9 +361,9 @@ def bp_get_schedule_generation_rules(location_id):
         return get_schedule_generation_rules_by_location_id(location_id)
 
     except Exception as err:
-        log_generic(type="error",
+        log_generic(type=ERROR,
                     location_id=location_id,
-                    function='bp_get_schedule_generation_rules',
+                    function=whoami(),
                     error=err)
 
     return False
@@ -386,9 +418,9 @@ def __process_schedule_rule(rule):
         return True
 
     except Exception as err:
-        log_generic(type="error",
+        log_generic(type=ERROR,
                     rule=rule,
-                    function='__process_schedule_rule',
+                    function=whoami(),
                     error=err)
 
 

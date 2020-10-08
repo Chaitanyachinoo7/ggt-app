@@ -4,7 +4,16 @@ import json
 
 from ggt.lib.utils import (
     get_config_val,
-    log_generic
+    log_generic,
+    whoami
+)
+
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
 )
 
 sqlite_db = get_config_val('databases.sqlite.tasks_sqlite_db')
@@ -50,8 +59,8 @@ def init_local_cache():
         conn.commit()
     except Exception as err:
         log_generic(
-            type="error",
-            function='init_local_cache',
+            type=ERROR,
+            function=whoami(),
             error=err)
     finally:
         conn.close()
@@ -74,7 +83,7 @@ def add_to_lab_test_records_cache(rec):
             str(rec['last_name']).replace('"', r'\"').replace("'", "''"),
             str(rec['dob']),
             str(rec['assay_name']),
-            str(rec['status']),
+            str(rec[STATUS]),
             str(rec['result'])
         )
         c.execute(sql)
@@ -82,9 +91,9 @@ def add_to_lab_test_records_cache(rec):
         result = True
     except Exception as err:
         log_generic(
-            type="error",
+            type=ERROR,
             rec=rec,
-            function='add_to_lab_test_records_cache',
+            function=whoami(),
             error=err)
     finally:
         conn.close()
@@ -117,7 +126,7 @@ def insert_into_csv_pdf_sync_cache(rec, source):
                 str(rec['last_name']).replace('"', r'\"').replace("'", "''"),
                 str(rec['dob']),
                 str(rec['assay_name']),
-                str(rec['status']),
+                str(rec[STATUS]),
                 str(rec['result'])
             )
         else:
@@ -135,9 +144,9 @@ def insert_into_csv_pdf_sync_cache(rec, source):
 
     except Exception as err:
         log_generic(
-            type="error",
+            type=ERROR,
             rec=rec,
-            function='insert_into_csv_pdf_sync_cache',
+            function=whoami(),
             error=err)
     finally:
         conn.close()
@@ -171,7 +180,7 @@ def update_csv_pdf_sync_cache(rec, source='csv'):
                 str(rec['last_name']).replace('"', r'\"').replace("'", "''"),
                 str(rec['dob']),
                 str(rec['assay_name']),
-                str(rec['status']),
+                str(rec[STATUS]),
                 str(rec['result']),
                 str(rec['requisition_id'])
             )
@@ -192,10 +201,10 @@ def update_csv_pdf_sync_cache(rec, source='csv'):
 
     except Exception as err:
         log_generic(
-            type="error",
+            type=ERROR,
             rec=rec,
             sql=sql,
-            function='update_csv_pdf_sync_cache',
+            function=whoami(),
             error=err)
     finally:
         conn.close()
@@ -219,9 +228,9 @@ def is_present_in_csv_pdf_sync_cache(requisition_id):
 
     except Exception as err:
         log_generic(
-            type="error",
+            type=ERROR,
             requisition_id=requisition_id,
-            function='is_present_in_csv_pdf_sync_cache',
+            function=whoami(),
             error=err)
     finally:
         conn.close()
@@ -246,9 +255,9 @@ def get_order_number_by_requisition_id(requisition_id):
 
     except Exception as err:
         log_generic(
-            type="error",
+            type=ERROR,
             requisition_id=requisition_id,
-            function='get_order_number_by_requisition_id',
+            function=whoami(),
             error=err)
     finally:
         conn.close()
@@ -271,8 +280,8 @@ def get_all_lab_records_from_cache():
 
     except Exception as err:
         log_generic(
-            type="error",
-            function='get_all_lab_records_from_cache',
+            type=ERROR,
+            function=whoami(),
             error=err)
     finally:
         conn.close()
@@ -294,9 +303,9 @@ def add_to_all_inbound_files_cache(filename):
         conn.commit()
     except Exception as err:
         log_generic(
-            type="error",
+            type=ERROR,
             filename=filename,
-            function='add_to_all_inbound_files_cache',
+            function=whoami(),
             error=err)
     finally:
         conn.close()
@@ -321,9 +330,9 @@ def file_exists_in_all_inbound_files_cache(filename):
 
     except Exception as err:
         log_generic(
-            type="error",
+            type=ERROR,
             filename=filename,
-            function='file_exists_in_all_inbound_files_cache',
+            function=whoami(),
             error=err)
     finally:
         conn.close()
@@ -353,9 +362,9 @@ def add_to_files_in_remote_storage_cache(filename):
         result = True
     except Exception as err:
         log_generic(
-            type="error",
+            type=ERROR,
             filename=filename,
-            function='add_to_files_in_remote_storage_cache',
+            function=whoami(),
             error=err)
     finally:
         conn.close()
@@ -382,9 +391,9 @@ def file_exists_in_files_in_remote_storage_cache(filename):
 
     except Exception as err:
         log_generic(
-            type="error",
+            type=ERROR,
             filename=filename,
-            function='file_exists_in_files_in_remote_storage_cache',
+            function=whoami(),
             error=err)
     finally:
         conn.close()

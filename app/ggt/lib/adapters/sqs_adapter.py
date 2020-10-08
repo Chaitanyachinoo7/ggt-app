@@ -2,7 +2,17 @@ import boto3
 
 from ggt.lib.utils import (
     get_config_val,
-    log_generic
+    log_generic,
+    whoami
+)
+
+
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
 )
 
 
@@ -10,17 +20,15 @@ def __boto_connect():
     try:
         boto_client = boto3.client(
             "sqs",
-            aws_access_key_id = get_config_val('aws.access_key_id'),
-            aws_secret_access_key = get_config_val('aws.secret_access_key'), 
-            region_name = get_config_val('aws.region')
+            aws_access_key_id=get_config_val('aws.access_key_id'),
+            aws_secret_access_key=get_config_val('aws.secret_access_key'),
+            region_name=get_config_val('aws.region')
         )
         return boto_client
 
     except Exception as err:
-        log_generic(type="error", function='__boto_connect', error=err)
+        log_generic(type=ERROR, function=whoami(), error=err)
         return None
-
-
 
 
 def push_sqs_message(queue_url, message):
@@ -34,9 +42,20 @@ def push_sqs_message(queue_url, message):
                             }
                         )
                     )
-        log_generic(type="info", queue_url=queue_url, message=message, function='push_sqs_message', message_id=response['MessageId'])
+        log_generic(
+            type=INFO,
+            queue_url=queue_url,
+            message=message,
+            function=whoami()]
+        )
         return True
 
     except Exception as err:
-        log_generic(type="error", queue_url=queue_url, message=message, function='push_sqs_message', error=err)
+        log_generic(
+            type = ERROR,
+            queue_url = queue_url,
+            message = message,
+            function = whoami(),
+            error = err
+        )
         return False

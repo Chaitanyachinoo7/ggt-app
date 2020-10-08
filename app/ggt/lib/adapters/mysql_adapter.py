@@ -3,9 +3,17 @@ from mysql.connector import Error
 
 from ggt.lib.utils import (
     get_config_val,
-    log_generic
+    log_generic,
+    whoami
 )
 
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
+)
 
 connection_config_dict = {
     'user': get_config_val('databases.mysql.username'),
@@ -22,16 +30,22 @@ connection_config_dict = {
 
 def __append_to_sql_log(log_type, sql_type, statement, details=""):
     return
-    #TODO: temporarily bypassing
+    # TODO: temporarily bypassing
     if statement is None:
-        statement=""
+        statement = ""
 
     try:
         __cnx = mysql.connector.connect(**connection_config_dict)
         __cursor = __cnx.cursor(dictionary=True, buffered=True)
 
         sql = """
-            INSERT INTO sql_log (log_type, sql_type, statement, details)
+            INSERT INTO 
+                sql_log (
+                    log_type, 
+                    sql_type, 
+                    statement, 
+                    details
+                )
             VALUES (%s, %s, %s, %s)
         """
         vals = (log_type, sql_type, statement, details)
@@ -41,14 +55,18 @@ def __append_to_sql_log(log_type, sql_type, statement, details=""):
         return __cursor.lastrowid
 
     except Exception as err:
-        log_generic(type="error", sql=sql, vals=vals, function='__append_to_sql_log', error=err)
+        log_generic(
+            type=ERROR,
+            sql=sql,
+            vals=vals,
+            function=whoami(),
+            error=err)
         return None
 
     finally:
         if (__cnx.is_connected()):
             __cursor.close()
             __cnx.close()
-
 
 
 def exec_insert(sql, val):
@@ -59,18 +77,23 @@ def exec_insert(sql, val):
         __cursor.execute(sql, val)
         __cnx.commit()
 
-        __append_to_sql_log('info', 'INSERT', __cursor.statement, __cursor.lastrowid)
+        __append_to_sql_log(
+            INFO, 'INSERT', __cursor.statement, __cursor.lastrowid)
         return __cursor.lastrowid
 
     except Error as err:
-        __append_to_sql_log('error', 'INSERT', "{} / {}".format(sql, val), err)
+        __append_to_sql_log(
+            ERROR,
+            'INSERT',
+            "{} / {}".format(sql, val),
+            err
+        )
         return None
 
     finally:
         if (__cnx.is_connected()):
             __cursor.close()
             __cnx.close()
-
 
 
 def exec_batch_execute(sql, data):
@@ -84,8 +107,13 @@ def exec_batch_execute(sql, data):
         return True
 
     except Error as err:
-        __append_to_sql_log('error', 'EXECUTE MANY', "{}".format(sql), err)
-        print('error', 'EXECUTE MANY', "{}".format(sql), err)
+        __append_to_sql_log(
+            ERROR,
+            'EXECUTE MANY',
+            "{}".format(sql),
+            err
+        )
+        print(ERROR, 'EXECUTE MANY', "{}".format(sql), err)
         return False
 
     finally:
@@ -101,11 +129,16 @@ def exec_update(sql, val=()):
 
         __cursor.execute(sql, val)
         __cnx.commit()
-        #__append_to_sql_log('info', 'UPDATE', __cursor.statement, __cursor.rowcount)
+        #__append_to_sql_log(INFO, 'UPDATE', __cursor.statement, __cursor.rowcount)
         return True if __cursor.rowcount > 0 else False
 
     except mysql.connector.Error as err:
-        __append_to_sql_log('error', 'UPDATE', __cursor._executed, err)
+        __append_to_sql_log(
+            ERROR,
+            'UPDATE',
+            __cursor._executed,
+            err
+        )
         return None
 
     finally:
@@ -121,11 +154,21 @@ def exec_delete(sql, val):
 
         __cursor.execute(sql, val)
         __cnx.commit()
-        __append_to_sql_log('info', 'DELETE', __cursor.statement, __cursor.rowcount)
+        __append_to_sql_log(
+            INFO,
+            'DELETE',
+            __cursor.statement,
+            __cursor.rowcount
+        )
         return True if __cursor.rowcount > 0 else False
 
     except mysql.connector.Error as err:
-        __append_to_sql_log('error', 'DELETE', __cursor._executed, err)
+        __append_to_sql_log(
+            ERROR,
+            'DELETE',
+            __cursor._executed,
+            err
+        )
         return None
 
     finally:
@@ -140,11 +183,21 @@ def read_row(sql, val):
         __cursor = __cnx.cursor(dictionary=True, buffered=True)
 
         __cursor.execute(sql, val)
-        __append_to_sql_log('info', 'SELECT', __cursor.statement, __cursor.rowcount)
+        __append_to_sql_log(
+            INFO,
+            'SELECT',
+            __cursor.statement,
+            __cursor.rowcount
+        )
         return __cursor.fetchone()
 
     except mysql.connector.Error as err:
-        __append_to_sql_log('error', 'SELECT', __cursor._executed, err)
+        __append_to_sql_log(
+            ERROR,
+            'SELECT',
+            __cursor._executed,
+            err
+        )
         return None
 
     finally:
@@ -156,16 +209,20 @@ def read_row(sql, val):
 def read_rows(sql, vals=None):
     try:
         __cnx = mysql.connector.connect(**connection_config_dict)
-        __cursor = __cnx.cursor(dictionary=True, buffered=True)     
+        __cursor = __cnx.cursor(dictionary=True, buffered=True)
         if vals is None:
-              __cursor.execute(sql)
+            __cursor.execute(sql)
         else:
             __cursor.execute(sql, vals)
-        #__append_to_sql_log('info', 'SELECT', __cursor.statement, __cursor.rowcount)
+        #__append_to_sql_log(INFO, 'SELECT', __cursor.statement, __cursor.rowcount)
         return __cursor.fetchall()
 
     except mysql.connector.Error as err:
-        __append_to_sql_log('error', 'SELECT', __cursor._executed, err)
+        __append_to_sql_log(
+            ERROR,
+            'SELECT',
+            __cursor._executed, err
+        )
         return None
 
     finally:

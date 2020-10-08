@@ -19,7 +19,14 @@ from ggt.routers import (
     rt_printer_hub
 )
 
-NOT_FOUND = "Not found"
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR,
+    NOT_FOUND
+)
 
 app = FastAPI()
 

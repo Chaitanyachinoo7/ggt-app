@@ -1,6 +1,17 @@
+import datetime
+
 from ggt.lib.utils import (
+    get_config_val,
     log_generic,
-    get_config_val
+    whoami
+)
+
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
 )
 
 from ggt.models.data_models.appointments import (
@@ -20,7 +31,7 @@ from ggt.models.data_models.appointments import (
 '''
 
 from ggt.lib.sys_log import (write_syslog)
-import datetime
+
 '''
 from ggt.models.data_models.test_results import (
     update_appointment_with_checkin,
@@ -39,7 +50,7 @@ def bp_get_appointment_info(appointment_id, dob):
         if dob != 'allowdoboverride' and appointment['dob'].strftime("%Y%m%d") != dob:
             return False
 
-        if appointment['status']=='pending':
+        if appointment[STATUS]=='pending':
             return False
         else:
             return {
@@ -53,9 +64,9 @@ def bp_get_appointment_info(appointment_id, dob):
             }
     except Exception as err:
         log_generic(
-            type="error",
+            type=ERROR,
             appointment_id=appointment_id,
-            function='bp_get_appointment_info',
+            function=whoami(),
             error=err
         )
     
@@ -81,9 +92,9 @@ def bp_appointment_update(appointment_id, action, workstation_id):
         }
     except Exception as err:
         log_generic(
-            type="error",
+            type=ERROR,
             appointment_id=appointment_id,
-            function='bp_get_appointment_info',
+            function=whoami(),
             error=err
         )
 
@@ -113,10 +124,10 @@ def bp_get_monthly_calendar(date, location_id):
         return response
     except Exception as err:
         log_generic(
-            type="error",
+            type=ERROR,
             date=date,
             location_id=location_id,
-            function='bp_get_monthly_calendar',
+            function=whoami(),
             error=err
         )
 
@@ -129,9 +140,9 @@ def bp_provider_positive_result_followup():
         return results
     except Exception as err:
         log_generic(
-            type="error",
+            type=ERROR,
             location_id="",
-            function='bp_provider_positive_result_followup',
+            function=whoami(),
             error=err
         )
 
@@ -179,7 +190,7 @@ def __next_action(appointment):
         'checked_in': 'start_test',
         'test_in_progress': 'end_test'
     }
-    return switcher.get(appointment['status'], "")
+    return switcher.get(appointment[STATUS], "")
 
 
 def __appointment_begin_test(appointment_id, workstation_id=1):
@@ -206,7 +217,7 @@ def __send_label_to_printer(appointment_id, queue_id):
 
         queue_url = "{}-{}".format(get_config_val('aws.sqs_print_queue_base_url'), queue_id)
 
-        write_syslog("print", "info", appointment_id)
+        write_syslog("print", INFO, appointment_id)
 
         # TODO FIX all this
         payload = {
@@ -232,7 +243,7 @@ def __send_label_to_printer(appointment_id, queue_id):
         return True
 
     except Exception as err:
-        log_generic(type="error", appointment_id=appointment_id,
-                    function='__print_label', error=err)
-        write_syslog("print", "error", appointment_id)
+        log_generic(type=ERROR, appointment_id=appointment_id,
+                    function=whoami(), error=err)
+        write_syslog("print", ERROR, appointment_id)
         return False

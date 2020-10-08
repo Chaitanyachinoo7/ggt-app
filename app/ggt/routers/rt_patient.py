@@ -1,6 +1,3 @@
-#from ggt.lib.utils import (log_generic)
-#from datetime import date
-
 from fastapi import APIRouter, Request
 from typing import Optional
 
@@ -26,6 +23,13 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
     get_all_available_locations_and_times
 )
 
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
+)
 
 router = APIRouter()
 

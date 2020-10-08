@@ -1,5 +1,15 @@
 from ggt.lib.utils import (
-    log_generic
+    get_config_val,
+    log_generic,
+    whoami
+)
+
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
 )
 
 from ggt.lib.adapters.mysql_adapter import (
@@ -10,18 +20,61 @@ from ggt.lib.adapters.mysql_adapter import (
     read_rows
 )
 
+from ggt.models.data_models.data_types import (
+    GgtLocation
+)
+
 
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
 def get_location_by_id(location_id):
     try:
-        sql = "SELECT * FROM locations where id = %s LIMIT 1"
+        sql = """
+            SELECT 
+                id,
+                site_code,
+                group_code,
+                account,
+                name,
+                addr1,
+                addr2,
+                addr3,
+                city,
+                st,
+                zip,
+                lat,
+                lng,
+                time_zone,
+                time_zone_offset,
+                test_type_offered,
+                status,
+                type,
+                billing_type,
+                collect_insurance_info,
+                allow_insurance_skip,
+                collect_upfront_payment,
+                image_thumbnail,
+                test_covid19,
+                test_flu,
+                test_consult,
+            FROM 
+                locations 
+            WHERE 
+                id = %s 
+            LIMIT 1
+        """
         vals = (location_id,)
-        return read_row(sql, vals)
-
+        row = read_row(sql, vals)
+        return __map_row_to_location(row)
+        
     except Exception as err:
-        log_generic(type="error", location_id=location_id, function='get_location_by_id', error=err)
+        log_generic(
+            type=ERROR, 
+            location_id=location_id, 
+            function=whoami(), 
+            error=err
+        )
         return None
 
 
@@ -31,7 +84,7 @@ def get_all_locations():
         return read_rows(sql)
 
     except Exception as err:
-        log_generic(type="error", function='get_all_locations', error=err)
+        log_generic(type=ERROR, function=whoami(), error=err)
         return None
 
 
@@ -77,9 +130,52 @@ def search_locations(account, group_code, site_code):
         return read_rows(sql)
 
     except Exception as err:
-        log_generic(type="error", function='get_all_locations', error=err)
+        log_generic(
+            type=ERROR, 
+            function=whoami(), 
+            error=err
+        )
         return None
 
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
+def __map_row_to_location(row):
+    loc = GgtLocation()
+    try:
+        loc.id = row['id']
+        loc.site_code = row['site_code']
+        loc.group_code = row['group_code']
+        loc.account = row['account']
+        loc.name = row['name']
+        loc.addr1 = row['addr1']
+        loc.addr2 = row['addr2']
+        loc.addr3 = row['addr3']
+        loc.city = row['city']
+        loc.xxxx = row['xxxxx']
+        loc.st = row['st']
+        loc.zip = row['zip']
+        loc.lat = row['lat']
+        loc.lng = row['lng']
+        loc.time_zone = row['time_zone']
+        loc.time_zone_offset = row['time_zone_offset']
+        loc.status = row['status']
+        loc.type = row['type']
+        loc.billing_type = row['billing_type']
+        loc.collect_insurance_info = row['collect_insurance_info']
+        loc.allow_insurance_skip = row['allow_insurance_skip']
+        loc.collect_upfront_payment = row['collect_upfront_payment']
+        loc.image_thumbnail = row['image_thumbnail']
+        loc.test_covid19 = row['test_covid19']
+        loc.test_flu = row['test_flu']
+        loc.test_consult = row['test_consult']
+        
+    except Exception as err:
+        log_generic(
+            type=ERROR, 
+            function=whoami(), 
+            error=err
+        )
+        return None
+
+    return loc

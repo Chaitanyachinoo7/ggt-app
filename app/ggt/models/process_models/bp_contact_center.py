@@ -1,9 +1,17 @@
+from datetime import datetime
+
 from ggt.models.data_models.contact_center import(
     add_outbound_call_status,
     update_outbound_call_status
 )
-from datetime import datetime
 
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
+)
 
 def bp_cc_update_outbound_call_status(
     test_id,

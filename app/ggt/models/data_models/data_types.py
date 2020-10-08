@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Dict, List, Optional
+from enum import Enum, IntEnum
 import datetime
 
 
@@ -58,6 +59,38 @@ class Consent(BaseModel):
     full_name: str
 
 
+class ConsentProvider(BaseModel):
+    full_name: str
+
+
+class InfluenzaConsent(BaseModel):
+    full_name: str
+
+
+class PublicPlaces(BaseModel):
+    bars_restaurants_cafes: bool
+    gas_stations: bool
+    medical_offices: bool
+    place_of_work: bool
+    retail_grocery_stores: bool
+    places_of_worship: bool
+    public_parks: bool
+    other: bool
+
+
+class ServiceSelection(BaseModel):
+    COVID_19_TEST: bool
+    CONSULT: bool
+    FLU_SHOT: bool
+
+
+class InfluenzaScreening(BaseModel):
+    severely_ill: bool
+    guillain_barre_syndrome: bool
+    life_threatening_reaction: bool
+    egg_allergy: bool
+
+
 class FinalizeRegistrationRequest(BaseModel):
     groupCode: str
     phone_number: str
@@ -74,10 +107,18 @@ class FinalizeRegistrationRequest(BaseModel):
     patientVitals: PatientVitals
     preExistingConditions: PreExistingConditions
     insurancePhoto: Optional[str] = None
-    consent: Consent
+    consent: Optional[Consent] = None
+    provider_consent: Optional[ConsentProvider] = None
+    influenza_consent: Optional[InfluenzaConsent] = None
+    #location_services = Optional[List[str]] = None
+    service_selection: Optional[ServiceSelection] = None
+    influenza_screening: Optional[InfluenzaScreening] = None
+    public_places: Optional[PublicPlaces] = None
     date: Optional[str] = None
     location: Optional[int] = None
     timeSlot: Optional[int] = None
+    hasInsurance: Optional[bool] = None
+    forceFinish: Optional[bool] = None
 
 
 class PhoneData(BaseModel):
@@ -167,6 +208,7 @@ class CCSendNotiRequest(BaseModel):
     to_email: str
     to_number: str
 
+
 class CCOutboundResultRequest(BaseModel):
     test_id: str
     first_name: str
@@ -176,6 +218,7 @@ class CCOutboundResultRequest(BaseModel):
     to_email: str
     to_number: str
     test_result: str
+
 
 class CCOutboundResultStatusRequest(BaseModel):
     test_id: str
@@ -187,6 +230,7 @@ class CCOutboundResultStatusRequest(BaseModel):
     to_number: str
     test_result: str
     call_status: str
+
 
 class PortalGeneralSearchRequest(BaseModel):
     auth_token: str
@@ -229,6 +273,7 @@ class ScheduleGenerationRule(BaseModel):
     fri: Optional[bool] = False
     sat: Optional[bool] = False
 
+
 class LookupAppointmentRequest(BaseModel):
     appointment_id: str
     dob: str
@@ -236,4 +281,159 @@ class LookupAppointmentRequest(BaseModel):
 
 class ScanLabelRequest(BaseModel):
     appointment_id: str
+
+
+class GgtBooking(BaseModel):
+    token: str = None
+    gender: str = None
+    dob: datetime.date = None
+    height: str = None
+    weight: str = None
+    ethnicity: str = None
+    race: str = None
+    phone_number: str = None
+    first_name: str = None
+    middle_name: str = None
+    last_name: str = None
+    address: str = None
+    city: str = None
+    st: str = None
+    zip: str = None
+    email: str = None
+
+    is_patient: bool = True
+    group_code: str = None
+
+    symptom_fever: bool = False
+    symptom_shortbreath: bool = False
+    symptom_coughing: bool = False
+    symptom_chestpains: bool = False
+    symptom_others: bool = False
+    symptom_lack_of_smell: bool = False
+
+    covid_contact: bool = False
+
+    meds: bool = False
+    heart_disease: bool = False
+    diabetes: bool = False
+    respiratory_disease: bool = False
+    autoimmune_disease: bool = False
+    other_chronic_disease: bool = False
+    allergies: bool = False
+
+    signature: str = None
+    provider_consent_signature:  str = None
+    influenza_consent_signature:  str = None
+
+    service_covid19_test:  bool = False
+    service_flu_shot:  bool = False
+    service_consult:  bool = False
+
+    flu_screen_severely_ill:  bool = False
+    flu_screen_guillain_barre_syndrome:  bool = False
+    flu_screen_life_threatening_reaction:  bool = False
+    flu_screen_egg_allergy:  bool = False
+
+    public_places_bars_restaurants_cafes: bool = False
+    public_places_gas_stations:  bool = False
+    public_places_medical_offices:  bool = False
+    public_places_place_of_work:  bool = False
+    public_places_retail_grocery_stores:  bool = False
+    public_places_places_of_worship:  bool = False
+    public_places_public_parks:  bool = False
+    public_places_other: bool = False
+
+    insurance_photo: str = None
+
+    date: datetime.date = None
+    location: int = None
+    time_slot: int = None
+
+    patient_id: int = None
+
+
+class GgtAppointment(BaseModel):
+    id: int = None
+    scheduled_dt: datetime.datetime = None
+    check_in_dt: datetime.datetime = None
+    location_id: int = None
+    group_code: str = None
+    patient_id: int = None
+    patient_questionnaire_id: int = None
+    test_start_dt: datetime.datetime = None
+    test_end_dt: datetime.datetime = None
+    wp_receipt_token: str = None
+    wp_customer_info_id: int = None
+    total_cost: float = None
+    billed_amount: float = None
+    status: str = None
+    location_text: str = None
+    payment_url: str = None
     
+
+class GenderEnum(str, Enum):
+    male = 'male'
+    female = 'female'
+    unknown = 'unknown'
+
+
+class GgtPatient(BaseModel):
+    first_name: str = None
+    middle_name: str = None
+    last_name: str = None
+    addr1: str = None
+    addr2: str = None
+    addr3: str = None
+    city: str = None
+    st: str = None
+    zip: str = None
+    gender: GenderEnum = None
+    height_ft: str = None
+    height_in: str = None
+    weight_lb: str = None
+    ethnicity: str = None
+    race: str = None
+    dob: str = None
+    phone_number: str = None
+    phone_number_verified: bool = None
+    email: str = None
+    email_verified: bool = None
+    token: str = None
+
+
+class GgtScheduleSlot(BaseModel):
+    id: int = None 
+    location_id: int = None 
+    start_dt: datetime.datetime = None
+    end_dt: datetime.datetime = None
+    duration: int = None
+    status: str = None
+    appointment_id: int = None
+
+class GgtLocation(BaseModel):
+    id: int = None
+    site_code: str = None
+    group_code: str = None
+    account: str = None
+    name: str = None
+    addr1: str = None
+    addr2: str = None
+    addr3: str = None
+    city: str = None
+    st: str = None
+    zip: str = None
+    lat: float = None
+    lng: float = None
+    time_zone: str = None
+    time_zone_offset: str = None
+    test_type_offered: str = None
+    status: str = None
+    type: str = None
+    billing_type: str = None
+    collect_insurance_info: bool = None
+    allow_insurance_skip: bool = None
+    collect_upfront_payment: bool = None
+    image_thumbnail: str = None
+    test_covid19: bool = None
+    test_flu: bool = None
+    test_consult: bool = None

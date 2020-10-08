@@ -2,10 +2,15 @@ import boto3
 from botocore.exceptions import ClientError
 from ggt.lib.utils import (
     get_config_val,
-    log_generic
+    log_generic,
+    whoami
 )
 
-def send_pinpoint_message(sender_number="+18013867767", sender_id="MySenderID", recipient_number="+18018602474", message="Test"):
+def send_pinpoint_message(
+        sender_number="+18013867767", 
+        sender_id="MySenderID", 
+        recipient_number="+18018602474", 
+        message="Test"):
 
     # The AWS Region that you want to use to send the message. For a list of
     # AWS Regions where the Amazon Pinpoint API is available, see
@@ -70,7 +75,7 @@ def send_pinpoint_message(sender_number="+18013867767", sender_id="MySenderID", 
         )
 
     except ClientError as e:
-        print(e.response['Error']['Message'])
+        print(e.response[ERROR]['Message'])
     else:
         print("Message sent! Message ID: "
                 + response['MessageResponse']['Result'][destinationNumber]['MessageId'])

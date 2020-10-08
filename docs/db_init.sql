@@ -348,7 +348,7 @@ CREATE TABLE `signups` (
 
 CREATE TABLE `sql_log` (
   `id` int NOT NULL,
-  `log_type` enum('info','error') DEFAULT NULL,
+  `log_type` enum(INFO,ERROR) DEFAULT NULL,
   `sql_type` enum('SELECT','INSERT','UPDATE','DELETE') DEFAULT NULL,
   `statement` text,
   `details` text,

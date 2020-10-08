@@ -1,5 +1,15 @@
 from ggt.lib.utils import (
-    log_generic
+    get_config_val,
+    log_generic,
+    whoami
+)
+
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
 )
 
 from ggt.lib.adapters.mysql_adapter import (
@@ -9,10 +19,10 @@ from ggt.lib.adapters.mysql_adapter import (
     read_row,
     read_rows
 )
-
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
+
 
 def create_pending_signup_record(phone_number, otp, token=None, ip=None, device_data=None, status='pending'):
     try:
@@ -21,9 +31,9 @@ def create_pending_signup_record(phone_number, otp, token=None, ip=None, device_
         return exec_insert(sql, vals)
 
     except Exception as err:
-        log_generic(type="error", phone_number=phone_number, otp=otp, token=token, ip=ip, device_data=device_data, status=status, function='__insert_record_signups', error=err)
+        log_generic(type=ERROR, phone_number=phone_number, otp=otp, token=token, ip=ip,
+                    device_data=device_data, status=status, function=whoami(), error=err)
         return None
-
 
 
 def get_signup_record(id):
@@ -33,9 +43,8 @@ def get_signup_record(id):
         return read_row(sql, vals)
 
     except Exception as err:
-        log_generic(type="error", id=id, function='__read_record_signups_by_id', error=err)
+        log_generic(type=ERROR, id=id, function=whoami(), error=err)
         return None
-
 
 
 def get_signup_record_by_phone_otp(phone_number, otp):
@@ -46,9 +55,9 @@ def get_signup_record_by_phone_otp(phone_number, otp):
         return row
 
     except Exception as err:
-        log_generic(type="error", phone_number=phone_number, otp=otp, function='__read_record_signups', error=err)
+        log_generic(type=ERROR, phone_number=phone_number,
+                    otp=otp, function=whoami(), error=err)
         return None
-
 
 
 def get_signup_record_by_token(token):
@@ -58,9 +67,8 @@ def get_signup_record_by_token(token):
         return read_row(sql, vals)
 
     except Exception as err:
-        log_generic(type="error", token=token, function='__read_record_signups_by_token', error=err)
+        log_generic(type=ERROR, token=token, function=whoami(), error=err)
         return None
-
 
 
 def update_signup_record(id):
@@ -70,7 +78,7 @@ def update_signup_record(id):
         return exec_update(sql, vals)
 
     except Exception as err:
-        log_generic(type="error", id=id, function='__update_record_signups', error=err)
+        log_generic(type=ERROR, id=id, function=whoami(), error=err)
         return None
 
 
@@ -81,11 +89,10 @@ def get_ui_screen_flow_seq(group_code):
         return read_row(sql, vals)
 
     except Exception as err:
-        log_generic(type="error", group_code=group_code, function='get_ui_screen_flow_seq', error=err)
+        log_generic(type=ERROR, group_code=group_code,
+                    function=whoami(), error=err)
         return None
 
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
-
-

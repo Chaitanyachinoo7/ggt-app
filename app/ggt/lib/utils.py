@@ -13,7 +13,7 @@ from pprint import pprint, pformat
 
 from ggt.configs.config_loader import cfg
 
-# TODO: Enahancd logging context with user session and client device/ip info etc.
+# TODO: Enahance logging context with user session and client device/ip info etc.
 
 
 class bcolors:
@@ -39,6 +39,9 @@ def get_config_val(key):
     else:
         return ""
 
+def whoami(): 
+    frame = inspect.currentframe()
+    return inspect.getframeinfo(frame).function
 
 def generate_otp():
     otp = pyotp.TOTP('base32secret3232')
@@ -81,9 +84,9 @@ def log_generic(**kwargs):
     kwargs['source'] = inspect.stack()[1][4]
     kwargs['timestamp'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
 
-    if 'error' in kwargs:
+    if ERROR in kwargs:
         logging.error(pformat(kwargs))
-    elif 'info' in kwargs:
+    elif INFO in kwargs:
         logging.info(pformat(kwargs))
     else:
         logging.debug(pformat(kwargs))
@@ -97,7 +100,7 @@ def x_response(res, allow=True):
             return success_response(res)
 
     except Exception as err:
-        log_generic(type="error", res=res, function="x_response", error=err)
+        log_generic(type=ERROR, res=res, function=whoami(), error=err)
     return failure_response()
 
 
@@ -107,14 +110,14 @@ def y_response(res, allow=True):
             return success_response_array(res)
 
     except Exception as err:
-        log_generic(type="error", res=res, function="y_response", error=err)
+        log_generic(type=ERROR, res=res, function=whoami(), error=err)
     return failure_response()
 
 
 def success_response(kv=None):
     if kv is None or kv is True:
         kv = {}
-    kv['status'] = 'success'
+    kv[STATUS] = SUCCESS
     return kv
 
 
@@ -122,7 +125,7 @@ def success_response_array(kv=None):
     if kv is None or kv is True:
         kv = {}
     res = {}
-    res['status'] = 'success'
+    res[STATUS] = SUCCESS
     res['results'] = kv
     return res
 
@@ -130,7 +133,7 @@ def success_response_array(kv=None):
 def failure_response(kv=None):
     if kv is None:
         kv = {}
-    kv['status'] = 'failure'
+    kv[STATUS] = FAILED
     return kv
 
 

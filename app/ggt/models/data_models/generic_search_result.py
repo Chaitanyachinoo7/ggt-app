@@ -2,7 +2,17 @@ from pydantic import BaseModel
 from typing import Dict, List, Optional
 
 from ggt.lib.utils import (
+    get_config_val,
     log_generic,
+    whoami
+)
+
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
 )
 
 from ggt.lib.adapters.mysql_adapter import (
@@ -12,6 +22,7 @@ from ggt.lib.adapters.mysql_adapter import (
     read_row,
     read_rows
 )
+
 
 ########################################################################################################
 # [Public] functions
@@ -23,15 +34,18 @@ class PatientDetails(BaseModel):
     last_name: str
     dob: str
 
+
 class PatientVitals(BaseModel):
     height: str
     weight: str
     medications: bool
 
+
 class PatientDemographics(BaseModel):
     gender: str
     race: str
     ethnicity: str
+
 
 class PatientAddress(BaseModel):
     addr1: str
@@ -40,12 +54,14 @@ class PatientAddress(BaseModel):
     st: str
     zip_code: str
 
+
 class PatientContactInfo(BaseModel):
     email: str
     email_verified: bool
     phone_number: str
     phone_verified: bool
-    
+
+
 class PreExistingConditions(BaseModel):
     heart_disease: bool
     diabetes: bool
@@ -53,6 +69,7 @@ class PreExistingConditions(BaseModel):
     autoimmune_disease: bool
     other_chronic_disease: bool
     allergies: bool
+
 
 class Symptoms(BaseModel):
     symptom_fever: bool
@@ -63,6 +80,7 @@ class Symptoms(BaseModel):
     symptom_lack_of_smell_taste: bool
     covid_contact: bool
 
+
 class BillingInfo(BaseModel):
     total_amount: str
     insurance_billed: str
@@ -70,13 +88,16 @@ class BillingInfo(BaseModel):
     patient_billed: str
     insurance_photo: str
 
+
 class Activity(BaseModel):
     activity_type: str
     activity_dt: str
     details: str
 
+
 class ActivityList(BaseModel):
     activity_list: List[Activity] = None
+
 
 class TestLocation(BaseModel):
     id: str
@@ -92,10 +113,12 @@ class TestLocation(BaseModel):
     time_zone: str
     test_offered: str
 
+
 class ClinicalProvider(BaseModel):
     id: str
     first_name: str
     last_name: str
+
 
 class TestSample(BaseModel):
     test_id: str
@@ -106,10 +129,12 @@ class TestSample(BaseModel):
     test_result: str
     status: str
 
+
 class Appointment(BaseModel):
     appointment_id: str
     scheduled_dt: str
     test_ocation: TestLocation
+
 
 class GenericSearchResult(BaseModel):
     details: PatientDetails
@@ -120,34 +145,46 @@ class GenericSearchResult(BaseModel):
     pre_existing_conditions: PreExistingConditions
     symptoms: Symptoms
     billing_info: BillingInfo
-    
+
+
 class GenericSearchResults(BaseModel):
     search_results: Optional[GenericSearchResult] = None
 
-def find_patients(first_name='', middle_name='', last_name='', dob='', phone_number='', 
-                    email='', appointment_id='', group_code='',appointment_date='', location_id=''):
+
+def find_patients(first_name='', middle_name='', last_name='', dob='', phone_number='',
+                  email='', appointment_id='', group_code='', appointment_date='', location_id=''):
     try:
-        where_conditions = '' 
+        where_conditions = ''
         if first_name != '':
-            where_conditions = "{} AND p.first_name LIKE '%{}%'".format(where_conditions, first_name)
+            where_conditions = "{} AND p.first_name LIKE '%{}%'".format(
+                where_conditions, first_name)
         if middle_name != '':
-            where_conditions = "{} AND p.middle_name LIKE '%{}%'".format(where_conditions, middle_name)
+            where_conditions = "{} AND p.middle_name LIKE '%{}%'".format(
+                where_conditions, middle_name)
         if last_name != '':
-            where_conditions = "{} AND p.last_name LIKE '%{}%'".format(where_conditions, last_name)
+            where_conditions = "{} AND p.last_name LIKE '%{}%'".format(
+                where_conditions, last_name)
         if dob != '':
-            where_conditions = "{} AND p.dob = '{}'".format(where_conditions, dob)
+            where_conditions = "{} AND p.dob = '{}'".format(
+                where_conditions, dob)
         if phone_number != '':
-            where_conditions = "{} AND p.phone_number LIKE '%{}%'".format(where_conditions, phone_number)
+            where_conditions = "{} AND p.phone_number LIKE '%{}%'".format(
+                where_conditions, phone_number)
         if email != '':
-            where_conditions = "{} AND p.email LIKE '%{}%'".format(where_conditions, email)
+            where_conditions = "{} AND p.email LIKE '%{}%'".format(
+                where_conditions, email)
         if appointment_id != '':
-            where_conditions = "{} AND a.id = '{}'".format(where_conditions, appointment_id)
+            where_conditions = "{} AND a.id = '{}'".format(
+                where_conditions, appointment_id)
         if group_code != '':
-            where_conditions = "{} AND a.group_code LIKE '%{}%'".format(where_conditions, group_code)
+            where_conditions = "{} AND a.group_code LIKE '%{}%'".format(
+                where_conditions, group_code)
         if appointment_date != '':
-            where_conditions = "{} AND DATE(a.scheduled_dt) = '{}'".format(where_conditions, appointment_date)
+            where_conditions = "{} AND DATE(a.scheduled_dt) = '{}'".format(
+                where_conditions, appointment_date)
         if location_id != '':
-            where_conditions = "{} AND a.location_id = '{}'".format(where_conditions, location_id)
+            where_conditions = "{} AND a.location_id = '{}'".format(
+                where_conditions, location_id)
 
         limit = 250
 
@@ -268,8 +305,8 @@ def find_patients(first_name='', middle_name='', last_name='', dob='', phone_num
 
     except Exception as err:
         log_generic(
-            type="error",
-            function='find_patient', 
+            type=ERROR,
+            function=whoami(),
             error=err
         )
         return None

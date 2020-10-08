@@ -1,7 +1,8 @@
 from ggt.lib.utils import (
     get_config_val,
     log_generic,
-    generate_session_id
+    generate_session_id,
+    whoami
 )
 
 from ggt.lib.adapters.mysql_adapter import (
@@ -11,6 +12,14 @@ from ggt.lib.adapters.mysql_adapter import (
 )
 
 from ggt.lib.email import send_email, render_template
+
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
+)
 
 
 def task_process_email_queue():

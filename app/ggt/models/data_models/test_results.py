@@ -1,5 +1,15 @@
 from ggt.lib.utils import (
-    log_generic
+    get_config_val,
+    log_generic,
+    whoami
+)
+
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
 )
 
 from ggt.lib.adapters.mysql_adapter import (
@@ -26,7 +36,7 @@ def get_test_result(id):
         return read_row(sql, vals)
 
     except Exception as err:
-        log_generic(type="error", id=id, function='get_test_result', error=err)
+        log_generic(type=ERROR, id=id, function=whoami(), error=err)
         return False
 
 
@@ -43,8 +53,8 @@ def get_test_result_by_token(token):
         return read_row(sql, vals)
 
     except Exception as err:
-        log_generic(type="error", token=token,
-                    function='get_test_result_by_token', error=err)
+        log_generic(type=ERROR, token=token,
+                    function=whoami(), error=err)
         return False
 
 
@@ -61,8 +71,8 @@ def get_test_details(test_id):
         return read_row(sql, vals)
 
     except Exception as err:
-        log_generic(type="error", test_id=test_id,
-                    function='get_test_details', error=err)
+        log_generic(type=ERROR, test_id=test_id,
+                    function=whoami(), error=err)
         return False
 
 
@@ -107,10 +117,10 @@ def search_details_by_name_and_dob(last_name, dob):
 
     except Exception as err:
         log_generic(
-            type="error",
+            type=ERROR,
             last_name=last_name,
             dob=dob,
-            function='get_masked_test_details_by_name_and_dob',
+            function=whoami(),
             error=err)
         return False
 
@@ -142,8 +152,8 @@ def get_all_test_results():
         return read_rows(sql, )
     except Exception as err:
         log_generic(
-            type="error",
-            function='get_test_results',
+            type=ERROR,
+            function=whoami(),
             error=err)
 
 
@@ -168,13 +178,13 @@ def create_test_sample(appointment_id, patient_id, patient_questionnaire_id, gro
 
     except Exception as err:
         log_generic(
-            type="error", 
+            type=ERROR, 
             appointment_id=appointment_id, 
             patient_id=patient_id, 
             patient_questionnaire_id=patient_questionnaire_id, 
             group_code=group_code, 
             location_id=location_id, 
-            function='create_test_sample', 
+            function=whoami(), 
             error=err
         )
         return None

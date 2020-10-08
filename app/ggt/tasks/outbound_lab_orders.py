@@ -9,7 +9,8 @@ from PIL import Image
 from ggt.lib.utils import (
     get_config_val,
     log_generic,
-    generate_session_id
+    generate_session_id,
+    whoami
 )
 
 from ggt.lib.adapters.mysql_adapter import (
@@ -17,6 +18,14 @@ from ggt.lib.adapters.mysql_adapter import (
     exec_update,
     read_row,
     read_rows
+)
+
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
 )
 
 session_id = generate_session_id()
@@ -27,8 +36,8 @@ local_insurance_card_file_path = get_config_val('vendors.healthtrackrx.local_ins
 def task_process_outbound_lab_orders():
     print('\n\n************************************************\n\n')
     log_generic(
-        type="info",
-        function='task_process_outbound_lab_orders',
+        type=INFO,
+        function=whoami(),
         task_session_id=session_id,
         info='Begin Processing outbound Lab Reports')
 
@@ -51,8 +60,8 @@ def task_process_outbound_lab_orders():
 
 
     log_generic(
-        type="info",
-        function='task_process_outbound_lab_orders',
+        type=INFO,
+        function=whoami(),
         task_session_id=session_id,
         info='End Processing outbound Lab Reports')
     print('\n\n************************************************\n\n')
@@ -303,8 +312,8 @@ def upload_file_list_to_ftp(file_list):
 
     except Exception as err:
         log_generic(
-            type="error",
-            function='upload_file_list_to_ftp',
+            type=ERROR,
+            function=whoami(),
             task_session_id=session_id,
             error=err
         )
@@ -336,8 +345,8 @@ def upload_file_to_ftp(filename, local_file_path):
 
     except Exception as err:
         log_generic(
-            type="error",
-            function='upload_file_to_ftp',
+            type=ERROR,
+            function=whoami(),
             task_session_id=session_id,
             error=err
         )
