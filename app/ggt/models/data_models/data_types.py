@@ -350,25 +350,6 @@ class GgtBooking(BaseModel):
     time_slot: int = None
 
     patient_id: int = None
-
-
-class GgtAppointment(BaseModel):
-    id: int = None
-    scheduled_dt: datetime.datetime = None
-    check_in_dt: datetime.datetime = None
-    location_id: int = None
-    group_code: str = None
-    patient_id: int = None
-    patient_questionnaire_id: int = None
-    test_start_dt: datetime.datetime = None
-    test_end_dt: datetime.datetime = None
-    wp_receipt_token: str = None
-    wp_customer_info_id: int = None
-    total_cost: float = None
-    billed_amount: float = None
-    status: str = None
-    location_text: str = None
-    payment_url: str = None
     
 
 class GenderEnum(str, Enum):
@@ -378,6 +359,7 @@ class GenderEnum(str, Enum):
 
 
 class GgtPatient(BaseModel):
+    id: int = None 
     first_name: str = None
     middle_name: str = None
     last_name: str = None
@@ -437,3 +419,24 @@ class GgtLocation(BaseModel):
     test_covid19: bool = None
     test_flu: bool = None
     test_consult: bool = None
+
+
+class GgtAppointment(BaseModel):
+    id: int = None
+    scheduled_dt: datetime.datetime = None
+    check_in_dt: datetime.datetime = None
+    location_id: int = None
+    group_code: str = None
+    patient_id: int = None
+    patient_questionnaire_id: int = None
+    test_start_dt: datetime.datetime = None
+    test_end_dt: datetime.datetime = None
+    wp_receipt_token: str = None
+    wp_customer_info_id: int = None
+    total_cost: float = None
+    billed_amount: float = None
+    status: str = None
+    location_text: str = None
+    payment_url: str = None
+    patient: GgtPatient = None
+    location: GgtLocation = None

@@ -82,8 +82,8 @@ def task_process_inbound_lab_reports():
         task_session_id=session_id, 
         info='Begin Processing Inbound Lab Reports')
 
-    init_local_cache()  
-    load_data_from_remote_db_to_cache() 
+    #init_local_cache()  
+    #load_data_from_remote_db_to_cache() 
 
     ####clean_downloads_folder()
     download_ftp_files()

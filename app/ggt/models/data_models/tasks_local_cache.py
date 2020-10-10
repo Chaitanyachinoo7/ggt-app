@@ -83,7 +83,7 @@ def add_to_lab_test_records_cache(rec):
             str(rec['last_name']).replace('"', r'\"').replace("'", "''"),
             str(rec['dob']),
             str(rec['assay_name']),
-            str(rec[STATUS]),
+            str(rec['status']),
             str(rec['result'])
         )
         c.execute(sql)
@@ -126,7 +126,7 @@ def insert_into_csv_pdf_sync_cache(rec, source):
                 str(rec['last_name']).replace('"', r'\"').replace("'", "''"),
                 str(rec['dob']),
                 str(rec['assay_name']),
-                str(rec[STATUS]),
+                str(rec['status']),
                 str(rec['result'])
             )
         else:
@@ -180,7 +180,7 @@ def update_csv_pdf_sync_cache(rec, source='csv'):
                 str(rec['last_name']).replace('"', r'\"').replace("'", "''"),
                 str(rec['dob']),
                 str(rec['assay_name']),
-                str(rec[STATUS]),
+                str(rec['status']),
                 str(rec['result']),
                 str(rec['requisition_id'])
             )

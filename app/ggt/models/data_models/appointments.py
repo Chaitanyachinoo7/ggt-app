@@ -1,5 +1,5 @@
 from ggt.lib.utils import (
-    log_generic, 
+    log_generic,
     whoami
 )
 
@@ -12,7 +12,9 @@ from ggt.lib.adapters.mysql_adapter import (
 )
 
 from ggt.models.data_models.data_types import (
-    GgtAppointment
+    GgtAppointment,
+    GgtLocation,
+    GgtPatient
 )
 
 from ggt.lib.constants import (
@@ -44,76 +46,116 @@ def create_appointment(appointment_req):
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """
         vals = (
-            appointment_req.scheduled_dt, 
-            appointment_req.location_id, 
+            appointment_req.scheduled_dt,
+            appointment_req.location_id,
             appointment_req.patient_id,
-            appointment_req.patient_questionnaire_id, 
-            appointment_req.group_code, 
+            appointment_req.patient_questionnaire_id,
+            appointment_req.group_code,
             appointment_req.total_cost,
             appointment_req.billed_amount
         )
-        return exec_insert(sql, vals)
+        appointment_id = exec_insert(sql, vals)
+        return get_appointment(appointment_id)
 
     except Exception as err:
         log_generic(
             type=ERROR,
             function=whoami(),
-            data
-            scheduled_dt=appointment_req.scheduled_dt,
-            location_id=appointment_req.location_id,
-            patient_id=appointment_req.patient_id,
-            patient_questionnaire_id=appointment_req.patient_questionnaire_id,
-            group_code=appointment_req.group_code,
-            error=err)
+            appointment_req=appointment_req,
+            error=err
+        )
         return None
 
 
 def get_appointment(appointment_id):
     try:
-        sql="""SELECT
-                    a.id,
-                    a.scheduled_dt,
-                    a.group_code,
-                    a.status,
-                    a.wp_receipt_token,
-                    l.addr1,
-                    l.addr2,
-                    l.city,
-                    l.st,
-                    l.zip,
-                    p.dob,
-                    p.first_name,
-                    p.middle_name,
-                    p.last_name,
-                    p.phone_number,
-                    p.addr1 as patient_addr1,
-                    p.city as patient_city,
-                    p.st as patient_st,
-                    p.zip as patient_zip
+        sql = """
+            SELECT
+                a.*
+                l.addr1,
+                l.addr2,
+                l.city,
+                l.st,
+                l.zip,
+                p.dob,
+                p.first_name,
+                p.middle_name,
+                p.last_name,
+                p.phone_number,
+                p.addr1 as patient_addr1,
+                p.city as patient_city,
+                p.st as patient_st,
+                p.zip as patient_zip
+            FROM
+                appointments a
+                    JOIN
+                patients p ON a.patient_id = p.id
+                    JOIN
+                locations l ON a.location_id = l.id
+            WHERE
+                a.id = %s
+        """
 
-                FROM
-                    appointments a
-                        JOIN
-                    patients p ON a.patient_id = p.id
-                        JOIN
-                    locations l ON a.location_id = l.id
-                WHERE
-                    a.id = %s"""
+        vals = (appointment_id,)
+        row = read_row(sql, vals)
 
-        vals=(appointment_id,)
-        return read_row(sql, vals)
+        l = GgtLocation()
+        l.id = row['location_id']
+        l.addr1 = row['location_addr1']
+        l.addr2 = row['location_addr2']
+        l.city = row['location_city']
+        l.st = row['location_st']
+        l.zip = row['location_zip']
+
+        p = GgtPatient()
+        p.id = row['patient_id']
+        p.dob = row['patient_dob']
+        p.first_name = row['patient_first_name']
+        p.middle_name = row['patient_middle_name']
+        p.last_name = row['patient_last_name']
+        p.phone_number = row['patient_phone_number']
+        p.addr1 = row['patient_addr1']
+        p.city = row['patient_city']
+        p.st = row['patient_st']
+        p.zip = row['patient_zip']
+
+        a = GgtAppointment()
+        a.id = row['id']
+        a.location_id = row['location_id']
+        a.scheduled_dt = row['scheduled_dt']
+        a.group_code = row['group_code']
+        a.patient_id = row['patient_id']
+        a.patient_questionnaire_id = row['patient_questionnaire_id']
+
+        a.check_in_dt = row['check_in_dt']
+        a.test_start_dt = row['test_start_dt']
+        a.test_end_dt = row['test_end_dt']
+
+        a.wp_customer_info_id = row['wp_customer_info_id']
+        a.total_cost = row['total_cost']
+        a.billed_amount = row['billed_amount']
+        a.payment_url = row['payment_url']
+        a.wp_receipt_token = row['wp_receipt_token']
+
+        a.location = l
+        a.patient = p
+        a.status = row['status']
+
+        return a
+
     except Exception as err:
         log_generic(
-            type = ERROR,
-            appointment_id = appointment_id,
-            function = 'get_appointment',
-            error = err)
+            type=ERROR,
+            appointment_id=appointment_id,
+            function=whoami(),
+            error=err
+        )
         return None
 
 
 def get_monthy_calendar(from_date, to_date, location_id):
     try:
-        sql="""
+        sql = """
             SELECT
                 * FROM appointment_with_patient
             WHERE
@@ -121,22 +163,24 @@ def get_monthy_calendar(from_date, to_date, location_id):
                 and location_id = %s
             """
 
-        vals=(from_date, to_date, location_id)
+        vals = (from_date, to_date, location_id)
         return read_rows(sql, vals)
+
     except Exception as err:
         log_generic(
-            type = ERROR,
-            location_id = location_id,
-            from_date = from_date,
-            to_date = to_date,
-            function = 'get_monthy_calendar',
-            error = err)
+            type=ERROR,
+            location_id=location_id,
+            from_date=from_date,
+            to_date=to_date,
+            function=whoami(),
+            error=err
+        )
         return None
 
 
 def positive_result_followup():
     try:
-        sql="""SELECT
+        sql = """SELECT
                     pos.patient_id,
                     pos.test_id,
                     pos.dob,
@@ -171,21 +215,21 @@ def positive_result_followup():
                     overall_status = %s LIMIT 1
                     """
 
-        vals=("scheduled",)
+        vals = ("scheduled",)
         return read_row(sql, vals)
+
     except Exception as err:
         log_generic(
-            type = ERROR,
-            location_id = None,
-            function = 'get_monthy_calendar',
-            error = err)
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
         return None
-
 
 
 def update_appointment_with_receipt_token(wp_receipt_token, wp_customer_info_id, appointment_id):
     try:
-        sql="""
+        sql = """
             UPDATE appointments
                 SET
                     wp_receipt_token = %s,
@@ -193,41 +237,47 @@ def update_appointment_with_receipt_token(wp_receipt_token, wp_customer_info_id,
                 WHERE
                     id = %s
         """
-        vals=(wp_receipt_token, wp_customer_info_id, appointment_id)
+        vals = (wp_receipt_token, wp_customer_info_id, appointment_id)
         return exec_update(sql, vals)
+
     except Exception as err:
         log_generic(
-            type = ERROR,
-            appointment_id = appointment_id,
-            function = 'update_appointment_with_receipt_token',
-            error = err)
+            type=ERROR,
+            wp_receipt_token=wp_receipt_token,
+            wp_customer_info_id=wp_customer_info_id,
+            appointment_id=appointment_id,
+            function=whoami(),
+            error=err
+        )
         return None
 
 
 def update_appointment_with_confirmed_scheduled(appointment_id):
     try:
-        sql="""
+        sql = """
             UPDATE appointments
                 SET
                     status = 'scheduled'
                 WHERE
                     id = %s
         """
-        vals=(appointment_id,)
+        vals = (appointment_id,)
         return exec_update(sql, vals)
+
     except Exception as err:
         log_generic(
-            type = ERROR,
-            appointment_id = appointment_id,
-            function = 'update_appointment_with_confirmed_scheduled',
-            error = err)
+            type=ERROR,
+            appointment_id=appointment_id,
+            function=whoami(),
+            error=err
+        )
 
         return None
 
 
-def update_positive_result_followup(id, datetime):
+def update_positive_result_followup(id, date_time):
     try:
-        sql="""
+        sql = """
             UPDATE positive_result_followup_queue
             SET
                 overall_status = %s, update_dt = %s
@@ -235,21 +285,23 @@ def update_positive_result_followup(id, datetime):
                 test_id = %s
             """
 
-        vals=("pending", datetime, id)
+        vals = ("pending", date_time, id)
         return exec_update(sql, vals)
 
     except Exception as err:
         log_generic(
-            type = ERROR,
-            location_id = None,
-            function = 'update_positive_result_followup',
-            error = err)
+            type=ERROR,
+            id=id,
+            date_time=date_time,
+            function=whoami(),
+            error=err
+        )
         return None
 
 
 def update_appointment_with_checkin(appointment_id):
     try:
-        sql="""
+        sql = """
             UPDATE appointments
                 SET
                     check_in_dt = NOW(),
@@ -257,20 +309,22 @@ def update_appointment_with_checkin(appointment_id):
                 WHERE
                     id = %s
         """
-        vals=(appointment_id,)
+        vals = (appointment_id,)
         return exec_update(sql, vals)
+
     except Exception as err:
         log_generic(
-            type = ERROR,
-            appointment_id = appointment_id,
-            function = 'update_appointment_with_checkin',
-            error = err)
+            type=ERROR,
+            appointment_id=appointment_id,
+            function=whoami(),
+            error=err
+        )
         return None
 
 
 def update_appointment_with_test_start(appointment_id):
     try:
-        sql="""
+        sql = """
             UPDATE appointments
                 SET
                     test_start_dt = NOW(),
@@ -278,20 +332,22 @@ def update_appointment_with_test_start(appointment_id):
                 WHERE
                     id = %s
         """
-        vals=(appointment_id,)
+        vals = (appointment_id,)
         return exec_update(sql, vals)
+
     except Exception as err:
         log_generic(
-            type = ERROR,
-            appointment_id = appointment_id,
-            function = 'update_appointment_with_test_start',
-            error = err)
+            type=ERROR,
+            appointment_id=appointment_id,
+            function=whoami(),
+            error=err
+        )
         return None
 
 
 def update_appointment_with_test_completed(appointment_id):
     try:
-        sql="""
+        sql = """
             UPDATE appointments
                 SET
                     test_end_dt = NOW(),
@@ -299,14 +355,16 @@ def update_appointment_with_test_completed(appointment_id):
                 WHERE
                     id = %s
             """
-        vals=(appointment_id,)
+        vals = (appointment_id,)
         return exec_update(sql, vals)
+
     except Exception as err:
         log_generic(
-            type = ERROR,
-            appointment_id = appointment_id,
-            function = 'update_appointment_with_test_completed',
-            error = err)
+            type=ERROR,
+            appointment_id=appointment_id,
+            function=whoami(),
+            error=err
+        )
         return None
 
 ########################################################################################################

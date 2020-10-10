@@ -1,7 +1,9 @@
-STATUS = STATUS
-SUCCESS = SUCCESS
-FAILED = FAILED
-INFO = INFO
-ERROR = ERROR
+STATUS = 'status'
+SUCCESS = 'success'
+FAILED = 'failed'
+INFO = 'info'
+ERROR = 'error'
 NOT_FOUND = 'Not Found'
 DEFAULT_GROUP_CODE = '_DEFAULT_'
+DESCRIPTION = 'description'
+BACKGROUND_TASK_INITIATE_MESSAGE = 'Background Task Initiated'

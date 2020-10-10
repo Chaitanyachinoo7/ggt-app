@@ -17,7 +17,9 @@ from ggt.lib.constants import (
     SUCCESS,
     FAILED,
     INFO,
-    ERROR
+    ERROR,
+    DESCRIPTION,
+    BACKGROUND_TASK_INITIATE_MESSAGE
 )
 
 router = APIRouter()
@@ -28,7 +30,7 @@ async def api_process_inbound_lab_reports(request: Request, background_tasks: Ba
     background_tasks.add_task(task_process_inbound_lab_reports)
     return {
         STATUS: SUCCESS,
-        "description": "Background Task Initiated"
+        DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
     }
 
 
@@ -37,7 +39,7 @@ async def api_process_outbound_lab_orders(request: Request, background_tasks: Ba
     background_tasks.add_task(task_process_outbound_lab_orders)
     return {
         STATUS: SUCCESS,
-        "description": "Background Task Initiated"
+        DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
     }
 
 
@@ -46,7 +48,7 @@ async def api_schedule_result_notifications_and_followups(request: Request, back
     background_tasks.add_task(task_schedule_result_notifications_and_followups)
     return {
         STATUS: SUCCESS,
-        "description": "Background Task Initiated"
+        DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
     }
 
 
@@ -55,7 +57,7 @@ async def api_process_voice_queue(request: Request, background_tasks: Background
     background_tasks.add_task(task_process_voice_queue)
     return {
         STATUS: SUCCESS,
-        "description": "Background Task Initiated"
+        DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
     }
 
 

@@ -132,7 +132,7 @@ def finalize_payment(finalize_payment_request):
 
 
 def finalize_registration(finalize_registration_request):
-    booking_req = create_booking_req(finalize_registration_request)
+    booking_req = __create_booking_req(finalize_registration_request)
     appointment = bp_finalize_booking(booking_req)
 
     if appointment:
@@ -148,7 +148,8 @@ def finalize_registration(finalize_registration_request):
     else:
         return {STATUS: FAILED}
 
-def create_booking_req(finalize_registration_request):
+
+def __create_booking_req(finalize_registration_request):
     b = GgtBooking()
     b.token = finalize_registration_request.token
     b.phone_number = finalize_registration_request.phone_number.strip()

@@ -81,12 +81,12 @@ def log_generic(**kwargs):
     for key in kwargs.keys():
         globals()[key] = kwargs[key]
 
-    kwargs['source'] = inspect.stack()[1][4]
+    #kwargs['source'] = inspect.stack()[1][4]
     kwargs['timestamp'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
 
-    if ERROR in kwargs:
+    if 'error' in kwargs:
         logging.error(pformat(kwargs))
-    elif INFO in kwargs:
+    elif 'info' in kwargs:
         logging.info(pformat(kwargs))
     else:
         logging.debug(pformat(kwargs))

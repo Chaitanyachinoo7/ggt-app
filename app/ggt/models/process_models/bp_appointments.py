@@ -47,14 +47,14 @@ from ggt.models.data_models.test_results import (
 def bp_get_appointment_info(appointment_id, dob):
     try:
         appointment = get_appointment(appointment_id)
-        if dob != 'allowdoboverride' and appointment['dob'].strftime("%Y%m%d") != dob:
+        if dob != 'allowdoboverride' and appointment.patient.dob.strftime("%Y%m%d") != dob:
             return False
 
-        if appointment[STATUS]=='pending':
+        if appointment.status == 'pending':
             return False
         else:
             return {
-                "appointment_id": appointment_id,
+                "appointment_id": appointment.id,
                 "date": __formatted_date_text(appointment),
                 "location": __formatted_location_text(appointment),
                 "patient_dob": __formatted_patient_dob(appointment),
@@ -69,7 +69,7 @@ def bp_get_appointment_info(appointment_id, dob):
             function=whoami(),
             error=err
         )
-    
+
     return False
 
 
@@ -99,6 +99,7 @@ def bp_appointment_update(appointment_id, action, workstation_id):
         )
 
     return False
+
 
 '''
 def bp_get_monthly_calendar(date, location_id):
@@ -154,34 +155,33 @@ def bp_provider_positive_result_followup():
 
 
 def __formatted_date_text(appointment):
-    return appointment['scheduled_dt'].strftime("%a, %-d %b %Y @ %-I:%M %p")
+    return appointment.scheduled_dt.strftime("%a, %-d %b %Y @ %-I:%M %p")
 
 
 def __formatted_location_text(appointment):
     # 6155 Sports Village Rd, Frisco, TX 75033
-    return "{}, {} {}  {}".format(appointment['addr1'],
-                                  appointment['city'],
-                                  appointment['st'],
-                                  appointment['zip'])
+    return "{}, {} {}  {}".format(appointment.addr1,
+                                  appointment.city,
+                                  appointment.st,
+                                  appointment.zip)
 
 
 def __formatted_patient_address(appointment):
-    return "{}, {} {}  {}".format(appointment['patient_addr1'],
-                                  appointment['patient_city'],
-                                  appointment['patient_st'],
-                                  appointment['patient_zip'])
+    return "{}, {} {}  {}".format(appointment.patient.addr1,
+                                  appointment.patient.city,
+                                  appointment.patient.st,
+                                  appointment.patient.zip)
 
 
 def __formatted_patient_name(appointment):
     return "{} {} {}".format(
-        appointment['first_name'],
-        appointment['middle_name'],
-        appointment['last_name'])
+        appointment.patient.first_name,
+        appointment.patient.middle_name,
+        appointment.patient.last_name)
 
 
 def __formatted_patient_dob(appointment):
-    dob = appointment['dob']
-    return dob.strftime("%m/%d/%Y")
+    return appointment.patient.dob.strftime("%m/%d/%Y")
 
 
 def __next_action(appointment):
@@ -190,13 +190,13 @@ def __next_action(appointment):
         'checked_in': 'start_test',
         'test_in_progress': 'end_test'
     }
-    return switcher.get(appointment[STATUS], "")
+    return switcher.get(appointment.status, "")
 
 
 def __appointment_begin_test(appointment_id, workstation_id=1):
     update_appointment_with_test_start(appointment_id)
     return __send_label_to_printer(appointment_id, workstation_id)
-    
+
 
 def __appointment_reprint_label(appointment_id, workstation_id=1):
     return __send_label_to_printer(appointment_id, workstation_id)
@@ -215,7 +215,8 @@ def __send_label_to_printer(appointment_id, queue_id):
                                           appointment['middle_name'],
                                           )
 
-        queue_url = "{}-{}".format(get_config_val('aws.sqs_print_queue_base_url'), queue_id)
+        queue_url = "{}-{}".format(get_config_val(
+            'aws.sqs_print_queue_base_url'), queue_id)
 
         write_syslog("print", INFO, appointment_id)
 

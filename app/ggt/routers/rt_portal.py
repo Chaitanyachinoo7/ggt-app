@@ -209,7 +209,7 @@ async def api_cc_send_sms(patient_lookup_request: CcPatientLookupRequest):
             patient_lookup_request.last_name, patient_lookup_request.dob
         )
         print(search_result)
-        if search_result[STATUS] == SUCCESS and search_result['results'][0]['test_result'] == "neg":
+        if search_result['status'] == SUCCESS and search_result['results'][0]['test_result'] == "neg":
             send_sms("+14372309014", "Hi There")
             return {STATUS: SUCCESS}
         else:

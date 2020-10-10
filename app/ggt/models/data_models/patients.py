@@ -20,6 +20,9 @@ from ggt.lib.adapters.mysql_adapter import (
     read_rows
 )
 
+from ggt.models.data_models.data_types import (
+    GgtPatient
+)
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
@@ -61,8 +64,13 @@ def create_patient_record(patient):
         return exec_insert(sql, vals)
 
     except Exception as err:
-        log_generic(type=ERROR, vals=vals, patient=patient,
-                    function=whoami(), error=err)
+        log_generic(
+            type=ERROR, 
+            vals=vals, 
+            patient=patient,
+            function=whoami(), 
+            error=err
+        )
         return None
 
 
@@ -85,7 +93,7 @@ def get_patient(patient_id):
         vals = (patient_id,)
         row = read_row(sql, vals)
 
-        patient = Patient()
+        patient = GgtPatient()
         patient.id = row['id']
         patient.first_name = row['first_name']
         patient.middle_name = row['middle_name']
@@ -93,14 +101,22 @@ def get_patient(patient_id):
         patient.dob = row['dob']
         patient.token = row['token']
 
-        log_generic(type=INFO, patient_id=patient_id,
-                    row=row, function=whoami())
+        log_generic(
+            type=INFO, 
+            patient_id=patient_id,
+            row=row, 
+            function=whoami()
+        )
 
         return (patient)
 
     except Exception as err:
-        log_generic(type=ERROR, id=id,
-                    function=whoami(), error=err)
+        log_generic(
+            type=ERROR, 
+            id=id,
+            function=whoami(), 
+            error=err
+        )
         return None
 
 
@@ -125,9 +141,10 @@ def get_patient_by_token(token):
         log_generic(
             type=INFO,
             token=token,
-            function=whoami())
+            function=whoami()
+        )
 
-        patient = Patient()
+        patient = GgtPatient()
         patient.id = row['id']
         patient.first_name = row['first_name']
         patient.middle_name = row['middle_name']
@@ -141,7 +158,8 @@ def get_patient_by_token(token):
             type=ERROR,
             id=id,
             function=whoami(),
-            error=err)
+            error=err
+        )
         return None
 
 ########################################################################################################
