@@ -15,6 +15,14 @@ from ggt.models.workflow_models.provider_field_testing_flow import (
     scan_label
 )
 
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
+)
+
 router = APIRouter()
 
 

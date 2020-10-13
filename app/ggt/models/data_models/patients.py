@@ -1,5 +1,15 @@
 from ggt.lib.utils import (
+    get_config_val,
     log_generic,
+    whoami
+)
+
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
 )
 
 from ggt.lib.adapters.mysql_adapter import (
@@ -10,80 +20,165 @@ from ggt.lib.adapters.mysql_adapter import (
     read_rows
 )
 
+from ggt.models.data_models.data_types import (
+    GgtPatient
+)
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-def create_patient_record(**kwargs):
+
+
+def create_patient_record(patient):
     try:
-        token = kwargs.get('token', '')
-        phone_number = kwargs.get('phone_number', '')
-        phone_number_verified = kwargs.get('phone_number_verified', '')
-        email = kwargs.get('email', '')
+        sql = """
+            INSERT INTO 
+                patients (
+                    first_name, 
+                    middle_name, 
+                    last_name, 
+                    addr1, 
+                    city, 
+                    st, 
+                    zip,
+                    gender, 
+                    height_ft, 
+                    weight_lb, 
+                    ethnicity, 
+                    race,  
+                    dob, 
+                    phone_number, 
+                    phone_number_verified, 
+                    email, 
+                    token
+                )
+            VALUES 
+                (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
 
-        first_name = kwargs.get('first_name', '')
-        middle_name = kwargs.get('middle_name', '')
-        last_name = kwargs.get('last_name', '')
-        gender = kwargs.get('gender', '')
-        
-        dob = kwargs.get('dob', '')
-        height_ft = kwargs.get('height_ft', '')
-        weight_lb = kwargs.get('weight_lb', '')
-
-        ethnicity = kwargs.get('ethnicity', '')
-        race = kwargs.get('race', '')
-
-        addr1 = kwargs.get('addr1', '')
-        city = kwargs.get('city', '')
-        zip = kwargs.get('zip', '')
-        st = kwargs.get('st', '')
- 
-        sql = "INSERT INTO patients (first_name, middle_name, last_name, addr1, city, st, zip, \
-                gender, height_ft, weight_lb, ethnicity, race,  dob, phone_number, phone_number_verified, email, token) \
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-
-        vals = (first_name, middle_name, last_name, addr1, city, st, zip,
-               gender, height_ft, weight_lb, ethnicity, race,  dob, phone_number, phone_number_verified, email, token)
+        vals = (
+            patient.first_name, 
+            patient.middle_name, 
+            patient.last_name, 
+            patient.addr1,
+            patient.city, 
+            patient.st, 
+            patient.zip, 
+            patient.gender, 
+            patient.height_ft,
+            patient.weight_lb, 
+            patient.ethnicity, 
+            patient.race,  
+            patient.dob,
+            patient.phone_number, 
+            patient.phone_number_verified, 
+            patient.email,
+            patient.token
+        )
 
         return exec_insert(sql, vals)
 
     except Exception as err:
-        log_generic(type="error", vals=vals, locals=locals(),
-                    function='create_patient_record', error=err)
+        log_generic(
+            type=ERROR, 
+            vals=vals, 
+            patient=patient,
+            function=whoami(), 
+            error=err
+        )
         return None
 
 
 def get_patient(patient_id):
     try:
-        sql = "SELECT id, first_name, middle_name, last_name, dob, token FROM patients WHERE id=%s LIMIT 1"
-        vals = (id,)
+        sql = """
+            SELECT 
+                id, 
+                first_name, 
+                middle_name, 
+                last_name, 
+                dob, 
+                token 
+            FROM 
+                patients 
+            WHERE 
+                id=%s 
+            LIMIT 1
+        """
+        vals = (patient_id,)
         row = read_row(sql, vals)
-        log_generic(type="info", id=id, row=row,
-                    function='__read_record_patients_by_id')
-        return (row['id'], row['first_name'], row['middle_name'], row['last_name'], row['dob'], row['token'])
+
+        patient = GgtPatient()
+        patient.id = row['id']
+        patient.first_name = row['first_name']
+        patient.middle_name = row['middle_name']
+        patient.last_name = row['last_name']
+        patient.dob = row['dob']
+        patient.token = row['token']
+
+        log_generic(
+            type=INFO, 
+            patient_id=patient_id,
+            row=row, 
+            function=whoami()
+        )
+
+        return (patient)
 
     except Exception as err:
-        log_generic(type="error", id=id,
-                    function='get_patient_by_id', error=err)
+        log_generic(
+            type=ERROR, 
+            id=id,
+            function=whoami(), 
+            error=err
+        )
         return None
 
 
-def get_patient_by_token(token):
+def get_patient_by_token(token, expect_no_match=False):
     try:
-        sql = "SELECT id, first_name, middle_name, last_name, dob, token FROM patients WHERE token=%s LIMIT 1"
+        sql = """
+            SELECT 
+                id, 
+                first_name, 
+                middle_name, 
+                last_name, 
+                dob, 
+                token 
+            FROM 
+                patients 
+            WHERE 
+                token=%s 
+            LIMIT 1
+        """
         vals = (token,)
         row = read_row(sql, vals)
+
+        #When checking Table for duplicates, Null is the expected result
+        if expect_no_match and row is None:
+            return None
+
         log_generic(
-            type="info", 
-            token=token, 
-            function='get_patient_by_token')
-        return (row['id'], row['first_name'], row['middle_name'], row['last_name'], row['dob'], row['token'])
+            type=INFO,
+            token=token,
+            function=whoami()
+        )
+
+        patient = GgtPatient()
+        patient.id = row['id']
+        patient.first_name = row['first_name']
+        patient.middle_name = row['middle_name']
+        patient.last_name = row['last_name']
+        patient.dob = row['dob']
+        patient.token = row['token']
+        return (patient)
 
     except Exception as err:
         log_generic(
-            type="error", 
+            type=ERROR,
             id=id,
-            function='get_patient_by_token', 
-            error=err)
+            function=whoami(),
+            error=err
+        )
         return None
 
 ########################################################################################################

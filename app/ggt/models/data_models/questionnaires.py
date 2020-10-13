@@ -9,6 +9,13 @@ from ggt.lib.adapters.mysql_adapter import (
     read_row,
     read_rows)
 
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
+)
 
 ########################################################################################################
 # [Public] functions
@@ -20,50 +27,139 @@ from ggt.lib.adapters.mysql_adapter import (
 ########################################################################################################
 
 # TODO: isPatient?
-def create_patient_questionnaire(data):
-    symptom_fever = convert_to_bool(data["symptom_fever"])
-    symptom_shortbreath = convert_to_bool(data["symptom_shortbreath"])
-    symptom_coughing = convert_to_bool(data["symptom_coughing"])
-    symptom_chestpains = convert_to_bool(data["symptom_chestpains"])
-    symptom_others = convert_to_bool(data["symptom_others"])
-    symptom_lack_of_smell = convert_to_bool(data["symptom_lack_of_smell"])
-    covid_contact = convert_to_bool(data["covid_contact"])
+def create_patient_questionnaire(booking_req):
+    '''
+    symptom_fever = convert_to_bool(booking_req.symptom_fever)
+    symptom_shortbreath = convert_to_bool(booking_req.symptom_shortbreath"])
+    symptom_coughing = convert_to_bool(booking_req.symptom_coughing"])
+    symptom_chestpains = convert_to_bool(booking_req.symptom_chestpains"])
+    symptom_others = convert_to_bool(booking_req.symptom_others"])
+    symptom_lack_of_smell = convert_to_bool(booking_req.symptom_lack_of_smell"])
+    covid_contact = convert_to_bool(booking_req.covid_contact"])
 
-    is_patient = convert_to_bool(data["is_patient"])
+    is_patient = convert_to_bool(booking_req.is_patient"])
 
-    meds = convert_to_bool(data["meds"])
-    heart_disease = convert_to_bool(data["heart_disease"])
-    diabetes = convert_to_bool(data["diabetes"])
-    respiratory_disease = convert_to_bool(data["respiratory_disease"])
-    autoimmune_disease = convert_to_bool(data["autoimmune_disease"])
-    other_chronic_disease = convert_to_bool(data["other_chronic_disease"])
-    allergies = convert_to_bool(data["allergies"])
-    signature = data["signature"]
+    meds = convert_to_bool(booking_req.meds"])
+    heart_disease = convert_to_bool(booking_req.heart_disease"])
+    diabetes = convert_to_bool(booking_req.diabetes"])
+    respiratory_disease = convert_to_bool(booking_req.respiratory_disease"])
+    autoimmune_disease = convert_to_bool(booking_req.autoimmune_disease"])
+    other_chronic_disease = convert_to_bool(booking_req.other_chronic_disease"])
+    allergies = convert_to_bool(booking_req.allergies"])
+    signature = booking_req.signature"]
 
-    patient_id = data["patient_id"]
-    token = data["token"]
-    group_code = data["group_code"]
-
+    patient_id = booking_req.patient_id"]
+    token = booking_req.token"]
+    group_code = booking_req.group_code"]
+    '''
     #insurance_photo = data["insurance_photo"]
 
     try:
         sql = """
         INSERT INTO patient_questionnaires 
-            (patient_id, group_code, symptom_fever, symptom_shortness_breath, symptom_cough, 
-            symptom_chest_pain, symptom_lack_of_smell, symptom_other_breathing, covid_contact, 
-            prescription_use, heart_disease, diabetes, respiratory_diseases, autoimmune_disease, 
-            other_chronic, allergies,  consent_signed, token, insurance_photo)
-        
+            (
+                patient_id, 
+                group_code, symptom_fever, 
+                symptom_shortness_breath, 
+                symptom_cough, 
+                symptom_chest_pain, 
+                symptom_lack_of_smell, 
+                symptom_other_breathing, 
+                covid_contact, 
+                prescription_use, 
+                heart_disease, 
+                diabetes, 
+                respiratory_diseases, 
+                autoimmune_disease, 
+                other_chronic, 
+                allergies,  
+                consent_signed, 
+                token, 
+                insurance_photo
+            )
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
 
-        vals = (patient_id, group_code, symptom_fever, symptom_shortbreath, symptom_coughing,
-                symptom_chestpains, symptom_lack_of_smell, symptom_others, covid_contact, meds, heart_disease,
-                diabetes, respiratory_disease, autoimmune_disease, other_chronic_disease, allergies,  signature, token, data["insurance_photo"])
+        vals = (
+            booking_req.patient_id, 
+            booking_req.group_code, 
+            booking_req.symptom_fever, 
+            booking_req.symptom_shortbreath,
+            booking_req.symptom_coughing,
+            booking_req.symptom_chestpains, 
+            booking_req.symptom_lack_of_smell, 
+            booking_req.symptom_others, 
+            booking_req.covid_contact, 
+            booking_req.meds, 
+            booking_req.heart_disease,
+            booking_req.diabetes, 
+            booking_req.respiratory_disease, 
+            booking_req.autoimmune_disease, 
+            booking_req.other_chronic_disease, 
+            booking_req.allergies,  
+            booking_req.signature, 
+            booking_req.token, 
+            booking_req.insurance_photo
+        )
 
-        return exec_insert(sql, vals)
+        questionnaire_id = exec_insert(sql, vals)
+
+
+        sql = """
+        INSERT INTO 
+            patient_questionnaires_ext
+            (
+                patient_questionnaire_id,
+                provider_consent_signature,
+                influenza_consent_signature,
+                public_places_bars_restaurants_cafes,
+                public_places_gas_stations,
+                public_places_medical_offices,
+                public_places_place_of_work,
+                public_places_retail_grocery_stores,
+                public_places_places_of_worship,
+                public_places_public_parks,
+                public_places_other,
+                service_covid19_test,
+                service_flu_shot,
+                service_consult,
+                flu_screen_severely_ill,
+                flu_screen_guillain_barre_syndrome,
+                flu_screen_life_threatening_reaction,
+                flu_screen_egg_allergy
+            )
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+
+        vals = (
+            questionnaire_id,
+            booking_req.consent_provider_signature, 
+            booking_req.influenza_consent_signature,
+            booking_req.public_places_bars_restaurants_cafes,
+            booking_req.public_places_gas_stations,
+            booking_req.public_places_medical_offices,
+            booking_req.public_places_place_of_work,
+            booking_req.public_places_retail_grocery_stores,
+            booking_req.public_places_places_of_worship,
+            booking_req.public_places_public_parks,
+            booking_req.public_places_other,
+            booking_req.service_covid19_test,
+            booking_req.service_flu_shot,
+            booking_req.service_consult,
+            booking_req.flu_screen_severely_ill,
+            booking_req.flu_screen_guillain_barre_syndrome,
+            booking_req.flu_screen_life_threatening_reaction,
+            booking_req.flu_screen_egg_allergy
+        )
+        result = exec_insert(sql, vals)
+        return questionnaire_id 
 
     except Exception as err:
-        log_generic(type="error", data=data, locals=locals(),
-                    function='create_patient_questionnaire', error=err)
+        log_generic(
+            type=ERROR, 
+            data=data,
+            locals=locals(),
+            function=whoami(), 
+            error=err
+        )
         return None

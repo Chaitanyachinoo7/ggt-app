@@ -14,7 +14,8 @@ from pathlib import Path
 from ggt.lib.utils import (
     get_config_val,
     log_generic,
-    generate_session_id
+    generate_session_id,
+    whoami
 )
 
 from ggt.lib.adapters.mysql_adapter import (
@@ -43,6 +44,13 @@ from ggt.models.data_models.tasks_local_cache import (
     add_to_csv_pdf_sync_cache
 )
 
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
+)
 
 session_id = generate_session_id()
 
@@ -69,13 +77,13 @@ def task_process_inbound_lab_reports():
     start = time.time()
     print_header('\n\n******************Inbound file processing [Start]******************************\n\n')
     log_generic(
-        type="info", 
-        function='task_process_inbound_lab_reports', 
+        type=INFO, 
+        function=whoami(), 
         task_session_id=session_id, 
         info='Begin Processing Inbound Lab Reports')
 
-    init_local_cache()  
-    load_data_from_remote_db_to_cache() 
+    #init_local_cache()  
+    #load_data_from_remote_db_to_cache() 
 
     ####clean_downloads_folder()
     download_ftp_files()
@@ -87,8 +95,8 @@ def task_process_inbound_lab_reports():
     upload_all_inbound_files_to_central_storage() 
 
     log_generic(
-        type="info", 
-        function='task_process_inbound_lab_reports', 
+        type=INFO, 
+        function=whoami(), 
         task_session_id=session_id, 
         info='End Processing Inbound Lab Reports')
 
@@ -117,8 +125,8 @@ def init_ftp_connection():
 
     except Exception as err:
         log_generic(
-            type="error", 
-            function='download_ftp_files', 
+            type=ERROR, 
+            function=whoami(), 
             task_session_id=session_id, 
             error=err
         )
@@ -135,8 +143,8 @@ def clean_downloads_folder():
 
     except Exception as err:
         log_generic(
-            type="error", 
-            function='clean_downloads_folder',
+            type=ERROR, 
+            function=whoami(),
             error=err
         )
 
@@ -159,11 +167,12 @@ def download_ftp_files():
         paths = ftp_client.listdir()
         directory_list = get_remote_directory_list(ftp_client, paths, remote_downloads_folder)
         copy_files_to_local(ftp_client, directory_list, remote_downloads_folder)
+        ftp_client.close()
 
     except Exception as err:
         log_generic(
-            type="error", 
-            function='download_ftp_files', 
+            type=ERROR, 
+            function=whoami(), 
             task_session_id=session_id, 
             error=err
         )
@@ -200,8 +209,8 @@ def copy_files_to_local(ftp_client, directory_list, remote_folder):
                     except Exception as err:
                         download_errors+=1
                         log_generic(
-                            type="error", 
-                            function='copy_files_to_local --filelist', 
+                            type=ERROR, 
+                            function=whoami(), 
                             task_session_id=session_id, 
                             error=err
                         )
@@ -210,8 +219,8 @@ def copy_files_to_local(ftp_client, directory_list, remote_folder):
 
             except Exception as err:
                 log_generic(
-                            type="error", 
-                            function='copy_files_to_local --dirlist', 
+                            type=ERROR, 
+                            function=whoami(), 
                             task_session_id=session_id, 
                             error=err
                         )
@@ -223,8 +232,8 @@ def copy_files_to_local(ftp_client, directory_list, remote_folder):
 
     except Exception as err:
         log_generic(
-            type="error", 
-            function='copy_files_to_local --final', 
+            type=ERROR, 
+            function=whoami(), 
             task_session_id=session_id, 
             error=err
         )
@@ -315,8 +324,8 @@ def get_remote_directories_and_files(ftp_client, remote_folder):
                 file_list.append(resource)
     except Exception as err:
         log_generic(
-            type="error", 
-            function='get_remote_directories_and_files --final', 
+            type=ERROR, 
+            function=whoami(), 
             remote_folder=remote_folder, 
             error=err
         )
@@ -584,6 +593,9 @@ for path in Path('src').rglob('*.c'):
     print(path.name)
 '''
 
+
+def organize_backup_files_archive():
+    pass
 
 
 class bcolors:

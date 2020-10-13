@@ -26,6 +26,15 @@ from ggt.models.data_models.generic_search_result import (
 from ggt.models.data_models.locations import (
     search_locations
 )
+
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
+)
+
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
@@ -44,9 +53,9 @@ def bp_get_user_role(email):
 
     except Exception as err:
         log_generic(
-            type="error",
+            type=ERROR,
             email=email,
-            function='bp_get_user_role',
+            function=whoami(),
             error=err
         )
 
@@ -56,9 +65,9 @@ def bp_get_all_test_results():
         return get_all_test_results()
     except Exception as err:
         log_generic(
-            type="error",
+            type=ERROR,
             email="",
-            function='bp_get_all_test_results',
+            function=whoami(),
             error=err
         )
         # return False
@@ -72,8 +81,8 @@ def bp_get_general_search_results(first_name, middle_name, last_name, dob, phone
                                 email, appointment_id, group_code, appointment_date, location_id)
     except Exception as err:
         log_generic(
-            type="error",
-            function='bp_get_general_search_results',
+            type=ERROR,
+            function=whoami(),
             error=err
         )
 

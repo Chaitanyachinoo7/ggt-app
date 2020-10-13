@@ -2,7 +2,8 @@ from datetime import date
 
 from ggt.lib.utils import (
     log_generic,
-    x_response
+    x_response,
+    whoami
 )
 
 from ggt.models.process_models.bp_patient_experience import (
@@ -25,7 +26,19 @@ from ggt.models.process_models.bp_appointments import (
     bp_get_appointment_info
 )
 
-DEFAULT_GROUP_CODE = '_DEFAULT_'
+from ggt.models.data_models.data_types import (
+    GgtBooking
+)
+
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR,
+    DEFAULT_GROUP_CODE
+)
+
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
@@ -78,7 +91,10 @@ def get_all_available_locations_and_times(group_code):
     )
 
 
-def get_schedule_times_available(location_id, date=date.today().strftime("%Y-%m-%d")):
+def get_schedule_times_available(
+        location_id, 
+        date=date.today().strftime("%Y-%m-%d")
+    ):
     return x_response(
         bp_get_schedule_times_available(
             location_id,
@@ -110,113 +126,104 @@ def finalize_payment(finalize_payment_request):
     wp_receipt_token = finalize_payment_request.receipt_token
 
     if bp_finalize_payment(appointment_id, wp_receipt_token):
-        return {"status": "success"}
+        return {STATUS: SUCCESS}
     else:
-        return {'status': 'failed'}
+        return {STATUS: FAILED}
 
 
 def finalize_registration(finalize_registration_request):
-    token = finalize_registration_request.token
-    phone_number = finalize_registration_request.phone_number.strip()
-    first_name = finalize_registration_request.patientDetails.first_name.strip()
-    middle_name = finalize_registration_request.patientDetails.middle_name.strip()
-    last_name = finalize_registration_request.patientDetails.last_name.strip()
-    gender = finalize_registration_request.gender
-
-    address = finalize_registration_request.patientAddress.street.strip()
-    city = finalize_registration_request.patientAddress.city.strip()
-    zip = finalize_registration_request.patientAddress.zip_code.strip()
-    email = finalize_registration_request.patientContact.email.strip()
-
-    st = finalize_registration_request.patientAddress.state
-    dob = finalize_registration_request.patientDetails.dob
-    height = finalize_registration_request.patientVitals.height
-    weight = finalize_registration_request.patientVitals.weight
-    ethnicity = finalize_registration_request.ethnicity
-    race = finalize_registration_request.race
-
-    is_patient = finalize_registration_request.isPatient
-    group_code = finalize_registration_request.groupCode.strip()
-    symptom_fever = finalize_registration_request.symptoms.symptom_fever
-
-    symptom_shortbreath = finalize_registration_request.symptoms.symptom_short_breath
-    symptom_coughing = finalize_registration_request.symptoms.symptom_cough
-    symptom_chestpains = finalize_registration_request.symptoms.symptom_chest_pains
-    symptom_others = finalize_registration_request.symptoms.symptom_other
-    symptom_lack_of_smell = finalize_registration_request.symptoms.symptom_lack_of_smell
-    covid_contact = finalize_registration_request.contactTracing
-
-    meds = finalize_registration_request.patientVitals.medications
-    heart_disease = finalize_registration_request.preExistingConditions.heart_disease
-    diabetes = finalize_registration_request.preExistingConditions.diabetes
-    respiratory_disease = finalize_registration_request.preExistingConditions.respiratory_disease
-    autoimmune_disease = finalize_registration_request.preExistingConditions.autoimmune_disease
-    other_chronic_disease = finalize_registration_request.preExistingConditions.other_chronic_disease
-    allergies = finalize_registration_request.preExistingConditions.allergies
-    signature = finalize_registration_request.consent.full_name.strip()
-
-    insurance_photo = finalize_registration_request.insurancePhoto
-
-    date = finalize_registration_request.date
-    location = finalize_registration_request.location
-    time_slot = finalize_registration_request.timeSlot
-
-    data = {
-        'token': token,
-        'gender': gender,
-        'dob': dob,
-        'height': height,
-        'weight': weight,
-        'ethnicity': ethnicity,
-        'race': race,
-        'phone_number': phone_number,
-        'first_name': first_name,
-        'middle_name': middle_name,
-        'last_name': last_name,
-        'address': address,
-        'city': city,
-        'st': st,
-        'zip': zip,
-        'email': email,
-
-        'is_patient': is_patient,
-        'group_code': group_code.upper(),
-
-        'symptom_fever': symptom_fever,
-        'symptom_shortbreath': symptom_shortbreath,
-        'symptom_coughing': symptom_coughing,
-        'symptom_chestpains': symptom_chestpains,
-        'symptom_others': symptom_others,
-        'symptom_lack_of_smell': symptom_lack_of_smell,
-        'covid_contact': covid_contact,
-
-        'meds': meds,
-        'heart_disease': heart_disease,
-        'diabetes': diabetes,
-        'respiratory_disease': respiratory_disease,
-        'autoimmune_disease': autoimmune_disease,
-        'other_chronic_disease': other_chronic_disease,
-        'allergies': allergies,
-        'signature': signature,
-
-        'insurance_photo': insurance_photo,
-
-        'date': date,
-        'location': location,
-        'time_slot': time_slot
-    }
-    #appointment = bp_finalize_registration(data)
-    appointment = bp_finalize_booking(data)
+    booking_req = __map_to_booking_req(finalize_registration_request)
+    appointment = bp_finalize_booking(booking_req)
 
     if appointment:
         return {
-            "appointment_id": appointment['appointment_id'],
-            "date": appointment['date'],
-            "location": appointment['location'],
-            'total_balance': appointment['total_balance'],
-            'total_cost': appointment['total_cost'],
-            'payment_url': appointment['payment_url'],
-            "status": "success"
+            "appointment_id": appointment.id,
+            "date": appointment.date_text,
+            "location": appointment.location_text,
+            'total_balance': appointment.billed_amount,
+            'total_cost': appointment.total_cost,
+            'payment_url': appointment.payment_url,
+            STATUS: SUCCESS
         }
     else:
-        return {'status': 'failed'}
+        return {STATUS: FAILED}
+
+
+def __map_to_booking_req(finalize_registration_request):
+    b = GgtBooking()
+    try:
+        b.token = finalize_registration_request.token
+        b.phone_number = finalize_registration_request.phone_number.strip()
+        b.first_name = finalize_registration_request.patientDetails.first_name.strip()
+        b.middle_name = finalize_registration_request.patientDetails.middle_name.strip()
+        b.last_name = finalize_registration_request.patientDetails.last_name.strip()
+        b.gender = finalize_registration_request.gender
+
+        b.address = finalize_registration_request.patientAddress.street.strip()
+        b.city = finalize_registration_request.patientAddress.city.strip()
+        b.zip = finalize_registration_request.patientAddress.zip_code.strip()
+        b.email = finalize_registration_request.patientContact.email.strip()
+
+        b.st = finalize_registration_request.patientAddress.state
+        b.dob = finalize_registration_request.patientDetails.dob
+        b.height = finalize_registration_request.patientVitals.height
+        b.weight = finalize_registration_request.patientVitals.weight
+        b.ethnicity = finalize_registration_request.ethnicity
+        b.race = finalize_registration_request.race
+
+        b.is_patient = finalize_registration_request.isPatient
+        b.group_code = finalize_registration_request.groupCode.strip()
+        b.symptom_fever = finalize_registration_request.symptoms.symptom_fever
+
+        b.symptom_shortbreath = finalize_registration_request.symptoms.symptom_short_breath
+        b.symptom_coughing = finalize_registration_request.symptoms.symptom_cough
+        b.symptom_chestpains = finalize_registration_request.symptoms.symptom_chest_pains
+        b.symptom_others = finalize_registration_request.symptoms.symptom_other
+        b.symptom_lack_of_smell = finalize_registration_request.symptoms.symptom_lack_of_smell
+        b.covid_contact = finalize_registration_request.contactTracing
+
+        b.meds = finalize_registration_request.patientVitals.medications
+        b.heart_disease = finalize_registration_request.preExistingConditions.heart_disease
+        b.diabetes = finalize_registration_request.preExistingConditions.diabetes
+        b.respiratory_disease = finalize_registration_request.preExistingConditions.respiratory_disease
+        b.autoimmune_disease = finalize_registration_request.preExistingConditions.autoimmune_disease
+        b.other_chronic_disease = finalize_registration_request.preExistingConditions.other_chronic_disease
+        b.allergies = finalize_registration_request.preExistingConditions.allergies
+        b.signature = finalize_registration_request.consent.full_name.strip()
+        b.consent_provider_signature = finalize_registration_request.consent_provider.full_name.strip()
+        b.influenza_consent_signature = finalize_registration_request.influenzaConsent.full_name.strip()
+        b.location_services = finalize_registration_request.locationServices
+
+        b.service_covid19_test = finalize_registration_request.serviceSelection.COVID_19_TEST
+        b.service_flu_shot = finalize_registration_request.serviceSelection.FLU_SHOT
+        b.service_consult = finalize_registration_request.serviceSelection.CONSULT
+
+        b.flu_screen_severely_ill = finalize_registration_request.influenzaScreening.severely_ill
+        b.flu_screen_guillain_barre_syndrome = finalize_registration_request.influenzaScreening.guillain_barre_syndrome
+        b.flu_screen_life_threatening_reaction = finalize_registration_request.influenzaScreening.life_threatening_reaction
+        b.flu_screen_egg_allergy = finalize_registration_request.influenzaScreening.egg_allergy
+
+        b.public_places_bars_restaurants_cafes = finalize_registration_request.publicPlaces.bars_restaurants_cafes
+        b.public_places_gas_stations = finalize_registration_request.publicPlaces.gas_stations
+        b.public_places_medical_offices = finalize_registration_request.publicPlaces.medical_offices
+        b.public_places_place_of_work = finalize_registration_request.publicPlaces.place_of_work
+        b.public_places_retail_grocery_stores = finalize_registration_request.publicPlaces.retail_grocery_stores
+        b.public_places_places_of_worship = finalize_registration_request.publicPlaces.places_of_worship
+        b.public_places_public_parks = finalize_registration_request.publicPlaces.public_parks
+        b.public_places_other = finalize_registration_request.publicPlaces.other
+
+        b.insurance_photo = finalize_registration_request.insurancePhoto
+
+        b.date = finalize_registration_request.date
+        b.location_id = finalize_registration_request.location
+        b.timeslot_id = finalize_registration_request.timeSlot
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            finalize_registration_request=finalize_registration_request,
+            error=err
+        )
+    
+    return b

@@ -1,4 +1,9 @@
+import os
+
 from fastapi import APIRouter, Request, Response, status
+import boto3
+from botocore.config import Config
+
 from ggt.lib.sms import send_sms
 from ggt.lib.email import send_email, render_template
 from ggt.models.data_models.data_types import (
@@ -14,11 +19,17 @@ from ggt.models.workflow_models.contact_center_flow import(
 from ggt.lib.utils import (
     get_config_val,
     log_generic,
-    generate_session_id
+    generate_session_id,
+    whoami
 )
-import boto3
-import os
-from botocore.config import Config
+
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
+)
 
 my_config = Config(
     region_name='us-east-1',
@@ -40,7 +51,7 @@ async def api_cc_send_sms(CCSendSMSRequest: CCSendSMSRequest):
     try:
         send_sms(CCSendSMSRequest.to_number, formatted_sms_message(
             CCSendSMSRequest.first_name, CCSendSMSRequest.token))
-        return {"status": "success"}
+        return {STATUS: SUCCESS}
     except Exception as err:
         print(err)
 
@@ -52,7 +63,7 @@ async def api_cc_send_email(CCSendEmailRequest: CCSendEmailRequest):
             CCSendEmailRequest.first_name, CCSendEmailRequest.token, CCSendEmailRequest.to_email)
         send_email(email["from_email"], email["from_name"],
                    email["to_email"], email["subject"], email["html_content"])
-        return {"status": "success"}
+        return {STATUS: SUCCESS}
     except Exception as err:
         print(err)
 
@@ -66,7 +77,7 @@ async def api_cc_send_sms_email(CCSendNotiRequest: CCSendNotiRequest):
                    email["to_email"], email["subject"], email["html_content"])
         send_sms(CCSendNotiRequest.to_number, formatted_sms_message(
             CCSendNotiRequest.first_name, CCSendNotiRequest.token))
-        return {"status": "success"}
+        return {STATUS: SUCCESS}
     except Exception as err:
         print(err)
 
@@ -140,7 +151,7 @@ def api_cc_outbound_result(CCOutboundResultRequest: CCOutboundResultRequest):
                                        CCOutboundResultRequest.to_number,
                                        CCOutboundResultRequest.test_result,
                                        'call_attempted')
-        return {"status": "success"}
+        return {STATUS: SUCCESS}
     except Exception as err:
         print(err)
 

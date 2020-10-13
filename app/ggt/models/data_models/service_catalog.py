@@ -1,13 +1,9 @@
+from typing import List, Set, Dict, Tuple, Optional
+from datetime import date
 from ggt.lib.utils import (
+    get_config_val,
     log_generic,
-    x_response,
-    y_response,
     whoami
-)
-
-from ggt.models.process_models.bp_portal_experience import (
-    bp_get_all_test_results,
-    bp_get_general_search_results
 )
 
 from ggt.lib.constants import (
@@ -18,21 +14,27 @@ from ggt.lib.constants import (
     ERROR
 )
 
+from ggt.lib.adapters.mysql_adapter import (
+    exec_insert,
+    exec_update,
+    exec_delete,
+    read_row,
+    read_rows,
+    exec_batch_execute
+)
+
+from ggt.models.data_models.data_types import (
+    GgtServiceCatalogItem
+    GgtScheduleSlot,
+    GgtDateTimeLocation
+)
+
+
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
 
 
-def admin_get_all_test_results():
-    return y_response(
-        bp_get_all_test_results()
-    )
-
-
-def admin_generic_search(search_arr):
-    return y_response(
-        bp_get_general_search_results(search_arr)
-    )
 
 ########################################################################################################
 # [Protected] functions

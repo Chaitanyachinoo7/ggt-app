@@ -1,5 +1,15 @@
 from ggt.lib.utils import (
-    log_generic
+    get_config_val,
+    log_generic,
+    whoami
+)
+
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
 )
 
 from ggt.lib.adapters.mysql_adapter import (
@@ -29,10 +39,11 @@ def get_user_by_email(email):
 
     except Exception as err:
         log_generic(
-            type="error", 
+            type=ERROR,
             email=email,
-            function='get_user_by_email', 
-            error=err)
+            function=whoami(),
+            error=err
+        )
         return None
 
 

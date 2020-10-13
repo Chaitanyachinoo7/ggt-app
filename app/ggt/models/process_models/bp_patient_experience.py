@@ -1,11 +1,13 @@
 import requests
+from requests.auth import HTTPBasicAuth
 
 from ggt.lib.utils import (
     get_config_val,
     generate_otp,
     generate_token,
     validate_phone_number_format,
-    log_generic
+    log_generic,
+    whoami
 )
 
 from ggt.lib.sms import (send_sms)
@@ -43,6 +45,26 @@ from ggt.models.data_models.schedules import (
 
 from ggt.models.data_models.test_results import (
     get_test_result_by_token
+)
+
+from ggt.models.data_models.wellpay import (
+    WellpayCreateBillRequest,
+    WellpayCreateBillResponse,
+    WellpayApiCredentials
+)
+
+from ggt.models.data_models.data_types import (
+    GgtPatient,
+    GgtBooking,
+    GgtAppointment
+)
+
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
 )
 
 from ggt.lib.storage import get_temporary_lab_report_url
@@ -86,18 +108,12 @@ def bp_get_screen_flow_seq(group_code):
 def bp_initiate_verification_flow(phone_number, with_otp=True):
     # Create a temp record until phone number is validated
     try:
-
         phone_number = validate_phone_number_format(phone_number)
         otp_code, token = __create_pending_entry(phone_number)
 
         if otp_code is None:
-            log_generic(type="error",
-                        phone_number=phone_number,
-                        otp_code=otp_code,
-                        token=token,
-                        function='initiate_verification_flow',
-                        error='NO OTP / Unable to create a Pending Record for Phone Verification')
-            return False
+            raise ValueError(
+                'NO OTP / Unable to create a Pending Record for Phone Verification')
 
         else:
             activation_url = "{}/{}/{}".format(
@@ -112,161 +128,219 @@ def bp_initiate_verification_flow(phone_number, with_otp=True):
 
             # send SMS
             if __send_otp_sms(phone_number, message):
-                log_generic(type="info", phone_number=phone_number, otp_code=otp_code, token=token, activation_url=activation_url,
-                            sms_message=message, function='initiate_verification_flow', info='OTP SMS Sent')
+                log_generic(
+                    type=INFO,
+                    phone_number=phone_number,
+                    otp_code=otp_code,
+                    token=token,
+                    activation_url=activation_url,
+                    sms_message=message,
+                    function=whoami(),
+                    info='OTP SMS Sent'
+                )
                 return True
+
             else:
-                log_generic(type="error", phone_number=phone_number, otp_code=otp_code, token=token, activation_url=activation_url,
-                            sms_message=message, function='initiate_verification_flow', error='Unable to send OTP SMS')
-                return False
+                raise ValueError('Unable to send OTP SMS')
 
     except Exception as err:
-        log_generic(type="error",
-                    phone_number=phone_number,
-                    function='bp_initiate_verification_flow',
-                    error=err)
-        return False
+        log_generic(
+            type=ERROR,
+            phone_number=phone_number,
+            function=whoami(),
+            error=err
+        )
+    return False
 
 
 def bp_validate_phone_number(phone_number, otp):
-    # Override OTP under special circumstances
-    override_otp_code = get_config_val('pfe.signup.override_otp_code')
-    if otp == override_otp_code:
-        return {
-            "token": "NOVERIFY{}".format(generate_token()[8:])
-        }
+    try:
+        # Override OTP under special circumstances
+        override_otp_code = get_config_val('pfe.signup.override_otp_code')
+        if otp == override_otp_code:
+            token = "NOVERIFY{}".format(generate_token()[8:])
+        else:
+            token = get_signup_record_by_phone_otp(phone_number, otp)
 
-    row = get_signup_record_by_phone_otp(phone_number, otp)
-    token = row['token']
+        if token is None:
+            raise ValueError('Invalid Token')
 
-    if token is None:
         log_generic(
-            type="error",
+            type=INFO,
             phone_number=phone_number,
             otp=otp,
             token=token,
-            function='validate_phone_number',
-            error='empty token'
+            function=whoami()
         )
-        return False
 
-    else:
-        log_generic(
-            type="info",
-            phone_number=phone_number,
-            otp=otp,
-            token=token,
-            function='validate_phone_number'
-        )
         return {
             "token": token
         }
 
-
-def bp_finalize_booking(data):
-    try:
-        if not __is_valid_token(data['token']):
-            raise ValueError('Invalid Token')
-
-        data['patient_id'] = __create_patient_record(data)
-        if not data['patient_id']:
-            raise ValueError('Invalid Patient ID')
-
-        data['patient_questionnaire_id'] = create_patient_questionnaire(data)
-        if not data['patient_questionnaire_id']:
-            raise ValueError('Invalid Patient Questionnaire ID')
-
-        # for every registration, create a wellpay user
-        wp_customer_info_id = __create_wp_customer(data)
-
-        payment_required, total_cost, billed_amount = __upfront_payment(
-            data['group_code'], data['location']
-        )
-
-        # generate appointment
-        appointment = generate_appointment(
-            data['time_slot'],
-            data['patient_id'],
-            data['patient_questionnaire_id'],
-            data['group_code'],
-            wp_customer_info_id,
-            total_cost/100,
-            billed_amount/100
-        )
-
-        appointment_id = appointment['appointment_id']
-
-        if not appointment_id:
-            raise ValueError('Invalid Appointment info')
-
-        wp_bill_url = ''
-        if payment_required:
-            wp_bill_url = __inject_payment_flow(
-                wp_customer_info_id, billed_amount, appointment_id, total_cost)
-
-        else:  # payment not required, confirm the appointment and notify
-            update_appointment_with_confirmed_scheduled(appointment_id)
-            __send_qrcode_sms(
-                data['first_name'],
-                appointment['date_text'],
-                appointment['location_text'],
-                data['phone_number'],
-                appointment_id,
-                data['dob']
-            )
-
-            return __finalize_booking_response(
-                appointment['date_text'],
-                appointment['location_text'],
-                appointment_id,
-                billed_amount,
-                total_cost,
-                wp_bill_url
-            )
-
     except Exception as err:
         log_generic(
-            type="error",
-            data=data,
-            function='bp_finalize_booking',
-            error=err)
+            type=ERROR,
+            phone_number=phone_number,
+            otp=otp,
+            function=whoami(),
+            error=err
+        )
 
     return False
 
 
-def __inject_payment_flow(wp_customer_info_id, billed_amount, appointment_id, total_cost):
+# def bp_finalize_booking(booking_req: GgtBooking):
+#     appointment: GgtAppointment = None
+#     try:
+#         if not __is_valid_token(booking_req.token):
+#             raise ValueError('Invalid Token')
+
+#         # create patient
+#         _patient = __extract_patient_from_booking_req(booking_req)
+#         booking_req.patient_id = create_patient_record(_patient)
+#         if not booking_req.patient_id:
+#             raise ValueError('Invalid Patient ID')
+
+#         # create questionnaire
+#         booking_req.patient_questionnaire_id = create_patient_questionnaire(
+#             booking_req)
+#         if not booking_req.patient_questionnaire_id:
+#             raise ValueError('Invalid Patient Questionnaire ID')
+
+#         # determine if payment is required, if so, get billing info
+#         upfront_payment_info = __evaluate_upfront_payment(booking_req)
+#         booking_req.total_cost = upfront_payment_info.total_cost
+#         booking_req.billed_amount = upfront_payment_info.billed_amount
+
+#         # generate appointment/booking
+#         appointment = __generate_appointment(booking_req)
+#         if not appointment:
+#             raise ValueError('Invalid Appointment info')
+
+#         # wp_bill_url = ''
+#         if payment_required:
+#             wp_bill_url = __inject_payment_flow(
+#                 wp_customer_info_id, billed_amount, appointment_id, total_cost)
+
+#         else:  # payment not required, confirm the appointment and notify
+#             update_appointment_with_confirmed_scheduled(appointment_id)
+#             __send_qrcode_sms(
+#                 data['first_name'],
+#                 appointment['date_text'],
+#                 appointment['location_text'],
+#                 data['phone_number'],
+#                 appointment_id,
+#                 data['dob']
+#             )
+
+#             return __finalize_booking_response(
+#                 appointment['date_text'],
+#                 appointment['location_text'],
+#                 appointment_id,
+#                 billed_amount,
+#                 total_cost,
+#                 wp_bill_url
+#             )
+
+#     except Exception as err:
+#         log_generic(
+#             type=ERROR,
+#             data=booking_req,
+#             function=whoami(),
+#             error=err
+#         )
+
+#     return appointment
+
+def bp_finalize_booking(booking_req: GgtBooking):
+    appointment: GgtAppointment = None
     try:
-        if wp_customer_info_id is None:
-            raise ValueError('Invalid Customer ID')
+        if not __is_valid_token(booking_req.token):
+            raise ValueError('Invalid Token')
 
-        else:
-            wp_bill = __create_wp_bill(
-                wp_customer_info_id,
-                billed_amount,
-                appointment_id
-            )
+        # create patient
+        _patient = __extract_patient_from_booking_req(booking_req)
+        booking_req.patient_id = create_patient_record(_patient)
+        if not booking_req.patient_id:
+            raise ValueError('Invalid Patient ID')
 
-            if update_appointment_with_receipt_token(
-                    wp_bill['receipt_token'],
-                    wp_customer_info_id,
-                    appointment_id):
-                return wp_bill['url']
+        # create questionnaire
+        booking_req.patient_questionnaire_id = create_patient_questionnaire(
+            booking_req)
+        if not booking_req.patient_questionnaire_id:
+            raise ValueError('Invalid Patient Questionnaire ID')
 
-            else:
-                raise ValueError('Appointment update failed')
+        # determine if payment is required, if so, get billing info
+        upfront_payment_info = __evaluate_upfront_payment(booking_req)
+        booking_req.total_cost = upfront_payment_info.total_cost
+        booking_req.billed_amount = upfront_payment_info.billed_amount
+
+        # generate appointment/booking
+        appointment = __generate_appointment(booking_req)
+        if not appointment:
+            raise ValueError('Invalid Appointment info')
+
+        # if a payment is required, generate a payment link
+        appointment.payment_url = ''
+        if upfront_payment_info.is_payment_required:
+            appointment.payment_url = __inject_payment_flow(appointment)
+        else:  
+            # payment not required, confirm the appointment and notify
+            update_appointment_with_confirmed_scheduled(appointment.id)
+            __send_qrcode_sms(appointment)
 
     except Exception as err:
         log_generic(
-            type="error",
-            wp_customer_info_id=wp_customer_info_id,
-            billed_amount=billed_amount,
-            appointment_id=appointment_id,
-            total_cost=total_cost,
-            function='__inject_payment_flow',
-            error=err)
-        return None
+            type=ERROR,
+            data=booking_req,
+            function=whoami(),
+            error=err
+        )
+
+    return appointment
 
 
+def __create_wellpay_create_bill_request(booking_req: GgtBooking, appointment_id: int):
+    r = WellpayCreateBillRequest()
+    r.first_name = booking_req.first_name
+    r.last_name = booking_req.last_name
+    r.phone = booking_req.phone_number
+    r.email = booking_req.email
+    r.date_of_birth = booking_req.dob
+    r.street_address = booking_req.address
+    r.city = booking_req.city
+    r.state = booking_req.st
+    r.zip_code = booking_req.zip
+    r.external_account_id = appointment_id
+    r.autopay = False
+    r.billed_amount = booking_req.tot
+
+
+def __inject_payment_flow(appointment: GgtAppointment):
+    try:
+        wp_bill = __create_wp_bill(appointment)
+
+        appointment.wp_receipt_token = wp_bill.receipt_token
+        appointment.wp_customer_info_id = wp_bill.customer_id
+        appointment.payment_url = wp_bill.url
+
+        if update_appointment_with_receipt_token(appointment):
+            return wp_bill.url
+
+        else:
+            raise ValueError('Appointment update failed')
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            appointment=appointment,
+            function=whoami(),
+            error=err
+        )
+    
+    return None
+
+'''
 def __finalize_booking_response(date, location, appointment_id, total_balance='', total_cost='', payment_url=''):
     return {
         'date': date,
@@ -276,24 +350,26 @@ def __finalize_booking_response(date, location, appointment_id, total_balance=''
         'total_cost': total_cost,
         'payment_url': payment_url
     }
-
+'''
 # Returns payment_required, total_cost, billed_amount
 
 
-def __upfront_payment(group_code, location):
-    return False, 0, 0  # business decision to make all testing free 08/06/2020
+def __evaluate_upfront_payment(booking_req):
+    r = UpfrontPaymemtResponse()
 
-    total_cost = 17500
-    billed_amount = 7000
-
-    if group_code == 'QTCORP' or group_code == 'BMSC' or group_code == 'EATZ' or group_code == 'LOWES' or group_code == 'LOWE\'S' or group_code == 'WICHITA':
-        return False, 0, 0
-    if location == 11 or location == 7 or location == 18 or location == 28 or location == 24 or location == 26 or location == 9 or location == 26 or location == 34 or location == 36:
-        return False, 0, 0
+    if booking_req.service_flu_shot:
+        r.is_payment_required = True
+        r.total_cost = 3000
+        r.billed_amount = 3000
     else:
-        return True, total_cost, billed_amount
+        # business decision to make all testing free 08/06/2020
+        r.is_payment_required = False
+        r.total_cost = 0
+        r.billed_amount = 0
 
+    return r
 
+'''
 def __create_wp_customer(data):
     try:
         url = "{}/customers".format(get_config_val('vendors.wellpay.endpoint'))
@@ -319,16 +395,16 @@ def __create_wp_customer(data):
 
     except Exception as err:
         log_generic(
-            type="error",
+            type=ERROR,
             data=data,
-            function='__create_wp_customer',
+            function=whoami(),
             error='Customer creation failed',
             error_details=err
         )
         return None
-
-
-def __create_wp_bill(customer_info_id, billed_amount, appointment_id):
+'''
+'''
+def __create_wp_bill_old(customer_info_id, billed_amount, appointment_id):
     try:
         url = "{}/bills".format(get_config_val('vendors.wellpay.endpoint'))
         headers = {
@@ -348,14 +424,93 @@ def __create_wp_bill(customer_info_id, billed_amount, appointment_id):
 
     except Exception as err:
         log_generic(
-            type="error",
+            type=ERROR,
             customer_info_id=customer_info_id,
             billed_amount=billed_amount,
             appointment_id=appointment_id,
-            function='__create_wp_bill',
+            function=whoami(),
             error=err
         )
         return None
+'''
+
+def __create_wp_bill(appointment: GgtAppointment):
+    res: WellpayCreateBillResponse = WellpayCreateBillResponse()
+    try:
+        wp_api_key, wp_refresh_token = __get_wp_api_tokens()
+
+        base_url = get_config_val('vendors.wellpay.endpoint')
+        url = "{}/bill/submit".format(base_url)
+        headers = {
+            'Authorization': 'Bearer {}'.format(wp_api_key),
+            'Content-Type': 'application/json'
+        }
+
+        payload = {
+            "first_name": appointment.patient.first_name,
+            "last_name": appointment.patient.last_name,
+            "phone": appointment.patient.phone_number,
+            "email": appointment.patient.email,
+            "date_of_birth": appointment.patient.dob.strftime('%Y-%m-%d'),
+            "street_address": appointment.patient.addr1,
+            #"adddress_complement": ''+appointment.patient.addr2,
+            "city": appointment.patient.city,
+            "state": appointment.patient.st,
+            "zip_code": appointment.patient.zip,
+            "external_account_id": appointment.id,
+            "autopay": False,
+            "external_bill_id": appointment.id,
+            "billed_amount": int(appointment.billed_amount*100),
+            "service_date": appointment.scheduled_dt.strftime('%Y-%m-%d'),
+
+            "onSuccess": "{}/appointment/{}/pay/success".format(get_config_val('base_url'), appointment.id),
+            "onFailure": "{}/appointment/{}/pay/error".format(get_config_val('base_url'), appointment.id)
+        }
+
+        r = requests.post(url, headers=headers, json=payload)
+        response = r.json()
+        
+        res.url = response['url']
+        res.receipt_token = response['receipt_token']
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            appointment=appointment,
+            function=whoami(),
+            error=err
+        )
+    
+    return res
+
+
+def __get_wp_api_tokens():
+    base_url = get_config_val('vendors.wellpay.endpoint')
+    auth_user = get_config_val('vendors.wellpay.auth_user')
+    auth_password = get_config_val('vendors.wellpay.auth_password')
+
+    wp_api_key = None
+    wp_refresh_token = None
+
+    try:
+        url = "{}/gen_token".format(base_url)
+        auth = HTTPBasicAuth(auth_user, auth_password)
+        payload = {}
+        headers = {}
+        r = requests.post(url, auth=auth, headers=headers, data=payload)
+        response = r.json()
+
+        wp_api_key = response['api_key']
+        wp_refresh_token = response['refresh_token']
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+
+    return wp_api_key, wp_refresh_token
 
 
 def bp_finalize_payment(appointment_id, wp_receipt_token):
@@ -363,57 +518,19 @@ def bp_finalize_payment(appointment_id, wp_receipt_token):
         appointment = get_appointment(appointment_id)
         if appointment['wp_receipt_token'] == wp_receipt_token:
             update_appointment_with_confirmed_scheduled(appointment_id)
-            location = "{}, {} {}  {}".format(appointment['addr1'],
-                                              appointment['city'],
-                                              appointment['st'],
-                                              appointment['zip'])
-            date = str(appointment["scheduled_dt"].strftime(
-                "%a, %-d %b %Y @ %-I:%M %p"))
-            result = __send_qrcode_sms(appointment['first_name'], date, location,
-                                       appointment['phone_number'], appointment_id, str(appointment['dob']))
+            result = __send_qrcode_sms(appointment)
             return True
 
     except Exception as err:
         log_generic(
-            type="error",
+            type=ERROR,
             appointment_id=appointment_id,
             wp_receipt_token=wp_receipt_token,
-            function='bp_finalize_payment',
+            function=whoami(),
             error=err
         )
 
     return False
-
-
-'''
-def handle_action_schedule_and_print(phone_number, appointment_id):
-    return True #TODO: REVISIT this and move to admin section maybe....
-    
-    send_sms = True
-    try:
-        p1 = get_config_val('pfe.signup.special_phone_1')
-        p2 = get_config_val('pfe.signup.special_phone_2')
-        p3 = get_config_val('pfe.signup.special_phone_3')
-        p4 = get_config_val('pfe.signup.special_phone_4')
-
-        if phone_number == p1:
-            appointment_begin_test(appointment_id, 2)
-            update_appointment_with_test_start(appointment_id)
-            send_sms=False
-        if phone_number == p2:
-            appointment_begin_test(appointment_id, 3)
-            send_sms=False
-        if phone_number == p3:
-            appointment_begin_test(appointment_id, 2)
-            send_sms=False
-        if phone_number == p4:
-            appointment_begin_test(appointment_id, 3)
-            send_sms=False
-    except Exception as err:
-        log_generic(type="error", phone_number=phone_number, appointment_id=appointment_id, function='handle_action_schedule_and_print', error=err)
-    
-    return send_sms
-'''
 
 
 def bp_get_test_result(token, dob):
@@ -447,89 +564,52 @@ def bp_get_test_result(token, dob):
                 }
 
     except Exception as err:
-        log_generic(type="error", token=token,
-                    function='lookup_test_result_by_token', error=err)
+        log_generic(
+            type=ERROR,
+            token=token,
+            function=whoami(),
+            error=err
+        )
 
     return False
-
-
-def generate_appointment(slot_id, patient_id, patient_questionnaire_id, group_code, wp_customer_info_id, total_cost, billed_amount):
-    # TODO: Prevent from looking up slots that are already assigned to an appointment
-    # TODO, doesn't check if it's already booked
-    slot = get_slot_information(slot_id)
-    if not slot:
-        log_generic(type="error",
-                    patient_id=patient_id,
-                    patient_questionnaire_id=patient_questionnaire_id,
-                    group_code=group_code,
-                    function='generate_appointment',
-                    error='error_getting_slot_info')
-        return False
-
-    location = get_location_by_id(slot['location_id'])
-    if not location:
-        log_generic(type="error",
-                    patient_id=patient_id,
-                    patient_questionnaire_id=patient_questionnaire_id,
-                    group_code=group_code,
-                    slot=slot,
-                    function='generate_appointment',
-                    error='error_getting_location')
-        return False
-
-    appointment_id = create_appointment(
-        slot['start_dt'],
-        slot['location_id'],
-        patient_id,
-        patient_questionnaire_id,
-        group_code,
-        wp_customer_info_id,
-        total_cost,
-        billed_amount)
-
-    if appointment_id:
-        # TODO: update = __update_slot_information(slot_id, appointment_id)
-
-        date_text = slot['start_dt'].strftime("%a, %-d %b %Y @ %-I:%M %p")
-        # e.g. 6155 Sports Village Rd, Frisco, TX 75033
-        location_text = "{}, {} {}  {}".format(location['addr1'],
-                                               location['city'],
-                                               location['st'],
-                                               location['zip'])
-
-        log_generic(type="info",
-                    patient_id=patient_id,
-                    patient_questionnaire_id=patient_questionnaire_id,
-                    group_code=group_code,
-                    slot=slot,
-                    location=location,
-                    function='generate_appointment',
-                    info='appointment_created',
-                    appointment_id=appointment_id,
-                    appointment_dt=date_text,
-                    appointment_location=location_text)
-
-        return {
-            'is_success': True,
-            'appointment_id': appointment_id,
-            'date_text': date_text,
-            'location_text': location_text
-        }
-
-    else:
-        log_generic(type="error",
-                    patient_id=patient_id,
-                    patient_questionnaire_id=patient_questionnaire_id,
-                    group_code=group_code,
-                    slot=slot,
-                    function='generate_appointment',
-                    error='error_creating_appointment')
-        return False
-
 
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
+
+# TODO: Prevent from looking up slots that are already assigned to an appointment
+# TODO, doesn't check if it's already booked
+# TEMP, not using fixed slots since operational conditions allow oversubscribing
+def __generate_appointment(booking_req: GgtBooking):
+    appointment: GgtAppointment = None
+    try:
+        booking_req.timeslot = get_slot_information(booking_req.timeslot_id)
+        if not booking_req.timeslot:
+            raise ValueError('Invalid Slot')
+
+        appointment = create_appointment(booking_req)
+
+        if appointment:
+            log_generic(
+                type=INFO,
+                booking_req=booking_req,
+                appointment=appointment,
+                function=whoami(),
+                info='appointment_created'
+            )
+
+        else:
+            raise ValueError('error_creating_appointment')
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            data=booking_req,
+            function=whoami(),
+            error=err
+        )
+    
+    return appointment
 
 def __create_pending_entry(phone_number):
     try:
@@ -540,8 +620,12 @@ def __create_pending_entry(phone_number):
 
         token = generate_token()
 
-        log_generic(type="info", phone_number=phone_number,
-                    otp_code=otp_code, token=token, function='__create_pending_entry')
+        log_generic(
+            type=INFO,
+            phone_number=phone_number,
+            otp_code=otp_code,
+            token=token,
+            function=whoami())
         record_id = create_pending_signup_record(
             phone_number,
             otp_code,
@@ -553,35 +637,38 @@ def __create_pending_entry(phone_number):
             return None, None
 
     except Exception as err:
-        log_generic(type="error", phone_number=phone_number,
-                    function='__create_pending_entry', error=err)
+        log_generic(
+            type=ERROR, 
+            phone_number=phone_number,
+            function=whoami(), 
+            error=err
+        )
         return None, None
 
 
-def __send_qrcode_sms(first_name, date, location, phone_number, appointment_id, dob):
+def __send_qrcode_sms(appointment: GgtAppointment):
     # message = "Click here for your Appointment Details\n {}/appointment/{}/{}".format(
     #     get_config_val('base_url'), str(appointment_id).rjust(6, '0'), dob.replace('-', ''))
     message = "Hi {}, thank you for completing your registration at GoGetTested.com. Your appointment is confirmed for {} at {}. Your appointment details can be found here\n {}/appointment/{}/{}".format(
-        first_name, date, location, get_config_val('base_url'), str(appointment_id).rjust(6, '0'), dob.replace('-', ''))
+        appointment.patient.first_name, appointment.date_text, appointment.location_text, get_config_val('base_url'), str(appointment.id).rjust(6, '0'), appointment.patient.dob.replace('-', ''))
     log_generic(
-        type="info",
-        phone_number=phone_number,
-        appointment_id=appointment_id,
+        type=INFO,
+        appointment=appointment,
+        phone_number=appointment.patient.phone_number,
         message=message,
-        function='__send_qrcode_sms'
+        function=whoami()
     )
     next_message = "Please make sure to bring and show this QR code {}/appointment/{}/{}, and Acceptable ID when you arrive at the test. We will scan the QR code to check you in for testing. Please no eating or drinking at least 15 minutes prior to testing as this may impact your test results.".format(
-        get_config_val('base_url'), str(appointment_id).rjust(6, '0'), dob.replace('-', ''))
-    send_sms(phone_number, message)
-    return send_sms(phone_number, next_message)
-
+        get_config_val('base_url'), str(appointment.id).rjust(6, '0'), appointment.patient.dob.replace('-', ''))
+    send_sms(appointment.patient.phone_number, message)
+    return send_sms(appointment.patient.phone_number, next_message)
 
 def __send_otp_sms(phone_number, message):
     log_generic(
-        type="info",
+        type=INFO,
         phone_number=phone_number,
         message=message,
-        function='__send_otp_sms'
+        function=whoami()
     )
     return send_sms(phone_number, message)
 
@@ -610,27 +697,36 @@ def __is_valid_token(token):
         return get_signup_record_by_token(token)
 
 
-def __create_patient_record(data):
-    return create_patient_record(
-        token=data["token"],
-        phone_number=validate_phone_number_format(data["phone_number"]),
-        first_name=data["first_name"],
-        middle_name=data["middle_name"],
-        last_name=data["last_name"],
-        gender=data["gender"],
-        phone_number_verified='1',
-        addr1=data["address"],
-        city=data["city"],
-        zip=data["zip"],
-        email=data["email"],
-        dob=data["dob"],
-        height_ft=data["height"],
-        weight_lb=data["weight"],
-        ethnicity=data["ethnicity"],
-        race=data["race"],
-        st=data["st"]
-    )
+def __extract_patient_from_booking_req(booking_req: GgtBooking):
+    patient: GgtPatient = GgtPatient()
+    patient.token = booking_req.token
+    patient.phone_number = validate_phone_number_format(
+        booking_req.phone_number)
+    patient.first_name = booking_req.first_name
+    patient.middle_name = booking_req.middle_name
+    patient.last_name = booking_req.last_name
+    patient.gender = booking_req.gender
+    patient.phone_number_verified = True
+    patient.addr1 = booking_req.address
+    patient.city = booking_req.city
+    patient.zip = booking_req.zip
+    patient.email = booking_req.email
+    patient.dob = booking_req.dob
+    patient.height_ft = booking_req.height
+    patient.weight_lb = booking_req.weight
+    patient.ethnicity = booking_req.ethnicity
+    patient.race = booking_req.race
+    patient.st = booking_req.st
+    return patient
+
 
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
+
+
+
+class UpfrontPaymemtResponse():
+    is_payment_required: bool = None
+    total_cost: int = None
+    billed_amount: int = None

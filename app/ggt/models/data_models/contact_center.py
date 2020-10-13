@@ -1,5 +1,15 @@
 from ggt.lib.utils import (
-    log_generic
+    get_config_val,
+    log_generic,
+    whoami
+)
+
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
 )
 
 from ggt.lib.adapters.mysql_adapter import (
@@ -29,28 +39,38 @@ def add_outbound_call_status(test_id,
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
 
-        val = (test_id,
-               first_name,
-               test_date,
-               dob,
-               token,
-               to_email,
-               to_number,
-               test_result,
-               call_status, call_initiated_dt)
+        val = (
+            test_id,
+            first_name,
+            test_date,
+            dob,
+            token,
+            to_email,
+            to_number,
+            test_result,
+            call_status, call_initiated_dt
+        )
         return exec_insert(sql, val)
 
     except Exception as err:
-        log_generic(type="error", data=(test_id,
-                                        first_name,
-                                        test_date,
-                                        dob,
-                                        token,
-                                        to_email,
-                                        to_number,
-                                        test_result,
-                                        call_status, call_initiated_dt), locals=locals(),
-                    function='add_outbound_call_status', error=err)
+        log_generic(
+            type=ERROR, 
+            data=(
+                test_id,
+                first_name,
+                test_date,
+                dob,
+                token,
+                to_email,
+                to_number,
+                test_result,
+                call_status, 
+                call_initiated_dt
+            ), 
+            locals=locals(),
+            function=whoami(), 
+            error=err
+        )
         return None
 
 
@@ -61,8 +81,16 @@ def update_outbound_call_status(test_id, call_status, datetime_field, datetime):
             call_status+"' WHERE test_id = "+test_id
         return exec_update(sql, )
     except Exception as err:
-        log_generic(type="error", data=(test_id, datetime_field, datetime),
-                    function='update_outbound_call_status', error=err)
+        log_generic(
+            type=ERROR, 
+            data=(
+                test_id, 
+                datetime_field, 
+                datetime
+            ),
+            function=whoami(), 
+            error=err
+        )
         return None
 
 

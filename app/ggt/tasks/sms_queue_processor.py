@@ -1,13 +1,22 @@
 from ggt.lib.utils import (
     get_config_val,
     log_generic,
-    generate_session_id
+    generate_session_id,
+    whoami
 )
 
 from ggt.lib.adapters.mysql_adapter import (
     exec_insert,
     exec_update,
     read_rows
+)
+
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
 )
 
 from ggt.lib.sms import send_sms
@@ -24,15 +33,25 @@ def task_process_sms_queue():
     print('\n\n************************************************\n\n')
 
     sql = """
-    SELECT * FROM sms_notification_queue where status = 'pending'
+    SELECT * FROM sms_notification_queue where status IN ('pending','retry') 
     """
     rows = read_rows(sql)
     for row in rows:
-        id = row['id']
+        _id = row['id']
+        status = row['status']
         to_number = row['to_number']
         message = row['message']
-        if send_sms(to_number, message):
-            update_sms_status_to_processed(id)
+
+        if status == 'retry':
+            if send_sms(to_number, message):
+                update_sms_status_to_processed(_id)
+            else:
+                update_sms_status_to_error(_id)
+        else:
+            if send_sms(to_number, message):
+                update_sms_status_to_processed(_id)
+            else:
+                update_sms_status_to_retry(_id)
 
     print('\n\n************************************************\n\n')
 
@@ -42,6 +61,30 @@ def update_sms_status_to_processed(id):
         UPDATE sms_notification_queue
         SET
         status = 'processed',
+        update_dt = NOW()
+        WHERE `id` = %s
+    """
+    vals = (id,)
+    exec_update(sql, vals)    
+
+
+def update_sms_status_to_retry(id):
+    sql = """
+        UPDATE sms_notification_queue
+        SET
+        status = 'retry',
+        update_dt = NOW()
+        WHERE `id` = %s
+    """
+    vals = (id,)
+    exec_update(sql, vals)    
+
+
+def update_sms_status_to_error(id):
+    sql = """
+        UPDATE sms_notification_queue
+        SET
+        status = 'error',
         update_dt = NOW()
         WHERE `id` = %s
     """

@@ -12,6 +12,16 @@ from ggt.tasks.sms_queue_processor import task_process_sms_queue
 from ggt.tasks.call_queue_processor import task_process_voice_queue
 from ggt.tasks.locations_processor import task_populate_location_thumbnails
 
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR,
+    DESCRIPTION,
+    BACKGROUND_TASK_INITIATE_MESSAGE
+)
+
 router = APIRouter()
 
 #TODO: With Cloud Run, consider Disabling Background Task. Ideally all asynchronous operations finish before delivering response
@@ -19,8 +29,8 @@ router = APIRouter()
 async def api_process_inbound_lab_reports(request: Request, background_tasks: BackgroundTasks):
     background_tasks.add_task(task_process_inbound_lab_reports)
     return {
-        "status": "success",
-        "description": "Background Task Initiated"
+        STATUS: SUCCESS,
+        DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
     }
 
 
@@ -28,8 +38,8 @@ async def api_process_inbound_lab_reports(request: Request, background_tasks: Ba
 async def api_process_outbound_lab_orders(request: Request, background_tasks: BackgroundTasks):
     background_tasks.add_task(task_process_outbound_lab_orders)
     return {
-        "status": "success",
-        "description": "Background Task Initiated"
+        STATUS: SUCCESS,
+        DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
     }
 
 
@@ -37,8 +47,8 @@ async def api_process_outbound_lab_orders(request: Request, background_tasks: Ba
 async def api_schedule_result_notifications_and_followups(request: Request, background_tasks: BackgroundTasks):
     background_tasks.add_task(task_schedule_result_notifications_and_followups)
     return {
-        "status": "success",
-        "description": "Background Task Initiated"
+        STATUS: SUCCESS,
+        DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
     }
 
 
@@ -46,27 +56,27 @@ async def api_schedule_result_notifications_and_followups(request: Request, back
 async def api_process_voice_queue(request: Request, background_tasks: BackgroundTasks):
     background_tasks.add_task(task_process_voice_queue)
     return {
-        "status": "success",
-        "description": "Background Task Initiated"
+        STATUS: SUCCESS,
+        DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
     }
 
 
 @router.post("/process_email_queue")
 async def api_process_email_queue(request: Request):
     task_process_email_queue()
-    return {"status": "success"}
+    return {STATUS: SUCCESS}
 
 
 @router.post("/process_sms_queue")
 async def api_process_sms_queue(request: Request):
     task_process_sms_queue()
-    return {"status": "success"}
+    return {STATUS: SUCCESS}
 
 
 @router.post("/populate_location_thumbnails")
 async def api_process_sms_queue(request: Request):
     task_populate_location_thumbnails()
-    return {"status": "success"}
+    return {STATUS: SUCCESS}
 
 
 
@@ -75,7 +85,7 @@ async def api_process_sms_queue(request: Request):
 async def api_process_email_queue(request: Request, background_tasks: BackgroundTasks):
     background_tasks.add_task(task_process_email_queue)
     return {
-        "status": "success",
+        STATUS: SUCCESS,
         "description": "Background Task Initiated"
     }
 
@@ -84,7 +94,7 @@ async def api_process_email_queue(request: Request, background_tasks: Background
 async def api_process_sms_queue(request: Request, background_tasks: BackgroundTasks):
     background_tasks.add_task(task_process_sms_queue)
     return {
-        "status": "success",
+        STATUS: SUCCESS,
         "description": "Background Task Initiated"
     }
 
@@ -94,18 +104,18 @@ async def api_process_sms_queue(request: Request, background_tasks: BackgroundTa
 @router.post("/process_process_outbound_lab_orders")
 async def api_process_outbound_lab_orders(request: Request):
     task_process_outbound_lab_orders()
-    return {"status": "success"}
+    return {STATUS: SUCCESS}
 
 
 @router.post("/schedule_result_notifications_and_followups")
 async def api_schedule_result_notifications_and_followups(request: Request):
     task_schedule_result_notifications_and_followups()
-    return {"status": "success"}
+    return {STATUS: SUCCESS}
 
 
 
 @router.post("/process_voice_queue")
 async def api_process_voice_queue(request: Request):
     task_process_voice_queue()
-    return {"status": "success"}
+    return {STATUS: SUCCESS}
 '''

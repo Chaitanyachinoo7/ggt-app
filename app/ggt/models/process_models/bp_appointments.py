@@ -1,6 +1,17 @@
+import datetime 
+
 from ggt.lib.utils import (
+    get_config_val,
     log_generic,
-    get_config_val
+    whoami
+)
+
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
 )
 from ggt.lib.sms import (send_sms)
 from ggt.models.data_models.appointments import (
@@ -20,7 +31,7 @@ from ggt.models.data_models.appointments import (
 '''
 
 from ggt.lib.sys_log import (write_syslog)
-import datetime
+
 '''
 from ggt.models.data_models.test_results import (
     update_appointment_with_checkin,
@@ -36,14 +47,14 @@ from ggt.models.data_models.test_results import (
 def bp_get_appointment_info(appointment_id, dob):
     try:
         appointment = get_appointment(appointment_id)
-        if dob != 'allowdoboverride' and appointment['dob'].strftime("%Y%m%d") != dob:
+        if dob != 'allowdoboverride' and appointment.patient.dob.strftime("%Y%m%d") != dob:
             return False
 
         if appointment['status'] == 'pending':
             return False
         else:
             return {
-                "appointment_id": appointment_id,
+                "appointment_id": appointment.id,
                 "date": __formatted_date_text(appointment),
                 "location": __formatted_location_text(appointment),
                 "patient_dob": __formatted_patient_dob(appointment),
@@ -53,9 +64,9 @@ def bp_get_appointment_info(appointment_id, dob):
             }
     except Exception as err:
         log_generic(
-            type="error",
+            type=ERROR,
             appointment_id=appointment_id,
-            function='bp_get_appointment_info',
+            function=whoami(),
             error=err
         )
 
@@ -83,9 +94,9 @@ def bp_appointment_update(appointment_id, action, workstation_id):
         }
     except Exception as err:
         log_generic(
-            type="error",
+            type=ERROR,
             appointment_id=appointment_id,
-            function='bp_get_appointment_info',
+            function=whoami(),
             error=err
         )
 
@@ -116,10 +127,10 @@ def bp_get_monthly_calendar(date, location_id):
         return response
     except Exception as err:
         log_generic(
-            type="error",
+            type=ERROR,
             date=date,
             location_id=location_id,
-            function='bp_get_monthly_calendar',
+            function=whoami(),
             error=err
         )
 
@@ -132,9 +143,9 @@ def bp_provider_positive_result_followup():
         return results
     except Exception as err:
         log_generic(
-            type="error",
+            type=ERROR,
             location_id="",
-            function='bp_provider_positive_result_followup',
+            function=whoami(),
             error=err
         )
 
@@ -146,34 +157,33 @@ def bp_provider_positive_result_followup():
 
 
 def __formatted_date_text(appointment):
-    return appointment['scheduled_dt'].strftime("%a, %-d %b %Y @ %-I:%M %p")
+    return appointment.scheduled_dt.strftime("%a, %-d %b %Y @ %-I:%M %p")
 
 
 def __formatted_location_text(appointment):
     # 6155 Sports Village Rd, Frisco, TX 75033
-    return "{}, {} {}  {}".format(appointment['addr1'],
-                                  appointment['city'],
-                                  appointment['st'],
-                                  appointment['zip'])
+    return "{}, {} {}  {}".format(appointment.location.addr1,
+                                  appointment.location.city,
+                                  appointment.location.st,
+                                  appointment.location.zip)
 
 
 def __formatted_patient_address(appointment):
-    return "{}, {} {}  {}".format(appointment['patient_addr1'],
-                                  appointment['patient_city'],
-                                  appointment['patient_st'],
-                                  appointment['patient_zip'])
+    return "{}, {} {}  {}".format(appointment.patient.addr1,
+                                  appointment.patient.city,
+                                  appointment.patient.st,
+                                  appointment.patient.zip)
 
 
 def __formatted_patient_name(appointment):
     return "{} {} {}".format(
-        appointment['first_name'],
-        appointment['middle_name'],
-        appointment['last_name'])
+        appointment.patient.first_name,
+        appointment.patient.middle_name,
+        appointment.patient.last_name)
 
 
 def __formatted_patient_dob(appointment):
-    dob = appointment['dob']
-    return dob.strftime("%m/%d/%Y")
+    return appointment.patient.dob.strftime("%m/%d/%Y")
 
 
 def __next_action(appointment):
@@ -182,7 +192,7 @@ def __next_action(appointment):
         'checked_in': 'start_test',
         'test_in_progress': 'end_test'
     }
-    return switcher.get(appointment['status'], "")
+    return switcher.get(appointment.status, "")
 
 
 def __send_test_complete_sms(phone, first_name):
@@ -222,7 +232,7 @@ def __send_label_to_printer(appointment_id, queue_id):
         queue_url = "{}-{}".format(get_config_val(
             'aws.sqs_print_queue_base_url'), queue_id)
 
-        write_syslog("print", "info", appointment_id)
+        write_syslog("print", INFO, appointment_id)
 
         # TODO FIX all this
         payload = {
@@ -248,7 +258,11 @@ def __send_label_to_printer(appointment_id, queue_id):
         return True
 
     except Exception as err:
-        log_generic(type="error", appointment_id=appointment_id,
-                    function='__print_label', error=err)
-        write_syslog("print", "error", appointment_id)
+        log_generic(
+            type=ERROR,
+            appointment_id=appointment_id,
+            function=whoami(), 
+            error=err
+        )
+        write_syslog("print", ERROR, appointment_id)
         return False

@@ -13,7 +13,15 @@ from pprint import pprint, pformat
 
 from ggt.configs.config_loader import cfg
 
-# TODO: Enahancd logging context with user session and client device/ip info etc.
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
+)
+
+# TODO: Enahance logging context with user session and client device/ip info etc.
 
 
 class bcolors:
@@ -39,6 +47,8 @@ def get_config_val(key):
     else:
         return ""
 
+def whoami(): 
+    return sys._getframe(1).f_code.co_name
 
 def generate_otp():
     otp = pyotp.TOTP('base32secret3232')
@@ -63,6 +73,7 @@ def validate_phone_number_format(phone_number):
             parsed, phonenumbers.PhoneNumberFormat.E164)
         return formatted_number
     except phonenumbers.NumberParseException as e:
+        print(e)
         return ""
 
 
@@ -78,7 +89,7 @@ def log_generic(**kwargs):
     for key in kwargs.keys():
         globals()[key] = kwargs[key]
 
-    kwargs['source'] = inspect.stack()[1][4]
+    #kwargs['source'] = inspect.stack()[1][4]
     kwargs['timestamp'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
 
     if 'error' in kwargs:
@@ -97,7 +108,12 @@ def x_response(res, allow=True):
             return success_response(res)
 
     except Exception as err:
-        log_generic(type="error", res=res, function="x_response", error=err)
+        log_generic(
+            type=ERROR, 
+            res=res, 
+            function=whoami(), 
+            error=err
+        )
     return failure_response()
 
 
@@ -107,14 +123,19 @@ def y_response(res, allow=True):
             return success_response_array(res)
 
     except Exception as err:
-        log_generic(type="error", res=res, function="y_response", error=err)
+        log_generic(
+            type=ERROR, 
+            res=res, 
+            function=whoami(), 
+            error=err
+        )
     return failure_response()
 
 
 def success_response(kv=None):
     if kv is None or kv is True:
         kv = {}
-    kv['status'] = 'success'
+    kv[STATUS] = SUCCESS
     return kv
 
 
@@ -122,7 +143,7 @@ def success_response_array(kv=None):
     if kv is None or kv is True:
         kv = {}
     res = {}
-    res['status'] = 'success'
+    res[STATUS] = SUCCESS
     res['results'] = kv
     return res
 
@@ -130,7 +151,7 @@ def success_response_array(kv=None):
 def failure_response(kv=None):
     if kv is None:
         kv = {}
-    kv['status'] = 'failure'
+    kv[STATUS] = FAILED
     return kv
 
 

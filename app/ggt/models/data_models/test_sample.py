@@ -1,5 +1,15 @@
 from ggt.lib.utils import (
-    log_generic
+    get_config_val,
+    log_generic,
+    whoami
+)
+
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
 )
 
 from ggt.lib.adapters.mysql_adapter import (
@@ -49,9 +59,9 @@ def create_test_sample_from_appointment(appointment_id):
 
     except Exception as err:
         log_generic(
-            type="error", 
-            function='create_test_sample_from_appointment', 
-            error=err, 
+            type=ERROR,
+            function=whoami(),
+            error=err,
             appointment_id=appointment_id
         )
         return None
@@ -72,9 +82,9 @@ def record_label_scan(appointment_id):
 
     except Exception as err:
         log_generic(
-            type="error", 
-            function='record_label_scan', 
-            error=err, 
+            type=ERROR,
+            function=whoami(),
+            error=err,
             appointment_id=appointment_id
         )
         return None
@@ -83,7 +93,3 @@ def record_label_scan(appointment_id):
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
-
-
-
-

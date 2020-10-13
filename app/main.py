@@ -19,7 +19,14 @@ from ggt.routers import (
     rt_printer_hub
 )
 
-NOT_FOUND = "Not found"
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR,
+    NOT_FOUND
+)
 
 app = FastAPI()
 
@@ -110,4 +117,5 @@ app.include_router(
 )
 
 if __name__ == '__main__':
-    uvicorn.run(app, host='0.0.0.0', port=8000)
+    uvicorn.run(app, host='0.0.0.0', port=5000)
+    #uvicorn.run(app, host='0.0.0.0', port=8000)
