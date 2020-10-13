@@ -1,6 +1,14 @@
 from fastapi import APIRouter, Request
 from typing import Optional
 
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
+)
+
 from ggt.models.data_models.data_types import (
     ValidateOtpRequest,
     VerifyPhoneRequest,
@@ -23,12 +31,9 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
     get_all_available_locations_and_times
 )
 
-from ggt.lib.constants import (
-    STATUS,
-    SUCCESS,
-    FAILED,
-    INFO,
-    ERROR
+
+from ggt.tasks.reminder_sms import(
+    task_process_sms_reminders
 )
 
 router = APIRouter()
@@ -102,3 +107,8 @@ async def api_lookup_appointment(appointment_id: str, dob: str):
 @router.get("/appointment/result/{token}/{dob}")
 async def api_lookup_test_result(token: str, dob: str):
     return lookup_test_result(token, dob)
+
+
+@router.get("/appointment/reminders")
+def reminder_sms():
+    return task_process_sms_reminders()
