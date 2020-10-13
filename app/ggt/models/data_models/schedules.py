@@ -893,13 +893,18 @@ def __map_row_to_dtl(row):
         svc.id = row['service_id']
         svc.service_code = row['service_code']
         svc.service_name = row['service_name']
-        svc.price = int(row['price']*100)
-        svc.selfpay_amount = int(row['selfpay_amount']*100)
-        svc.copay_amount = int(row['copay_amount']*100)
-        svc.insurance_amount = row['insurance_amount']
+        if row['price']:
+            svc.price = int(row['price']*100) 
+        if row['selfpay_amount']:
+            svc.selfpay_amount = int(row['selfpay_amount']*100) 
+        if row['copay_amount']:
+            svc.copay_amount = int(row['copay_amount']*100)
+        if row['insurance_amount']:
+            svc.insurance_amount = int(row['insurance_amount']*100) 
 
         svc.sku = row['service_code']
-        svc.cost = int(row['price']*100)
+        if row['price']:
+            svc.cost = int(row['price']*100) 
 
     except Exception as err:
         log_generic(
