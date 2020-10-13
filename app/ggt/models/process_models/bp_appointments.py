@@ -1,4 +1,4 @@
-import datetime 
+import datetime
 
 from ggt.lib.utils import (
     get_config_val,
@@ -84,7 +84,7 @@ def bp_appointment_update(appointment_id, action, workstation_id):
         elif action == 'end_test':
             update_appointment_with_test_completed(appointment_id)
             __send_test_complete_sms(
-                appointment['phone_number'], appointment['first_name'])
+                appointment)
         elif action == 'reprint':
             __appointment_reprint_label(appointment_id, workstation_id)
 
@@ -195,16 +195,16 @@ def __next_action(appointment):
     return switcher.get(appointment.status, "")
 
 
-def __send_test_complete_sms(phone, first_name):
+def __send_test_complete_sms(appointment):
     message = "Hi {}, thank you for getting tested with GoGetTested.com. Your COVID-19 test results will be available in 48-96hours. If you have any questions, please visit GoGetTested.com".format(
-        first_name)
+        appointment.patient.first_name)
     log_generic(
         type="info",
-        first_name=first_name,
+        first_name=appointment.patient.first_name,
         message=message,
         function='__send_test_complete_sms'
     )
-    return send_sms(phone, message)
+    return send_sms(appointment.patient.phone_number, message)
 
 
 def __appointment_begin_test(appointment_id, workstation_id=1):
@@ -261,7 +261,7 @@ def __send_label_to_printer(appointment_id, queue_id):
         log_generic(
             type=ERROR,
             appointment_id=appointment_id,
-            function=whoami(), 
+            function=whoami(),
             error=err
         )
         write_syslog("print", ERROR, appointment_id)

@@ -516,7 +516,8 @@ def __get_wp_api_tokens():
 def bp_finalize_payment(appointment_id, wp_receipt_token):
     try:
         appointment = get_appointment(appointment_id)
-        if appointment['wp_receipt_token'] == wp_receipt_token:
+        print(appointment)
+        if appointment.wp_receipt_token == wp_receipt_token:
             update_appointment_with_confirmed_scheduled(appointment_id)
             result = __send_qrcode_sms(appointment)
             return True
@@ -650,7 +651,7 @@ def __send_qrcode_sms(appointment: GgtAppointment):
     # message = "Click here for your Appointment Details\n {}/appointment/{}/{}".format(
     #     get_config_val('base_url'), str(appointment_id).rjust(6, '0'), dob.replace('-', ''))
     message = "Hi {}, thank you for completing your registration at GoGetTested.com. Your appointment is confirmed for {} at {}. Your appointment details can be found here\n {}/appointment/{}/{}".format(
-        appointment.patient.first_name, appointment.date_text, appointment.location_text, get_config_val('base_url'), str(appointment.id).rjust(6, '0'), appointment.patient.dob.replace('-', ''))
+        appointment.patient.first_name, appointment.date_text, appointment.location_text, get_config_val('base_url'), str(appointment.id).rjust(6, '0'), str(appointment.patient.dob).replace('-', ''))
     log_generic(
         type=INFO,
         appointment=appointment,
@@ -659,7 +660,7 @@ def __send_qrcode_sms(appointment: GgtAppointment):
         function=whoami()
     )
     next_message = "Please make sure to bring and show this QR code {}/appointment/{}/{}, and Acceptable ID when you arrive at the test. We will scan the QR code to check you in for testing. Please no eating or drinking at least 15 minutes prior to testing as this may impact your test results.".format(
-        get_config_val('base_url'), str(appointment.id).rjust(6, '0'), appointment.patient.dob.replace('-', ''))
+        get_config_val('base_url'), str(appointment.id).rjust(6, '0'), str(appointment.patient.dob).replace('-', ''))
     send_sms(appointment.patient.phone_number, message)
     return send_sms(appointment.patient.phone_number, next_message)
 
