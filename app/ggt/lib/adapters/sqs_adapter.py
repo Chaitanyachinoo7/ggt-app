@@ -27,7 +27,11 @@ def __boto_connect():
         return boto_client
 
     except Exception as err:
-        log_generic(type=ERROR, function=whoami(), error=err)
+        log_generic(
+            type=ERROR, 
+            function=whoami(), 
+            error=err
+        )
         return None
 
 
@@ -46,7 +50,7 @@ def push_sqs_message(queue_url, message):
             type=INFO,
             queue_url=queue_url,
             message=message,
-            function=whoami()]
+            function=whoami()
         )
         return True
 

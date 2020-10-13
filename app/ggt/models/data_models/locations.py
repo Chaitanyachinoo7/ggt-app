@@ -1,3 +1,4 @@
+from typing import List, Set, Dict, Tuple, Optional
 from ggt.lib.utils import (
     get_config_val,
     log_generic,
@@ -21,7 +22,8 @@ from ggt.lib.adapters.mysql_adapter import (
 )
 
 from ggt.models.data_models.data_types import (
-    GgtLocation
+    GgtLocation,
+    GgtServiceCatalogItem
 )
 
 
@@ -78,13 +80,49 @@ def get_location_by_id(location_id):
         return None
 
 
+def get_services_available_for_location(location_id):
+    try:
+        sql = """
+            SELECT 
+                s.id,
+                s.service_code,
+                s.service_name,
+                s.price,
+                s.selfpay_amount,
+                s.copay_amount,
+                s.insurance_amount
+            FROM
+                services_to_locations_mapping m
+                    JOIN
+                services_catalog s ON (s.id = m.service_id)
+            WHERE
+                location_id = %s
+        """
+        vals = (location_id,)
+        rows = read_rows(sql, vals)
+        return __map_rows_to_services_list(rows)
+        
+    except Exception as err:
+        log_generic(
+            type=ERROR, 
+            location_id=location_id, 
+            function=whoami(), 
+            error=err
+        )
+        return None
+
+
 def get_all_locations():
     try:
         sql = "SELECT * FROM locations"
         return read_rows(sql)
 
     except Exception as err:
-        log_generic(type=ERROR, function=whoami(), error=err)
+        log_generic(
+            type=ERROR, 
+            function=whoami(), 
+            error=err
+        )
         return None
 
 
@@ -179,3 +217,35 @@ def __map_row_to_location(row):
         return None
 
     return loc
+
+
+def __map_rows_to_services_list(rows):
+    services_list: List[GgtServiceCatalogItem]
+    services_list = []
+    for row in rows:
+        service_item = __map_row_to_service_item(row)
+        services_list.append(service_item)
+    return services_list
+
+
+def __map_row_to_service_item(row):
+    s = None
+    try:
+        s = GgtServiceCatalogItem()
+        s.id = row['id']
+        s.service_code = row['service_code']
+        s.service_name = row['service_name']
+        s.price = row['price']
+        s.selfpay_amount = row['selfpay_amount']
+        s.copay_amount = row['copay_amount']
+        s.insurance_amount = row['insurance_amount']
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            row=row,
+            error=err
+        )
+
+    return s

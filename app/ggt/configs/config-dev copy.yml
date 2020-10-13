@@ -39,6 +39,16 @@ twilio:
 sendgrid:
   sendgrid_api_key: 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
 
+google:
+  maps:
+    api_key: AIzaSyBJmU3ueSBRmXz4mU1MRgdOxAWcfImbQNQ
+    base_url: https://maps.googleapis.com/maps/api/staticmap
+    zoom_level: 10
+    map_type: roadmap
+    thumbnail_size: 110x110
+    markers_color: red
+    markers_size: tiny
+
 email:
   template_folder: /templates/email/
 
@@ -59,10 +69,11 @@ vendors:
     local_backups_path: /Users/suresh/ggt-tasks/backups
     outbound_file_prefix: ggt-outbound
 
-wellpay:
-  endpoint: https://api.getwellpay.com/api/public/v1
-  auth_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJob3N0IjoiYXBpLmdldHdlbGxwYXkuY29tIiwiZXhwIjoxNjExMjYyMzg3LjA5NywiZXh0ZXJuYWxfa2V5Ijp0cnVlLCJyb2xlIjoicHJvdmlkZXIiLCJwcm92aWRlcl9pZCI6IjEiLCJpYXQiOjE1OTUzNjQ3ODcsImp0aSI6ImM1OWMwYWYxLTA0NTItNDhjNC1iMTQwLWJhMWI1NzFiZDlhMyJ9.3luYvTE3svahAdFFStyHGzIhhL3Ly83d8nEA8vlC8ig
-
+  wellpay:
+    endpoint: https://api-staging.getwellpay.com/api/public/v1
+    auth_user: suresh@wellpay.com
+    auth_password: 8,tp{Na{76<~@.>(
+    
 pfe:
   signup:
     special_phone_1: '+14158888888'

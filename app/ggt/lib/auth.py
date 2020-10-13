@@ -35,5 +35,6 @@ def verify_google_idtoken(token):
             type=ERROR,
             token=token,
             function=whoami(),
-            error=err)
+            error=err
+        )
         return False

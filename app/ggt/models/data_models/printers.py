@@ -38,7 +38,11 @@ def get_all_printer_hubs():
         return read_rows(sql)
 
     except Exception as err:
-        log_generic(type=ERROR, function=whoami(), error=err)
+        log_generic(
+            type=ERROR, 
+            function=whoami(), 
+            error=err
+        )
         return None
 
 
@@ -71,7 +75,11 @@ def __enqueue(workstation_id, appointment_id):
         return exec_insert(sql, vals)
 
     except Exception as err:
-        log_generic(type=ERROR, function=whoami(), error=err)
+        log_generic(
+            type=ERROR, 
+            function=whoami(), 
+            error=err
+        )
         return None
 
 
@@ -90,7 +98,11 @@ def __dequeue(print_job_id):
         return exec_update(sql, vals)
 
     except Exception as err:
-        log_generic(type=ERROR, function=whoami(), error=err)
+        log_generic(
+            type=ERROR, 
+            function=whoami(), 
+            error=err
+        )
         return None
 
 
@@ -123,5 +135,9 @@ def __peek(workstation_id, workstation_token):
         return read_row(sql, vals)
 
     except Exception as err:
-        log_generic(type=ERROR, function=whoami(), error=err)
+        log_generic(
+            type=ERROR, 
+            function=whoami(), 
+            error=err
+        )
         return None

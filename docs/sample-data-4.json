@@ -2,22 +2,19 @@
   "groupCode": "TESTGC",
   "phone_number": "8018602474",
   "token": "6b5fdfb7-0b28-4033-bc6c-e13cf62554f6",
-  "location": 1,
-  "locationServices": ["COVID_19_TEST", "FLU_SHOT", "CONSULT"],
-  "date": "2020-10-05",
-  "timeSlot": 1622796,
   "isPatient": true,
-  "serviceSelection": {
-    "COVID_19_TEST": true,
-    "CONSULT": true,
-    "FLU_SHOT": true
+  "gender": "male",
+  "race": "race_asian",
+  "ethnicity": "",
+  "symptoms": {
+    "symptom_fever": false,
+    "symptom_short_breath": false,
+    "symptom_cough": false,
+    "symptom_chest_pains": false,
+    "symptom_other": false,
+    "symptom_lack_of_smell": false
   },
-  "influenzaScreening": {
-    "severely_ill": "no",
-    "guillain_barre_syndrome": "no",
-    "life_threatening_reaction": "no",
-    "egg_allergy": "no"
-  },
+  "contactTracing": false,
   "patientDetails": {
     "first_name": "Suresh",
     "last_name": "Subasinghe",
@@ -30,17 +27,6 @@
     "zip_code": "33647"
   },
   "patientContact": { "email": "suresh@wellpay.com" },
-  "gender": "male",
-  "race": "race_asian",
-  "ethnicity": "",
-  "symptoms": {
-    "symptom_fever": false,
-    "symptom_short_breath": false,
-    "symptom_cough": false,
-    "symptom_chest_pains": false,
-    "symptom_other": false,
-    "symptom_lack_of_smell": false
-  },
   "patientVitals": { "medications": false, "height": "23", "weight": "123" },
   "preExistingConditions": {
     "heart_disease": false,
@@ -50,7 +36,22 @@
     "other_chronic_disease": false,
     "allergies": false
   },
-  "contactTracing": false,
+  "insurancePhoto":"XXX",
+  "consent": { "full_name": "Suresh Subasinghe" },
+  "consent_provider": { "full_name": "Suresh Subasinghe" },
+  "influenzaConsent": { "full_name": "Suresh Subasinghe" },
+  "locationServices": ["COVID_19_TEST", "FLU_SHOT", "CONSULT"],
+  "serviceSelection": {
+    "COVID_19_TEST": true,
+    "CONSULT": true,
+    "FLU_SHOT": true
+  },
+  "influenzaScreening": {
+    "severely_ill": "no",
+    "guillain_barre_syndrome": "no",
+    "life_threatening_reaction": "no",
+    "egg_allergy": "no"
+  },
   "publicPlaces": {
     "bars_restaurants_cafes": true,
     "gas_stations": true,
@@ -61,9 +62,11 @@
     "public_parks": true,
     "other": true
   },
-  "consent": { "full_name": "Suresh Subasinghe" },
-  "consent_provider": { "full_name": "Suresh Subasinghe" },
-  "influenzaConsent": { "full_name": "Suresh Subasinghe" },
+  
+  "date": "2020-10-05",
+  "location": 1,
+  "timeSlot": 1622796,
   "hasInsurance": false,
   "forceFinish": true
+ 
 }

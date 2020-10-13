@@ -160,10 +160,10 @@ def __formatted_date_text(appointment):
 
 def __formatted_location_text(appointment):
     # 6155 Sports Village Rd, Frisco, TX 75033
-    return "{}, {} {}  {}".format(appointment.addr1,
-                                  appointment.city,
-                                  appointment.st,
-                                  appointment.zip)
+    return "{}, {} {}  {}".format(appointment.location.addr1,
+                                  appointment.location.city,
+                                  appointment.location.st,
+                                  appointment.location.zip)
 
 
 def __formatted_patient_address(appointment):
@@ -244,7 +244,11 @@ def __send_label_to_printer(appointment_id, queue_id):
         return True
 
     except Exception as err:
-        log_generic(type=ERROR, appointment_id=appointment_id,
-                    function=whoami(), error=err)
+        log_generic(
+            type=ERROR,
+            appointment_id=appointment_id,
+            function=whoami(), 
+            error=err
+        )
         write_syslog("print", ERROR, appointment_id)
         return False

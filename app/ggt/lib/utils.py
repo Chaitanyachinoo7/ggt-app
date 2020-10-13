@@ -13,6 +13,14 @@ from pprint import pprint, pformat
 
 from ggt.configs.config_loader import cfg
 
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS,
+    FAILED,
+    INFO,
+    ERROR
+)
+
 # TODO: Enahance logging context with user session and client device/ip info etc.
 
 
@@ -40,8 +48,7 @@ def get_config_val(key):
         return ""
 
 def whoami(): 
-    frame = inspect.currentframe()
-    return inspect.getframeinfo(frame).function
+    return sys._getframe(1).f_code.co_name
 
 def generate_otp():
     otp = pyotp.TOTP('base32secret3232')
@@ -66,6 +73,7 @@ def validate_phone_number_format(phone_number):
             parsed, phonenumbers.PhoneNumberFormat.E164)
         return formatted_number
     except phonenumbers.NumberParseException as e:
+        print(e)
         return ""
 
 
@@ -100,7 +108,12 @@ def x_response(res, allow=True):
             return success_response(res)
 
     except Exception as err:
-        log_generic(type=ERROR, res=res, function=whoami(), error=err)
+        log_generic(
+            type=ERROR, 
+            res=res, 
+            function=whoami(), 
+            error=err
+        )
     return failure_response()
 
 
@@ -110,7 +123,12 @@ def y_response(res, allow=True):
             return success_response_array(res)
 
     except Exception as err:
-        log_generic(type=ERROR, res=res, function=whoami(), error=err)
+        log_generic(
+            type=ERROR, 
+            res=res, 
+            function=whoami(), 
+            error=err
+        )
     return failure_response()
 
 

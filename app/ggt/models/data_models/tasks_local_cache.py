@@ -61,7 +61,8 @@ def init_local_cache():
         log_generic(
             type=ERROR,
             function=whoami(),
-            error=err)
+            error=err
+        )
     finally:
         conn.close()
 
@@ -94,7 +95,8 @@ def add_to_lab_test_records_cache(rec):
             type=ERROR,
             rec=rec,
             function=whoami(),
-            error=err)
+            error=err
+        )
     finally:
         conn.close()
 
@@ -147,7 +149,8 @@ def insert_into_csv_pdf_sync_cache(rec, source):
             type=ERROR,
             rec=rec,
             function=whoami(),
-            error=err)
+            error=err
+        )
     finally:
         conn.close()
 
@@ -205,7 +208,8 @@ def update_csv_pdf_sync_cache(rec, source='csv'):
             rec=rec,
             sql=sql,
             function=whoami(),
-            error=err)
+            error=err
+        )
     finally:
         conn.close()
 
@@ -231,7 +235,8 @@ def is_present_in_csv_pdf_sync_cache(requisition_id):
             type=ERROR,
             requisition_id=requisition_id,
             function=whoami(),
-            error=err)
+            error=err
+        )
     finally:
         conn.close()
 
@@ -258,7 +263,8 @@ def get_order_number_by_requisition_id(requisition_id):
             type=ERROR,
             requisition_id=requisition_id,
             function=whoami(),
-            error=err)
+            error=err
+        )
     finally:
         conn.close()
 
@@ -282,7 +288,8 @@ def get_all_lab_records_from_cache():
         log_generic(
             type=ERROR,
             function=whoami(),
-            error=err)
+            error=err
+        )
     finally:
         conn.close()
 
@@ -306,7 +313,8 @@ def add_to_all_inbound_files_cache(filename):
             type=ERROR,
             filename=filename,
             function=whoami(),
-            error=err)
+            error=err
+        )
     finally:
         conn.close()
 
@@ -333,7 +341,8 @@ def file_exists_in_all_inbound_files_cache(filename):
             type=ERROR,
             filename=filename,
             function=whoami(),
-            error=err)
+            error=err
+        )
     finally:
         conn.close()
 
@@ -365,7 +374,8 @@ def add_to_files_in_remote_storage_cache(filename):
             type=ERROR,
             filename=filename,
             function=whoami(),
-            error=err)
+            error=err
+        )
     finally:
         conn.close()
 
@@ -394,7 +404,8 @@ def file_exists_in_files_in_remote_storage_cache(filename):
             type=ERROR,
             filename=filename,
             function=whoami(),
-            error=err)
+            error=err
+        )
     finally:
         conn.close()
 

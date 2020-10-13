@@ -37,6 +37,11 @@ def send_twilio_sms(to_number, message_text):
         return True
 
     except Exception as err:
-        log_generic(type=ERROR, to_number=to_number,
-                    message_text=message_text, function=whoami(), error=err)
+        log_generic(
+            type=ERROR, 
+            to_number=to_number,
+            message_text=message_text, 
+            function=whoami(), 
+            error=err
+        )
         return False

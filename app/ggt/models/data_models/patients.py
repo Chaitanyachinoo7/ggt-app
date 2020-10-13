@@ -55,11 +55,25 @@ def create_patient_record(patient):
                 (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
 
-        vals = (patient.first_name, patient.middle_name, patient.last_name, patient.addr1,
-                patient.city, patient.st, patient.zip, patient.gender, patient.height_ft,
-                patient.weight_lb, patient.ethnicity, patient.race,  patient.dob,
-                patient.phone_number, patient.phone_number_verified, patient.email,
-                patient.token)
+        vals = (
+            patient.first_name, 
+            patient.middle_name, 
+            patient.last_name, 
+            patient.addr1,
+            patient.city, 
+            patient.st, 
+            patient.zip, 
+            patient.gender, 
+            patient.height_ft,
+            patient.weight_lb, 
+            patient.ethnicity, 
+            patient.race,  
+            patient.dob,
+            patient.phone_number, 
+            patient.phone_number_verified, 
+            patient.email,
+            patient.token
+        )
 
         return exec_insert(sql, vals)
 
@@ -120,7 +134,7 @@ def get_patient(patient_id):
         return None
 
 
-def get_patient_by_token(token):
+def get_patient_by_token(token, expect_no_match=False):
     try:
         sql = """
             SELECT 
@@ -138,6 +152,11 @@ def get_patient_by_token(token):
         """
         vals = (token,)
         row = read_row(sql, vals)
+
+        #When checking Table for duplicates, Null is the expected result
+        if expect_no_match and row is None:
+            return None
+
         log_generic(
             type=INFO,
             token=token,

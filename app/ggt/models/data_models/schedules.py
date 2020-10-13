@@ -1,3 +1,4 @@
+from typing import List, Set, Dict, Tuple, Optional
 from datetime import date
 from ggt.lib.utils import (
     get_config_val,
@@ -23,7 +24,9 @@ from ggt.lib.adapters.mysql_adapter import (
 )
 
 from ggt.models.data_models.data_types import (
-    GgtScheduleSlot
+    GgtScheduleSlot,
+    GgtDateTimeLocation,
+    GgtServiceCatalogItem
 )
 
 
@@ -50,7 +53,8 @@ def create_schedule_entry(location_id, start_dt, end_dt, duration, status):
             end_dt=end_dt,
             duration=duration,
             status=status,
-            error=err)
+            error=err
+        )
         return None
 
 
@@ -94,7 +98,8 @@ def get_schedule_generation_rules_by_location_id(location_id):
             type=ERROR,
             function=whoami(),
             location_id=location_id,
-            error=err)
+            error=err
+        )
         return None
 
 
@@ -148,7 +153,8 @@ def add_schedule_generation_rule(data):
         log_generic(
             type=ERROR,
             function=whoami(),
-            error=err)
+            error=err
+        )
         return None
 
 
@@ -201,7 +207,8 @@ def update_schedule_generation_rule(data):
         log_generic(
             type=ERROR,
             function=whoami(),
-            error=err)
+            error=err
+        )
         return None
 
 
@@ -222,14 +229,15 @@ def delete_schedule_entries_by_location_id(location_id):
             type=ERROR,
             location_id=location_id,
             function=whoami(),
-            error=err)
+            error=err
+        )
         return None
 
 
 def delete_schedule_entries_by_location_id_for_date(location_id, date_str):
     try:
         sql = """
-        DELETE FROM ggt_prod.schedules 
+        DELETE FROM schedules 
         WHERE
             location_id = %s
             AND DATE(start_dt) = %s
@@ -244,7 +252,8 @@ def delete_schedule_entries_by_location_id_for_date(location_id, date_str):
             location_id=location_id,
             date_str=date_str,
             function=whoami(),
-            error=err)
+            error=err
+        )
         return None
 
 
@@ -263,7 +272,8 @@ def delete_schedule_generation_rule(id):
         log_generic(
             type=ERROR,
             function=whoami(),
-            error=err)
+            error=err
+        )
         return None
 
 
@@ -296,117 +306,19 @@ def get_available_dates(group_code):
         log_generic(
             type=ERROR,
             function=whoami(),
-            error=err)
-        return None
-
-
-def get_all_available_dtl(group_code):
-    try:
-        sql1 = """
-        SELECT 
-            nd.location_id,
-            l.account AS account,
-            l.name AS name,
-            l.addr1 AS addr1,
-            l.addr2 AS addr2,
-            l.city AS city,
-            l.st AS st,
-            l.zip AS zip,
-            l.lat AS lat,
-            l.lng AS lng,
-            l.test_covid19,
-            l.test_flu,
-            l.test_consult,
-            l.image_thumbnail,
-            nd.first_date_available AS first_date_time_available,
-            (CASE
-                WHEN (pt.average_processing_time IS NULL) THEN 48
-                ELSE pt.average_processing_time
-            END) AS average_processing_time,
-            COUNT(DISTINCT (s.start_dt)) AS slot_count
-        FROM
-            schedules s
-                JOIN
-            locations l ON s.location_id = l.id
-                LEFT JOIN
-            schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
-                LEFT JOIN
-            average_processing_times_for_last_5_days pt ON (pt.location_id = s.location_id)
-        WHERE
-            DATE(nd.first_date_available) = DATE(s.start_dt)
-                AND start_dt >= CONVERT_TZ(NOW(), '+00:00', '-05:00')
-                AND s.status = 'available'
-                AND s.location_id IN (
-                    SELECT 
-                        m.location_id
-                    FROM
-                        group_codes_to_locations_mapping m
-                            INNER JOIN
-                        groups g ON (g.id = m.group_id)
-                    WHERE
-                        g.group_code = %s)
-        GROUP BY nd.location_id , pt.average_processing_time
-        ORDER BY l.city
-        """
-
-        sql = """
-            SELECT 
-            nd.location_id,
-            l.account AS account,
-            l.name AS name,
-            l.addr1 AS addr1,
-            l.addr2 AS addr2,
-            l.city AS city,
-            l.st AS st,
-            l.zip AS zip,
-            l.lat AS lat,
-            l.lng AS lng,
-            l.test_covid19,
-            l.test_flu,
-            l.test_consult,
-            l.image_thumbnail,
-            nd.first_date_available AS first_date_time_available,
-            '48' AS average_processing_time,
-            COUNT(DISTINCT (s.start_dt)) AS slot_count
-        FROM
-            schedules s
-                JOIN
-            locations l ON s.location_id = l.id
-                LEFT JOIN
-            schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
-        WHERE
-            DATE(nd.first_date_available) = DATE(s.start_dt)
-                AND start_dt >= CONVERT_TZ(NOW(), '+00:00', '-05:00')
-                AND s.status = 'available'
-                AND s.location_id IN (
-                    SELECT 
-                        m.location_id
-                    FROM
-                        group_codes_to_locations_mapping m
-                            INNER JOIN
-                        groups g ON (g.id = m.group_id)
-                    WHERE
-                        g.group_code = %s)
-        GROUP BY nd.location_id
-        ORDER BY l.city
-        """
-
-        vals = (group_code,)
-        return read_rows(sql, vals)
-
-    except Exception as err:
-        log_generic(
-            type=ERROR,
-            function=whoami(),
             error=err
         )
         return None
 
 
+def get_all_available_dtl(group_code):
+    return __get_all_available_dtl(group_code)
+
+
 def get_available_locations(date_str, group_code):
     today = date.today().strftime("%Y-%m-%d")
     if date_str == today:
-        return __get_available_locations_for_current_day(date_str, group_code)
+        return __get_available_locations_for_current_day(group_code)
     else:
         return __get_available_locations_beyond_current_day(date_str, group_code)
 
@@ -434,7 +346,8 @@ def get_processing_averages_by_location():
         log_generic(
             type=ERROR,
             function=whoami(),
-            error=err)
+            error=err
+        )
         return None
 
 
@@ -462,14 +375,16 @@ def get_available_times(location_id, date):
             function=whoami(),
             location_id=location_id,
             date=date,
-            info='looking_up_available_times')
+            info='looking_up_available_times'
+        )
         return read_rows(sql, vals)
 
     except Exception as err:
         log_generic(
             type=ERROR,
             function=whoami(),
-            error=err)
+            error=err
+        )
         return None
 
 
@@ -515,7 +430,8 @@ def get_slot_information(slot_id):
         log_generic(
             type=ERROR,
             function=whoami(),
-            error=err)
+            error=err
+        )
         return None
 
 
@@ -538,7 +454,8 @@ def update_slot_information(slot_id, appointment_id):
             slot_id=slot_id,
             appointment_id=appointment_id,
             function=whoami(),
-            error=err)
+            error=err
+        )
         return None
 
 
@@ -580,6 +497,7 @@ def __get_available_locations_beyond_current_day(date_str, group_code):
                 l.zip AS zip,
                 l.lat AS lat,
                 l.lng AS lng,
+                l.image_thumbnail,
                 MIN(s.start_dt) AS first_date_time_available,
                 (CASE
                     WHEN (pt.average_processing_time IS NULL) THEN 48
@@ -607,7 +525,7 @@ def __get_available_locations_beyond_current_day(date_str, group_code):
             GROUP BY s.location_id, pt.average_processing_time
             ORDER BY l.city
         """
-        sql = """
+        sql2 = """
             SELECT 
                 s.location_id,
                 l.account AS account,
@@ -619,6 +537,7 @@ def __get_available_locations_beyond_current_day(date_str, group_code):
                 l.zip AS zip,
                 l.lat AS lat,
                 l.lng AS lng,
+                l.image_thumbnail,
                 MIN(s.start_dt) AS first_date_time_available,
                 '48' AS average_processing_time,
                 COUNT(DISTINCT (s.start_dt)) AS slot_count
@@ -642,13 +561,27 @@ def __get_available_locations_beyond_current_day(date_str, group_code):
             ORDER BY l.city
         """
         vals = (date_str, group_code)
+
         log_generic(
             type=INFO,
             function=whoami(),
             group_code=group_code,
             date=date_str,
-            info='looking_up_available_locations_beyond_current_day')
-        return read_rows(sql, vals)
+            info='looking_up_available_locations_beyond_current_day'
+        )
+
+        try:
+            return __map_rows_to_dtl_list(read_rows(sql1, vals))
+        except Exception as err:
+            print('Query1 Failed. Using Query2')
+            log_generic(
+                type=ERROR,
+                function=whoami(),
+                group_code=group_code,
+                date=date_str,
+                error=err
+            )
+            return __map_rows_to_dtl_list(read_rows(sql2, vals))
 
     except Exception as err:
         log_generic(
@@ -656,14 +589,15 @@ def __get_available_locations_beyond_current_day(date_str, group_code):
             function=whoami(),
             group_code=group_code,
             date=date_str,
-            error=err)
+            error=err
+        )
         return None
 
 
-def __get_available_locations_for_current_day(date_str, group_code):
+def __get_available_locations_for_current_day(group_code):
     try:
         sql1 = """
-            SELECT 
+        SELECT 
             nd.location_id,
             l.account AS account,
             l.name AS name,
@@ -674,6 +608,7 @@ def __get_available_locations_for_current_day(date_str, group_code):
             l.zip AS zip,
             l.lat AS lat,
             l.lng AS lng,
+            l.image_thumbnail,
             nd.first_date_available AS first_date_time_available,
             (CASE
                 WHEN (pt.average_processing_time IS NULL) THEN 48
@@ -703,8 +638,8 @@ def __get_available_locations_for_current_day(date_str, group_code):
         GROUP BY nd.location_id , pt.average_processing_time
         ORDER BY l.city
         """
-        sql = """
-            SELECT 
+        sql2 = """
+        SELECT 
             nd.location_id,
             l.account AS account,
             l.name AS name,
@@ -715,6 +650,7 @@ def __get_available_locations_for_current_day(date_str, group_code):
             l.zip AS zip,
             l.lat AS lat,
             l.lng AS lng,
+            l.image_thumbnail,
             nd.first_date_available AS first_date_time_available,
             '48' AS average_processing_time,
             COUNT(DISTINCT (s.start_dt)) AS slot_count
@@ -740,19 +676,237 @@ def __get_available_locations_for_current_day(date_str, group_code):
         ORDER BY l.city
         """
         vals = (group_code,)
+
         log_generic(
             type=INFO,
             function=whoami(),
             group_code=group_code,
-            date=date_str,
-            info='looking_up_available_locations_for_current_day')
-        return read_rows(sql, vals)
+            info='looking_up_available_locations_for_current_day'
+        )
+
+        try:
+            return __map_rows_to_dtl_list(read_rows(sql1, vals))
+        except Exception as err:
+            print('Query1 Failed. Using Query2')
+            log_generic(
+                type=ERROR,
+                function=whoami(),
+                group_code=group_code,
+                error=err
+            )
+            return __map_rows_to_dtl_list(read_rows(sql2, vals))
 
     except Exception as err:
         log_generic(
             type=ERROR,
             function=whoami(),
             group_code=group_code,
-            date=date_str,
-            error=err)
+            error=err
+        )
         return None
+
+
+# TODO-HIGH add available catalog
+def __get_all_available_dtl(group_code):
+    try:
+        sql1 = """
+        SELECT 
+            nd.location_id,
+            l.account AS account,
+            l.name AS name,
+            l.addr1 AS addr1,
+            l.addr2 AS addr2,
+            l.city AS city,
+            l.st AS st,
+            l.zip AS zip,
+            l.lat AS lat,
+            l.lng AS lng,
+            l.test_covid19,
+            l.test_flu,
+            l.test_consult,
+            l.image_thumbnail,
+            c.id AS service_id,
+            c.service_code,
+            c.service_name,
+            c.price,
+            c.selfpay_amount,
+            c.copay_amount,
+            c.insurance_amount,
+            nd.first_date_available AS first_date_time_available,
+            (CASE
+                WHEN (pt.average_processing_time IS NULL) THEN 48
+                ELSE pt.average_processing_time
+            END) AS average_processing_time,
+            COUNT(DISTINCT (s.start_dt)) AS slot_count
+        FROM
+            schedules s
+                JOIN
+            locations l ON s.location_id = l.id
+                LEFT JOIN
+            schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
+                LEFT JOIN
+            average_processing_times_for_last_5_days pt ON (pt.location_id = s.location_id)
+                LEFT JOIN
+            services_to_locations_mapping m ON (m.location_id = s.location_id)
+                LEFT JOIN
+            services_catalog c ON (c.id = m.service_id)
+        WHERE
+            DATE(nd.first_date_available) = DATE(s.start_dt)
+                AND start_dt >= CONVERT_TZ(NOW(), '+00:00', '-05:00')
+                AND s.status = 'available'
+                AND s.location_id IN (SELECT 
+                    m.location_id
+                FROM
+                    group_codes_to_locations_mapping m
+                        INNER JOIN
+                    groups g ON (g.id = m.group_id)
+                WHERE
+                    g.group_code = %s)
+        GROUP BY c.id, nd.location_id , pt.average_processing_time
+        ORDER BY l.city
+        """
+
+        sql2 = """
+        SELECT 
+            nd.location_id,
+            l.account AS account,
+            l.name AS name,
+            l.addr1 AS addr1,
+            l.addr2 AS addr2,
+            l.city AS city,
+            l.st AS st,
+            l.zip AS zip,
+            l.lat AS lat,
+            l.lng AS lng,
+            l.test_covid19,
+            l.test_flu,
+            l.test_consult,
+            l.image_thumbnail,
+            c.id AS service_id, 
+            c.service_code,
+            c.service_name,
+            c.price,
+            c.selfpay_amount,
+            c.copay_amount,
+            c.insurance_amount,
+            nd.first_date_available AS first_date_time_available,
+            '48' AS average_processing_time,
+            COUNT(DISTINCT (s.start_dt)) AS slot_count
+        FROM
+            schedules s
+                JOIN
+            locations l ON s.location_id = l.id
+                LEFT JOIN
+            schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
+                LEFT JOIN
+            average_processing_times_for_last_5_days pt ON (pt.location_id = s.location_id)
+                LEFT JOIN
+            services_to_locations_mapping m ON (m.location_id = s.location_id)
+                LEFT JOIN
+            services_catalog c ON (c.id = m.service_id)
+        WHERE
+            DATE(nd.first_date_available) = DATE(s.start_dt)
+                AND start_dt >= CONVERT_TZ(NOW(), '+00:00', '-05:00')
+                AND s.status = 'available'
+                AND s.location_id IN (SELECT 
+                    m.location_id
+                FROM
+                    group_codes_to_locations_mapping m
+                        INNER JOIN
+                    groups g ON (g.id = m.group_id)
+                WHERE
+                    g.group_code = %s)
+        GROUP BY c.id, nd.location_id , pt.average_processing_time
+        ORDER BY l.city
+        """
+        vals = (group_code,)
+
+        log_generic(
+            type=INFO,
+            function=whoami(),
+            group_code=group_code,
+            info='looking_up_all_available_locations_date_and_time')
+
+        try:
+            return __map_rows_to_dtl_list(read_rows(sql1, vals))
+        except Exception as err:
+            print('Query1 Failed. Using Query2')
+            log_generic(
+                type=ERROR,
+                function=whoami(),
+                group_code=group_code,
+                error=err
+            )
+            return __map_rows_to_dtl_list(read_rows(sql2, vals))
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            group_code=group_code,
+            error=err
+        )
+        return None
+
+
+def __map_rows_to_dtl_list(rows):
+    _temp: Dict[int, GgtDateTimeLocation] = dict()
+    for row in rows:
+        dtl, svc = __map_row_to_dtl(row)
+
+        if dtl.location.id not in _temp:
+            _temp[dtl.location.id] = dtl
+
+        _temp[dtl.location.id].location.services_available.append(svc)
+
+    dtl_list: List[GgtDateTimeLocation] = list()
+    for key in _temp:
+        dtl_list.append(
+            _temp[key]
+        )
+
+    return dtl_list
+
+
+def __map_row_to_dtl(row):
+    dtl = None
+    svc = None
+    try:
+        dtl = GgtDateTimeLocation()
+        dtl.location.id = row['location_id']
+        dtl.location.account = row['account']
+        dtl.location.name = row['name']
+        dtl.location.addr1 = row['addr1']
+        dtl.location.addr2 = row['addr2']
+        dtl.location.city = row['city']
+        dtl.location.st = row['st']
+        dtl.location.zip = row['zip']
+        dtl.location.lat = row['lat']
+        dtl.location.lng = row['lng']
+        dtl.location.image_thumbnail = row['image_thumbnail']
+        dtl.first_date_time_available = row['first_date_time_available']
+        dtl.average_processing_time = row['average_processing_time']
+        dtl.slot_count = row['slot_count']
+        dtl.location.services_available = list()
+
+        svc = GgtServiceCatalogItem()
+        svc.id = row['service_id']
+        svc.service_code = row['service_code']
+        svc.service_name = row['service_name']
+        svc.price = int(row['price']*100)
+        svc.selfpay_amount = int(row['selfpay_amount']*100)
+        svc.copay_amount = int(row['copay_amount']*100)
+        svc.insurance_amount = row['insurance_amount']
+
+        svc.sku = row['service_code']
+        svc.cost = int(row['price']*100)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            row=row,
+            error=err
+        )
+
+    return dtl, svc

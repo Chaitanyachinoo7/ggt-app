@@ -84,6 +84,18 @@ class ServiceSelection(BaseModel):
     FLU_SHOT: bool
 
 
+class GgtServiceCatalogItem(BaseModel):
+    id: int = None
+    service_code: str = None
+    service_name: str = None
+    price: float = None
+    selfpay_amount: float = None
+    copay_amount: float = None
+    insurance_amount: float = None
+    sku: str = None
+    cost: int = None
+
+
 class InfluenzaScreening(BaseModel):
     severely_ill: bool
     guillain_barre_syndrome: bool
@@ -100,7 +112,7 @@ class FinalizeRegistrationRequest(BaseModel):
     race: str
     ethnicity: str
     symptoms: Symptoms
-    contactTracing: bool
+    contactTracing: Optional[bool]
     patientDetails: PatientDetails
     patientAddress: PatientAddress
     patientContact: PatientContact
@@ -108,12 +120,13 @@ class FinalizeRegistrationRequest(BaseModel):
     preExistingConditions: PreExistingConditions
     insurancePhoto: Optional[str] = None
     consent: Optional[Consent] = None
-    provider_consent: Optional[ConsentProvider] = None
-    influenza_consent: Optional[InfluenzaConsent] = None
-    #location_services = Optional[List[str]] = None
-    service_selection: Optional[ServiceSelection] = None
-    influenza_screening: Optional[InfluenzaScreening] = None
-    public_places: Optional[PublicPlaces] = None
+    consent_provider: Optional[ConsentProvider] = None
+    influenzaConsent: Optional[InfluenzaConsent] = None
+    locationServices: Optional[list] = None
+
+    serviceSelection: Optional[ServiceSelection] = None
+    influenzaScreening: Optional[InfluenzaScreening] = None
+    publicPlaces: Optional[PublicPlaces] = None
     date: Optional[str] = None
     location: Optional[int] = None
     timeSlot: Optional[int] = None
@@ -283,6 +296,81 @@ class ScanLabelRequest(BaseModel):
     appointment_id: str
 
 
+class GenderEnum(str, Enum):
+    male = 'male'
+    female = 'female'
+    unknown = 'unknown'
+
+
+class GgtPatient(BaseModel):
+    id: int = None
+    first_name: str = None
+    middle_name: str = None
+    last_name: str = None
+    addr1: str = None
+    addr2: str = None
+    addr3: str = None
+    city: str = None
+    st: str = None
+    zip: str = None
+    gender: GenderEnum = None
+    height_ft: str = None
+    height_in: str = None
+    weight_lb: str = None
+    ethnicity: str = None
+    race: str = None
+    dob: str = None
+    phone_number: str = None
+    phone_number_verified: bool = None
+    email: str = None
+    email_verified: bool = None
+    token: str = None
+
+
+class GgtScheduleSlot(BaseModel):
+    id: int = None
+    location_id: int = None
+    start_dt: datetime.datetime = None
+    end_dt: datetime.datetime = None
+    duration: int = None
+    status: str = None
+    appointment_id: int = None
+
+
+class GgtLocation(BaseModel):
+    id: int = None
+    site_code: str = None
+    group_code: str = None
+    account: str = None
+    name: str = None
+    addr1: str = None
+    addr2: str = None
+    addr3: str = None
+    city: str = None
+    st: str = None
+    zip: str = None
+    lat: float = None
+    lng: float = None
+    time_zone: str = None
+    time_zone_offset: str = None
+    test_type_offered: str = None
+    status: str = None
+    type: str = None
+    billing_type: str = None
+    collect_insurance_info: bool = None
+    allow_insurance_skip: bool = None
+    collect_upfront_payment: bool = None
+    image_thumbnail: str = None
+    services_available: List[GgtServiceCatalogItem] = None
+
+
+class GgtDateTimeLocation(BaseModel):
+    location: GgtLocation = GgtLocation()
+    first_date_time_available: datetime.datetime = None
+    average_processing_time: float = None
+    slot_count: int = None
+
+
 class GgtBooking(BaseModel):
     token: str = None
     gender: str = None
@@ -322,121 +410,93 @@ class GgtBooking(BaseModel):
     allergies: bool = False
 
     signature: str = None
-    provider_consent_signature:  str = None
-    influenza_consent_signature:  str = None
+    consent_provider_signature: str = None
+    influenza_consent_signature: str = None
 
-    service_covid19_test:  bool = False
-    service_flu_shot:  bool = False
-    service_consult:  bool = False
+    location_services: List[str] = None
 
-    flu_screen_severely_ill:  bool = False
-    flu_screen_guillain_barre_syndrome:  bool = False
-    flu_screen_life_threatening_reaction:  bool = False
-    flu_screen_egg_allergy:  bool = False
+    service_covid19_test: bool = False
+    service_flu_shot: bool = False
+    service_consult: bool = False
+
+    flu_screen_severely_ill: bool = False
+    flu_screen_guillain_barre_syndrome: bool = False
+    flu_screen_life_threatening_reaction: bool = False
+    flu_screen_egg_allergy: bool = False
 
     public_places_bars_restaurants_cafes: bool = False
-    public_places_gas_stations:  bool = False
-    public_places_medical_offices:  bool = False
-    public_places_place_of_work:  bool = False
-    public_places_retail_grocery_stores:  bool = False
-    public_places_places_of_worship:  bool = False
-    public_places_public_parks:  bool = False
+    public_places_gas_stations: bool = False
+    public_places_medical_offices: bool = False
+    public_places_place_of_work: bool = False
+    public_places_retail_grocery_stores: bool = False
+    public_places_places_of_worship: bool = False
+    public_places_public_parks: bool = False
     public_places_other: bool = False
 
     insurance_photo: str = None
 
     date: datetime.date = None
-    location: int = None
-    time_slot: int = None
+    location_id: int = None
+    timeslot_id: int = None
+    timeslot: GgtScheduleSlot = None
 
     patient_id: int = None
-    
-
-class GenderEnum(str, Enum):
-    male = 'male'
-    female = 'female'
-    unknown = 'unknown'
-
-
-class GgtPatient(BaseModel):
-    id: int = None 
-    first_name: str = None
-    middle_name: str = None
-    last_name: str = None
-    addr1: str = None
-    addr2: str = None
-    addr3: str = None
-    city: str = None
-    st: str = None
-    zip: str = None
-    gender: GenderEnum = None
-    height_ft: str = None
-    height_in: str = None
-    weight_lb: str = None
-    ethnicity: str = None
-    race: str = None
-    dob: str = None
-    phone_number: str = None
-    phone_number_verified: bool = None
-    email: str = None
-    email_verified: bool = None
-    token: str = None
-
-
-class GgtScheduleSlot(BaseModel):
-    id: int = None 
-    location_id: int = None 
-    start_dt: datetime.datetime = None
-    end_dt: datetime.datetime = None
-    duration: int = None
-    status: str = None
-    appointment_id: int = None
-
-class GgtLocation(BaseModel):
-    id: int = None
-    site_code: str = None
-    group_code: str = None
-    account: str = None
-    name: str = None
-    addr1: str = None
-    addr2: str = None
-    addr3: str = None
-    city: str = None
-    st: str = None
-    zip: str = None
-    lat: float = None
-    lng: float = None
-    time_zone: str = None
-    time_zone_offset: str = None
-    test_type_offered: str = None
-    status: str = None
-    type: str = None
-    billing_type: str = None
-    collect_insurance_info: bool = None
-    allow_insurance_skip: bool = None
-    collect_upfront_payment: bool = None
-    image_thumbnail: str = None
-    test_covid19: bool = None
-    test_flu: bool = None
-    test_consult: bool = None
+    patient_questionnaire_id: int = None
+    total_cost: int = None
+    billed_amount: int = None
 
 
 class GgtAppointment(BaseModel):
     id: int = None
     scheduled_dt: datetime.datetime = None
+    date_text: str = None
     check_in_dt: datetime.datetime = None
+    test_start_dt: datetime.datetime = None
+    test_end_dt: datetime.datetime = None
+
     location_id: int = None
+    location_text: str = None
     group_code: str = None
     patient_id: int = None
     patient_questionnaire_id: int = None
-    test_start_dt: datetime.datetime = None
-    test_end_dt: datetime.datetime = None
+
     wp_receipt_token: str = None
     wp_customer_info_id: int = None
     total_cost: float = None
     billed_amount: float = None
-    status: str = None
-    location_text: str = None
     payment_url: str = None
-    patient: GgtPatient = None
-    location: GgtLocation = None
+
+    patient: GgtPatient = GgtPatient()
+    location: GgtLocation = GgtLocation()
+
+    status: str = None
+
+
+class GgtTestSample(BaseModel):
+    id: int = None
+    appointment_id: int = None
+    group_code: str = None
+    patient_id: int = None
+    patient_questionnaire_id: int = None
+    provider_id: int = None
+    sample_collection_location_id: int = None
+    sample_collection_start_dt: datetime.datetime = None
+    sample_collection_end_dt: datetime.datetime = None
+    pre_ship_label_scan_dt: datetime.datetime = None
+    lab_id: int = None
+    lab_submission_batch_id: int = None
+    lab_physical_submission_dt: datetime.datetime = None
+    lab_electronic_submission_dt: datetime.datetime = None
+    lab_result_receive_dt: datetime.datetime = None
+    test_result: str = None
+    notification_status: str = None
+    notification_method: str = None
+    notification_acknowledgement_dt: datetime.datetime = None
+    consultation_status: str = None
+    consultation_notes: str = None
+    consultation_categorization: str = None
+    status: str = None
+    test_type: str = None
+    appointment: GgtAppointment = GgtAppointment()
+    patient: GgtPatient = GgtPatient()
+    #patient_questionnaire = GgtPa

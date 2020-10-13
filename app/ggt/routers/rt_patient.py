@@ -52,14 +52,6 @@ async def api_validate_otp(validate_otp_request: ValidateOtpRequest):
         validate_otp_request.otp)
 
 
-# TODO: Deprecate soon
-'''
-@router.get("/get_available_dates")
-async def xxxx_api_get_available_dates(request: Request):
-    return get_schedule_dates_available()
-'''
-
-
 @router.get("/get_available_dates/{group_code}")
 async def api_get_available_dates(request: Request, group_code: str):
     return get_schedule_dates_available(group_code)
@@ -67,7 +59,6 @@ async def api_get_available_dates(request: Request, group_code: str):
 
 @router.get("/get_available_locations/{group_code}/{date}")
 async def api_get_available_locations(request: Request, group_code: str, date: str):
-    # TODO: Look for _DEFAULT_ group code for regular
     return get_schedule_locations_available(date, group_code)
 
 
@@ -106,6 +97,7 @@ async def api_lookup_appointment(lookup_appointment_request: LookupAppointmentRe
 async def api_lookup_appointment(appointment_id: str, dob: str):
     return lookup_appointment(appointment_id, dob)
 '''
+
 
 @router.get("/appointment/result/{token}/{dob}")
 async def api_lookup_test_result(token: str, dob: str):

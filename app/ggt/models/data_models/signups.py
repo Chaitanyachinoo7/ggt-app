@@ -31,8 +31,17 @@ def create_pending_signup_record(phone_number, otp, token=None, ip=None, device_
         return exec_insert(sql, vals)
 
     except Exception as err:
-        log_generic(type=ERROR, phone_number=phone_number, otp=otp, token=token, ip=ip,
-                    device_data=device_data, status=status, function=whoami(), error=err)
+        log_generic(
+            type=ERROR, 
+            phone_number=phone_number, 
+            otp=otp, 
+            token=token, 
+            ip=ip,
+            device_data=device_data, 
+            status=status, 
+            function=whoami(), 
+            error=err
+        )
         return None
 
 
@@ -43,7 +52,12 @@ def get_signup_record(id):
         return read_row(sql, vals)
 
     except Exception as err:
-        log_generic(type=ERROR, id=id, function=whoami(), error=err)
+        log_generic(
+            type=ERROR, 
+            id=id, 
+            function=whoami(), 
+            error=err
+        )
         return None
 
 
@@ -52,11 +66,18 @@ def get_signup_record_by_phone_otp(phone_number, otp):
         sql = "SELECT token FROM signups WHERE phone_number=%s AND otp=%s"
         vals = (phone_number, otp)
         row = read_row(sql, vals)
-        return row
+        if row:
+            return row['token']
+        return None
 
     except Exception as err:
-        log_generic(type=ERROR, phone_number=phone_number,
-                    otp=otp, function=whoami(), error=err)
+        log_generic(
+            type=ERROR, 
+            phone_number=phone_number,
+            otp=otp, 
+            function=whoami(), 
+            error=err
+        )
         return None
 
 
@@ -67,7 +88,12 @@ def get_signup_record_by_token(token):
         return read_row(sql, vals)
 
     except Exception as err:
-        log_generic(type=ERROR, token=token, function=whoami(), error=err)
+        log_generic(
+            type=ERROR, 
+            token=token, 
+            function=whoami(), 
+            error=err
+        )
         return None
 
 
@@ -78,7 +104,12 @@ def update_signup_record(id):
         return exec_update(sql, vals)
 
     except Exception as err:
-        log_generic(type=ERROR, id=id, function=whoami(), error=err)
+        log_generic(
+            type=ERROR, 
+            id=id, 
+            function=whoami(), 
+            error=err
+        )
         return None
 
 
@@ -89,8 +120,12 @@ def get_ui_screen_flow_seq(group_code):
         return read_row(sql, vals)
 
     except Exception as err:
-        log_generic(type=ERROR, group_code=group_code,
-                    function=whoami(), error=err)
+        log_generic(
+            type=ERROR, 
+            group_code=group_code,
+            function=whoami(), 
+            error=err
+        )
         return None
 
 ########################################################################################################

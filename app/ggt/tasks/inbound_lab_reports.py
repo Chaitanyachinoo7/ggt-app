@@ -167,6 +167,7 @@ def download_ftp_files():
         paths = ftp_client.listdir()
         directory_list = get_remote_directory_list(ftp_client, paths, remote_downloads_folder)
         copy_files_to_local(ftp_client, directory_list, remote_downloads_folder)
+        ftp_client.close()
 
     except Exception as err:
         log_generic(
@@ -592,6 +593,9 @@ for path in Path('src').rglob('*.c'):
     print(path.name)
 '''
 
+
+def organize_backup_files_archive():
+    pass
 
 
 class bcolors:

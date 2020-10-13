@@ -73,18 +73,18 @@
         },
         "boto3": {
             "hashes": [
-                "sha256:329178bd505b5d1dbb5eab25e9697c0e592c45548c895f451a91772d0e5a9329",
-                "sha256:f71ef9005bc49f92e822b3c24d651a9bc2b682a63acdcbbb2bc1d16da39c01ea"
+                "sha256:454a8dfb7b367a058c7967ef6b4e2a192c318f10761769fd1003cf7f2f5a7db9",
+                "sha256:557320fe8b65cfc85953e6a63d2328e8efec95bf4ec383b92fa2d01119209716"
             ],
             "index": "pypi",
-            "version": "==1.15.13"
+            "version": "==1.15.16"
         },
         "botocore": {
             "hashes": [
-                "sha256:570609095c992732cf6158c3dd0a38619c77818fa700d6779b27277b34f98959",
-                "sha256:90e76683807896a28bbefd6e9bc3a2dc44ecd88fc6f6737fa0e3b20d5b7223ea"
+                "sha256:e586e4d6eddbca31e6447a25df9972329ea3de64b1fb0eb17e7ab0c9b91f7720",
+                "sha256:f0616d2c719691b94470307cee8adf89ceb1657b7b6f9aa1bf61f9de5543dbbb"
             ],
-            "version": "==1.18.13"
+            "version": "==1.18.16"
         },
         "cachetools": {
             "hashes": [
@@ -193,11 +193,11 @@
         },
         "faker": {
             "hashes": [
-                "sha256:ba4f98ed8c4c3e817c39626e996a913e3b6478b02625e1cfe9feb7fd8f2f4883",
-                "sha256:c7c7dcede34e10bfdb8601bea807bf065ec3dd3e90884aabcfd4e3f7ae2dbe3b"
+                "sha256:5ca203eb9adaf6a9d1517a4d4a35a4d587f373639ed31da82b0f2e31abc2397a",
+                "sha256:934660336924f4453733baebc74ad9c9b237155a17781990808c00801e63d557"
             ],
             "index": "pypi",
-            "version": "==4.5.0"
+            "version": "==4.9.0"
         },
         "fastapi": {
             "hashes": [
@@ -503,11 +503,11 @@
         },
         "phonenumbers": {
             "hashes": [
-                "sha256:58f96147fe1ca6d62a72dab3af6a3fda3551da4e0d360c5db2e3a909229d9f6e",
-                "sha256:d6e108352e7113c55cf0d92f8aede876a379580e46a3b9c2e779dc3601f11863"
+                "sha256:17f39f06c1e0e20eabe69ff735b1c08e4547d12a12595da3d835fd3256a9ee0c",
+                "sha256:f5277ce92ac8813cb1f4174c6d1ee1fd08d563da28f9dec1f4bed0031a780a80"
             ],
             "index": "pypi",
-            "version": "==8.12.10"
+            "version": "==8.12.11"
         },
         "pillow": {
             "hashes": [

@@ -36,7 +36,12 @@ def get_test_result(id):
         return read_row(sql, vals)
 
     except Exception as err:
-        log_generic(type=ERROR, id=id, function=whoami(), error=err)
+        log_generic(
+            type=ERROR, 
+            id=id, 
+            function=whoami(), 
+            error=err
+        )
         return False
 
 
@@ -53,8 +58,12 @@ def get_test_result_by_token(token):
         return read_row(sql, vals)
 
     except Exception as err:
-        log_generic(type=ERROR, token=token,
-                    function=whoami(), error=err)
+        log_generic(
+            type=ERROR, 
+            token=token,
+            function=whoami(), 
+            error=err
+        )
         return False
 
 
@@ -71,8 +80,12 @@ def get_test_details(test_id):
         return read_row(sql, vals)
 
     except Exception as err:
-        log_generic(type=ERROR, test_id=test_id,
-                    function=whoami(), error=err)
+        log_generic(
+            type=ERROR, 
+            test_id=test_id,
+            function=whoami(), 
+            error=err
+        )
         return False
 
 
@@ -121,7 +134,8 @@ def search_details_by_name_and_dob(last_name, dob):
             last_name=last_name,
             dob=dob,
             function=whoami(),
-            error=err)
+            error=err
+        )
         return False
 
 
@@ -154,7 +168,8 @@ def get_all_test_results():
         log_generic(
             type=ERROR,
             function=whoami(),
-            error=err)
+            error=err
+        )
 
 
 '''

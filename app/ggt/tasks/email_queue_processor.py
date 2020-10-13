@@ -26,18 +26,29 @@ def task_process_email_queue():
     print('\n\n********************task_process_email_queue****************************\n\n')
 
     sql = """
-    SELECT * FROM email_notification_queue where status = 'pending'
+    SELECT * FROM email_notification_queue where status IN ('pending','retry')
     """
     rows = read_rows(sql)
     for row in rows:
-        email_id = row['id']
+        _id = row['id']
+        status = row['status']
         from_email = row['from_email']
         from_name = row['from_name']
         to_email = row['to_email']
         subject = row['subject']
         html_content = row['html_content']
-        if send_email(from_email, from_name, to_email, subject, html_content):
-            update_email_status_to_processed(email_id)
+        
+        if status == 'retry':
+            if send_email(from_email, from_name, to_email, subject, html_content):
+                update_email_status_to_processed(_id)
+            else:
+                update_email_status_to_error(_id)
+        else:
+            if send_email(from_email, from_name, to_email, subject, html_content):
+                update_email_status_to_processed(_id)
+            else:
+                update_email_status_to_retry(_id)
+            
 
     print('\n\n************************************************\n\n')
 
@@ -47,6 +58,30 @@ def update_email_status_to_processed(id):
         UPDATE email_notification_queue
         SET
         status = 'processed',
+        update_dt = NOW()
+        WHERE `id` = %s
+    """
+    vals = (id,)
+    exec_update(sql, vals)   
+
+
+def update_email_status_to_retry(id):
+    sql = """
+        UPDATE email_notification_queue
+        SET
+        status = 'retry',
+        update_dt = NOW()
+        WHERE `id` = %s
+    """
+    vals = (id,)
+    exec_update(sql, vals)    
+
+
+def update_email_status_to_error(id):
+    sql = """
+        UPDATE email_notification_queue
+        SET
+        status = 'error',
         update_dt = NOW()
         WHERE `id` = %s
     """
