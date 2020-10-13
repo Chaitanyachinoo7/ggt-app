@@ -516,7 +516,6 @@ def __get_wp_api_tokens():
 def bp_finalize_payment(appointment_id, wp_receipt_token):
     try:
         appointment = get_appointment(appointment_id)
-        print(appointment)
         if appointment.wp_receipt_token == wp_receipt_token:
             update_appointment_with_confirmed_scheduled(appointment_id)
             result = __send_qrcode_sms(appointment)
@@ -686,7 +685,6 @@ def __override_random_otp(phone_number):
 
 
 def __is_valid_token(token):
-    return True  # to be chnaged
     # Duplicate Token
     if get_patient_by_token(token):
         return False
