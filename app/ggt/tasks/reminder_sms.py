@@ -57,6 +57,7 @@ def task_process_sms_reminders():
             task_session_id=session_id,
             info='SMS Reminders started')
         rows = get_appointments_for_today()
+        print(rows)
         data = []
         # for row in rows:
         # phone_number = row['phone_number']
@@ -65,6 +66,9 @@ def task_process_sms_reminders():
         # )
         data.append(
             ("+14372309014", prepare_sms_text(rows[0])[0])
+        )
+        data.append(
+            ("+14372309014", prepare_appointment_details(rows[0]))
         )
         batch_enqueue_sms_notifications(data)
         log_generic(
@@ -96,7 +100,7 @@ def batch_enqueue_sms_notifications(data):
 def get_appointments_for_today():
     try:
         sql = """
-        SELECT a.id, a.scheduled_dt, b.first_name, b.phone_number,c.addr1, IFNULL(c.addr2,"") as addr2, c.city, c.st, c.zip 
+        SELECT a.id, a.scheduled_dt, b.first_name, b.phone_number, b.dob, c.addr1, IFNULL(c.addr2,"") as addr2, c.city, c.st, c.zip 
         FROM appointments a 
         JOIN patients b ON a.patient_id = b.id
         JOIN locations c ON a.location_id = c.id
@@ -109,10 +113,15 @@ def get_appointments_for_today():
 
 
 def prepare_sms_text(appointment):
-    print(appointment["scheduled_dt"].strftime('%I:%M%p'))
     base_url = get_config_val('base_url')
-    return "Hi {}, this is a gentle reminder that your COVID-19 testing appointment is scheduled for Today at {} at {}. Your appointment details are in this link: {}/appointment/{}".format(
-        appointment["first_name"], str(appointment["scheduled_dt"].strftime('%I:%M%p')), str(appointment["addr1"]) + " " + appointment["addr2"] + ", " + str(appointment["city"]) + ", " + str(appointment["st"]) + " " + str(appointment["zip"]), base_url, appointment["id"]),
+    return "Hi {}, this is a gentle reminder that your COVID-19 testing appointment is scheduled for Today at {} at {}. Your appointment details are in this link: {}/appointment/{}/{}".format(
+        appointment["first_name"], str(appointment["scheduled_dt"].strftime('%I:%M%p')), str(appointment["addr1"]) + " " + appointment["addr2"] + ", " + str(appointment["city"]) + ", " + str(appointment["st"]) + " " + str(appointment["zip"]), base_url, appointment["id"], str(appointment["dob"]).replace('-', '')),
+
+
+def prepare_appointment_details(appointment):
+    print(appointment["scheduled_dt"].strftime('%I:%M%p'))
+    return "Please make sure to bring and show this QR code {}/appointment/{}/{}, and Acceptable ID when you arrive at the test. We will scan the QR code to check you in for testing. Please no eating or drinking at least 15 minutes prior to testing as this may impact your test results.".format(
+        get_config_val('base_url'), str(appointment["id"]).rjust(6, '0'), str(appointment["dob"]).replace('-', ''))
 
 
 def print_header(message):

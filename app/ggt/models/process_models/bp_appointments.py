@@ -2,7 +2,7 @@ from ggt.lib.utils import (
     log_generic,
     get_config_val
 )
-
+from ggt.lib.sms import (send_sms)
 from ggt.models.data_models.appointments import (
     get_appointment,
     update_appointment_with_checkin,
@@ -39,7 +39,7 @@ def bp_get_appointment_info(appointment_id, dob):
         if dob != 'allowdoboverride' and appointment['dob'].strftime("%Y%m%d") != dob:
             return False
 
-        if appointment['status']=='pending':
+        if appointment['status'] == 'pending':
             return False
         else:
             return {
@@ -58,7 +58,7 @@ def bp_get_appointment_info(appointment_id, dob):
             function='bp_get_appointment_info',
             error=err
         )
-    
+
     return False
 
 
@@ -72,6 +72,8 @@ def bp_appointment_update(appointment_id, action, workstation_id):
             __appointment_begin_test(appointment_id, workstation_id)
         elif action == 'end_test':
             update_appointment_with_test_completed(appointment_id)
+            __send_test_complete_sms(
+                appointment['phone_number'], appointment['first_name'])
         elif action == 'reprint':
             __appointment_reprint_label(appointment_id, workstation_id)
 
@@ -88,6 +90,7 @@ def bp_appointment_update(appointment_id, action, workstation_id):
         )
 
     return False
+
 
 '''
 def bp_get_monthly_calendar(date, location_id):
@@ -182,10 +185,22 @@ def __next_action(appointment):
     return switcher.get(appointment['status'], "")
 
 
+def __send_test_complete_sms(phone, first_name):
+    message = "Hi {}, thank you for getting tested with GoGetTested.com. Your COVID-19 test results will be available in 48-96hours. If you have any questions, please visit GoGetTested.com".format(
+        first_name)
+    log_generic(
+        type="info",
+        first_name=first_name,
+        message=message,
+        function='__send_test_complete_sms'
+    )
+    return send_sms(phone, message)
+
+
 def __appointment_begin_test(appointment_id, workstation_id=1):
     update_appointment_with_test_start(appointment_id)
     return __send_label_to_printer(appointment_id, workstation_id)
-    
+
 
 def __appointment_reprint_label(appointment_id, workstation_id=1):
     return __send_label_to_printer(appointment_id, workstation_id)
@@ -204,7 +219,8 @@ def __send_label_to_printer(appointment_id, queue_id):
                                           appointment['middle_name'],
                                           )
 
-        queue_url = "{}-{}".format(get_config_val('aws.sqs_print_queue_base_url'), queue_id)
+        queue_url = "{}-{}".format(get_config_val(
+            'aws.sqs_print_queue_base_url'), queue_id)
 
         write_syslog("print", "info", appointment_id)
 

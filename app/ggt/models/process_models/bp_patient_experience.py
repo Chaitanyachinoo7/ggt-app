@@ -207,6 +207,9 @@ def bp_finalize_booking(data):
         else:  # payment not required, confirm the appointment and notify
             update_appointment_with_confirmed_scheduled(appointment_id)
             __send_qrcode_sms(
+                data['first_name'],
+                appointment['date_text'],
+                appointment['location_text'],
                 data['phone_number'],
                 appointment_id,
                 data['dob']
@@ -360,9 +363,14 @@ def bp_finalize_payment(appointment_id, wp_receipt_token):
         appointment = get_appointment(appointment_id)
         if appointment['wp_receipt_token'] == wp_receipt_token:
             update_appointment_with_confirmed_scheduled(appointment_id)
-            result = __send_qrcode_sms(
-                appointment['phone_number'],
-                appointment_id)
+            location = "{}, {} {}  {}".format(appointment['addr1'],
+                                              appointment['city'],
+                                              appointment['st'],
+                                              appointment['zip'])
+            date = str(appointment["scheduled_dt"].strftime(
+                "%a, %-d %b %Y @ %-I:%M %p"))
+            result = __send_qrcode_sms(appointment['first_name'], date, location,
+                                       appointment['phone_number'], appointment_id, str(appointment['dob']))
             return True
 
     except Exception as err:
@@ -550,10 +558,11 @@ def __create_pending_entry(phone_number):
         return None, None
 
 
-def __send_qrcode_sms(phone_number, appointment_id, dob):
-    message = "Click here for your Appointment Details\n {}/appointment/{}/{}".format(
-        get_config_val('base_url'), str(appointment_id).rjust(6, '0'), dob.replace('-',''))
-
+def __send_qrcode_sms(first_name, date, location, phone_number, appointment_id, dob):
+    # message = "Click here for your Appointment Details\n {}/appointment/{}/{}".format(
+    #     get_config_val('base_url'), str(appointment_id).rjust(6, '0'), dob.replace('-', ''))
+    message = "Hi {}, thank you for completing your registration at GoGetTested.com. Your appointment is confirmed for {} at {}. Your appointment details can be found here\n {}/appointment/{}/{}".format(
+        first_name, date, location, get_config_val('base_url'), str(appointment_id).rjust(6, '0'), dob.replace('-', ''))
     log_generic(
         type="info",
         phone_number=phone_number,
@@ -561,7 +570,10 @@ def __send_qrcode_sms(phone_number, appointment_id, dob):
         message=message,
         function='__send_qrcode_sms'
     )
-    return send_sms(phone_number, message)
+    next_message = "Please make sure to bring and show this QR code {}/appointment/{}/{}, and Acceptable ID when you arrive at the test. We will scan the QR code to check you in for testing. Please no eating or drinking at least 15 minutes prior to testing as this may impact your test results.".format(
+        get_config_val('base_url'), str(appointment_id).rjust(6, '0'), dob.replace('-', ''))
+    send_sms(phone_number, message)
+    return send_sms(phone_number, next_message)
 
 
 def __send_otp_sms(phone_number, message):
@@ -586,6 +598,7 @@ def __override_random_otp(phone_number):
 
 
 def __is_valid_token(token):
+    return True  # to be chnaged
     # Duplicate Token
     if get_patient_by_token(token):
         return False
