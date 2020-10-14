@@ -152,40 +152,41 @@ def get_monthy_calendar(from_date: str, to_date: str, location_id: int):
 
 def positive_result_followup():
     try:
-        sql = """SELECT
-                    pos.patient_id,
-                    pos.test_id,
-                    pos.dob,
-                    pos.first_name,
-                    pos.last_name,
-                    pos.phone_number,
-                    pos.email,
-                    pat.gender,
-                    pat.addr1,
-                    patq.heart_disease,
-                    patq.diabetes,
-                    patq.respiratory_diseases,
-                    patq.autoimmune_disease,
-                    patq.other_chronic,
-                    patq.allergies,
-                    patq.prescription_use,
-                    patq.symptom_fever,
-                    patq.symptom_shortness_breath,
-                    patq.symptom_cough,
-                    patq.symptom_chest_pain,
-                    patq.symptom_lack_of_smell,
-                    patq.symptom_lack_of_smell,
-                    patq.symptom_other_breathing,
-                    patq.covid_contact
-                FROM
-                    positive_result_followup_queue pos
-                INNER JOIN patients pat
-                    ON pos.patient_id = pat.id
-                INNER JOIN patient_questionnaires patq
-                    ON patq.patient_id = pat.id
-                WHERE
-                    overall_status = %s LIMIT 1
-                    """
+        sql = """
+            SELECT
+                pos.patient_id,
+                pos.test_id,
+                pos.dob,
+                pos.first_name,
+                pos.last_name,
+                pos.phone_number,
+                pos.email,
+                pat.gender,
+                pat.addr1,
+                patq.heart_disease,
+                patq.diabetes,
+                patq.respiratory_diseases,
+                patq.autoimmune_disease,
+                patq.other_chronic,
+                patq.allergies,
+                patq.prescription_use,
+                patq.symptom_fever,
+                patq.symptom_shortness_breath,
+                patq.symptom_cough,
+                patq.symptom_chest_pain,
+                patq.symptom_lack_of_smell,
+                patq.symptom_lack_of_smell,
+                patq.symptom_other_breathing,
+                patq.covid_contact
+            FROM
+                positive_result_followup_queue pos
+            INNER JOIN patients pat
+                ON pos.patient_id = pat.id
+            INNER JOIN patient_questionnaires patq
+                ON patq.patient_id = pat.id
+            WHERE
+                overall_status = %s LIMIT 1
+        """
 
         vals = ("scheduled",)
         return read_row(sql, vals)
@@ -205,21 +206,21 @@ def update_appointment_with_receipt_token(appointment: GgtAppointment):
         '''
         sql = """
             UPDATE appointments
-                SET
-                    wp_receipt_token = %s,
-                    wp_customer_info_id = %s
-                WHERE
-                    id = %s
+            SET
+                wp_receipt_token = %s,
+                wp_customer_info_id = %s
+            WHERE
+                id = %s
         """
         vals = (appointment.wp_receipt_token, appointment.wp_customer_info_id, appointment.id)
         return exec_update(sql, vals)
         '''
         sql = """
             UPDATE appointments
-                SET
-                    wp_receipt_token = %s
-                WHERE
-                    id = %s
+            SET
+                wp_receipt_token = %s
+            WHERE
+                id = %s
         """
         vals = (appointment.wp_receipt_token, appointment.id)
         return exec_update(sql, vals)
@@ -287,11 +288,11 @@ def update_appointment_with_checkin(appointment_id: int):
     try:
         sql = """
             UPDATE appointments
-                SET
-                    check_in_dt = NOW(),
-                    status = 'checked_in'
-                WHERE
-                    id = %s
+            SET
+                check_in_dt = NOW(),
+                status = 'checked_in'
+            WHERE
+                id = %s
         """
         vals = (appointment_id,)
         return exec_update(sql, vals)
@@ -311,11 +312,11 @@ def update_appointment_with_test_start(appointment_id: int):
     try:
         sql = """
             UPDATE appointments
-                SET
-                    test_start_dt = NOW(),
-                    status = 'test_in_progress'
-                WHERE
-                    id = %s
+            SET
+                test_start_dt = NOW(),
+                status = 'test_in_progress'
+            WHERE
+                id = %s
         """
         vals = (appointment_id,)
         return exec_update(sql, vals)
@@ -335,11 +336,11 @@ def update_appointment_with_test_completed(appointment_id: int):
     try:
         sql = """
             UPDATE appointments
-                SET
-                    test_end_dt = NOW(),
-                    status = 'test_completed'
-                WHERE
-                    id = %s
+            SET
+                test_end_dt = NOW(),
+                status = 'test_completed'
+            WHERE
+                id = %s
             """
         vals = (appointment_id,)
         return exec_update(sql, vals)

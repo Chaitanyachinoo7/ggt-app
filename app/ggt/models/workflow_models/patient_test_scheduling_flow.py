@@ -189,21 +189,12 @@ def __map_to_booking_req(finalize_registration_request):
         b.autoimmune_disease = finalize_registration_request.preExistingConditions.autoimmune_disease
         b.other_chronic_disease = finalize_registration_request.preExistingConditions.other_chronic_disease
         b.allergies = finalize_registration_request.preExistingConditions.allergies
-        b.signature = finalize_registration_request.consent.full_name.strip()
         
         b.service_covid19_test = finalize_registration_request.serviceSelection.COVID_19_TEST
         b.service_flu_shot = finalize_registration_request.serviceSelection.FLU_SHOT
         b.service_consult = finalize_registration_request.serviceSelection.CONSULT
 
-        b.public_places_bars_restaurants_cafes = finalize_registration_request.publicPlaces.bars_restaurants_cafes
-        b.public_places_gas_stations = finalize_registration_request.publicPlaces.gas_stations
-        b.public_places_medical_offices = finalize_registration_request.publicPlaces.medical_offices
-        b.public_places_place_of_work = finalize_registration_request.publicPlaces.place_of_work
-        b.public_places_retail_grocery_stores = finalize_registration_request.publicPlaces.retail_grocery_stores
-        b.public_places_places_of_worship = finalize_registration_request.publicPlaces.places_of_worship
-        b.public_places_public_parks = finalize_registration_request.publicPlaces.public_parks
-        b.public_places_other = finalize_registration_request.publicPlaces.other
-
+        
         b.insurance_photo = finalize_registration_request.insurancePhoto
 
         b.date = finalize_registration_request.date
@@ -212,6 +203,16 @@ def __map_to_booking_req(finalize_registration_request):
 
         from contextlib import suppress
         with suppress(AttributeError):
+            b.public_places_bars_restaurants_cafes = finalize_registration_request.publicPlaces.bars_restaurants_cafes
+            b.public_places_gas_stations = finalize_registration_request.publicPlaces.gas_stations
+            b.public_places_medical_offices = finalize_registration_request.publicPlaces.medical_offices
+            b.public_places_place_of_work = finalize_registration_request.publicPlaces.place_of_work
+            b.public_places_retail_grocery_stores = finalize_registration_request.publicPlaces.retail_grocery_stores
+            b.public_places_places_of_worship = finalize_registration_request.publicPlaces.places_of_worship
+            b.public_places_public_parks = finalize_registration_request.publicPlaces.public_parks
+            b.public_places_other = finalize_registration_request.publicPlaces.other
+
+            b.signature = finalize_registration_request.consent.full_name.strip()
             b.consent_provider_signature = finalize_registration_request.consent_provider.full_name.strip()
             b.influenza_consent_signature = finalize_registration_request.influenzaConsent.full_name.strip()
 

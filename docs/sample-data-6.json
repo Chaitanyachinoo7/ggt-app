@@ -1,0 +1,97 @@
+{
+	"groupCode": "TESTGC",
+	"phone_number": "8018602474",
+	"token": "2902eb9a-743c-41b1-9415-b23b86d483db",
+	"location": 1,
+	"locationServices": [{
+		"id": 1,
+		"service_code": "COVID_19_TEST",
+		"service_name": "Covid-19 Test",
+		"price": 17500,
+		"selfpay_amount": null,
+		"copay_amount": null,
+		"insurance_amount": null,
+		"sku": "COVID_19_TEST",
+		"cost": 17500
+	}, {
+		"id": 2,
+		"service_code": "FLU_SHOT",
+		"service_name": "Flu Shot",
+		"price": 3000,
+		"selfpay_amount": 3000,
+		"copay_amount": null,
+		"insurance_amount": null,
+		"sku": "FLU_SHOT",
+		"cost": 3000
+	}, {
+		"id": 3,
+		"service_code": "CONSULT",
+		"service_name": "Consultation",
+		"price": null,
+		"selfpay_amount": null,
+		"copay_amount": null,
+		"insurance_amount": null,
+		"sku": "CONSULT",
+		"cost": null
+	}],
+	"date": "2020-10-19",
+	"timeSlot": 1736191,
+	"isPatient": true,
+	"serviceSelection": {
+		"COVID_19_TEST": false,
+		"FLU_SHOT": true,
+		"CONSULT": false
+	},
+	"influenzaScreening": {
+		"egg_allergy": "false",
+		"life_threatening_reaction": "false",
+		"guillain_barre_syndrome": "false",
+		"severely_ill": "false"
+	},
+	"patientDetails": {
+		"first_name": "Suresh",
+		"dob": "1980-10-31",
+		"last_name": "Subasinghe"
+	},
+	"patientAddress": {
+		"state": "FL",
+		"street": "16303 Dobson Ct",
+		"city": "Tampa",
+		"zip_code": "33647"
+	},
+	"patientContact": {
+		"email": "suresh@wellpay.com"
+	},
+	"gender": "male",
+	"race": "race_asian",
+	"ethnicity": "",
+	"symptoms": {
+		"symptom_fever": false,
+		"symptom_short_breath": false,
+		"symptom_cough": false,
+		"symptom_chest_pains": false,
+		"symptom_other": false,
+		"symptom_lack_of_smell": false
+	},
+	"patientVitals": {
+		"medications": false,
+		"height": "61",
+		"weight": "123"
+	},
+	"preExistingConditions": {
+		"heart_disease": false,
+		"diabetes": false,
+		"respiratory_disease": false,
+		"autoimmune_disease": false,
+		"other_chronic_disease": false,
+		"allergies": false
+	},
+	"consent_provider": {
+		"full_name": "Suresh Subasinghe"
+	},
+	"influenzaConsent": {
+		"full_name": "Suresh Subasinghe"
+	},
+	"hasInsurance": true,
+	"insurancePhoto": "data:,"
+}
