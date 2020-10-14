@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from ggt.lib.utils import (
     log_generic,
     whoami
@@ -52,8 +54,8 @@ def create_appointment(appointment_req: GgtBooking):
             appointment_req.patient_id,
             appointment_req.patient_questionnaire_id,
             appointment_req.group_code,
-            appointment_req.total_cost/100,
-            appointment_req.billed_amount/100
+            appointment_req.total_cost/100,  # cents --> decimal
+            appointment_req.billed_amount/100  # cents --> decimal
         )
         appointment_id = exec_insert(sql, vals)
         return get_appointment(appointment_id)
@@ -65,11 +67,11 @@ def create_appointment(appointment_req: GgtBooking):
             appointment_req=appointment_req,
             error=err
         )
-    
+
     return None
 
 
-def get_appointment(appointment_id):
+def get_appointment(appointment_id: int):
     try:
         sql = """
             SELECT
@@ -105,66 +107,10 @@ def get_appointment(appointment_id):
         vals = (appointment_id,)
         row = read_row(sql, vals)
 
-        if not row: 
-            raise ValueError('No Appointment info') 
+        if not row:
+            raise ValueError('No Appointment info')
 
-        l = GgtLocation()
-        l.id = row['location_id']
-        l.addr1 = row['location_addr1']
-        l.addr2 = row['location_addr2']
-        l.city = row['location_city']
-        l.st = row['location_st']
-        l.zip = row['location_zip']
-
-        p = GgtPatient()
-        p.id = row['patient_id']
-        p.dob = row['patient_dob']
-        p.first_name = row['patient_first_name']
-        p.middle_name = row['patient_middle_name']
-        p.last_name = row['patient_last_name']
-        p.addr1 = row['patient_addr1']
-        p.addr2 = row['patient_addr2']
-        p.city = row['patient_city']
-        p.st = row['patient_st']
-        p.zip = row['patient_zip']
-        p.phone_number = row['patient_phone_number']
-        p.email = row['email']
-        p.gender = row['gender']
-        p.dob = row['dob']
-
-        a = GgtAppointment()
-        a.id = row['id']
-        a.location_id = row['location_id']
-        a.scheduled_dt = row['scheduled_dt']
-        a.group_code = row['group_code']
-        a.patient_id = row['patient_id']
-        a.patient_questionnaire_id = row['patient_questionnaire_id']
-
-        a.check_in_dt = row['check_in_dt']
-        a.test_start_dt = row['test_start_dt']
-        a.test_end_dt = row['test_end_dt']
-
-        #a.wp_customer_info_id = row['wp_customer_info_id']
-        a.total_cost = row['total_cost']
-        a.billed_amount = row['billed_amount']
-        #a.payment_url = row['payment_url']
-        a.wp_receipt_token = row['wp_receipt_token']
-
-        a.location = l
-        a.patient = p
-        a.status = row['status']
-
-        a.date_text = a.scheduled_dt.strftime(
-            "%a, %-d %b %Y @ %-I:%M %p")
-        # e.g. 6155 Sports Village Rd, Frisco, TX 75033
-        a.location_text = "{}, {} {}  {}".format(
-            l.addr1,
-            l.city,
-            l.st,
-            l.zip
-        )
-
-        return a
+        return __map_row_to_appointment(row)
 
     except Exception as err:
         log_generic(
@@ -173,10 +119,11 @@ def get_appointment(appointment_id):
             function=whoami(),
             error=err
         )
-        return None
+
+    return None
 
 
-def get_monthy_calendar(from_date, to_date, location_id):
+def get_monthy_calendar(from_date: str, to_date: str, location_id: int):
     try:
         sql = """
             SELECT * 
@@ -199,7 +146,8 @@ def get_monthy_calendar(from_date, to_date, location_id):
             function=whoami(),
             error=err
         )
-        return None
+
+    return None
 
 
 def positive_result_followup():
@@ -248,7 +196,8 @@ def positive_result_followup():
             function=whoami(),
             error=err
         )
-        return None
+
+    return None
 
 
 def update_appointment_with_receipt_token(appointment: GgtAppointment):
@@ -282,10 +231,11 @@ def update_appointment_with_receipt_token(appointment: GgtAppointment):
             function=whoami(),
             error=err
         )
-        return None
+
+    return None
 
 
-def update_appointment_with_confirmed_scheduled(appointment_id):
+def update_appointment_with_confirmed_scheduled(appointment_id: int):
     try:
         sql = """
             UPDATE appointments
@@ -305,10 +255,10 @@ def update_appointment_with_confirmed_scheduled(appointment_id):
             error=err
         )
 
-        return None
+    return None
 
 
-def update_positive_result_followup(id, date_time):
+def update_positive_result_followup(id: int, date_time: datetime):
     try:
         sql = """
             UPDATE positive_result_followup_queue
@@ -329,10 +279,11 @@ def update_positive_result_followup(id, date_time):
             function=whoami(),
             error=err
         )
-        return None
+
+    return None
 
 
-def update_appointment_with_checkin(appointment_id):
+def update_appointment_with_checkin(appointment_id: int):
     try:
         sql = """
             UPDATE appointments
@@ -352,10 +303,11 @@ def update_appointment_with_checkin(appointment_id):
             function=whoami(),
             error=err
         )
-        return None
+
+    return None
 
 
-def update_appointment_with_test_start(appointment_id):
+def update_appointment_with_test_start(appointment_id: int):
     try:
         sql = """
             UPDATE appointments
@@ -375,10 +327,11 @@ def update_appointment_with_test_start(appointment_id):
             function=whoami(),
             error=err
         )
-        return None
+
+    return None
 
 
-def update_appointment_with_test_completed(appointment_id):
+def update_appointment_with_test_completed(appointment_id: int):
     try:
         sql = """
             UPDATE appointments
@@ -398,8 +351,77 @@ def update_appointment_with_test_completed(appointment_id):
             function=whoami(),
             error=err
         )
-        return None
+
+    return None
 
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
+
+
+def __map_row_to_appointment(row: dict):
+    try:
+        l = GgtLocation()
+        l.id = row['location_id']
+        l.addr1 = row['location_addr1']
+        l.addr2 = row['location_addr2']
+        l.city = row['location_city']
+        l.st = row['location_st']
+        l.zip = row['location_zip']
+
+        p = GgtPatient()
+        p.id = row['patient_id']
+        p.dob = row['patient_dob']
+        p.first_name = row['patient_first_name']
+        p.middle_name = row['patient_middle_name']
+        p.last_name = row['patient_last_name']
+        p.addr1 = row['patient_addr1']
+        p.addr2 = row['patient_addr2']
+        p.city = row['patient_city']
+        p.st = row['patient_st']
+        p.zip = row['patient_zip']
+        p.phone_number = row['patient_phone_number']
+        p.email = row['email']
+        p.gender = row['gender']
+        p.dob = row['dob']
+
+        a = GgtAppointment()
+        a.id = row['id']
+        a.location_id = row['location_id']
+        a.scheduled_dt = row['scheduled_dt']
+        a.group_code = row['group_code']
+        a.patient_id = row['patient_id']
+        a.patient_questionnaire_id = row['patient_questionnaire_id']
+
+        a.check_in_dt = row['check_in_dt']
+        a.test_start_dt = row['test_start_dt']
+        a.test_end_dt = row['test_end_dt']
+
+        a.wp_customer_info_id = row['wp_customer_info_id']
+        a.total_cost = row['total_cost']
+        a.billed_amount = row['billed_amount']
+        a.wp_receipt_token = row['wp_receipt_token']
+
+        a.location = l
+        a.patient = p
+        a.status = row['status']
+
+        a.date_text = a.scheduled_dt.strftime(
+            "%a, %-d %b %Y @ %-I:%M %p")
+        # e.g. 6155 Sports Village Rd, Frisco, TX 75033
+        a.location_text = "{}, {} {}  {}".format(
+            l.addr1,
+            l.city,
+            l.st,
+            l.zip
+        )
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            appointment_id=row,
+            function=whoami(),
+            error=err
+        )
+
+    return a

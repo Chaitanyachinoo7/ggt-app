@@ -172,45 +172,6 @@ def bp_get_all_available_locations_and_times(group_code=DEFAULT_GROUP_CODE):
             else:
                 map_thumbnail = get_map_thumbnail_url(location_text)
 
-            #services_available = []
-            #TODO-HIGH change the service to following structure
-            ''' 
-            if row['test_covid19']:
-                services_available.append({
-                    'sku': 'COVID_19_TEST',
-                    'name': 'Covid-19 Test',
-                    'cost': 0
-                })
-            if row['test_flu']:
-                services_available.append({
-                    'sku': 'FLU_SHOT',
-                    'name': 'Flu Shot',
-                    'cost': 3000
-                })
-            if row['test_consult']:
-                services_available.append({
-                    'sku': 'CONSULT',
-                    'name': 'Consultation',
-                    'cost': 0
-                })
-            '''
-            '''
-            services_list = get_services_available_for_location(dtl.location.id)
-            for service_item in services_list:
-                services_available.append(
-                    {
-                        'sku': service_item.service_code,
-                        'cost': service_item.price,
-                        'id': service_item.id,
-                        'service_code': service_item.service_code,
-                        'service_name': service_item.service_name,
-                        'price': service_item.price,
-                        'copay_amount': service_item.copay_amount,
-                        'selfpay_amount': service_item.selfpay_amount
-                    }
-                )
-            '''
-
             available_locations.append(
                 {
                     'id': dtl.location.id,

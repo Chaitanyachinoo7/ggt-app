@@ -16,7 +16,7 @@ from ggt.lib.constants import (
 )
 
 
-def send_twilio_sms(to_number, message_text):
+def send_twilio_sms(to_number: str, message_text: str):
     account_sid = get_config_val('twilio.account_sid')
     auth_token = get_config_val('twilio.auth_token')
     from_number = get_config_val('twilio.from_number')
@@ -32,16 +32,22 @@ def send_twilio_sms(to_number, message_text):
             body=message_text
         )
 
-        log_generic(type=INFO, message_id=message.sid, to_number=to_number,
-                    message_text=message_text, function=whoami())
+        log_generic(
+            type=INFO,
+            message_id=message.sid,
+            to_number=to_number,
+            message_text=message_text,
+            function=whoami()
+        )
         return True
 
     except Exception as err:
         log_generic(
-            type=ERROR, 
+            type=ERROR,
             to_number=to_number,
-            message_text=message_text, 
-            function=whoami(), 
+            message_text=message_text,
+            function=whoami(),
             error=err
         )
-        return False
+
+    return False

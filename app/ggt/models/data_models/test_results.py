@@ -171,39 +171,6 @@ def get_all_test_results():
             error=err
         )
 
-
-'''
-#TODO add provider ID
-def create_test_sample(appointment_id, patient_id, patient_questionnaire_id, group_code, location_id):
-    try:
-        sql = """
-                INSERT INTO test_samples
-                (
-                    id,
-                    appointment_id,
-                    group_code,
-                    patient_id,
-                    patient_questionnaire_id,
-                    sample_collection_location_id,
-                    sample_collection_start_dt
-                ) 
-                VALUES (%s, %s, %s, %s, %s, %s, NOW())"""
-        vals = (appointment_id, appointment_id, patient_id, patient_questionnaire_id, group_code, location_id)
-        return exec_insert(sql, vals)
-
-    except Exception as err:
-        log_generic(
-            type=ERROR, 
-            appointment_id=appointment_id, 
-            patient_id=patient_id, 
-            patient_questionnaire_id=patient_questionnaire_id, 
-            group_code=group_code, 
-            location_id=location_id, 
-            function=whoami(), 
-            error=err
-        )
-        return None
-'''
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################

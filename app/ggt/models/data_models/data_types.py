@@ -122,7 +122,6 @@ class FinalizeRegistrationRequest(BaseModel):
     consent: Optional[Consent] = None
     consent_provider: Optional[ConsentProvider] = None
     influenzaConsent: Optional[InfluenzaConsent] = None
-    locationServices: Optional[list] = None
 
     serviceSelection: Optional[ServiceSelection] = None
     influenzaScreening: Optional[InfluenzaScreening] = None
@@ -412,8 +411,6 @@ class GgtBooking(BaseModel):
     signature: str = None
     consent_provider_signature: str = None
     influenza_consent_signature: str = None
-
-    location_services: List[str] = None
 
     service_covid19_test: bool = False
     service_flu_shot: bool = False

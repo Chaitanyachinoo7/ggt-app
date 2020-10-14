@@ -190,18 +190,10 @@ def __map_to_booking_req(finalize_registration_request):
         b.other_chronic_disease = finalize_registration_request.preExistingConditions.other_chronic_disease
         b.allergies = finalize_registration_request.preExistingConditions.allergies
         b.signature = finalize_registration_request.consent.full_name.strip()
-        b.consent_provider_signature = finalize_registration_request.consent_provider.full_name.strip()
-        b.influenza_consent_signature = finalize_registration_request.influenzaConsent.full_name.strip()
-        b.location_services = finalize_registration_request.locationServices
-
+        
         b.service_covid19_test = finalize_registration_request.serviceSelection.COVID_19_TEST
         b.service_flu_shot = finalize_registration_request.serviceSelection.FLU_SHOT
         b.service_consult = finalize_registration_request.serviceSelection.CONSULT
-
-        b.flu_screen_severely_ill = finalize_registration_request.influenzaScreening.severely_ill
-        b.flu_screen_guillain_barre_syndrome = finalize_registration_request.influenzaScreening.guillain_barre_syndrome
-        b.flu_screen_life_threatening_reaction = finalize_registration_request.influenzaScreening.life_threatening_reaction
-        b.flu_screen_egg_allergy = finalize_registration_request.influenzaScreening.egg_allergy
 
         b.public_places_bars_restaurants_cafes = finalize_registration_request.publicPlaces.bars_restaurants_cafes
         b.public_places_gas_stations = finalize_registration_request.publicPlaces.gas_stations
@@ -217,6 +209,17 @@ def __map_to_booking_req(finalize_registration_request):
         b.date = finalize_registration_request.date
         b.location_id = finalize_registration_request.location
         b.timeslot_id = finalize_registration_request.timeSlot
+
+        from contextlib import suppress
+        with suppress(AttributeError):
+            b.consent_provider_signature = finalize_registration_request.consent_provider.full_name.strip()
+            b.influenza_consent_signature = finalize_registration_request.influenzaConsent.full_name.strip()
+
+            b.flu_screen_severely_ill = finalize_registration_request.influenzaScreening.severely_ill
+            b.flu_screen_guillain_barre_syndrome = finalize_registration_request.influenzaScreening.guillain_barre_syndrome
+            b.flu_screen_life_threatening_reaction = finalize_registration_request.influenzaScreening.life_threatening_reaction
+            b.flu_screen_egg_allergy = finalize_registration_request.influenzaScreening.egg_allergy
+
 
     except Exception as err:
         log_generic(
