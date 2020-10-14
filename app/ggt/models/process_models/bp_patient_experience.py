@@ -189,6 +189,69 @@ def bp_validate_phone_number(phone_number: str, otp: str):
     return False
 
 
+# def bp_finalize_booking(booking_req: GgtBooking):
+#     appointment: GgtAppointment = None
+#     try:
+#         if not __is_valid_token(booking_req.token):
+#             raise ValueError('Invalid Token')
+
+#         # create patient
+#         _patient = __extract_patient_from_booking_req(booking_req)
+#         booking_req.patient_id = create_patient_record(_patient)
+#         if not booking_req.patient_id:
+#             raise ValueError('Invalid Patient ID')
+
+#         # create questionnaire
+#         booking_req.patient_questionnaire_id = create_patient_questionnaire(
+#             booking_req)
+#         if not booking_req.patient_questionnaire_id:
+#             raise ValueError('Invalid Patient Questionnaire ID')
+
+#         # determine if payment is required, if so, get billing info
+#         upfront_payment_info = __evaluate_upfront_payment(booking_req)
+#         booking_req.total_cost = upfront_payment_info.total_cost
+#         booking_req.billed_amount = upfront_payment_info.billed_amount
+
+#         # generate appointment/booking
+#         appointment = __generate_appointment(booking_req)
+#         if not appointment:
+#             raise ValueError('Invalid Appointment info')
+
+#         # wp_bill_url = ''
+#         if payment_required:
+#             wp_bill_url = __inject_payment_flow(
+#                 wp_customer_info_id, billed_amount, appointment_id, total_cost)
+
+#         else:  # payment not required, confirm the appointment and notify
+#             update_appointment_with_confirmed_scheduled(appointment_id)
+#             __send_qrcode_sms(
+#                 data['first_name'],
+#                 appointment['date_text'],
+#                 appointment['location_text'],
+#                 data['phone_number'],
+#                 appointment_id,
+#                 data['dob']
+#             )
+
+#             return __finalize_booking_response(
+#                 appointment['date_text'],
+#                 appointment['location_text'],
+#                 appointment_id,
+#                 billed_amount,
+#                 total_cost,
+#                 wp_bill_url
+#             )
+
+#     except Exception as err:
+#         log_generic(
+#             type=ERROR,
+#             data=booking_req,
+#             function=whoami(),
+#             error=err
+#         )
+
+#     return appointment
+
 def bp_finalize_booking(booking_req: GgtBooking):
     appointment: GgtAppointment = None
     try:
@@ -374,7 +437,7 @@ def __create_wp_bill(appointment: GgtAppointment):
 def bp_finalize_payment(appointment_id: int, wp_receipt_token: str):
     try:
         appointment = get_appointment(appointment_id)
-        if appointment['wp_receipt_token'] == wp_receipt_token:
+        if appointment.wp_receipt_token == wp_receipt_token:
             update_appointment_with_confirmed_scheduled(appointment_id)
             result = __send_qrcode_sms(appointment)
 
@@ -510,11 +573,30 @@ def __create_pending_entry(phone_number: str):
 
 def __send_qrcode_sms(appointment: GgtAppointment):
     try:
-        message = "Click here for your Appointment Details\n {}/appointment/{}/{}".format(
-            get_config_val('base_url'),
-            appointment.id,
-            appointment.patient.dob.strftime('%Y%m%d')
+        message = """
+            Hi {}, thank you for completing your registration at GoGetTested.com. 
+            Your appointment is confirmed for {} at {}. 
+            Your appointment details can be found here\n {}/appointment/{}/{}
+        """.format(
+                appointment.patient.first_name, 
+                appointment.date_text, 
+                appointment.location_text, 
+                get_config_val('base_url'), 
+                appointment.id,
+                appointment.patient.dob.strftime('%Y%m%d')
+            )
+        result_1 = send_sms(appointment.patient.phone_number, message)
+        
+        followup_message = """
+            Please make sure to bring and show this QR code {}/appointment/{}/{}, and Acceptable ID when you arrive at the test. 
+            We will scan the QR code to check you in for testing. 
+            Please, no eating or drinking at least 15 minutes prior to testing as this may impact your test results.
+        """.format(
+            get_config_val('base_url'), 
+            str(appointment.id).rjust(6, '0'), 
+            str(appointment.patient.dob).replace('-', '')
         )
+        result_2 = send_sms(appointment.patient.phone_number, followup_message)
 
         log_generic(
             type=INFO,
@@ -524,7 +606,8 @@ def __send_qrcode_sms(appointment: GgtAppointment):
             function=whoami()
         )
 
-        return send_sms(appointment.patient.phone_number, message)
+        return True
+
 
     except Exception as err:
         log_generic(
@@ -537,41 +620,73 @@ def __send_qrcode_sms(appointment: GgtAppointment):
     return None
 
 
-def __send_otp_sms(phone_number: str, message: str):
-    log_generic(
-        type=INFO,
-        phone_number=phone_number,
-        message=message,
-        function=whoami()
-    )
-    return send_sms(phone_number, message)
+def __send_otp_sms(phone_number: str, message: str) -> bool:
+    try:
+        log_generic(
+            type=INFO,
+            phone_number=phone_number,
+            message=message,
+            function=whoami()
+        )
+        return send_sms(phone_number, message)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            phone_number=phone_number,
+            message=message,
+            function=whoami(),
+            error=err
+        )
+    
+    return False
 
 
 def __override_random_otp(phone_number: str):
-    p1 = get_config_val('pfe.signup.special_phone_1')
-    p2 = get_config_val('pfe.signup.special_phone_2')
-    override_otp_code = get_config_val('pfe.signup.override_otp_code')
+    try:
+        p1 = get_config_val('pfe.signup.special_phone_1')
+        p2 = get_config_val('pfe.signup.special_phone_2')
+        override_otp_code = get_config_val('pfe.signup.override_otp_code')
 
-    if phone_number == p1 or phone_number == p2:
-        return True, override_otp_code
-    else:
-        return False, None
+        if phone_number == p1 or phone_number == p2:
+            return True, override_otp_code
 
-
-def __is_valid_token(token: str):
-    # Check Duplicate Token
-    if get_patient_by_token(token, expect_no_match=True):
-        print('Duplicate Token: {}', token)
-        return False
-
-    # Allows overriding phone number validation
-    if token.startswith("NOVERIFY"):
-        return True
-    else:
-        return get_signup_record_by_token(token)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            phone_number=phone_number,
+            function=whoami(),
+            error=err
+        )
+    
+    return False, None
 
 
-def __extract_patient_from_booking_req(booking_req: GgtBooking):
+def __is_valid_token(token: str) -> bool:
+    try:
+        # Check Duplicate Token
+        if get_patient_by_token(token, expect_no_match=True):
+            print('Duplicate Token: {}', token)
+            return False
+
+        # Allows overriding phone number validation
+        if token.startswith("NOVERIFY"):
+            return True
+        else:
+            return get_signup_record_by_token(token)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            token=token,
+            function=whoami(),
+            error=err
+        )
+    
+    return False
+
+
+def __extract_patient_from_booking_req(booking_req: GgtBooking) -> GgtPatient:
     try:
         patient: GgtPatient = GgtPatient()
         patient.token = booking_req.token
