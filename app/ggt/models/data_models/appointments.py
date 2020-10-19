@@ -74,33 +74,39 @@ def create_appointment(appointment_req: GgtBooking):
 def get_appointment(appointment_id: int):
     try:
         sql = """
-            SELECT
-                a.*,
-                l.addr1 AS location_addr1,
-                l.addr2 AS location_addr2,
-                l.city AS location_city,
-                l.st AS location_st,
-                l.zip AS location_zip,
-                p.dob AS patient_dob,
-                p.first_name AS patient_first_name,
-                p.middle_name AS patient_middle_name,
-                p.last_name AS patient_last_name,
-                p.addr1 AS patient_addr1,
-                p.addr2 AS patient_addr2,
-                p.city AS patient_city,
-                p.st AS patient_st,
-                p.zip AS patient_zip,
-                p.phone_number AS patient_phone_number,
-                p.email,
-                p.gender,
-                p.dob
-            FROM
-                appointments a
-                    JOIN
-                patients p ON a.patient_id = p.id
-                    JOIN
-                locations l ON a.location_id = l.id
-            WHERE
+        SELECT 
+            a.*,
+            l.addr1 AS location_addr1,
+            l.addr2 AS location_addr2,
+            l.city AS location_city,
+            l.st AS location_st,
+            l.zip AS location_zip,
+            p.dob AS patient_dob,
+            p.first_name AS patient_first_name,
+            p.middle_name AS patient_middle_name,
+            p.last_name AS patient_last_name,
+            p.addr1 AS patient_addr1,
+            p.addr2 AS patient_addr2,
+            p.city AS patient_city,
+            p.st AS patient_st,
+            p.zip AS patient_zip,
+            p.phone_number AS patient_phone_number,
+            p.email,
+            p.gender,
+            p.dob,
+            GROUP_CONCAT(c.service_code) as service_codes,
+            GROUP_CONCAT(s.service_description) as service_descriptions
+        FROM
+            appointments a
+                JOIN
+            patients p ON a.patient_id = p.id
+                JOIN
+            locations l ON a.location_id = l.id
+                LEFT JOIN
+            appointment_services s ON (s.appointment_id = a.id)
+                LEFT JOIN
+            services_catalog c ON (c.id = s.service_id)
+        WHERE
                 a.id = %s
         """
 
@@ -403,6 +409,9 @@ def __map_row_to_appointment(row: dict):
         a.billed_amount = row['billed_amount']
         a.wp_receipt_token = row['wp_receipt_token']
 
+        a.service_selection_codes = row['service_codes'].split(',')
+        a.service_selection = row['service_descriptions'].split(',')
+
         a.location = l
         a.patient = p
         a.status = row['status']
@@ -416,6 +425,7 @@ def __map_row_to_appointment(row: dict):
             l.st,
             l.zip
         )
+
 
     except Exception as err:
         log_generic(

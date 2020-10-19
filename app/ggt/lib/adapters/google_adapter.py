@@ -2,6 +2,7 @@ import datetime
 import collections
 import hashlib
 import binascii
+import base64
 from pathlib import Path
 import six
 from six.moves.urllib.parse import quote
@@ -42,7 +43,8 @@ def upload_lab_report(local_file_path, destination_filename):
     return upload_blob(
         lab_reports_bucket_name,
         local_file_path,
-        destination_filename)
+        destination_filename
+    )
 
 
 def get_list_of_all_uploaded_lab_reports():
@@ -57,7 +59,17 @@ def upload_insurance_card(local_file_path, destination_filename):
     return upload_blob(
         insurance_cards_bucket_name,
         local_file_path,
-        destination_filename)
+        destination_filename
+    )
+
+
+def upload_insurance_card_from_base64_string(base64string: str, content_type: str, destination_blob_name: str) -> bool:
+    return upload_blob_from_string(
+        insurance_cards_bucket_name,
+        base64string, 
+        content_type, 
+        destination_blob_name
+    )
 
 
 def get_temp_lab_report_url(filename):
@@ -290,3 +302,38 @@ def upload_blob(bucket_name, source_filename, destination_blob_name):
                 error=err
             )
         return None
+
+
+def upload_blob_from_string(bucket_name: str, base64string: str, content_type: str, destination_blob_name: str) -> bool:
+    if blob_exists(bucket_name, destination_blob_name):
+        #print('file_exists -- skipping')
+        return False
+    try:
+        storage_client = storage.Client.from_service_account_json(
+            service_account_file)
+        bucket = storage_client.bucket(bucket_name)
+        blob = bucket.blob(destination_blob_name)
+        blob.upload_from_string(
+            base64.b64decode(base64string), 
+            content_type
+        )
+
+        log_generic(
+            type=INFO,
+            bucket_name=bucket_name,
+            destination_blob_name=destination_blob_name,
+            function=whoami()
+        )
+        return True
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            bucket_name=bucket_name,
+            base64string=base64string,
+            destination_blob_name=destination_blob_name,
+            function=whoami(),
+            error=err
+        )
+    
+    return False

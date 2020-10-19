@@ -1,6 +1,7 @@
 app_name: COVID-19 Testing
 log_level: DEBUG
-base_url: https://start.GoGetTested.com
+base_url: https://start-dev.GoGetTested.com
+env: DEV
 
 aws:
   region: us-east-1
@@ -17,10 +18,10 @@ gcp:
 
 databases:
   mysql:
-    host: 34.66.63.242
+    host: 35.184.98.83
     username: root
-    password: gvMBO96Ohbq3mwFp
-    db: ggt_prod
+    password: Jr6EEMI2aBNguL1K
+    db: ggt_dev
 
   sqlite:
     tasks_sqlite_db: /Users/suresh/ggt-tasks/ggt_tasks_local_cache.db

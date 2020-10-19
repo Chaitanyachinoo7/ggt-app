@@ -1,6 +1,7 @@
 app_name: COVID-19 Testing
 log_level: DEBUG
-base_url: https://start.GoGetTested.com
+base_url: https://start-qa.GoGetTested.com
+env: QA
 
 aws:
   region: us-east-1

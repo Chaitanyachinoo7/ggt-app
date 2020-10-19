@@ -24,9 +24,5 @@ def __init_config(path_to_file):
         cfg = yaml.safe_load(f.read())
         return cfg
 
-
-#__init_logging_config("./ggt/configs/log-config.yml")
-#cfg = __init_config("./ggt/configs/config.yml")
-
 __init_logging_config(log_config_file)
 cfg = __init_config(config_file)

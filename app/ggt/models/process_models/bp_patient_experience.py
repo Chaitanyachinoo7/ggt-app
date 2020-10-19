@@ -59,6 +59,11 @@ from ggt.models.data_models.data_types import (
     GgtAppointment
 )
 
+from ggt.lib.storage import (
+    file_exists_in_insurance_cards,
+    upload_insurance_card_from_base64_string
+)
+
 from ggt.lib.constants import (
     STATUS,
     SUCCESS,
@@ -254,6 +259,7 @@ def bp_validate_phone_number(phone_number: str, otp: str):
 
 def bp_finalize_booking(booking_req: GgtBooking):
     appointment: GgtAppointment = None
+    status_message = None
     try:
         if not __is_valid_token(booking_req.token):
             raise ValueError('Invalid Token')
@@ -280,6 +286,10 @@ def bp_finalize_booking(booking_req: GgtBooking):
         if not appointment:
             raise ValueError('Invalid Appointment info')
 
+        # store insurance card
+        if not __save_insurance_image(appointment.id, booking_req.insurance_photo):
+            pass  # allow transation to proceed. TODO: Handle alternative action
+
         # if a payment is required, generate a payment link
         appointment.payment_url = ''
         if upfront_payment_info.is_payment_required:
@@ -290,14 +300,39 @@ def bp_finalize_booking(booking_req: GgtBooking):
             __send_qrcode_sms(appointment)
 
     except Exception as err:
+        status_message = str(err)
         log_generic(
             type=ERROR,
             booking_req=booking_req,
             function=whoami(),
             error=err
         )
+        
 
-    return appointment
+    return appointment, status_message
+
+
+def __save_insurance_image(appointment_id: int, insurance_image: str) -> bool:
+    try:
+
+        if "," in insurance_image:
+            base64string = insurance_image.split(",")[1]
+
+        dest_file_name = '{}.png'.format(appointment_id)
+        if upload_insurance_card_from_base64_string(base64string, 'image/png', dest_file_name):
+            print('uploaded image: {}'.format(dest_file_name))
+            return True
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            appointment_id=appointment_id,
+            insurance_image=insurance_image,
+            function=whoami(),
+            error=err
+        )
+
+    return False
 
 
 '''
@@ -573,27 +608,19 @@ def __create_pending_entry(phone_number: str):
 
 def __send_qrcode_sms(appointment: GgtAppointment):
     try:
-        message = """
-            Hi {}, thank you for completing your registration at GoGetTested.com. 
-            Your appointment is confirmed for {} at {}. 
-            Your appointment details can be found here\n {}/appointment/{}/{}
-        """.format(
-                appointment.patient.first_name, 
-                appointment.date_text, 
-                appointment.location_text, 
-                get_config_val('base_url'), 
-                appointment.id,
-                appointment.patient.dob.strftime('%Y%m%d')
-            )
+        message = """Hi {}, thank you for completing your registration at GoGetTested.com. Your appointment is confirmed for {} at {}. Your appointment details can be found here\n {}/appointment/{}/{}""".format(
+            appointment.patient.first_name,
+            appointment.date_text,
+            appointment.location_text,
+            get_config_val('base_url'),
+            appointment.id,
+            appointment.patient.dob.strftime('%Y%m%d')
+        )
         result_1 = send_sms(appointment.patient.phone_number, message)
-        
-        followup_message = """
-            Please make sure to bring and show this QR code {}/appointment/{}/{}, and Acceptable ID when you arrive at the test. 
-            We will scan the QR code to check you in for testing. 
-            Please, no eating or drinking at least 15 minutes prior to testing as this may impact your test results.
-        """.format(
-            get_config_val('base_url'), 
-            str(appointment.id).rjust(6, '0'), 
+
+        followup_message = """Please make sure to bring and show this QR code {}/appointment/{}/{}, and Acceptable ID when you arrive at the test. We will scan the QR code to check you in for testing. Please, no eating or drinking at least 15 minutes prior to testing as this may impact your test results.""".format(
+            get_config_val('base_url'),
+            str(appointment.id).rjust(6, '0'),
             str(appointment.patient.dob).replace('-', '')
         )
         result_2 = send_sms(appointment.patient.phone_number, followup_message)
@@ -608,7 +635,6 @@ def __send_qrcode_sms(appointment: GgtAppointment):
 
         return True
 
-
     except Exception as err:
         log_generic(
             type=ERROR,
@@ -616,7 +642,7 @@ def __send_qrcode_sms(appointment: GgtAppointment):
             function=whoami(),
             error=err
         )
-    
+
     return None
 
 
@@ -638,7 +664,7 @@ def __send_otp_sms(phone_number: str, message: str) -> bool:
             function=whoami(),
             error=err
         )
-    
+
     return False
 
 
@@ -658,7 +684,7 @@ def __override_random_otp(phone_number: str):
             function=whoami(),
             error=err
         )
-    
+
     return False, None
 
 
@@ -682,7 +708,7 @@ def __is_valid_token(token: str) -> bool:
             function=whoami(),
             error=err
         )
-    
+
     return False
 
 

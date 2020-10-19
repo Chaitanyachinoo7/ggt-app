@@ -904,7 +904,7 @@ def __map_row_to_dtl(row):
 
         svc.sku = row['service_code']
         if row['price']:
-            svc.cost = int(row['price']*100) 
+            svc.cost = int(row['selfpay_amount']*100) 
 
     except Exception as err:
         log_generic(

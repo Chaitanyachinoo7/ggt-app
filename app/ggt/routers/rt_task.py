@@ -11,6 +11,7 @@ from ggt.tasks.email_queue_processor import task_process_email_queue
 from ggt.tasks.sms_queue_processor import task_process_sms_queue
 from ggt.tasks.call_queue_processor import task_process_voice_queue
 from ggt.tasks.locations_processor import task_populate_location_thumbnails
+from ggt.tasks.misc_processor import task_process_misc
 
 from ggt.lib.constants import (
     STATUS,
@@ -78,6 +79,14 @@ async def api_process_sms_queue(request: Request):
     task_populate_location_thumbnails()
     return {STATUS: SUCCESS}
 
+
+@router.post("/misc_processor")
+async def api_process_outbound_lab_orders(request: Request, background_tasks: BackgroundTasks):
+    background_tasks.add_task(task_process_misc)
+    return {
+        STATUS: SUCCESS,
+        DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
+    }
 
 
 '''

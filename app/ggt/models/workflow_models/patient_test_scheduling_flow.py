@@ -133,20 +133,23 @@ def finalize_payment(finalize_payment_request):
 
 def finalize_registration(finalize_registration_request):
     booking_req = __map_to_booking_req(finalize_registration_request)
-    appointment = bp_finalize_booking(booking_req)
+    appointment, status_message = bp_finalize_booking(booking_req)
 
     if appointment:
         return {
             "appointment_id": appointment.id,
             "date": appointment.date_text,
             "location": appointment.location_text,
-            'total_balance': appointment.billed_amount,
-            'total_cost': appointment.total_cost,
+            'total_balance': int(appointment.billed_amount*100),
+            'total_cost': int(appointment.total_cost*100),
             'payment_url': appointment.payment_url,
             STATUS: SUCCESS
         }
     else:
-        return {STATUS: FAILED}
+        return {
+            STATUS: FAILED,
+            ERROR: status_message
+        }
 
 
 def __map_to_booking_req(finalize_registration_request):
@@ -196,6 +199,10 @@ def __map_to_booking_req(finalize_registration_request):
 
         
         b.insurance_photo = finalize_registration_request.insurancePhoto
+        if b.insurance_photo and len(b.insurance_photo) > 250:
+            b.has_insurance_photo = True
+        else:
+            b.has_insurance_photo = False
 
         b.date = finalize_registration_request.date
         b.location_id = finalize_registration_request.location

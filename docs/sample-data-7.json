@@ -1,0 +1,103 @@
+{
+  "groupCode": "TESTGC",
+  "phone_number": "8018602474",
+  "token": "beff08e7-a5c3-462a-8f60-c0df08230cd0",
+  "location": 1,
+  "locationServices": [
+    {
+      "id": 1,
+      "service_code": "COVID_19_TEST",
+      "service_name": "Covid-19 Test",
+      "price": 17500,
+      "selfpay_amount": null,
+      "copay_amount": null,
+      "insurance_amount": null,
+      "sku": "COVID_19_TEST",
+      "cost": 0
+    },
+    {
+      "id": 2,
+      "service_code": "FLU_SHOT",
+      "service_name": "Flu Shot",
+      "price": 3000,
+      "selfpay_amount": 3000,
+      "copay_amount": null,
+      "insurance_amount": null,
+      "sku": "FLU_SHOT",
+      "cost": 3000
+    }
+  ],
+  "date": "2020-10-19",
+  "timeSlot": 1745885,
+  "isPatient": true,
+  "serviceSelection": {
+    "COVID_19_TEST": true,
+    "FLU_SHOT": true
+  },
+  "influenzaScreening": {
+    "egg_allergy": "false",
+    "life_threatening_reaction": "false",
+    "guillain_barre_syndrome": "false",
+    "severely_ill": "false"
+  },
+  "patientDetails": {
+    "first_name": "Suresh",
+    "last_name": "Subasinghe",
+    "dob": "1980-10-31"
+  },
+  "patientAddress": {
+    "state": "FL",
+    "street": "16303 Dobson Ct",
+    "city": "Tampa",
+    "zip_code": "33647"
+  },
+  "patientContact": {
+    "email": "suresh@wellpay.com"
+  },
+  "gender": "male",
+  "race": "race_asian",
+  "ethnicity": "",
+  "symptoms": {
+    "symptom_fever": false,
+    "symptom_short_breath": false,
+    "symptom_cough": false,
+    "symptom_chest_pains": false,
+    "symptom_other": false,
+    "symptom_lack_of_smell": false
+  },
+  "patientVitals": {
+    "medications": false,
+    "height": "61",
+    "weight": "123"
+  },
+  "preExistingConditions": {
+    "heart_disease": true,
+    "diabetes": true,
+    "respiratory_disease": true,
+    "autoimmune_disease": true,
+    "other_chronic_disease": true,
+    "allergies": true
+  },
+  "contactTracing": true,
+  "publicPlaces": {
+    "bars_restaurants_cafes": true,
+    "gas_stations": true,
+    "medical_offices": true,
+    "place_of_work": true,
+    "retail_grocery_stores": true,
+    "places_of_worship": true,
+    "public_parks": true,
+    "other": true
+  },
+  "consent": {
+    "full_name": "Suresh Subasinghe"
+  },
+  "consent_provider": {
+    "full_name": "Suresh Subasinghe"
+  },
+  "influenzaConsent": {
+    "full_name": "Suresh Subasinghe"
+  },
+  "hasInsurance": false,
+  "forceFinish": true
+}

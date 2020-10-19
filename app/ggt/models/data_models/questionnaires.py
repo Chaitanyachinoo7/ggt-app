@@ -1,13 +1,15 @@
 from ggt.lib.utils import (
     convert_to_bool,
-    log_generic)
+    log_generic
+)
 
 from ggt.lib.adapters.mysql_adapter import (
     exec_insert,
     exec_update,
     exec_delete,
     read_row,
-    read_rows)
+    read_rows
+)
 
 from ggt.lib.constants import (
     STATUS,
@@ -59,7 +61,8 @@ def create_patient_questionnaire(booking_req):
         INSERT INTO patient_questionnaires 
             (
                 patient_id, 
-                group_code, symptom_fever, 
+                group_code, 
+                symptom_fever, 
                 symptom_shortness_breath, 
                 symptom_cough, 
                 symptom_chest_pain, 
@@ -109,7 +112,26 @@ def create_patient_questionnaire(booking_req):
         INSERT INTO 
             patient_questionnaires_ext
             (
-                patient_questionnaire_id,
+                id,
+                patient_id, 
+                group_code, 
+                symptom_fever, 
+                symptom_shortness_breath, 
+                symptom_cough, 
+                symptom_chest_pain, 
+                symptom_lack_of_smell, 
+                symptom_other_breathing, 
+                covid_contact, 
+                prescription_use, 
+                heart_disease, 
+                diabetes, 
+                respiratory_diseases, 
+                autoimmune_disease, 
+                other_chronic, 
+                allergies,  
+                consent_signature, 
+                token,
+                has_insurance_photo,
                 provider_consent_signature,
                 influenza_consent_signature,
                 public_places_bars_restaurants_cafes,
@@ -128,11 +150,30 @@ def create_patient_questionnaire(booking_req):
                 flu_screen_life_threatening_reaction,
                 flu_screen_egg_allergy
             )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
 
         vals = (
             questionnaire_id,
+            booking_req.patient_id, 
+            booking_req.group_code, 
+            booking_req.symptom_fever, 
+            booking_req.symptom_shortbreath,
+            booking_req.symptom_coughing,
+            booking_req.symptom_chestpains, 
+            booking_req.symptom_lack_of_smell, 
+            booking_req.symptom_others, 
+            booking_req.covid_contact, 
+            booking_req.meds, 
+            booking_req.heart_disease,
+            booking_req.diabetes, 
+            booking_req.respiratory_disease, 
+            booking_req.autoimmune_disease, 
+            booking_req.other_chronic_disease, 
+            booking_req.allergies,  
+            booking_req.signature, 
+            booking_req.token, 
+            booking_req.has_insurance_photo,
             booking_req.consent_provider_signature, 
             booking_req.influenza_consent_signature,
             booking_req.public_places_bars_restaurants_cafes,

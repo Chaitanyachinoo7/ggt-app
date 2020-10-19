@@ -18,7 +18,7 @@ from ggt.lib.constants import (
 )
 
 
-def send_sendgrid_email(from_email, from_name, to_email, subject, html_content, text_content=""):
+def send_email(from_email, from_name, to_email, subject, html_content, text_content=""):
     sendgrid_api_key = get_config_val('sendgrid.sendgrid_api_key')
 
     sg = SendGridAPIClient(sendgrid_api_key)

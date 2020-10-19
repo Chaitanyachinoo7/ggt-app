@@ -79,9 +79,9 @@ class PublicPlaces(BaseModel):
 
 
 class ServiceSelection(BaseModel):
-    COVID_19_TEST: bool
-    CONSULT: bool
-    FLU_SHOT: bool
+    COVID_19_TEST: Optional[bool]
+    CONSULT: Optional[bool]
+    FLU_SHOT: Optional[bool]
 
 
 class GgtServiceCatalogItem(BaseModel):
@@ -431,6 +431,7 @@ class GgtBooking(BaseModel):
     public_places_other: bool = False
 
     insurance_photo: str = None
+    has_insurance_photo: bool = None
 
     date: datetime.date = None
     location_id: int = None
@@ -462,6 +463,9 @@ class GgtAppointment(BaseModel):
     total_cost: float = None
     billed_amount: float = None
     payment_url: str = None
+
+    service_selection_codes: List[str] = None
+    service_selection: List[str] = None
 
     patient: GgtPatient = GgtPatient()
     location: GgtLocation = GgtLocation()
