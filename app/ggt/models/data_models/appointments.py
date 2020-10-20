@@ -1,4 +1,5 @@
 from datetime import datetime
+from contextlib import suppress
 
 from ggt.lib.utils import (
     log_generic,
@@ -25,7 +26,10 @@ from ggt.lib.constants import (
     SUCCESS,
     FAILED,
     INFO,
-    ERROR
+    ERROR,
+    SERVICE_CODE_COVID19_TEST,
+    SERVICE_CODE_FLU_SHOT,
+    SERVICE_CODE_CONSULT
 )
 
 ########################################################################################################
@@ -58,6 +62,7 @@ def create_appointment(appointment_req: GgtBooking):
             appointment_req.billed_amount/100  # cents --> decimal
         )
         appointment_id = exec_insert(sql, vals)
+        __add_services_to_appointment(appointment_id, appointment_req)
         return get_appointment(appointment_id)
 
     except Exception as err:
@@ -69,6 +74,49 @@ def create_appointment(appointment_req: GgtBooking):
         )
 
     return None
+
+
+def add_service_to_appointment(appointment_id: int, service_code: str) -> bool:
+    try:
+        sql = """
+        INSERT INTO appointment_services
+        (
+            appointment_id,
+            service_id,
+            service_description,
+            price,
+            selfpay_amount,
+            copay_amount,
+            insurance_amount
+        )
+        SELECT 
+            '{}' as appointment_id,
+            id as service_id,
+            service_name,
+            price,
+            selfpay_amount,
+            copay_amount,
+            insurance_amount
+        FROM
+            ggt_prod.services_catalog
+        WHERE
+            service_code = %s
+            
+        """.format(appointment_id)
+        vals = (service_code, )
+        if exec_insert(sql, vals):
+            return True
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            appointment_id=appointment_id,
+            service_code=service_code,
+            error=err
+        )
+
+    return False
 
 
 def get_appointment(appointment_id: int):
@@ -409,8 +457,9 @@ def __map_row_to_appointment(row: dict):
         a.billed_amount = row['billed_amount']
         a.wp_receipt_token = row['wp_receipt_token']
 
-        a.service_selection_codes = row['service_codes'].split(',')
-        a.service_selection = row['service_descriptions'].split(',')
+        with suppress(AttributeError):
+            a.service_selection_codes = row['service_codes'].split(',')
+            a.service_selection = row['service_descriptions'].split(',')
 
         a.location = l
         a.patient = p
@@ -426,7 +475,6 @@ def __map_row_to_appointment(row: dict):
             l.zip
         )
 
-
     except Exception as err:
         log_generic(
             type=ERROR,
@@ -436,3 +484,25 @@ def __map_row_to_appointment(row: dict):
         )
 
     return a
+
+
+def __add_services_to_appointment(appointment_id: int, appointment_req: GgtBooking) -> bool:
+    try:
+        if appointment_req.service_covid19_test:
+            add_service_to_appointment(
+                appointment_id, SERVICE_CODE_COVID19_TEST)
+        if appointment_req.service_flu_shot:
+            add_service_to_appointment(appointment_id, SERVICE_CODE_FLU_SHOT)
+        if appointment_req.service_consult:
+            add_service_to_appointment(appointment_id, SERVICE_CODE_CONSULT)
+
+        return True
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            appointment_req=appointment_req,
+            error=err
+        )
+    return False

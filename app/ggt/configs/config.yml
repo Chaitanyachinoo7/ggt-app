@@ -1,7 +1,7 @@
 app_name: COVID-19 Testing
 log_level: DEBUG
-base_url: https://start-qa.GoGetTested.com
-env: QA
+base_url: https://start.GoGetTested.com
+env: PROD
 
 aws:
   region: us-east-1
@@ -71,10 +71,10 @@ vendors:
     outbound_file_prefix: ggt-outbound
 
   wellpay:
-    endpoint: https://api-staging.getwellpay.com/api/public/v1
+    endpoint: https://api.getwellpay.com/api/public/v1
     auth_user: suresh@wellpay.com
-    auth_password: 8,tp{Na{76<~@.>(
-    
+    auth_password: y7f{=/$>VfRF$vqE
+
 pfe:
   signup:
     special_phone_1: '+14158888888'

@@ -1,4 +1,5 @@
 from datetime import date
+from contextlib import suppress
 
 from ggt.lib.utils import (
     log_generic,
@@ -193,10 +194,12 @@ def __map_to_booking_req(finalize_registration_request):
         b.other_chronic_disease = finalize_registration_request.preExistingConditions.other_chronic_disease
         b.allergies = finalize_registration_request.preExistingConditions.allergies
         
-        b.service_covid19_test = finalize_registration_request.serviceSelection.COVID_19_TEST
-        b.service_flu_shot = finalize_registration_request.serviceSelection.FLU_SHOT
-        b.service_consult = finalize_registration_request.serviceSelection.CONSULT
-
+        if finalize_registration_request.serviceSelection:
+            b.service_covid19_test = finalize_registration_request.serviceSelection.COVID_19_TEST
+            b.service_flu_shot = finalize_registration_request.serviceSelection.FLU_SHOT
+            b.service_consult = finalize_registration_request.serviceSelection.CONSULT
+        else:
+            b.service_covid19_test =  True #handle errors in form submission where there is no test type submitted
         
         b.insurance_photo = finalize_registration_request.insurancePhoto
         if b.insurance_photo and len(b.insurance_photo) > 250:
@@ -208,7 +211,6 @@ def __map_to_booking_req(finalize_registration_request):
         b.location_id = finalize_registration_request.location
         b.timeslot_id = finalize_registration_request.timeSlot
 
-        from contextlib import suppress
         with suppress(AttributeError):
             b.public_places_bars_restaurants_cafes = finalize_registration_request.publicPlaces.bars_restaurants_cafes
             b.public_places_gas_stations = finalize_registration_request.publicPlaces.gas_stations

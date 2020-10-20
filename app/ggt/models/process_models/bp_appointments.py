@@ -51,10 +51,11 @@ def bp_get_appointment_info(appointment_id, dob):
     try:
         appointment = get_appointment(appointment_id)
         if dob != 'allowdoboverride' and appointment.patient.dob.strftime("%Y%m%d") != dob:
-            return False
+            raise ValueError('Invalid Appointment and DOB')
 
         if appointment.status == 'pending':
-            return False
+            raise ValueError('Appointment is still pending')
+
         else:
             return {
                 "appointment_id": appointment.id,
@@ -67,6 +68,7 @@ def bp_get_appointment_info(appointment_id, dob):
                 "service_selection": appointment.service_selection,
                 "service_selection_codes": appointment.service_selection_codes
             }
+
     except Exception as err:
         log_generic(
             type=ERROR,
