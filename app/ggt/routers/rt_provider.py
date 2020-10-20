@@ -25,6 +25,7 @@ from ggt.lib.constants import (
 
 router = APIRouter()
 
+ADMIN_TOKEN = "entourage2020"
 
 @router.post("/login")
 async def api_provider_login(provider_login_request: ProviderLoginRequest):
@@ -32,23 +33,22 @@ async def api_provider_login(provider_login_request: ProviderLoginRequest):
         provider_login_request.token)
 
 
-@router.get("/get_workstations/{auth_token}")
-async def api_provider_get_workstations(request: Request, auth_token: str):
-    return provider_get_workstations(
-        auth_token)
+@router.get("/get_workstations")
+async def api_provider_get_workstations(request: Request):
+    return provider_get_workstations(ADMIN_TOKEN)
 
 
 @router.post("/lookup_appointment")
 async def api_provider_lookup_appointment(provider_lookup_appointment_request: ProviderLookupAppointmentRequest):
     return provider_lookup_appointment(
-        provider_lookup_appointment_request.token,
+        ADMIN_TOKEN,
         provider_lookup_appointment_request.appointment_id)
 
 
 @router.post("/update_appointment")
 async def api_provider_update_appointment(provider_update_appointment_request: ProviderUpdateAppointmentRequest):
     return provider_update_appointment(
-        provider_update_appointment_request.auth_token,
+        ADMIN_TOKEN,
         provider_update_appointment_request.appointment_id,
         provider_update_appointment_request.action,
         provider_update_appointment_request.workstation_id)

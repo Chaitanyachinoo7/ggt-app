@@ -228,11 +228,11 @@ def __send_label_to_printer(appointment_id, queue_id):
 
     try:
         appointment = get_appointment(appointment_id)
-        date_text = appointment['scheduled_dt'].strftime(
+        date_text = appointment.scheduled_dt.strftime(
             "%a, %-d %b %Y @ %-I:%M %p")
-        patient_name = "{}, {} {}".format(appointment['last_name'],
-                                          appointment['first_name'],
-                                          appointment['middle_name'],
+        patient_name = "{}, {} {}".format(appointment.patient.last_name,
+                                          appointment.patient.first_name,
+                                          appointment.patient.middle_name,
                                           )
 
         queue_url = "{}-{}".format(get_config_val(
@@ -244,7 +244,7 @@ def __send_label_to_printer(appointment_id, queue_id):
         payload = {
             "barcode_text": "{}".format(appointment_id),
             "name_text": patient_name,
-            "dob_text": appointment['dob'].strftime("%m/%d/%Y"),
+            "dob_text": appointment.patient.dob.strftime("%m/%d/%Y"),
             "timestamp_text": date_text
         }
 

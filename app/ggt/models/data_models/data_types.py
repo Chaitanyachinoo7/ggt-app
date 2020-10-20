@@ -162,14 +162,12 @@ class ProviderPatientCodeRequest(BaseModel):
 
 class ProviderUpdateAppointmentRequest(BaseModel):
     appointment_id: str
-    auth_token: str
     action: str
     workstation_id: int
 
 
 class ProviderLookupAppointmentRequest(BaseModel):
     appointment_id: str
-    token: str
 
 
 class PortalLoginRequest(BaseModel):
