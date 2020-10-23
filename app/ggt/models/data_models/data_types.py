@@ -3,6 +3,15 @@ from typing import Dict, List, Optional
 from enum import Enum, IntEnum
 import datetime
 
+class User(BaseModel):
+    iss: str
+    sub: str
+    aud: Optional[str] = None
+    iat: Optional[str] = None
+    exp: Optional[str] = None
+    azp: Optional[str] = None
+    scope: Optional[str] = None
+    roles: Optional[str] = None
 
 class VerifyPhoneRequest(BaseModel):
     phone_number: str
@@ -499,3 +508,9 @@ class GgtTestSample(BaseModel):
     appointment: GgtAppointment = GgtAppointment()
     patient: GgtPatient = GgtPatient()
     #patient_questionnaire = GgtPa
+
+
+class AuthError(Exception):
+    def __init__(self, error, status_code):
+        self.error = error
+        self.status_code = status_code

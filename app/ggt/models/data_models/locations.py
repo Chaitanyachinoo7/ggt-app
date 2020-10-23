@@ -56,10 +56,7 @@ def get_location_by_id(location_id):
                 collect_insurance_info,
                 allow_insurance_skip,
                 collect_upfront_payment,
-                image_thumbnail,
-                test_covid19,
-                test_flu,
-                test_consult,
+                image_thumbnail
             FROM 
                 locations 
             WHERE 
@@ -204,9 +201,6 @@ def __map_row_to_location(row):
         loc.allow_insurance_skip = row['allow_insurance_skip']
         loc.collect_upfront_payment = row['collect_upfront_payment']
         loc.image_thumbnail = row['image_thumbnail']
-        loc.test_covid19 = row['test_covid19']
-        loc.test_flu = row['test_flu']
-        loc.test_consult = row['test_consult']
         
     except Exception as err:
         log_generic(

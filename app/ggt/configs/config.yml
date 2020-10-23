@@ -54,6 +54,12 @@ email:
   template_folder: /templates/email/
 
 vendors:
+  auth0:
+    auth0_domain: ''
+    api_audience: ''
+    algorithms: ["RS256"]
+    token_url: https:///.well-known/jwks.json
+    
   healthtrackrx:
     hostname: sftp.healthtrackrx.com
     username: wellpay

@@ -6,8 +6,8 @@ from ggt.lib.utils import (
 
 from ggt.lib.adapters.sendgrid_adapter import send_email as __send_email
 
-if get_config_val('env') == 'TEST':
-    from ggt.lib.adapters.test_email_adapter import send_email as __send_email
+#if get_config_val('env') == 'TEST':
+#    from ggt.lib.adapters.test_email_adapter import send_email as __send_email
 
 
 def send_email(from_email, from_name, to_email, subject, html_content, text_content=""):

@@ -291,7 +291,9 @@ def bp_delete_schedule_for_date(location_id, date_str):
 def bp_generate_full_schedule(location_id):
     try:
         print('START schedule generation / location id: {} / at: {}'.format(
-            location_id, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+                location_id, datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            )
+        )
         delete_schedule_entries_by_location_id(location_id)
         rules = get_schedule_generation_rules_by_location_id(location_id)
 

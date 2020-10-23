@@ -1,4 +1,5 @@
 # system
+import json
 
 # third party
 from fastapi import FastAPI, Request, Response, Depends, Header, BackgroundTasks, HTTPException
@@ -10,13 +11,24 @@ import uvicorn
 
 # local
 from ggt.routers import (
-    rt_redirect, 
-    rt_provider, 
-    rt_patient, 
-    rt_task, 
+    rt_redirect,
+    rt_provider,
+    rt_patient,
+    rt_task,
     rt_portal,
     rt_contact_center,
     rt_printer_hub
+)
+
+from ggt.lib.utils import (
+    get_config_val,
+    log_generic,
+    whoami,
+    requires_auth
+)
+
+from ggt.models.data_models.data_types import (
+    AuthError
 )
 
 from ggt.lib.constants import (
@@ -30,11 +42,13 @@ from ggt.lib.constants import (
 
 app = FastAPI()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl=get_config_val(
+    'vendors.auth0.token_url'))  # Extract the JWT  from the request
 
-#Disable pubishing API documentation
-#app.redoc_url = None
-#app.docs_url = None
+# Disable pubishing API documentation
+if get_config_val('env') != 'DEV':
+    app.redoc_url = None
+    app.docs_url = None
 
 
 origins = [
@@ -59,9 +73,30 @@ app.add_middleware(
 )
 
 
-@app.get("/private/")
-async def read_items(token: str = Depends(oauth2_scheme)):
-    return {"token": token}
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    try:
+        user = await requires_auth(token)
+        return user
+    except AuthError as err:
+        print(err)
+        return None
+
+
+@app.get("/private/api/any")
+async def protected_api(user: str = Depends(get_current_user)):
+    if user and user.roles:
+        roles = json.loads(user.roles)
+        if 'Care Provider' in roles:
+            return {"message": "Hi Care Provider User..!"}
+        if 'Site Admin' in roles:
+            return {"message": "Hi Site Admin User..!"}
+        if 'Super' in roles:
+            return {"message": "Hi Super User..!"}
+
+    raise HTTPException(
+            status_code=401, 
+            detail="You are not allowed here....!"
+        )
 
 
 app.include_router(
@@ -74,7 +109,7 @@ app.include_router(
     rt_provider.router,
     prefix="/api/provider",
     tags=["Clinical Provider App"],
-    #dependencies=[Depends(get_token_header)],
+    # dependencies=[Depends(get_token_header)],
     responses={404: {"description": NOT_FOUND}},
 )
 
@@ -105,7 +140,7 @@ app.include_router(
     rt_contact_center.router,
     prefix="/api/cc",
     tags=["Contact Center App"],
-    #dependencies=[Depends(get_token_header)],
+    # dependencies=[Depends(get_token_header)],
     responses={404: {"description": NOT_FOUND}},
 )
 
