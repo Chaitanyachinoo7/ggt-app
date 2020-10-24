@@ -1,20 +1,26 @@
-from google.oauth2 import id_token
-from google.auth.transport import requests
+import json
+import os
+import urllib.request as urllib2
 
-from ggt.lib.utils import (
-    log_generic,
-    whoami
-)
+from fastapi import Depends
+from fastapi.security import OAuth2PasswordBearer
+from google.auth.transport import requests
+from google.oauth2 import id_token
+from jose import jwt
 
 from ggt.lib.constants import (
-    STATUS,
-    SUCCESS,
-    FAILED,
-    INFO,
     ERROR
 )
+from ggt.lib.utils import (
+    log_generic,
+    whoami,
+    get_config_val)
+from ggt.models.data_models.data_types import User, AuthError
 
 CLIENT_ID = "269165607649-ejpvn7ar1llub2e8tr6ur4ad2p1srucf.apps.googleusercontent.com"
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl=get_config_val("https://" + get_config_val('vendors.auth0.auth0_domain')
+                                                             + "/.well-known/jwks.json"))
 
 
 def verify_google_idtoken(token):
@@ -38,3 +44,80 @@ def verify_google_idtoken(token):
             error=err
         )
         return False
+
+
+async def requires_auth(token):
+    """Determines if the Access Token is valid
+    """
+    rsa_key = await get_rsa_key(token)
+
+    if rsa_key:
+        try:
+            user = jwt.decode(
+                token,
+                rsa_key,
+                algorithms=get_config_val('vendors.auth0.algorithms'),
+                audience=get_config_val('vendors.auth0.api_audience'),
+                issuer="https://" + get_config_val('vendors.auth0.auth0_domain') + "/"
+            )
+
+            return User(iss=str(user['iss']), sub=str(user['sub']),
+                        aud=str(user['aud']), iat=str(user['iat']),
+                        euserp=str(user['exp']), azp=str(user['azp']),
+                        scope=str(user['scope']), roles=json.dumps(user[get_config_val('vendors.auth0.roles')]))
+        except jwt.ExpiredSignatureError:
+            await get_rsa_key_auth0(token)
+            raise AuthError({"code": "token_expired",
+                             "description": "token is expired"}, 401)
+        except jwt.JWTClaimsError:
+            await get_rsa_key_auth0(token)
+            raise AuthError({"code": "invalid_claims",
+                             "description":
+                                 "incorrect claims,"
+                                 "please check the audience and issuer"}, 401)
+        except Exception:
+            await get_rsa_key_auth0(token)
+            raise AuthError({"code": "invalid_header",
+                             "description":
+                                 "Unable to parse authentication"
+                                 " token."}, 401)
+    await get_rsa_key_auth0(token)
+    raise AuthError({"code": "invalid_header",
+                     "description": "Unable to find appropriate key"}, 401)
+
+
+async def get_rsa_key(token):
+    if 'RSA_KEY' in os.environ:
+        return json.loads(os.environ.get('RSA_KEY'))
+    else:
+        rsa_key = await get_rsa_key_auth0(token)
+        return rsa_key;
+
+
+async def get_rsa_key_auth0(token):
+    jsonurl = urllib2.urlopen("https://" + get_config_val('vendors.auth0.auth0_domain') + "/.well-known/jwks.json")
+    jwks = json.loads(jsonurl.read())
+    unverified_header = jwt.get_unverified_header(token)
+    rsa_key = {}
+    for key in jwks["keys"]:
+        if key["kid"] == unverified_header["kid"]:
+            rsa_key = {
+                "kty": key["kty"],
+                "kid": key["kid"],
+                "use": key["use"],
+                "n": key["n"],
+                "e": key["e"]
+            }
+            _rsa_key = json.dumps(rsa_key)
+            os.environ['RSA_KEY'] = _rsa_key
+
+    return rsa_key
+
+
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    try:
+        user = await requires_auth(token)
+        return user
+    except AuthError as err:
+        print(err)
+        return None

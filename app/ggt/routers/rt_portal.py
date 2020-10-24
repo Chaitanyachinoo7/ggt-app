@@ -2,36 +2,34 @@ from fastapi import (
     APIRouter,
     BackgroundTasks,
     Request,
-    Response, 
-    status
-)
+    Response,
+    status,
+    Depends, HTTPException)
 
+from ggt.lib.auth import (
+    verify_google_idtoken,
+    get_current_user)
+from ggt.lib.constants import (
+    STATUS,
+    SUCCESS
+)
+from ggt.lib.utils import is_site_admin, is_admin, is_care_provider
 from ggt.models.data_models.data_types import (
     PortalUserRoleRequest,
     PortalCcPatientLookupRequest,
-    PortalCcPatientSearchRequest,
     PortalGeneralSearchRequest,
     PortalLocationSearchRequest,
-    ScheduleGenerationRule
-)
-
-from ggt.lib.auth import (
-    verify_google_idtoken
-)
-
-from ggt.models.workflow_models.portal_general_flow import (
-    portal_get_user_role
-)
-
-from ggt.models.workflow_models.contact_center_flow import (
-    cc_search_details_by_name_and_dob,
-    cc_view_test_details
-)
-
+    ScheduleGenerationRule,
+    User)
 from ggt.models.workflow_models.admin_flow import (
     admin_get_all_test_results
 )
-
+from ggt.models.workflow_models.contact_center_flow import (
+    cc_search_details_by_name_and_dob
+)
+from ggt.models.workflow_models.portal_general_flow import (
+    portal_get_user_role
+)
 from ggt.models.workflow_models.test_site_admin_flow import (
     site_admin_general_search,
     generate_schedule,
@@ -44,19 +42,12 @@ from ggt.models.workflow_models.test_site_admin_flow import (
     delete_schedule
 )
 
-from ggt.lib.constants import (
-    STATUS,
-    SUCCESS,
-    FAILED,
-    INFO,
-    ERROR
-)
-
 router = APIRouter()
 
-
+# TODO review after Auth0 implementation
 @router.post("/get_user_role")
-async def api_get_user_role(portal_user_role_request: PortalUserRoleRequest, request: Request, response: Response):
+async def api_get_user_role(portal_user_role_request: PortalUserRoleRequest,
+                            request: Request, response: Response):
     if verify_google_idtoken(request.headers['Authorization']):
         return portal_get_user_role(portal_user_role_request.email)
     else:
@@ -66,78 +57,147 @@ async def api_get_user_role(portal_user_role_request: PortalUserRoleRequest, req
 
 
 @router.post("/site-admin/general_search")
-async def api_site_admin_general_search(portal_general_search_request: PortalGeneralSearchRequest, request: Request, response: Response):
-    return site_admin_general_search(
-        portal_general_search_request.auth_token,
-        portal_general_search_request.first_name,
-        portal_general_search_request.middle_name,
-        portal_general_search_request.last_name,
-        portal_general_search_request.dob,
-        portal_general_search_request.phone_number,
-        portal_general_search_request.email,
-        portal_general_search_request.appointment_id,
-        portal_general_search_request.group_code,
-        portal_general_search_request.appointment_date,
-        portal_general_search_request.location_id
-    )
+async def api_site_admin_general_search(portal_general_search_request: PortalGeneralSearchRequest,
+                                        user: User = Depends(get_current_user)):
+    if is_site_admin(user):
+        return site_admin_general_search(
+            portal_general_search_request.auth_token,
+            portal_general_search_request.first_name,
+            portal_general_search_request.middle_name,
+            portal_general_search_request.last_name,
+            portal_general_search_request.dob,
+            portal_general_search_request.phone_number,
+            portal_general_search_request.email,
+            portal_general_search_request.appointment_id,
+            portal_general_search_request.group_code,
+            portal_general_search_request.appointment_date,
+            portal_general_search_request.location_id
+        )
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail="You are not allowed."
+        )
+
 
 @router.get("/site-admin/generate_schedule/{location_id}")
-async def api_generate_schedule(location_id: str, background_tasks: BackgroundTasks):
-    background_tasks.add_task(generate_schedule, location_id)
-    return {
-        STATUS: SUCCESS,
-        "description": "Background Task Initiated"
-    } 
+async def api_generate_schedule(location_id: str, background_tasks: BackgroundTasks,
+                                user: User = Depends(get_current_user)):
+    if is_site_admin(user):
+        background_tasks.add_task(generate_schedule, location_id)
+        return {
+            STATUS: SUCCESS,
+            "description": "Background Task Initiated"
+        }
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail="You are not allowed."
+        )
+
 
 @router.post("/site-admin/generate_all_schedules")
-async def api_generate_all_schedules(background_tasks: BackgroundTasks):
-    background_tasks.add_task(generate_all_schedules)
-    return {
-        STATUS: SUCCESS,
-        "description": "Background Task Initiated"
-    } 
+async def api_generate_all_schedules(background_tasks: BackgroundTasks,
+                                     user: User = Depends(get_current_user)):
+    if is_site_admin(user):
+        background_tasks.add_task(generate_all_schedules)
+        return {
+            STATUS: SUCCESS,
+            "description": "Background Task Initiated"
+        }
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail="You are not allowed."
+        )
 
 
 @router.post("/site-admin/location_search")
-async def api_site_admin_location_search(portal_location_search: PortalLocationSearchRequest, request: Request, response: Response):
-    return site_admin_location_search(
-        portal_location_search.account,
-        portal_location_search.group_code,
-        portal_location_search.site_code
-    )
+async def api_site_admin_location_search(portal_location_search: PortalLocationSearchRequest,
+                                         user: User = Depends(get_current_user)):
+    if is_site_admin(user):
+        return site_admin_location_search(
+            portal_location_search.account,
+            portal_location_search.group_code,
+            portal_location_search.site_code
+        )
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail="You are not allowed."
+        )
 
 
 @router.post("/site-admin/add_schedule_generation_rule")
-async def api_add_schedule_generation_rule(schedule_generation_rule_request: ScheduleGenerationRule, request: Request, response: Response):
-    return add_schedule_generation_rule(schedule_generation_rule_request)
+async def api_add_schedule_generation_rule(schedule_generation_rule_request: ScheduleGenerationRule,
+                                           user: User = Depends(get_current_user)):
+    if is_site_admin(user):
+        return add_schedule_generation_rule(schedule_generation_rule_request)
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail="You are not allowed."
+        )
 
 
 @router.post("/site-admin/edit_schedule_generation_rule")
-async def api_update_schedule_generation_rule(schedule_generation_rule_request: ScheduleGenerationRule, request: Request, response: Response):
-    return update_schedule_generation_rule(schedule_generation_rule_request)
+async def api_update_schedule_generation_rule(schedule_generation_rule_request: ScheduleGenerationRule,
+                                              user: User = Depends(get_current_user)):
+    if is_site_admin(user):
+        return update_schedule_generation_rule(schedule_generation_rule_request)
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail="You are not allowed."
+        )
 
 
 @router.post("/site-admin/delete_schedule_generation_rule/{id}")
-async def api_delete_schedule_generation_rule(id: str):
-    return delete_schedule_generation_rule(id)
+async def api_delete_schedule_generation_rule(id: str, user: User = Depends(get_current_user)):
+    if is_site_admin(user):
+        return delete_schedule_generation_rule(id)
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail="You are not allowed."
+        )
 
 
 @router.get("/site-admin/delete_schedule/{location_id}")
-async def api_delete_schedule(location_id: str):
-    return delete_schedule(location_id)
+async def api_delete_schedule(location_id: str, user: User = Depends(get_current_user)):
+    if is_site_admin(user):
+        return delete_schedule(location_id)
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail="You are not allowed."
+        )
 
 
 @router.get("/site-admin/get_schedule_generation_rules/{location_id}")
-async def api_delete_schedule_generation_rules(location_id: str):
-    return get_schedule_generation_rules(location_id)
+async def api_delete_schedule_generation_rules(location_id: str, user: User = Depends(get_current_user)):
+    if is_site_admin(user):
+        return get_schedule_generation_rules(location_id)
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail="You are not allowed."
+        )
 
 
 @router.post("/contact-center/patient_lookup")
-async def api_cc_patient_lookup(portal_cc_patient_lookup_request: PortalCcPatientLookupRequest, request: Request, response: Response):
-    return cc_search_details_by_name_and_dob(
-        portal_cc_patient_lookup_request.last_name,
-        portal_cc_patient_lookup_request.dob
-    )
+async def api_cc_patient_lookup(portal_cc_patient_lookup_request: PortalCcPatientLookupRequest,
+                                user: User = Depends(get_current_user)):
+    if is_site_admin(user) or is_care_provider(user):
+        return cc_search_details_by_name_and_dob(
+            portal_cc_patient_lookup_request.last_name,
+            portal_cc_patient_lookup_request.dob
+        )
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail="You are not allowed."
+        )
 
     '''
     if(verify_google_idtoken(request.headers['Authorization'])):
@@ -153,8 +213,14 @@ async def api_cc_patient_lookup(portal_cc_patient_lookup_request: PortalCcPatien
 
 
 @router.post("/admin/get_all_test_results")
-async def api_admin_get_all_test_results(request: Request, response: Response):
-    return admin_get_all_test_results()
+async def api_admin_get_all_test_results(user: User = Depends(get_current_user)):
+    if is_admin(user):
+        return admin_get_all_test_results()
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail="You are not allowed."
+        )
     '''
     if(verify_google_idtoken(request.headers['Authorization'])):
         return admin_get_all_test_results()
@@ -163,6 +229,7 @@ async def api_admin_get_all_test_results(request: Request, response: Response):
             response.status_code: status.HTTP_401_UNAUTHORIZED
         }
     '''
+
 
 '''    ProviderPatientCodeRequest,
 

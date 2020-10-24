@@ -1,14 +1,15 @@
 # system
-import json
-
+import uvicorn
 # third party
-from fastapi import FastAPI, Request, Response, Depends, Header, BackgroundTasks, HTTPException
-from fastapi.security import OAuth2PasswordBearer
-from fastapi.templating import Jinja2Templates
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-import uvicorn
-
+from ggt.lib.constants import (
+    NOT_FOUND,CLINICAL_PROVIDER_RT_TAG, PATIENT_RT_TAG,
+    BACKGROUND_TASK_RT_TAG, ADMIN_PORTAL_RT_TAG,
+    CONTACT_CENTER_RT_TAG, PRINTER_HUB_RT_TAG)
+from ggt.lib.utils import (
+    get_config_val)
 # local
 from ggt.routers import (
     rt_redirect,
@@ -20,36 +21,12 @@ from ggt.routers import (
     rt_printer_hub
 )
 
-from ggt.lib.utils import (
-    get_config_val,
-    log_generic,
-    whoami,
-    requires_auth
-)
-
-from ggt.models.data_models.data_types import (
-    AuthError
-)
-
-from ggt.lib.constants import (
-    STATUS,
-    SUCCESS,
-    FAILED,
-    INFO,
-    ERROR,
-    NOT_FOUND
-)
-
 app = FastAPI()
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl=get_config_val(
-    'vendors.auth0.token_url'))  # Extract the JWT  from the request
 
 # Disable pubishing API documentation
 if get_config_val('env') != 'DEV':
     app.redoc_url = None
     app.docs_url = None
-
 
 origins = [
     "https://gogettested.com",
@@ -72,85 +49,71 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-async def get_current_user(token: str = Depends(oauth2_scheme)):
-    try:
-        user = await requires_auth(token)
-        return user
-    except AuthError as err:
-        print(err)
-        return None
-
-
-@app.get("/private/api/any")
-async def protected_api(user: str = Depends(get_current_user)):
-    if user and user.roles:
-        roles = json.loads(user.roles)
-        if 'Care Provider' in roles:
-            return {"message": "Hi Care Provider User..!"}
-        if 'Site Admin' in roles:
-            return {"message": "Hi Site Admin User..!"}
-        if 'Super' in roles:
-            return {"message": "Hi Super User..!"}
-
-    raise HTTPException(
-            status_code=401, 
-            detail="You are not allowed here....!"
-        )
-
-
 app.include_router(
     rt_redirect.router,
     tags=["Page Redirects"],
 )
 
-
+############################################################
+# rt_provider route is only for role - Clinical Provider   #
+############################################################
 app.include_router(
     rt_provider.router,
     prefix="/api/provider",
-    tags=["Clinical Provider App"],
-    # dependencies=[Depends(get_token_header)],
+    tags=[CLINICAL_PROVIDER_RT_TAG],
     responses={404: {"description": NOT_FOUND}},
 )
 
-
+############################################################
+# rt_patient route is Open                                 #
+############################################################
 app.include_router(
     rt_patient.router,
     prefix="/api",
-    tags=["Patient Front End"],
+    tags=[PATIENT_RT_TAG],
     responses={404: {"description": NOT_FOUND}},
 )
 
-
+############################################################
+# rt_task route is only for role - Super Admin             #
+############################################################
 app.include_router(
     rt_task.router,
     prefix="/api/task",
-    tags=["Background Tasks"],
+    tags=[BACKGROUND_TASK_RT_TAG],
     responses={404: {"description": NOT_FOUND}},
 )
 
+############################################################
+# rt_portal route is only for role - Site Admin            #
+############################################################
 app.include_router(
     rt_portal.router,
     prefix="/api/portal",
-    tags=["Admin Portal"],
+    tags=[ADMIN_PORTAL_RT_TAG],
     responses={404: {"description": NOT_FOUND}},
 )
 
+#############################################################
+# rt_contact_center route is only for role - Contact Center #
+#############################################################
 app.include_router(
     rt_contact_center.router,
     prefix="/api/cc",
-    tags=["Contact Center App"],
-    # dependencies=[Depends(get_token_header)],
+    tags=[CONTACT_CENTER_RT_TAG],
     responses={404: {"description": NOT_FOUND}},
 )
 
+#############################################################
+# rt_printer_hub Machine to Machine call                    #
+#############################################################
 app.include_router(
     rt_printer_hub.router,
     prefix="/api/print",
-    tags=["Printer Hub"],
+    tags=[PRINTER_HUB_RT_TAG],
     responses={404: {"description": NOT_FOUND}},
 )
 
 if __name__ == '__main__':
     uvicorn.run(app, host='0.0.0.0', port=5000)
-    #uvicorn.run(app, host='0.0.0.0', port=8000)
+    # uvicorn.run(app, host='0.0.0.0', port=8000)

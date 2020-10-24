@@ -53,12 +53,20 @@ google:
 email:
   template_folder: /templates/email/
 
+app:
+  roles:
+    admin: Super Admin
+    site_admin: Site Admin
+    clinical_provider: Clinical Provider
+    care_provider: Care Provider
+    contact_center: Contact Center
+
 vendors:
   auth0:
-    auth0_domain: ''
+    auth0_domain: gogettested.us.auth0.com
     api_audience: ''
     algorithms: ["RS256"]
-    token_url: https:///.well-known/jwks.json
+    roles: http://roles.ggt/roles
     
   healthtrackrx:
     hostname: sftp.healthtrackrx.com

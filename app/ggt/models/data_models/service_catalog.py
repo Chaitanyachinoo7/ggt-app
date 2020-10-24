@@ -23,11 +23,11 @@ from ggt.lib.adapters.mysql_adapter import (
     exec_batch_execute
 )
 
-from ggt.models.data_models.data_types import (
-    GgtServiceCatalogItem
-    GgtScheduleSlot,
-    GgtDateTimeLocation
-)
+# from ggt.models.data_models.data_types import (
+#     GgtServiceCatalogItem
+#     GgtScheduleSlot,
+#     GgtDateTimeLocation
+# )
 
 
 ########################################################################################################

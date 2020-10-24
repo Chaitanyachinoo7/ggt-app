@@ -1,7 +1,7 @@
 app_name: COVID-19 Testing
 log_level: DEBUG
 base_url: https://start.GoGetTested.com
-env: PROD
+env: DEV
 
 aws:
   region: us-east-1
@@ -18,9 +18,9 @@ gcp:
 
 databases:
   mysql:
-    host: 34.66.63.242
+    host: 35.184.98.83
     username: root
-    password: gvMBO96Ohbq3mwFp
+    password: Jr6EEMI2aBNguL1K
     db: ggt_prod
 
   sqlite:
@@ -53,13 +53,21 @@ google:
 email:
   template_folder: /templates/email/
 
+app:
+  roles:
+    admin: Super Admin
+    site_admin: Site Admin
+    clinical_provider: Clinical Provider
+    care_provider: Care Provider
+    contact_center: Contact Center
+
 vendors:
   auth0:
-    auth0_domain: ''
-    api_audience: ''
+    auth0_domain: gogettested.us.auth0.com
+    api_audience: https://role-base-auth.test/api
     algorithms: ["RS256"]
-    token_url: https:///.well-known/jwks.json
-    
+    roles: http://roles.ggt/roles
+
   healthtrackrx:
     hostname: sftp.healthtrackrx.com
     username: wellpay
@@ -88,4 +96,3 @@ pfe:
     special_phone_3: '4158888888'
     special_phone_4: '4159999999'
     override_otp_code: '000000'
-

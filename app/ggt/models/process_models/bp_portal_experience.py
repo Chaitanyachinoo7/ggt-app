@@ -1,8 +1,8 @@
 from datetime import datetime
 
 from ggt.lib.utils import (
-    log_generic
-)
+    log_generic,
+    whoami)
 
 from ggt.models.data_models.users import (
     get_user_by_email
