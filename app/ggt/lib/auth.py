@@ -6,7 +6,7 @@ from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 from google.auth.transport import requests
 from google.oauth2 import id_token
-from jose import jwt
+from jose import jwt, JWTError
 
 from ggt.lib.constants import (
     ERROR
@@ -97,21 +97,26 @@ async def get_rsa_key(token):
 async def get_rsa_key_auth0(token):
     jsonurl = urllib2.urlopen("https://" + get_config_val('vendors.auth0.auth0_domain') + "/.well-known/jwks.json")
     jwks = json.loads(jsonurl.read())
-    unverified_header = jwt.get_unverified_header(token)
-    rsa_key = {}
-    for key in jwks["keys"]:
-        if key["kid"] == unverified_header["kid"]:
-            rsa_key = {
-                "kty": key["kty"],
-                "kid": key["kid"],
-                "use": key["use"],
-                "n": key["n"],
-                "e": key["e"]
-            }
-            _rsa_key = json.dumps(rsa_key)
-            os.environ['RSA_KEY'] = _rsa_key
 
-    return rsa_key
+    try:
+        unverified_header = jwt.get_unverified_header(token)
+        rsa_key = {}
+        for key in jwks["keys"]:
+            if key["kid"] == unverified_header["kid"]:
+                rsa_key = {
+                    "kty": key["kty"],
+                    "kid": key["kid"],
+                    "use": key["use"],
+                    "n": key["n"],
+                    "e": key["e"]
+                }
+                _rsa_key = json.dumps(rsa_key)
+                os.environ['RSA_KEY'] = _rsa_key
+
+        return rsa_key
+    except JWTError:
+        raise AuthError({"code": "invalid_header",
+                         "description": "Unable to find appropriate key"}, 401)
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
