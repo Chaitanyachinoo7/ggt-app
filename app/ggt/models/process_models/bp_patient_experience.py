@@ -13,7 +13,7 @@ from ggt.lib.utils import (
 from ggt.lib.sms import (send_sms)
 
 from ggt.models.data_models.signups import (
-    get_ui_screen_flow_seq,
+    get_group_info,
     create_pending_signup_record,
     get_signup_record_by_phone_otp,
     get_signup_record_by_token
@@ -56,7 +56,8 @@ from ggt.models.data_models.wellpay import (
 from ggt.models.data_models.data_types import (
     GgtPatient,
     GgtBooking,
-    GgtAppointment
+    GgtAppointment,
+    GgtThirdPartyGroup
 )
 
 from ggt.lib.storage import (
@@ -79,35 +80,40 @@ from ggt.lib.storage import get_temporary_lab_report_url
 
 
 def bp_get_screen_flow_seq(group_code: str):
-    screen_seq = get_ui_screen_flow_seq(group_code)
-    if screen_seq:
-        validations = {}
-        screens = []
+    group_info: GgtThirdPartyGroup = get_group_info(group_code)
 
-        if screen_seq['screen_seq']:
-            screens = screen_seq['screen_seq'].split(',')
+    validations = {}
+    screens = []
+    config = {}
 
-        if screen_seq['required_screens']:
-            required_screens = screen_seq['required_screens'].split(',')
-            for required_screen in required_screens:
-                validations[required_screen] = {
-                    "required": True
+    if group_info.screen_seq:
+        screens = group_info.screen_seq
+        for screen in screens:
+            req = False
+            if group_info.required_screens:
+                req = True if (
+                    screen in group_info.required_screens) else False
+
+            validations[screen] = {
+                "required": req
+            }
+
+    if group_info.display_group_consent:
+        config = {
+            "consent-provider": {
+                "content": {
+                    "logo": [group_info.logo_1, group_info.logo_2],
+                    "provider_name": group_info.consent_party_name,
+                    "consent_url": group_info.consent_url if (group_info.consent_url and group_info.consent_url != '') else None
                 }
-
-        if screen_seq['optional_screens']:
-            optional_screens = screen_seq['optional_screens'].split(',')
-            for optional_screen in optional_screens:
-                validations[optional_screen] = {
-                    "required": False
-                }
-
-        return {
-            "screens": screens,
-            "validation": validations
+            }
         }
 
-    else:
-        return None
+    return {
+        "screens": screens,
+        "validation": validations,
+        "config": config
+    }
 
 
 def bp_initiate_verification_flow(phone_number: str, with_otp: bool = True):
@@ -194,69 +200,6 @@ def bp_validate_phone_number(phone_number: str, otp: str):
     return False
 
 
-# def bp_finalize_booking(booking_req: GgtBooking):
-#     appointment: GgtAppointment = None
-#     try:
-#         if not __is_valid_token(booking_req.token):
-#             raise ValueError('Invalid Token')
-
-#         # create patient
-#         _patient = __extract_patient_from_booking_req(booking_req)
-#         booking_req.patient_id = create_patient_record(_patient)
-#         if not booking_req.patient_id:
-#             raise ValueError('Invalid Patient ID')
-
-#         # create questionnaire
-#         booking_req.patient_questionnaire_id = create_patient_questionnaire(
-#             booking_req)
-#         if not booking_req.patient_questionnaire_id:
-#             raise ValueError('Invalid Patient Questionnaire ID')
-
-#         # determine if payment is required, if so, get billing info
-#         upfront_payment_info = __evaluate_upfront_payment(booking_req)
-#         booking_req.total_cost = upfront_payment_info.total_cost
-#         booking_req.billed_amount = upfront_payment_info.billed_amount
-
-#         # generate appointment/booking
-#         appointment = __generate_appointment(booking_req)
-#         if not appointment:
-#             raise ValueError('Invalid Appointment info')
-
-#         # wp_bill_url = ''
-#         if payment_required:
-#             wp_bill_url = __inject_payment_flow(
-#                 wp_customer_info_id, billed_amount, appointment_id, total_cost)
-
-#         else:  # payment not required, confirm the appointment and notify
-#             update_appointment_with_confirmed_scheduled(appointment_id)
-#             __send_qrcode_sms(
-#                 data['first_name'],
-#                 appointment['date_text'],
-#                 appointment['location_text'],
-#                 data['phone_number'],
-#                 appointment_id,
-#                 data['dob']
-#             )
-
-#             return __finalize_booking_response(
-#                 appointment['date_text'],
-#                 appointment['location_text'],
-#                 appointment_id,
-#                 billed_amount,
-#                 total_cost,
-#                 wp_bill_url
-#             )
-
-#     except Exception as err:
-#         log_generic(
-#             type=ERROR,
-#             data=booking_req,
-#             function=whoami(),
-#             error=err
-#         )
-
-#     return appointment
-
 def bp_finalize_booking(booking_req: GgtBooking):
     appointment: GgtAppointment = None
     status_message = None
@@ -307,7 +250,6 @@ def bp_finalize_booking(booking_req: GgtBooking):
             function=whoami(),
             error=err
         )
-        
 
     return appointment, status_message
 
@@ -352,7 +294,7 @@ def __create_wellpay_create_bill_request(booking_req: GgtBooking, appointment_id
         r.autopay = False
         r.billed_amount = booking_req.tot
         return r
-    
+
     except Exception as err:
         log_generic(
             type=ERROR,
@@ -361,7 +303,7 @@ def __create_wellpay_create_bill_request(booking_req: GgtBooking, appointment_id
             function=whoami(),
             error=err
         )
-    
+
     return None
 '''
 

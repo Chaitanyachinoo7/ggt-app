@@ -9,6 +9,11 @@ import pyotp
 import uuid
 import phonenumbers
 import requests
+
+import hmac
+import hashlib
+import base64
+
 from pprint import pprint, pformat
 
 from ggt.configs.config_loader import cfg
@@ -225,14 +230,14 @@ async def requires_auth(token):
                      "description": "Unable to find appropriate key"}, 401)
 
 
+def hmac_256_hash(payload: dict, secret_key: str, encoding: str = 'utf-8') -> str:
+    digest = hmac.new(
+        bytearray(secret_key.encode(encoding)),
+        msg=json.dumps(payload).encode(encoding),
+        digestmod=hashlib.sha256
+    ).digest()
 
-
-
-
-
-
-
-
+    return base64.b64encode(digest).decode()
 
 
 '''

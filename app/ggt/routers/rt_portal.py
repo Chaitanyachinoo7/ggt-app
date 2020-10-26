@@ -151,10 +151,11 @@ async def api_cc_patient_lookup(portal_cc_patient_lookup_request: PortalCcPatien
         }
     '''
 
-
-@router.post("/admin/get_all_test_results")
-async def api_admin_get_all_test_results(request: Request, response: Response):
-    return admin_get_all_test_results()
+###### TODO: rewrite this API in a better way with pagination etc.
+######
+######@router.post("/admin/get_all_test_results")
+######async def api_admin_get_all_test_results(request: Request, response: Response):
+######    return admin_get_all_test_results()
     '''
     if(verify_google_idtoken(request.headers['Authorization'])):
         return admin_get_all_test_results()

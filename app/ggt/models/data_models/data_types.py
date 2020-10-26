@@ -3,6 +3,7 @@ from typing import Dict, List, Optional
 from enum import Enum, IntEnum
 import datetime
 
+
 class User(BaseModel):
     iss: str
     sub: str
@@ -12,6 +13,7 @@ class User(BaseModel):
     azp: Optional[str] = None
     scope: Optional[str] = None
     roles: Optional[str] = None
+
 
 class VerifyPhoneRequest(BaseModel):
     phone_number: str
@@ -514,3 +516,22 @@ class AuthError(Exception):
     def __init__(self, error, status_code):
         self.error = error
         self.status_code = status_code
+
+
+class GgtThirdPartyGroup(BaseModel):
+    account_name: str = None
+    group_code: str = None
+    is_refferal_code: bool = None
+    consent_req: bool = None
+    collect_insurance: bool = None
+    insurance_req: bool = None
+    allow_insurance_skip: bool = None
+    upfront_payment_req: bool = None
+    display_group_consent: bool = None
+    consent_party_name: str = None
+    consent_url: str = None
+    logo_1: str = None
+    logo_2: str = None
+    required_screens: List[str] = None
+    optional_screens: List[str] = None #Redundant, remove
+    screen_seq: List[str] = None
