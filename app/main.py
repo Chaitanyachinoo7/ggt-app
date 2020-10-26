@@ -40,16 +40,14 @@ from ggt.lib.constants import (
     NOT_FOUND
 )
 
-app = FastAPI()
+if get_config_val('env') != 'DEV':
+    app = FastAPI(docs_url=None, redoc_url=None)
+else:
+    app = FastAPI(docs_url="/docs", redoc_url="/redoc")
 
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl=get_config_val('vendors.auth0.token_url')
 )  # Extract the JWT  from the request
-
-# Hide API documentation
-if get_config_val('env') != 'DEV':
-    app.redoc_url = None
-    app.docs_url = None
 
 
 origins = [
