@@ -40,10 +40,10 @@ from ggt.lib.constants import (
     NOT_FOUND
 )
 
-if get_config_val('env') != 'DEV':
-    app = FastAPI(docs_url=None, redoc_url=None)
-else:
-    app = FastAPI(docs_url="/docs", redoc_url="/redoc")
+docs_url = None if (get_config_val('env') == 'PROD') else '/docs'
+redoc_url = None if (get_config_val('env') == 'PROD') else '/redoc'
+    
+app = FastAPI(docs_url=docs_url, redoc_url=redoc_url)
 
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl=get_config_val('vendors.auth0.token_url')
