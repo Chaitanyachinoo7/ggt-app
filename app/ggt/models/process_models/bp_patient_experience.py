@@ -277,37 +277,6 @@ def __save_insurance_image(appointment_id: int, insurance_image: str) -> bool:
     return False
 
 
-'''
-def __create_wellpay_create_bill_request(booking_req: GgtBooking, appointment_id: int):
-    try:
-        r = WellpayCreateBillRequest()
-        r.first_name = booking_req.first_name
-        r.last_name = booking_req.last_name
-        r.phone = booking_req.phone_number
-        r.email = booking_req.email
-        r.date_of_birth = booking_req.dob
-        r.street_address = booking_req.address
-        r.city = booking_req.city
-        r.state = booking_req.st
-        r.zip_code = booking_req.zip
-        r.external_account_id = appointment_id
-        r.autopay = False
-        r.billed_amount = booking_req.tot
-        return r
-
-    except Exception as err:
-        log_generic(
-            type=ERROR,
-            booking_req=booking_req,
-            appointment_id=appointment_id,
-            function=whoami(),
-            error=err
-        )
-
-    return None
-'''
-
-
 def __inject_payment_flow(appointment: GgtAppointment):
     try:
         wp_bill = __create_wp_bill(appointment)
@@ -550,7 +519,12 @@ def __create_pending_entry(phone_number: str):
 
 def __send_qrcode_sms(appointment: GgtAppointment):
     try:
-        message = """Hi {}, thank you for completing your registration at GoGetTested.com. Your appointment is confirmed for {} at {}. Your appointment details can be found here\n {}/appointment/{}/{}""".format(
+        message = """Hi {}, thank you for completing your registration at GoGetTested.com. Your appointment is confirmed for {} at {}. 
+        Your appointment details can be found here\n {}/appointment/{}/{}
+        
+        Please make sure to bring and show this QR code, and an Acceptable ID when you arrive at the test. We will scan the QR code to check you in for testing. 
+        
+        Please, no eating or drinking at least 15 minutes prior to testing as this may impact your test results.""".format(
             appointment.patient.first_name,
             appointment.date_text,
             appointment.location_text,
@@ -560,12 +534,14 @@ def __send_qrcode_sms(appointment: GgtAppointment):
         )
         result_1 = send_sms(appointment.patient.phone_number, message)
 
-        followup_message = """Please make sure to bring and show this QR code {}/appointment/{}/{}, and Acceptable ID when you arrive at the test. We will scan the QR code to check you in for testing. Please, no eating or drinking at least 15 minutes prior to testing as this may impact your test results.""".format(
+        '''
+        followup_message = """""".format(
             get_config_val('base_url'),
             str(appointment.id).rjust(6, '0'),
             str(appointment.patient.dob).replace('-', '')
         )
         result_2 = send_sms(appointment.patient.phone_number, followup_message)
+        '''
 
         log_generic(
             type=INFO,
