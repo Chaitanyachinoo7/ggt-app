@@ -20,7 +20,7 @@ from ggt.models.data_models.data_types import (
     PortalGeneralSearchRequest,
     PortalLocationSearchRequest,
     ScheduleGenerationRule,
-    User)
+    User, GgtLocation, GgtDbLocation, GgtUpdateLocation, LocationToGroupMap, LocationToServiceMap)
 from ggt.models.workflow_models.admin_flow import (
     admin_get_all_test_results
 )
@@ -39,8 +39,9 @@ from ggt.models.workflow_models.test_site_admin_flow import (
     update_schedule_generation_rule,
     delete_schedule_generation_rule,
     get_schedule_generation_rules,
-    delete_schedule
-)
+    delete_schedule,
+    create_location, get_all_groups, update_location, assign_group, remove_group, assign_service, remove_service,
+    get_all_services)
 
 router = APIRouter()
 
@@ -54,6 +55,94 @@ async def api_get_user_role(portal_user_role_request: PortalUserRoleRequest,
         return {
             response.status_code: status.HTTP_401_UNAUTHORIZED
         }
+
+
+@router.post("/site-admin/create_location")
+async def api_create_location(location: GgtDbLocation, user: User = Depends(get_current_user)):
+    if is_site_admin(user):
+        return create_location(location)
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail="You are not allowed."
+        )
+
+
+@router.post("/site_admin/location/assign_group")
+async def api_assign_group(req: LocationToGroupMap, user: User = Depends(get_current_user)):
+    if is_site_admin(user):
+        return assign_group(req)
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail="You are not allowed."
+        )
+
+
+@router.post("/site_admin/location/remove_service")
+async def api_remove_service(req: LocationToServiceMap, user: User = Depends(get_current_user)):
+    if is_site_admin(user):
+        return remove_service(req)
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail="You are not allowed."
+        )
+
+
+@router.post("/site_admin/location/assign_service")
+async def api_assign_service(req: LocationToServiceMap, user: User = Depends(get_current_user)):
+    if is_site_admin(user):
+        return assign_service(req)
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail="You are not allowed."
+        )
+
+
+@router.post("/site_admin/location/remove_group")
+async def api_remove_group(req: LocationToGroupMap, user: User = Depends(get_current_user)):
+    if is_site_admin(user):
+        return remove_group(req)
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail="You are not allowed."
+        )
+
+
+@router.post("/site-admin/update_location")
+async def api_update_location(location: GgtUpdateLocation, user: User = Depends(get_current_user)):
+    if is_site_admin(user):
+        return update_location(location)
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail="You are not allowed."
+        )
+
+
+@router.get("/site-admin/get_all_groups")
+async def api_get_all_groups(user: User = Depends(get_current_user)):
+    if is_site_admin(user):
+        return get_all_groups()
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail="You are not allowed."
+        )
+
+
+@router.get("/site-admin/get_all_services")
+async def api_get_all_services(user: User = Depends(get_current_user)):
+    if is_site_admin(user):
+        return get_all_services()
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail="You are not allowed."
+        )
 
 
 @router.post("/site-admin/general_search")
@@ -126,6 +215,7 @@ async def api_site_admin_location_search(portal_location_search: PortalLocationS
             status_code=401,
             detail="You are not allowed."
         )
+
 
 
 @router.post("/site-admin/add_schedule_generation_rule")

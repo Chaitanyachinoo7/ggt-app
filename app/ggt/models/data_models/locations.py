@@ -172,6 +172,200 @@ def search_locations(account, group_code, site_code):
         )
         return None
 
+
+def create_location(location):
+    try:
+        sql = """
+               INSERT INTO locations
+               (
+                   site_code,
+                   group_code,
+                   name,
+                   addr1,
+                   addr2,
+                   addr3,
+                   city,
+                   st,
+                   zip,
+                   lat,
+                   lng,
+                   time_zone,
+                   time_zone_offset,
+                   test_type_offered,
+                   status,
+                   type,
+                   billing_type,
+                   collect_insurance_info,
+                   allow_insurance_skip,
+                   collect_upfront_payment,
+                   image_thumbnail 
+               )
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+               """
+        vals = (
+            location.site_code,
+            location.group_code,
+            location.name,
+            location.addr1,
+            location.addr2,
+            location.addr3,
+            location.city,
+            location.st,
+            location.zip,
+            location.lat,
+            location.lng,
+            location.time_zone,
+            location.time_zone_offset,
+            location.test_type_offered,
+            location.status,
+            location.type,
+            location.billing_type,
+            location.collect_insurance_info,
+            location.allow_insurance_skip,
+            location.collect_upfront_payment,
+            location.image_thumbnail
+        )
+        location_id = exec_insert(sql, vals)
+        return location_id
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def assign_group(req):
+    try:
+        sql = """
+               INSERT INTO group_codes_to_locations_mapping
+               (
+                  group_id, 
+                  location_id
+               )
+               values (%s, %s)
+               """
+        vals = (
+            req.group_id,
+            req.location_id
+        )
+        map_id = exec_insert(sql, vals)
+        return map_id
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def assign_service(req):
+    try:
+        sql = """
+               INSERT INTO services_to_locations_mapping
+               (
+                  location_id, 
+                  service_id
+               )
+               values (%s, %s)
+               """
+        vals = (
+            req.location_id,
+            req.service_id
+        )
+        map_id = exec_insert(sql, vals)
+        return map_id
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def remove_group(req):
+    try:
+        sql = """
+               DELETE FROM group_codes_to_locations_mapping WHERE group_id = %s AND location_id = %s
+               """
+        vals = (
+            req.group_id,
+            req.location_id
+        )
+        deleted = exec_delete(sql, vals)
+        return deleted
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def remove_service(req):
+    try:
+        sql = """
+               DELETE FROM services_to_locations_mapping WHERE service_id = %s AND location_id = %s
+               """
+        vals = (
+            req.service_id,
+            req.location_id
+        )
+        deleted = exec_delete(sql, vals)
+        return deleted
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def update_location(location):
+    try:
+        sql = """
+               UPDATE locations SET
+                   test_type_offered = %s,
+                   status = %s,
+                   type = %s,
+                   billing_type = %s,
+                   collect_insurance_info = %s,
+                   allow_insurance_skip = %s,
+                   collect_upfront_payment = %s
+               WHERE id =  %s
+                        """
+        vals = (
+            location.test_type_offered,
+            location.status,
+            location.type,
+            location.billing_type,
+            location.collect_insurance_info,
+            location.allow_insurance_skip,
+            location.collect_upfront_payment,
+            location.id
+        )
+        updated = exec_update(sql, vals)
+        return updated
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################

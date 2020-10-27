@@ -33,7 +33,18 @@ from ggt.lib.adapters.mysql_adapter import (
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
+def get_all_services():
+    try:
+        sql = "SELECT * FROM services_catalog"
+        return read_rows(sql)
 
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
 
 
 ########################################################################################################
