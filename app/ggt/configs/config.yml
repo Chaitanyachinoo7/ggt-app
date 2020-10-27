@@ -1,6 +1,6 @@
 app_name: COVID-19 Testing
 log_level: DEBUG
-base_url: https://start.GoGetTested.com
+base_url: https://start-dev.GoGetTested.com
 env: DEV
 
 aws:
@@ -18,10 +18,10 @@ gcp:
 
 databases:
   mysql:
-    host: 34.66.63.242
+    host: 35.184.98.83
     username: root
-    password: gvMBO96Ohbq3mwFp
-    db: ggt_prod
+    password: Jr6EEMI2aBNguL1K
+    db: ggt_dev
 
   sqlite:
     tasks_sqlite_db: /Users/suresh/ggt-tasks/ggt_tasks_local_cache.db
@@ -42,14 +42,14 @@ sendgrid:
 
 google:
   maps:
-    api_key: AIzaSyBJmU3ueSBRmXz4mU1MRgdOxAWcfImbQNQ
+    api_key: AIzaSyAf7kDO2y7Hz7HYb3LHqvXimqJQcA6X8DQ
     base_url: https://maps.googleapis.com/maps/api/staticmap
     zoom_level: 10
     map_type: roadmap
     thumbnail_size: 110x110
     markers_color: red
     markers_size: tiny
-
+    
 email:
   template_folder: /templates/email/
 
@@ -59,7 +59,7 @@ vendors:
     api_audience: ''
     algorithms: ["RS256"]
     token_url: https:///.well-known/jwks.json
-    
+
   healthtrackrx:
     hostname: sftp.healthtrackrx.com
     username: wellpay
@@ -76,10 +76,14 @@ vendors:
     local_backups_path: /Users/suresh/ggt-tasks/backups
     outbound_file_prefix: ggt-outbound
 
+  labdx:
+    secret_key: Q1ZQZkdEamF0OW1zZWI1VEtjYjVGZU11WmVHM1kzRHI=
+    app_id: J873t7ZwJ6UvXGwz
+
   wellpay:
-    endpoint: https://api.getwellpay.com/api/public/v1
+    endpoint: https://api-staging.getwellpay.com/api/public/v1
     auth_user: suresh@wellpay.com
-    auth_password: y7f{=/$>VfRF$vqE
+    auth_password: 8,tp{Na{76<~@.>(
 
 pfe:
   signup:
@@ -88,4 +92,3 @@ pfe:
     special_phone_3: '4158888888'
     special_phone_4: '4159999999'
     override_otp_code: '000000'
-

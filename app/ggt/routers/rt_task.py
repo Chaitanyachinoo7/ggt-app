@@ -11,6 +11,7 @@ from ggt.tasks.email_queue_processor import task_process_email_queue
 from ggt.tasks.sms_queue_processor import task_process_sms_queue
 from ggt.tasks.call_queue_processor import task_process_voice_queue
 from ggt.tasks.locations_processor import task_populate_location_thumbnails
+from ggt.tasks.locations_processor import task_populate_gps_coordinates
 from ggt.tasks.misc_processor import task_process_misc
 
 from ggt.lib.constants import (
@@ -25,7 +26,9 @@ from ggt.lib.constants import (
 
 router = APIRouter()
 
-#TODO: With Cloud Run, consider Disabling Background Task. Ideally all asynchronous operations finish before delivering response
+# TODO: With Cloud Run, consider Disabling Background Task. Ideally all asynchronous operations finish before delivering response
+
+
 @router.post("/process_inbound_lab_reports")
 async def api_process_inbound_lab_reports(request: Request, background_tasks: BackgroundTasks):
     background_tasks.add_task(task_process_inbound_lab_reports)
@@ -77,6 +80,12 @@ async def api_process_sms_queue(request: Request):
 @router.post("/populate_location_thumbnails")
 async def api_process_sms_queue(request: Request):
     task_populate_location_thumbnails()
+    return {STATUS: SUCCESS}
+
+
+@router.post("/populate_gps_coordinates")
+async def api_process_sms_queue(request: Request):
+    task_populate_gps_coordinates()
     return {STATUS: SUCCESS}
 
 

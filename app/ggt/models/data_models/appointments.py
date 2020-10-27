@@ -129,6 +129,8 @@ def get_appointment(appointment_id: int):
             l.city AS location_city,
             l.st AS location_st,
             l.zip AS location_zip,
+            l.lat,
+            l.lng
             p.dob AS patient_dob,
             p.first_name AS patient_first_name,
             p.middle_name AS patient_middle_name,
@@ -423,6 +425,8 @@ def __map_row_to_appointment(row: dict):
         l.city = row['location_city']
         l.st = row['location_st']
         l.zip = row['location_zip']
+        l.lat = row['lat']
+        l.lng = row['lng']
 
         p = GgtPatient()
         p.id = row['patient_id']

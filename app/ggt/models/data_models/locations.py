@@ -147,6 +147,8 @@ def search_locations(account, group_code, site_code):
             l.city,
             l.st,
             l.zip,
+            l.lat,
+            l.lng,
             l.time_zone,
             l.time_zone_offset,
             l.test_type_offered,
@@ -187,7 +189,6 @@ def __map_row_to_location(row):
         loc.addr2 = row['addr2']
         loc.addr3 = row['addr3']
         loc.city = row['city']
-        loc.xxxx = row['xxxxx']
         loc.st = row['st']
         loc.zip = row['zip']
         loc.lat = row['lat']

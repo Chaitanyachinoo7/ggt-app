@@ -62,7 +62,7 @@ def bp_get_schedule_dates_available(group_code):
                 type=INFO,
                 available_dates=available_dates,
                 function=whoami()
-            )   
+            )
 
         return {
             "available_dates": available_dates
@@ -107,6 +107,8 @@ def bp_get_schedule_locations_available(date, group_code=DEFAULT_GROUP_CODE):
                     'id': dtl.location.id,
                     'name': dtl.location.name,
                     'address': location_text,
+                    'lat': dtl.location.lat,
+                    'lng': dtl.location.lng,
                     'next_test_date': dtl.first_date_time_available.strftime("%a, %-d %b %Y @ %-I:%M %p"),
                     'wait_time_mins': '< 5m',
                     'result_time_hours': '{}h'.format(dtl.average_processing_time),
@@ -139,9 +141,6 @@ def bp_get_schedule_locations_available(date, group_code=DEFAULT_GROUP_CODE):
     return {
         "available_location": available_locations
     }
-
-
-
 
 
 def bp_get_all_available_locations_and_times(group_code=DEFAULT_GROUP_CODE):
@@ -177,6 +176,8 @@ def bp_get_all_available_locations_and_times(group_code=DEFAULT_GROUP_CODE):
                     'id': dtl.location.id,
                     'name': dtl.location.name,
                     'address': location_text,
+                    'lat': dtl.location.lat,
+                    'lng': dtl.location.lng,
                     'next_test_date': dtl.first_date_time_available.strftime("%a, %-d %b %Y @ %-I:%M %p"),
                     'wait_time_mins': '< 5m',
                     'result_time_hours': '{}h'.format(dtl.average_processing_time),
@@ -291,8 +292,8 @@ def bp_delete_schedule_for_date(location_id, date_str):
 def bp_generate_full_schedule(location_id):
     try:
         print('START schedule generation / location id: {} / at: {}'.format(
-                location_id, datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            )
+            location_id, datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        )
         )
         delete_schedule_entries_by_location_id(location_id)
         rules = get_schedule_generation_rules_by_location_id(location_id)
