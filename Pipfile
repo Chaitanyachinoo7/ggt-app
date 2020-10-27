@@ -34,6 +34,7 @@ google-oauth = "*"
 pillow = "*"
 python-barcode = "*"
 aiofiles = "*"
+python-jose = "*"
 
 [requires]
 python_version = "3.7"
