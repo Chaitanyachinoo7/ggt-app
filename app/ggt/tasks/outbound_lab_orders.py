@@ -263,8 +263,15 @@ def get_orders_ready_to_transmit():
                 WHEN (l.test_type_offered = 'oral') THEN 'MOUTH'
                 ELSE 'Nasopharynx'
             END) AS sample_source,
-            DATE_FORMAT(t.sample_collection_start_dt,
-                    '%m/%d/%y') AS date_of_collection,
+            (CASE
+                WHEN
+                    ISNULL(`t`.`sample_collection_start_dt`)
+                THEN
+                    DATE_FORMAT(CONVERT_TZ(NOW(), '+00:00', '-05:00'),
+                            '%m/%d/%y')
+                ELSE DATE_FORMAT(`t`.`sample_collection_start_dt`,
+                        '%m/%d/%y')
+            END) AS `date_of_collection`,
             'RESPI507' AS panel_code,
             'COVID-19 Coronavirus (SARS-CoV-2)' AS panel_name,
             'Unknown' AS is_first_test,

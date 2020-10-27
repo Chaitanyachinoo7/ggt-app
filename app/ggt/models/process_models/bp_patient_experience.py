@@ -532,7 +532,7 @@ def __send_qrcode_sms(appointment: GgtAppointment):
             appointment.id,
             appointment.patient.dob.strftime('%Y%m%d')
         )
-        result_1 = send_sms(appointment.patient.phone_number, message)
+        result_1 = send_sms(appointment.patient.phone_number, message.replace('\t', ''))
 
         '''
         followup_message = """""".format(
