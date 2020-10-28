@@ -7,8 +7,9 @@ from ggt.lib.utils import (
 
 from ggt.models.process_models.bp_portal_experience import (
     bp_get_general_search_results,
-    bp_get_location_search_results
-)
+    bp_get_location_search_results,
+    bp_create_location, bp_get_all_groups, bp_update_location, bp_assign_group, bp_remove_group, bp_assign_service,
+    bp_remove_service, bp_get_all_services, bp_get_locations)
 
 from ggt.models.process_models.bp_schedules import (
     bp_generate_full_schedule,
@@ -45,6 +46,60 @@ def site_admin_location_search(account, group_code, site_code):
         bp_get_location_search_results(
             account, group_code, site_code
         )
+    )
+
+
+def create_location(location):
+    return y_response(
+        bp_create_location(location)
+    )
+
+
+def assign_group(req):
+    return y_response(
+        bp_assign_group(req)
+    )
+
+
+def assign_service(req):
+    return y_response(
+        bp_assign_service(req)
+    )
+
+
+def remove_group(req):
+    return x_response(
+        bp_remove_group(req)
+    )
+
+
+def get_locations():
+    return y_response(
+        bp_get_locations()
+    )
+
+
+def remove_service(req):
+    return x_response(
+        bp_remove_service(req)
+    )
+
+
+def update_location(location):
+    return x_response(
+        bp_update_location(location)
+    )
+
+
+def get_all_groups():
+    return y_response(
+        bp_get_all_groups()
+    )
+
+
+def get_all_services():
+    return y_response(
+        bp_get_all_services()
     )
 
 

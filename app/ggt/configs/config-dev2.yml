@@ -42,7 +42,7 @@ sendgrid:
 
 google:
   maps:
-    api_key: AIzaSyAf7kDO2y7Hz7HYb3LHqvXimqJQcA6X8DQ
+    api_key: AIzaSyBJmU3ueSBRmXz4mU1MRgdOxAWcfImbQNQ
     base_url: https://maps.googleapis.com/maps/api/staticmap
     zoom_level: 10
     map_type: roadmap
@@ -83,10 +83,6 @@ vendors:
     local_process_summary_path: /Users/suresh/ggt-tasks/process_summary
     local_backups_path: /Users/suresh/ggt-tasks/backups
     outbound_file_prefix: ggt-outbound
-
-  labdx:
-    secret_key: Q1ZQZkdEamF0OW1zZWI1VEtjYjVGZU11WmVHM1kzRHI=
-    app_id: J873t7ZwJ6UvXGwz
 
   wellpay:
     endpoint: https://api-staging.getwellpay.com/api/public/v1

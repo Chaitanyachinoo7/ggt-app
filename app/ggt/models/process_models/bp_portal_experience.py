@@ -1,8 +1,10 @@
 from datetime import datetime
 
 from ggt.lib.utils import (
-    log_generic
-)
+    log_generic,
+    whoami)
+from ggt.models.data_models.groups import get_all_groups
+from ggt.models.data_models.service_catalog import get_all_services
 
 from ggt.models.data_models.users import (
     get_user_by_email
@@ -24,8 +26,9 @@ from ggt.models.data_models.generic_search_result import (
 )
 
 from ggt.models.data_models.locations import (
-    search_locations
-)
+    search_locations,
+    create_location, update_location, assign_group, remove_group, assign_service, remove_service,
+    get_all_locations_without_thumbnail)
 
 from ggt.lib.constants import (
     STATUS,
@@ -72,6 +75,7 @@ def bp_get_all_test_results():
         )
         # return False
 
+
 def bp_get_general_search_results(first_name, middle_name, last_name, dob, phone_number, email, appointment_id, group_code, appointment_date, location_id):
     try:
         if appointment_date != '':
@@ -85,6 +89,42 @@ def bp_get_general_search_results(first_name, middle_name, last_name, dob, phone
             function=whoami(),
             error=err
         )
+
+
+def bp_create_location(location):
+    return create_location(location)
+
+
+def bp_assign_group(req):
+    return assign_group(req)
+
+
+def bp_assign_service(req):
+    return assign_service(req)
+
+
+def bp_remove_group(req):
+    return remove_group(req)
+
+
+def bp_get_locations():
+    return get_all_locations_without_thumbnail()
+
+
+def bp_remove_service(req):
+    return remove_service(req)
+
+
+def bp_update_location(location):
+    return update_location(location)
+
+
+def bp_get_all_groups():
+    return get_all_groups()
+
+
+def bp_get_all_services():
+    return get_all_services()
 
 
 def bp_get_location_search_results(account, group_code, site_code):

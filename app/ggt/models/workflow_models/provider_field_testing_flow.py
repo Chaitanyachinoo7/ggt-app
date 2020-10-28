@@ -55,32 +55,23 @@ def printer_queue_check(printer_id, printer_token):
     return x_response(bp_printer_queue_check)
 '''
 
-def provider_get_workstations(auth_token):
-    return x_response(
-        bp_provider_get_workstations(),
-        is_authenticated(auth_token)
-    )
+
+def provider_get_workstations():
+    return x_response(bp_provider_get_workstations())
 
 
-def provider_lookup_appointment(auth_token, appointment_id):
-    return x_response(
-        bp_get_appointment_info(appointment_id, 'allowdoboverride'),
-        is_authenticated(auth_token)
-    )
+def provider_lookup_appointment(appointment_id):
+    return x_response(bp_get_appointment_info(appointment_id, 'allowdoboverride'))
 
 
-def provider_update_appointment(auth_token, appointment_id, action, workstation_id):
-    return x_response(
-        bp_appointment_update(appointment_id, action, workstation_id),
-        is_authenticated(auth_token)
-    )
+def provider_update_appointment(appointment_id, action, workstation_id):
+    return x_response(bp_appointment_update(appointment_id, action, workstation_id))
+
 
 def scan_label(appointment_id):
     #TODO add to sys log, multiple scans can happen, keeps only latest scan
     bp_create_test_sample_from_appointment(appointment_id)
-    return x_response(
-        bp_record_label_scan(appointment_id)
-    )
+    return x_response(bp_record_label_scan(appointment_id))
 
 ########################################################################################################
 # [Protected] functions

@@ -1,7 +1,19 @@
-from pydantic import BaseModel
-from typing import Dict, List, Optional
-from enum import Enum, IntEnum
 import datetime
+from enum import Enum
+from typing import List, Optional
+
+from pydantic import BaseModel
+
+
+class LocationToGroupMap(BaseModel):
+    location_id: str
+    group_id: str
+
+
+class LocationToServiceMap(BaseModel):
+    location_id: str
+    service_id: str
+
 
 
 class User(BaseModel):
@@ -370,6 +382,41 @@ class GgtLocation(BaseModel):
     collect_upfront_payment: bool = None
     image_thumbnail: str = None
     services_available: List[GgtServiceCatalogItem] = None
+
+
+class GgtDbLocation(BaseModel):
+    site_code: str
+    group_code: Optional[str] = None
+    name: str
+    addr1: str
+    addr2: Optional[str] = None
+    addr3: Optional[str] = None
+    city: str
+    st: str = 'TX'
+    zip: str
+    lat: Optional[float] = None
+    lng: Optional[float] = None
+    time_zone: str = 'CST'
+    time_zone_offset: str = '-05:00'
+    test_type_offered: str = 'oral'
+    status: str = 'enabled'
+    type: str = 'drive_thru'
+    billing_type: str = None
+    collect_insurance_info: str = '0'
+    allow_insurance_skip: str = '1'
+    collect_upfront_payment: str = '0'
+    image_thumbnail: Optional[str] = None
+
+
+class GgtUpdateLocation(BaseModel):
+    id: str
+    test_type_offered: str
+    status: str
+    type: str
+    billing_type: str
+    collect_insurance_info: str
+    allow_insurance_skip: str
+    collect_upfront_payment: str
 
 
 class GgtDateTimeLocation(BaseModel):

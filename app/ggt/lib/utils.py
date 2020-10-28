@@ -1,37 +1,21 @@
-from datetime import datetime
-import sys
-import inspect
-
-import logging
-import aiohttp
 import json
-import pyotp
+import logging
+import sys
 import uuid
+from datetime import datetime
+from pprint import pformat
+
 import phonenumbers
-import requests
-
-import hmac
-import hashlib
-import base64
-
-from pprint import pprint, pformat
+import pyotp
 
 from ggt.configs.config_loader import cfg
-
-from ggt.models.data_models.data_types import (
-    User,
-    AuthError
-)
-
 from ggt.lib.constants import (
     STATUS,
     SUCCESS,
     FAILED,
-    INFO,
-    ERROR
-)
-
+    ERROR)
 # TODO: Enahance logging context with user session and client device/ip info etc.
+from ggt.models.data_models.data_types import User
 
 
 class bcolors:
@@ -167,85 +151,22 @@ def failure_response(kv=None):
     return kv
 
 
-async def requires_auth(token):
-    """Determines if the Access Token is valid
-    """
-    ####################################################
-    # Trying to call this API async, but doesn't work  #
-    # Recommend to use redis to store this value       #
-    ####################################################
-    jsonurl = urllib2.urlopen(
-        "https://" + AUTH0_DOMAIN + "/.well-known/jwks.json")
-
-    ####################################################
-    # Here the api call originally sync                #
-    ####################################################
-    # jsonurl = urlopen("https://" + AUTH0_DOMAIN + "/.well-known/jwks.json")
-
-    jwks = json.loads(jsonurl.read())
-    unverified_header = jwt.get_unverified_header(token)
-    rsa_key = {}
-    for key in jwks["keys"]:
-        if key["kid"] == unverified_header["kid"]:
-            rsa_key = {
-                "kty": key["kty"],
-                "kid": key["kid"],
-                "use": key["use"],
-                "n": key["n"],
-                "e": key["e"]
-            }
-
-    if rsa_key:
-        try:
-            user = jwt.decode(
-                token,
-                rsa_key,
-                algorithms=ALGORITHMS,
-                audience=API_AUDIENCE,
-                issuer="https://" + AUTH0_DOMAIN + "/"
-            )
-            ###########################################
-            print(user)  # Remove this debug log TODO #
-            ###########################################
-
-            return User(iss=str(user['iss']), sub=str(user['sub']),
-                        aud=str(user['aud']), iat=str(user['iat']),
-                        euserp=str(user['exp']), azp=str(user['azp']),
-                        scope=str(user['scope']), roles=json.dumps(user['http://roles.ggt/roles']))
-        except jwt.ExpiredSignatureError:
-            raise AuthError({"code": "token_expired",
-                             "description": "token is expired"}, 401)
-        except jwt.JWTClaimsError:
-            raise AuthError({"code": "invalid_claims",
-                             "description":
-                             "incorrect claims,"
-                             "please check the audience and issuer"}, 401)
-        except Exception:
-            raise AuthError({"code": "invalid_header",
-                             "description":
-                                 "Unable to parse authentication"
-                                 " token."}, 401)
-
-    raise AuthError({"code": "invalid_header",
-                     "description": "Unable to find appropriate key"}, 401)
+def is_admin(user: User):
+    return (user and user.roles) and (get_config_val('app.roles.admin') in json.loads(user.roles))
 
 
-def hmac_256_hash(payload: dict, secret_key: str, encoding: str = 'utf-8') -> str:
-    digest = hmac.new(
-        bytearray(secret_key.encode(encoding)),
-        msg=json.dumps(payload).encode(encoding),
-        digestmod=hashlib.sha256
-    ).digest()
-
-    return base64.b64encode(digest).decode()
+def is_care_provider(user: User):
+    return (user and user.roles) and (get_config_val('app.roles.care_provider') in json.loads(user.roles))
 
 
-'''
-import random
-import string
+def is_clinical_provider(user: User):
+    return (user and user.roles) and (get_config_val('app.roles.clinical_provider') in json.loads(user.roles))
 
-def get_random_string(length):
-    letters = string.ascii_lowercase
-    result_str = ''.join(random.choice(letters) for i in range(length))
-    return result_str
-'''
+
+def is_site_admin(user: User):
+    return (user and user.roles) and (get_config_val('app.roles.site_admin') in json.loads(user.roles))
+
+
+def is_contact_center(user: User):
+    return (user and user.roles) and (get_config_val('app.roles.contact_center') in json.loads(user.roles))
+

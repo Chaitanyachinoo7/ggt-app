@@ -130,7 +130,7 @@ def get_appointment(appointment_id: int):
             l.st AS location_st,
             l.zip AS location_zip,
             l.lat,
-            l.lng
+            l.lng,
             p.dob AS patient_dob,
             p.first_name AS patient_first_name,
             p.middle_name AS patient_middle_name,

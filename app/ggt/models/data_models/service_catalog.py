@@ -25,15 +25,26 @@ from ggt.lib.adapters.mysql_adapter import (
 
 from ggt.models.data_models.data_types import (
     GgtServiceCatalogItem
-    GgtScheduleSlot,
-    GgtDateTimeLocation
+    # GgtScheduleSlot,
+    # GgtDateTimeLocation
 )
 
 
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
+def get_all_services():
+    try:
+        sql = "SELECT * FROM services_catalog"
+        return read_rows(sql)
 
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
 
 
 ########################################################################################################
