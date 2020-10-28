@@ -41,7 +41,7 @@ from ggt.models.workflow_models.test_site_admin_flow import (
     get_schedule_generation_rules,
     delete_schedule,
     create_location, get_all_groups, update_location, assign_group, remove_group, assign_service, remove_service,
-    get_all_services)
+    get_all_services, get_locations)
 
 router = APIRouter()
 
@@ -101,10 +101,21 @@ async def api_assign_service(req: LocationToServiceMap, user: User = Depends(get
         )
 
 
-@router.post("/site_admin/location/remove_group")
+@router.post("/site_admin/location/remove_groups")
 async def api_remove_group(req: LocationToGroupMap, user: User = Depends(get_current_user)):
     if is_site_admin(user):
         return remove_group(req)
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail="You are not allowed."
+        )
+
+
+@router.get("/site_admin/location/get_locations")
+async def api_get_locations(user: User = Depends(get_current_user)):
+    if is_site_admin(user):
+        return get_locations()
     else:
         raise HTTPException(
             status_code=401,

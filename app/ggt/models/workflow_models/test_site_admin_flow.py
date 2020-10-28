@@ -9,7 +9,7 @@ from ggt.models.process_models.bp_portal_experience import (
     bp_get_general_search_results,
     bp_get_location_search_results,
     bp_create_location, bp_get_all_groups, bp_update_location, bp_assign_group, bp_remove_group, bp_assign_service,
-    bp_remove_service, bp_get_all_services)
+    bp_remove_service, bp_get_all_services, bp_get_locations)
 
 from ggt.models.process_models.bp_schedules import (
     bp_generate_full_schedule,
@@ -70,6 +70,12 @@ def assign_service(req):
 def remove_group(req):
     return x_response(
         bp_remove_group(req)
+    )
+
+
+def get_locations():
+    return y_response(
+        bp_get_locations()
     )
 
 

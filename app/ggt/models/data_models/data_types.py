@@ -1,12 +1,13 @@
-from pydantic import BaseModel
-from typing import Dict, List, Optional
-from enum import Enum, IntEnum
 import datetime
+from enum import Enum
+from typing import List, Optional
+
+from pydantic import BaseModel
 
 
 class LocationToGroupMap(BaseModel):
     location_id: str
-    service_id: str
+    group_id: str
 
 
 class LocationToServiceMap(BaseModel):

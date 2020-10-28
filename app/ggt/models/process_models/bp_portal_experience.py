@@ -27,7 +27,8 @@ from ggt.models.data_models.generic_search_result import (
 
 from ggt.models.data_models.locations import (
     search_locations,
-    create_location, update_location, assign_group, remove_group, assign_service, remove_service)
+    create_location, update_location, assign_group, remove_group, assign_service, remove_service,
+    get_all_locations_without_thumbnail)
 
 from ggt.lib.constants import (
     STATUS,
@@ -104,6 +105,10 @@ def bp_assign_service(req):
 
 def bp_remove_group(req):
     return remove_group(req)
+
+
+def bp_get_locations():
+    return get_all_locations_without_thumbnail()
 
 
 def bp_remove_service(req):

@@ -109,6 +109,47 @@ def get_services_available_for_location(location_id):
         return None
 
 
+def get_all_locations_without_thumbnail():
+    try:
+        sql = """SELECT id,
+                    site_code,
+                    group_code,
+                    account,
+                    name,
+                    addr1,
+                    addr2,
+                    addr3,
+                    city,
+                    st,
+                    zip,
+                    lat,
+                    lng,
+                    time_zone,
+                    time_zone_offset,
+                    test_type_offered,
+                    status,
+                    type,
+                    billing_type,
+                    collect_insurance_info,
+                    allow_insurance_skip,
+                    collect_upfront_payment,
+                    test_covid19,
+                    test_flu,
+                    test_consult,
+                    create_dt,
+                    update_dt
+                FROM locations"""
+        return read_rows(sql)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR, 
+            function=whoami(), 
+            error=err
+        )
+        return None
+
+
 def get_all_locations():
     try:
         sql = "SELECT * FROM locations"
@@ -116,8 +157,8 @@ def get_all_locations():
 
     except Exception as err:
         log_generic(
-            type=ERROR, 
-            function=whoami(), 
+            type=ERROR,
+            function=whoami(),
             error=err
         )
         return None

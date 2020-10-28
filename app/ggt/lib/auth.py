@@ -19,8 +19,8 @@ from ggt.models.data_models.data_types import User, AuthError
 
 CLIENT_ID = "269165607649-ejpvn7ar1llub2e8tr6ur4ad2p1srucf.apps.googleusercontent.com"
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl=get_config_val("https://" + get_config_val('vendors.auth0.auth0_domain')
-                                                             + "/.well-known/jwks.json"))
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl = "https://" + get_config_val('vendors.auth0.auth0_domain') +
+                                                "/oauth/token")
 
 
 def verify_google_idtoken(token):
@@ -61,10 +61,10 @@ async def requires_auth(token):
                 issuer="https://" + get_config_val('vendors.auth0.auth0_domain') + "/"
             )
 
-            return User(iss=str(user['iss']), sub=str(user['sub']),
-                        aud=str(user['aud']), iat=str(user['iat']),
-                        euserp=str(user['exp']), azp=str(user['azp']),
-                        scope=str(user['scope']), roles=json.dumps(user[get_config_val('vendors.auth0.roles')]))
+            return User(iss=get_value(user, 'iss'), sub=get_value(user, 'sub'),
+                        aud=get_value(user, 'aud'), iat=get_value(user, 'iat'),
+                        euserp=get_value(user, 'euserp'), azp=get_value(user, 'azp'),
+                        scope=get_value(user, 'scope'), roles=json.dumps(user[get_config_val('vendors.auth0.roles')]))
         except jwt.ExpiredSignatureError:
             await get_rsa_key_auth0(token)
             raise AuthError({"code": "token_expired",
@@ -84,6 +84,13 @@ async def requires_auth(token):
     await get_rsa_key_auth0(token)
     raise AuthError({"code": "invalid_header",
                      "description": "Unable to find appropriate key"}, 401)
+
+
+def get_value(user, key):
+    if key in user.keys():
+        return str(user[key])
+    else:
+        return ""
 
 
 async def get_rsa_key(token):
