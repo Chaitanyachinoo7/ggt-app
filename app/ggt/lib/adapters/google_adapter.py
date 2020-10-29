@@ -66,8 +66,8 @@ def upload_insurance_card(local_file_path, destination_filename):
 def upload_insurance_card_from_base64_string(base64string: str, content_type: str, destination_blob_name: str) -> bool:
     return upload_blob_from_string(
         insurance_cards_bucket_name,
-        base64string, 
-        content_type, 
+        base64string,
+        content_type,
         destination_blob_name
     )
 
@@ -314,7 +314,7 @@ def upload_blob_from_string(bucket_name: str, base64string: str, content_type: s
         bucket = storage_client.bucket(bucket_name)
         blob = bucket.blob(destination_blob_name)
         blob.upload_from_string(
-            base64.b64decode(base64string), 
+            base64.b64decode(base64string),
             content_type
         )
 
@@ -335,5 +335,5 @@ def upload_blob_from_string(bucket_name: str, base64string: str, content_type: s
             function=whoami(),
             error=err
         )
-    
+
     return False

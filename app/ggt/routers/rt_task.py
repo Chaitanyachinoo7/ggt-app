@@ -9,7 +9,8 @@ from ggt.lib.constants import (
     STATUS,
     SUCCESS,
     DESCRIPTION,
-    BACKGROUND_TASK_INITIATE_MESSAGE
+    BACKGROUND_TASK_INITIATE_MESSAGE,
+    AUTH_FAILED_MESSAGE
 )
 from ggt.lib.utils import is_admin
 from ggt.models.data_models.data_types import User
@@ -38,10 +39,10 @@ async def api_process_inbound_lab_reports(background_tasks: BackgroundTasks, use
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
 
-
+'''
 @router.post("/process_process_outbound_lab_orders")
 async def api_process_outbound_lab_orders(background_tasks: BackgroundTasks, user: User = Depends(get_current_user)):
     if is_admin(user):
@@ -53,8 +54,17 @@ async def api_process_outbound_lab_orders(background_tasks: BackgroundTasks, use
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
+'''
+@router.post("/process_process_outbound_lab_orders")
+async def api_process_outbound_lab_orders(background_tasks: BackgroundTasks):
+    background_tasks.add_task(task_process_outbound_lab_orders)
+    return {
+        STATUS: SUCCESS,
+        DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
+    }
+
 
 
 @router.post("/schedule_result_notifications_and_followups")
@@ -69,7 +79,7 @@ async def api_schedule_result_notifications_and_followups(background_tasks: Back
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
 
 
@@ -84,7 +94,7 @@ async def api_process_voice_queue(background_tasks: BackgroundTasks, user: User 
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
 
 
@@ -96,7 +106,7 @@ async def api_process_email_queue(user: User = Depends(get_current_user)):
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
 
 
@@ -108,7 +118,7 @@ async def api_process_sms_queue(user: User = Depends(get_current_user)):
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
 
 
@@ -120,7 +130,7 @@ async def api_process_sms_queue(user: User = Depends(get_current_user)):
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
 
 
@@ -135,7 +145,7 @@ async def api_process_outbound_lab_orders(background_tasks: BackgroundTasks, use
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
 
 

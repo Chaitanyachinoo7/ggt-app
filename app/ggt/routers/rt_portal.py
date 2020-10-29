@@ -11,7 +11,8 @@ from ggt.lib.auth import (
     get_current_user)
 from ggt.lib.constants import (
     STATUS,
-    SUCCESS
+    SUCCESS,
+    AUTH_FAILED_MESSAGE
 )
 from ggt.lib.utils import is_site_admin, is_admin, is_care_provider
 from ggt.models.data_models.data_types import (
@@ -64,7 +65,7 @@ async def api_create_location(location: GgtDbLocation, user: User = Depends(get_
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
 
 
@@ -75,7 +76,7 @@ async def api_assign_group(req: LocationToGroupMap, user: User = Depends(get_cur
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
 
 
@@ -86,7 +87,7 @@ async def api_remove_service(req: LocationToServiceMap, user: User = Depends(get
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
 
 
@@ -97,7 +98,7 @@ async def api_assign_service(req: LocationToServiceMap, user: User = Depends(get
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
 
 
@@ -108,7 +109,7 @@ async def api_remove_group(req: LocationToGroupMap, user: User = Depends(get_cur
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
 
 
@@ -119,7 +120,7 @@ async def api_get_locations(user: User = Depends(get_current_user)):
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
 
 
@@ -130,7 +131,7 @@ async def api_update_location(location: GgtUpdateLocation, user: User = Depends(
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
 
 
@@ -141,7 +142,7 @@ async def api_get_all_groups(user: User = Depends(get_current_user)):
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
 
 
@@ -152,7 +153,7 @@ async def api_get_all_services(user: User = Depends(get_current_user)):
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
 
 
@@ -176,7 +177,7 @@ async def api_site_admin_general_search(portal_general_search_request: PortalGen
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
 
 
@@ -192,7 +193,7 @@ async def api_generate_schedule(location_id: str, background_tasks: BackgroundTa
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
 
 
@@ -208,7 +209,7 @@ async def api_generate_all_schedules(background_tasks: BackgroundTasks,
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
 
 
@@ -224,7 +225,7 @@ async def api_site_admin_location_search(portal_location_search: PortalLocationS
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
 
 
@@ -237,7 +238,7 @@ async def api_add_schedule_generation_rule(schedule_generation_rule_request: Sch
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
 
 
@@ -249,7 +250,7 @@ async def api_update_schedule_generation_rule(schedule_generation_rule_request: 
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
 
 
@@ -260,7 +261,7 @@ async def api_delete_schedule_generation_rule(id: str, user: User = Depends(get_
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
 
 
@@ -271,7 +272,7 @@ async def api_delete_schedule(location_id: str, user: User = Depends(get_current
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
 
 
@@ -282,7 +283,7 @@ async def api_delete_schedule_generation_rules(location_id: str, user: User = De
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
 
 
@@ -297,7 +298,7 @@ async def api_cc_patient_lookup(portal_cc_patient_lookup_request: PortalCcPatien
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
 
     '''
@@ -320,7 +321,7 @@ async def api_admin_get_all_test_results(user: User = Depends(get_current_user))
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
     '''
     if(verify_google_idtoken(request.headers['Authorization'])):

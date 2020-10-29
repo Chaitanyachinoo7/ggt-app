@@ -11,18 +11,26 @@ from jose import jwt, JWTError
 from ggt.lib.constants import (
     ERROR
 )
+
 from ggt.lib.utils import (
     log_generic,
     whoami,
-    get_config_val)
-from ggt.models.data_models.data_types import User, AuthError
+    get_config_val
+)
 
+from ggt.models.data_models.data_types import (
+    User,
+    AuthError
+)
+
+# TODO: read from config/DB
 CLIENT_ID = "269165607649-ejpvn7ar1llub2e8tr6ur4ad2p1srucf.apps.googleusercontent.com"
+# TODO: read from config/DB
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="https://" + get_config_val('vendors.auth0.auth0_domain') +
+                                     "/oauth/token")
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl = "https://" + get_config_val('vendors.auth0.auth0_domain') +
-                                                "/oauth/token")
 
-
+# TODO: read from config/DB
 def verify_google_idtoken(token):
     try:
         decoded_token = id_token.verify_oauth2_token(
@@ -58,32 +66,51 @@ async def requires_auth(token):
                 rsa_key,
                 algorithms=get_config_val('vendors.auth0.algorithms'),
                 audience=get_config_val('vendors.auth0.api_audience'),
-                issuer="https://" + get_config_val('vendors.auth0.auth0_domain') + "/"
+                issuer="https://" +
+                get_config_val('vendors.auth0.auth0_domain') + "/"
             )
 
-            return User(iss=get_value(user, 'iss'), sub=get_value(user, 'sub'),
-                        aud=get_value(user, 'aud'), iat=get_value(user, 'iat'),
-                        euserp=get_value(user, 'euserp'), azp=get_value(user, 'azp'),
-                        scope=get_value(user, 'scope'), roles=json.dumps(user[get_config_val('vendors.auth0.roles')]))
+            return User(
+                iss=get_value(user, 'iss'),
+                sub=get_value(user, 'sub'),
+                aud=get_value(user, 'aud'),
+                iat=get_value(user, 'iat'),
+                euserp=get_value(user, 'euserp'),
+                azp=get_value(user, 'azp'),
+                scope=get_value(user, 'scope'),
+                roles=json.dumps(
+                    user[get_config_val('vendors.auth0.roles')]
+                )
+            )
+
         except jwt.ExpiredSignatureError:
             await get_rsa_key_auth0(token)
-            raise AuthError({"code": "token_expired",
-                             "description": "token is expired"}, 401)
+            raise AuthError({
+                "code": "token_expired",
+                "description": "token is expired"
+            }, 401)
+
         except jwt.JWTClaimsError:
             await get_rsa_key_auth0(token)
-            raise AuthError({"code": "invalid_claims",
-                             "description":
-                                 "incorrect claims,"
-                                 "please check the audience and issuer"}, 401)
+            raise AuthError({
+                "code": "invalid_claims",
+                "description":
+                    "incorrect claims,"
+                    "please check the audience and issuer"}, 401)
+
         except Exception:
             await get_rsa_key_auth0(token)
-            raise AuthError({"code": "invalid_header",
-                             "description":
-                                 "Unable to parse authentication"
-                                 " token."}, 401)
+            raise AuthError({
+                "code": "invalid_header",
+                "description":
+                    "Unable to parse authentication"
+                    " token."}, 401)
+
     await get_rsa_key_auth0(token)
-    raise AuthError({"code": "invalid_header",
-                     "description": "Unable to find appropriate key"}, 401)
+    raise AuthError({
+        "code": "invalid_header",
+        "description": "Unable to find appropriate key"
+    }, 401)
 
 
 def get_value(user, key):
@@ -96,13 +123,17 @@ def get_value(user, key):
 async def get_rsa_key(token):
     if 'RSA_KEY' in os.environ:
         return json.loads(os.environ.get('RSA_KEY'))
+
     else:
         rsa_key = await get_rsa_key_auth0(token)
-        return rsa_key;
+        return rsa_key
+
+# TODO: read from config/DB
 
 
 async def get_rsa_key_auth0(token):
-    jsonurl = urllib2.urlopen("https://" + get_config_val('vendors.auth0.auth0_domain') + "/.well-known/jwks.json")
+    jsonurl = urllib2.urlopen(
+        "https://" + get_config_val('vendors.auth0.auth0_domain') + "/.well-known/jwks.json")
     jwks = json.loads(jsonurl.read())
 
     try:
@@ -121,15 +152,24 @@ async def get_rsa_key_auth0(token):
                 os.environ['RSA_KEY'] = _rsa_key
 
         return rsa_key
+
     except JWTError:
-        raise AuthError({"code": "invalid_header",
-                         "description": "Unable to find appropriate key"}, 401)
+        raise AuthError({
+            "code": "invalid_header",
+            "description": "Unable to find appropriate key"
+        }, 401)
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
+async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
+    user: User = None
     try:
         user = await requires_auth(token)
-        return user
+
     except AuthError as err:
-        print(err)
-        return None
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+
+    return user

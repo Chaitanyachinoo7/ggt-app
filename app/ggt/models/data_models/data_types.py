@@ -385,26 +385,26 @@ class GgtLocation(BaseModel):
 
 
 class GgtDbLocation(BaseModel):
-    site_code: str
+    site_code: str = None
     group_code: Optional[str] = None
-    name: str
-    addr1: str
+    name: str = None
+    addr1: str = None
     addr2: Optional[str] = None
     addr3: Optional[str] = None
-    city: str
-    st: str = 'TX'
-    zip: str
+    city: str = None
+    st: str = None
+    zip: str = None
     lat: Optional[float] = None
     lng: Optional[float] = None
-    time_zone: str = 'CST'
-    time_zone_offset: str = '-05:00'
-    test_type_offered: str = 'oral'
-    status: str = 'enabled'
-    type: str = 'drive_thru'
+    time_zone: str = None
+    time_zone_offset: str = None
+    test_type_offered: str = None
+    status: str = None
+    type: str = None
     billing_type: str = None
-    collect_insurance_info: str = '0'
-    allow_insurance_skip: str = '1'
-    collect_upfront_payment: str = '0'
+    collect_insurance_info: bool = None
+    allow_insurance_skip: bool = None
+    collect_upfront_payment: bool = None
     image_thumbnail: Optional[str] = None
 
 

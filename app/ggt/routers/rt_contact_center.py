@@ -7,7 +7,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from ggt.lib.auth import get_current_user
 from ggt.lib.constants import (
     STATUS,
-    SUCCESS
+    SUCCESS,
+    AUTH_FAILED_MESSAGE
 )
 from ggt.lib.email import send_email, render_template
 from ggt.lib.sms import send_sms
@@ -51,7 +52,7 @@ async def api_cc_send_sms(CCSendSMSRequest: CCSendSMSRequest, user: User = Depen
         else:
             raise HTTPException(
                 status_code=401,
-                detail="You are not allowed."
+                detail=AUTH_FAILED_MESSAGE
             )
     except Exception as err:
         print(err)
@@ -69,7 +70,7 @@ async def api_cc_send_email(CCSendEmailRequest: CCSendEmailRequest, user: User =
         else:
             raise HTTPException(
                 status_code=401,
-                detail="You are not allowed."
+                detail=AUTH_FAILED_MESSAGE
             )
     except Exception as err:
         print(err)
@@ -89,7 +90,7 @@ async def api_cc_send_sms_email(CCSendNotiRequest: CCSendNotiRequest, user: User
         else:
             raise HTTPException(
                 status_code=401,
-                detail="You are not allowed."
+                detail=AUTH_FAILED_MESSAGE
             )
     except Exception as err:
         print(err)
@@ -170,7 +171,7 @@ def api_cc_outbound_result(CCOutboundResultRequest: CCOutboundResultRequest, use
         else:
             raise HTTPException(
                 status_code=401,
-                detail="You are not allowed."
+                detail=AUTH_FAILED_MESSAGE
             )
     except Exception as err:
         print(err)
@@ -193,7 +194,7 @@ def outbound_result_status(CCOutboundResultStatusRequest: CCOutboundResultStatus
         else:
             raise HTTPException(
                 status_code=401,
-                detail="You are not allowed."
+                detail=AUTH_FAILED_MESSAGE
             )
     except Exception as err:
         print(err)

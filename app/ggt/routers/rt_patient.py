@@ -67,6 +67,13 @@ async def api_get_available_locations(request: Request, group_code: str, date: s
     return get_schedule_locations_available(date, group_code)
 
 
+#TODO: Radial Search
+@router.get("/get_locations_near_me/{latitude}/{longitude}/{radial_distance_in_miles}")
+@router.get("/get_locations_near_me/{group_code}/{date}/{latitude}/{longitude}/{radial_distance_in_miles}")
+async def api_get_available_locations(request: Request, group_code: str, date: str, latitude: float, longitude:float, radial_distance_in_miles: int):
+    return get_schedule_locations_available(date, group_code)
+
+
 @router.get("/get_available_times/{location_id}/{date}")
 async def api_get_available_times(location_id: str, date: str):
     return get_schedule_times_available(location_id, date)

@@ -1,7 +1,7 @@
 app_name: COVID-19 Testing
 log_level: DEBUG
-base_url: https://start-dev.GoGetTested.com
-env: DEV
+base_url: https://start.GoGetTested.com
+env: PROD
 
 aws:
   region: us-east-1
@@ -18,9 +18,9 @@ gcp:
 
 databases:
   mysql:
-    host: 35.184.98.83
+    host: 34.66.63.242
     username: root
-    password: Jr6EEMI2aBNguL1K
+    password: gvMBO96Ohbq3mwFp
     db: ggt_prod
 
   sqlite:
@@ -49,7 +49,7 @@ google:
     thumbnail_size: 110x110
     markers_color: red
     markers_size: tiny
-    
+
 email:
   template_folder: /templates/email/
 
@@ -64,8 +64,8 @@ app:
 vendors:
   auth0:
     auth0_domain: gogettested.us.auth0.com
-    api_audience: https://role-base-auth.test/api
-    algorithms: ["RS256"]
+    api_audience: https://pfe-api.gogettested.com/api
+    algorithms: ['RS256']
     roles: http://roles.ggt/roles
 
   healthtrackrx:
@@ -84,14 +84,10 @@ vendors:
     local_backups_path: /Users/suresh/ggt-tasks/backups
     outbound_file_prefix: ggt-outbound
 
-  labdx:
-    secret_key: Q1ZQZkdEamF0OW1zZWI1VEtjYjVGZU11WmVHM1kzRHI=
-    app_id: J873t7ZwJ6UvXGwz
-
   wellpay:
-    endpoint: https://api-staging.getwellpay.com/api/public/v1
+    endpoint: https://api.getwellpay.com/api/public/v1
     auth_user: suresh@wellpay.com
-    auth_password: 8,tp{Na{76<~@.>(
+    auth_password: y7f{=/$>VfRF$vqE
 
 pfe:
   signup:

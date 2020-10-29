@@ -609,6 +609,10 @@ def __get_available_locations_for_current_day(group_code):
             l.lat AS lat,
             l.lng AS lng,
             l.image_thumbnail,
+            l.billing_type,
+            l.collect_insurance_info,
+            l.allow_insurance_skip,
+            l.collect_upfront_payment,
             nd.first_date_available AS first_date_time_available,
             (CASE
                 WHEN (pt.average_processing_time IS NULL) THEN 48
@@ -651,6 +655,10 @@ def __get_available_locations_for_current_day(group_code):
             l.lat AS lat,
             l.lng AS lng,
             l.image_thumbnail,
+            l.billing_type,
+            l.collect_insurance_info,
+            l.allow_insurance_skip,
+            l.collect_upfront_payment,            
             nd.first_date_available AS first_date_time_available,
             '48' AS average_processing_time,
             COUNT(DISTINCT (s.start_dt)) AS slot_count
@@ -722,6 +730,10 @@ def __get_all_available_dtl(group_code):
             l.lat AS lat,
             l.lng AS lng,
             l.image_thumbnail,
+            l.billing_type,
+            l.collect_insurance_info,
+            l.allow_insurance_skip,
+            l.collect_upfront_payment,            
             c.id AS service_id,
             c.service_code,
             c.service_name,
@@ -760,7 +772,7 @@ def __get_all_available_dtl(group_code):
                 WHERE
                     g.group_code = %s)
         GROUP BY c.id, nd.location_id , pt.average_processing_time
-        ORDER BY l.city
+        ORDER BY l.st, l.city
         """
 
         sql2 = """
@@ -776,6 +788,10 @@ def __get_all_available_dtl(group_code):
             l.lat AS lat,
             l.lng AS lng,
             l.image_thumbnail,
+            l.billing_type,
+            l.collect_insurance_info,
+            l.allow_insurance_skip,
+            l.collect_upfront_payment,            
             c.id AS service_id, 
             c.service_code,
             c.service_name,
@@ -811,7 +827,7 @@ def __get_all_available_dtl(group_code):
                 WHERE
                     g.group_code = %s)
         GROUP BY c.id, nd.location_id , pt.average_processing_time
-        ORDER BY l.city
+        ORDER BY l.st, l.city
         """
         vals = (group_code,)
 
@@ -878,6 +894,11 @@ def __map_row_to_dtl(row):
         dtl.location.lat = row['lat']
         dtl.location.lng = row['lng']
         dtl.location.image_thumbnail = row['image_thumbnail']
+        dtl.location.billing_type = row['billing_type']
+        dtl.location.collect_insurance_info = True if row['collect_insurance_info'] else False
+        dtl.location.allow_insurance_skip = True if row['allow_insurance_skip'] else False
+        dtl.location.collect_upfront_payment = True if row['collect_upfront_payment'] else False
+
         dtl.first_date_time_available = row['first_date_time_available']
         dtl.average_processing_time = row['average_processing_time']
         dtl.slot_count = row['slot_count']

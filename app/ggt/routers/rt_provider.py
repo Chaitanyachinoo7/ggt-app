@@ -15,7 +15,9 @@ from ggt.models.workflow_models.provider_field_testing_flow import (
     provider_update_appointment,
     scan_label
 )
-
+from ggt.lib.constants import (
+    AUTH_FAILED_MESSAGE
+)
 router = APIRouter()
 
 
@@ -28,7 +30,7 @@ async def api_provider_login(provider_login_request: ProviderLoginRequest,
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
 
 
@@ -39,7 +41,7 @@ async def api_provider_get_workstations(user: User = Depends(get_current_user)):
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
 
 
@@ -51,7 +53,7 @@ async def api_provider_lookup_appointment(provider_lookup_appointment_request: P
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
 
 
@@ -66,7 +68,7 @@ async def api_provider_update_appointment(provider_update_appointment_request: P
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
 
 
@@ -77,5 +79,5 @@ async def api_scan_label(scan_label_request: ScanLabelRequest, user: User = Depe
     else:
         raise HTTPException(
             status_code=401,
-            detail="You are not allowed."
+            detail=AUTH_FAILED_MESSAGE
         )
