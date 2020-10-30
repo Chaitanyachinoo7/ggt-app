@@ -3,7 +3,7 @@ from datetime import datetime
 from ggt.lib.utils import (
     log_generic,
     whoami)
-from ggt.models.data_models.groups import get_all_groups
+from ggt.models.data_models.groups import get_all_groups, create_group, update_group
 from ggt.models.data_models.service_catalog import get_all_services
 
 from ggt.models.data_models.users import (
@@ -89,6 +89,14 @@ def bp_get_general_search_results(first_name, middle_name, last_name, dob, phone
             function=whoami(),
             error=err
         )
+
+
+def bp_create_group(group):
+    return create_group(group)
+
+
+def bp_update_group(group):
+    return update_group(group)
 
 
 def bp_create_location(location):

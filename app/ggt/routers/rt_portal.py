@@ -21,7 +21,8 @@ from ggt.models.data_models.data_types import (
     PortalGeneralSearchRequest,
     PortalLocationSearchRequest,
     ScheduleGenerationRule,
-    User, GgtLocation, GgtDbLocation, GgtUpdateLocation, LocationToGroupMap, LocationToServiceMap)
+    User, GgtLocation, GgtDbLocation, GgtUpdateLocation, LocationToGroupMap, LocationToServiceMap, GgtThirdPartyDbGroup,
+    GgtThirdPartyDbUpdateGroup)
 from ggt.models.workflow_models.admin_flow import (
     admin_get_all_test_results
 )
@@ -42,7 +43,7 @@ from ggt.models.workflow_models.test_site_admin_flow import (
     get_schedule_generation_rules,
     delete_schedule,
     create_location, get_all_groups, update_location, assign_group, remove_group, assign_service, remove_service,
-    get_all_services, get_locations)
+    get_all_services, get_locations, create_group, update_group)
 
 router = APIRouter()
 
@@ -62,6 +63,28 @@ async def api_get_user_role(portal_user_role_request: PortalUserRoleRequest,
 async def api_create_location(location: GgtDbLocation, user: User = Depends(get_current_user)):
     if is_site_admin(user):
         return create_location(location)
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail=AUTH_FAILED_MESSAGE
+        )
+
+
+@router.post("/site-admin/create_group")
+async def api_create_group(group: GgtThirdPartyDbGroup, user: User = Depends(get_current_user)):
+    if is_site_admin(user):
+        return create_group(group)
+    else:
+        raise HTTPException(
+            status_code=401,
+            detail=AUTH_FAILED_MESSAGE
+        )
+
+
+@router.post("/site-admin/update_group")
+async def api_create_group(group: GgtThirdPartyDbUpdateGroup, user: User = Depends(get_current_user)):
+    if is_site_admin(user):
+        return update_group(group)
     else:
         raise HTTPException(
             status_code=401,

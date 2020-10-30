@@ -582,3 +582,48 @@ class GgtThirdPartyGroup(BaseModel):
     required_screens: List[str] = None
     optional_screens: List[str] = None #Redundant, remove
     screen_seq: List[str] = None
+
+
+class GgtThirdPartyDbGroup(BaseModel):
+    account: str
+    group_code: str
+    is_referral_code: int = 0
+    billing_type: str = 'insurance'
+    consent_req: int = 0
+    collect_insurance: int = 0
+    insurance_req: int = 0
+    allow_insurance_skip: int = 1
+    upfront_payment_req: int = 0
+    screen_seq: str = None
+    optional_screens: str = None
+    required_screens: str = None
+    display_group_consent: str = None
+    consent_party_name: str = None
+    consent_url: str = None
+    logo_1: str = None
+    logo_2: str = None
+    consent_party_name: str = None
+    consent_party_name: str = None
+
+
+class GgtThirdPartyDbUpdateGroup(BaseModel):
+    id: str
+    account: str
+    group_code: str
+    is_referral_code: int = 0
+    billing_type: str = 'insurance'
+    consent_req: int = 0
+    collect_insurance: int = 0
+    insurance_req: int = 0
+    allow_insurance_skip: int = 1
+    upfront_payment_req: int = 0
+    screen_seq: str = None
+    optional_screens: str = None
+    required_screens: str = None
+    display_group_consent: str = None
+    consent_party_name: str = None
+    consent_url: str = None
+    logo_1: str = None
+    logo_2: str = None
+    consent_party_name: str = None
+    consent_party_name: str = None
