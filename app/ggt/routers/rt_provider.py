@@ -1,13 +1,16 @@
 from fastapi import APIRouter, Request, Depends, HTTPException
 
 from ggt.lib.auth import get_current_user
+
 from ggt.lib.utils import is_clinical_provider
+
 from ggt.models.data_models.data_types import (
     ProviderLoginRequest,
     ProviderUpdateAppointmentRequest,
     ProviderLookupAppointmentRequest,
     ScanLabelRequest,
     User)
+
 from ggt.models.workflow_models.provider_field_testing_flow import (
     provider_login,
     provider_get_workstations,
@@ -15,9 +18,11 @@ from ggt.models.workflow_models.provider_field_testing_flow import (
     provider_update_appointment,
     scan_label
 )
+
 from ggt.lib.constants import (
     AUTH_FAILED_MESSAGE
 )
+
 router = APIRouter()
 
 

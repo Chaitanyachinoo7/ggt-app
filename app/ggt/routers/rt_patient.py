@@ -26,6 +26,7 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
     get_schedule_dates_available,
     get_schedule_times_available,
     get_schedule_locations_available,
+    get_schedule_locations_available_near_lat_lng,
     lookup_appointment,
     lookup_test_result,
     get_all_available_locations_and_times
@@ -68,10 +69,11 @@ async def api_get_available_locations(request: Request, group_code: str, date: s
 
 
 #TODO: Radial Search
-@router.get("/get_locations_near_me/{latitude}/{longitude}/{radial_distance_in_miles}")
-@router.get("/get_locations_near_me/{group_code}/{date}/{latitude}/{longitude}/{radial_distance_in_miles}")
-async def api_get_available_locations(request: Request, group_code: str, date: str, latitude: float, longitude:float, radial_distance_in_miles: int):
-    return get_schedule_locations_available(date, group_code)
+@router.get("/get_locations_near_me/{lat}/{lng}")
+@router.get("/get_locations_near_me/{lat}/{lng}/{radius}")
+@router.get("/get_locations_near_me/{group_code}/{date}/{lat}/{lng}/{radius}")
+async def api_get_available_locations(request: Request, lat: float, lng:float, radius: int = None, group_code: str = None, date: str = None):
+    return get_schedule_locations_available_near_lat_lng(date, group_code, lat, lng, radius)
 
 
 @router.get("/get_available_times/{location_id}/{date}")

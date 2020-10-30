@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 from ggt.lib.utils import (
     get_config_val,
@@ -18,6 +18,7 @@ from ggt.lib.constants import (
 from ggt.models.data_models.schedules import (
     get_available_dates,
     get_available_locations,
+    get_available_locations_near_lat_lng,
     get_available_times,
     get_slot_information,
     get_schedule_generation_rules_by_location_id,
@@ -75,6 +76,88 @@ def bp_get_schedule_dates_available(group_code):
             function=whoami(),
             error=err
         )
+
+
+def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: float, radius: int = None, date_str: str = None, group_code: str = None):
+    if not radius:
+        radius = 100
+
+    if not group_code:
+        group_code = DEFAULT_GROUP_CODE
+
+    if not date_str:
+        date_str = date.today().strftime("%Y-%m-%d")
+
+    group_code = normalize_group_code(group_code)
+    dtl_list = get_available_locations_near_lat_lng(
+        lat, lng, radius, date_str, group_code)
+    available_locations = []
+    try:
+        for dtl in dtl_list:
+            if dtl.location.addr2:
+                addr2 = dtl.location.addr2
+            else:
+                addr2 = ''
+
+            location_text = "{} {}, {}, {}  {}".format(
+                dtl.location.addr1,
+                addr2,
+                dtl.location.city,
+                dtl.location.st,
+                dtl.location.zip
+            )
+
+            if dtl.location.image_thumbnail:
+                map_thumbnail = 'data:image/jpeg;base64,{}'.format(
+                    dtl.location.image_thumbnail)
+            else:
+                map_thumbnail = get_map_thumbnail_url(location_text)
+
+            available_locations.append(
+                {
+                    'id': dtl.location.id,
+                    'name': dtl.location.name,
+                    'address': location_text,
+                    'lat': dtl.location.lat,
+                    'lng': dtl.location.lng,
+                    'billing_type': dtl.location.billing_type,
+                    'collect_insurance_info': dtl.location.collect_insurance_info,
+                    'allow_insurance_skip': dtl.location.allow_insurance_skip,
+                    'collect_upfront_payment': dtl.location.collect_upfront_payment,
+                    'next_test_date': dtl.first_date_time_available.strftime("%a, %-d %b %Y @ %-I:%M %p"),
+                    'wait_time_mins': '< 5m',
+                    'result_time_hours': '{}h'.format(dtl.average_processing_time),
+                    'slots_available': dtl.slot_count*8,
+                    'type': 'public',
+                    'map_thumbnail': map_thumbnail,
+                    'services_available': dtl.location.services_available,
+                    'distance': dtl.distance,
+                    'label': location_text,
+                    'value': dtl.location.id
+                }
+            )
+
+        log_generic(
+            type=INFO,
+            date_str=date_str,
+            group_code=group_code,
+            available_locations=available_locations,
+            function=whoami()
+        )
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            group_code=group_code,
+            date_str=date_str,
+            dtl_list=dtl_list,
+            function=whoami(),
+            error=err
+        )
+
+    return {
+        "available_location": available_locations
+    }
 
 
 def bp_get_schedule_locations_available(date, group_code=DEFAULT_GROUP_CODE):
