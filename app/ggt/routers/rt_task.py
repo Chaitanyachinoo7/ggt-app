@@ -121,7 +121,7 @@ async def api_process_sms_queue(user: User = Depends(get_current_user)):
             detail=AUTH_FAILED_MESSAGE
         )
 
-
+'''
 @router.post("/populate_location_thumbnails")
 async def api_process_sms_queue(user: User = Depends(get_current_user)):
     if is_admin(user):
@@ -132,6 +132,12 @@ async def api_process_sms_queue(user: User = Depends(get_current_user)):
             status_code=401,
             detail=AUTH_FAILED_MESSAGE
         )
+'''
+
+@router.post("/populate_location_thumbnails")
+async def api_populate_location_thumbnails():
+    task_populate_location_thumbnails()
+    return {STATUS: SUCCESS}
 
 
 @router.post("/misc_processor")

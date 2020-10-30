@@ -20,7 +20,8 @@ from ggt.models.process_models.bp_schedules import (
     bp_get_schedule_dates_available,
     bp_get_schedule_locations_available,
     bp_get_schedule_times_available,
-    bp_get_all_available_locations_and_times
+    bp_get_all_available_locations_and_times,
+    bp_get_schedule_locations_available_near_lat_lng
 )
 
 from ggt.models.process_models.bp_appointments import (
@@ -82,6 +83,18 @@ def get_schedule_locations_available(group_code, date):
         bp_get_schedule_locations_available(
             group_code,
             date
+        )
+    )
+
+
+def get_schedule_locations_available_near_lat_lng(date, group_code, lat, lng, radius):
+    return x_response(
+        bp_get_schedule_locations_available_near_lat_lng(
+            lat,
+            lng,
+            radius,
+            date,
+            group_code
         )
     )
 

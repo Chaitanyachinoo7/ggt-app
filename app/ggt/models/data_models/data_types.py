@@ -424,6 +424,7 @@ class GgtDateTimeLocation(BaseModel):
     first_date_time_available: datetime.datetime = None
     average_processing_time: float = None
     slot_count: int = None
+    distance: float = None
 
 
 class GgtBooking(BaseModel):
