@@ -648,8 +648,6 @@ class GgtThirdPartyDbGroup(BaseModel):
     consent_url: str = None
     logo_1: str = None
     logo_2: str = None
-    consent_party_name: str = None
-    consent_party_name: str = None
 
 
 class GgtThirdPartyDbUpdateGroup(BaseModel):
@@ -671,5 +669,3 @@ class GgtThirdPartyDbUpdateGroup(BaseModel):
     consent_url: str = None
     logo_1: str = None
     logo_2: str = None
-    consent_party_name: str = None
-    consent_party_name: str = None
