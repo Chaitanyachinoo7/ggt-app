@@ -2,9 +2,9 @@ import os
 
 import boto3
 from botocore.config import Config
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Security
 
-from ggt.lib.auth import get_current_user
+from ggt.lib.auth import authorise_user
 from ggt.lib.constants import (
     STATUS,
     SUCCESS,
@@ -21,7 +21,7 @@ from ggt.models.data_models.data_types import (
     CCSendNotiRequest,
     CCOutboundResultRequest,
     CCOutboundResultStatusRequest,
-    User)
+    User, PermissionsEnum as p)
 from ggt.models.workflow_models.contact_center_flow import (
     cc_update_outbound_call_status
 )
@@ -42,44 +42,32 @@ def formatted_sms_message(first_name, token):
            "results {}/r/{}".format(first_name, base_url, token)
 
 
-@router.post("/sendsms")
-async def api_cc_send_sms(CCSendSMSRequest: CCSendSMSRequest, user: User = Depends(get_current_user)):
+@router.post("/sendsms", dependencies=[Security(authorise_user, scopes=[p.SENDSMS])])
+async def api_cc_send_sms(CCSendSMSRequest: CCSendSMSRequest):
     try:
-        if is_contact_center(user):
-            send_sms(CCSendSMSRequest.to_number, formatted_sms_message(
-                CCSendSMSRequest.first_name, CCSendSMSRequest.token))
-            return {STATUS: SUCCESS}
-        else:
-            raise HTTPException(
-                status_code=401,
-                detail=AUTH_FAILED_MESSAGE
-            )
+        send_sms(CCSendSMSRequest.to_number, formatted_sms_message(
+            CCSendSMSRequest.first_name, CCSendSMSRequest.token))
+        return {STATUS: SUCCESS}
     except Exception as err:
         print(err)
 
 
-@router.post("/sendemail")
-async def api_cc_send_email(CCSendEmailRequest: CCSendEmailRequest, user: User = Depends(get_current_user)):
+@router.post("/sendemail", dependencies=[Security(authorise_user, scopes=[p.SENDEMAIL])])
+async def api_cc_send_email(CCSendEmailRequest: CCSendEmailRequest):
     try:
-        if is_contact_center(user):
-            email = formatted_email_message(
-                CCSendEmailRequest.first_name, CCSendEmailRequest.token, CCSendEmailRequest.to_email)
-            send_email(email["from_email"], email["from_name"],
-                       email["to_email"], email["subject"], email["html_content"])
-            return {STATUS: SUCCESS}
-        else:
-            raise HTTPException(
-                status_code=401,
-                detail=AUTH_FAILED_MESSAGE
-            )
+        email = formatted_email_message(
+            CCSendEmailRequest.first_name, CCSendEmailRequest.token, CCSendEmailRequest.to_email)
+        send_email(email["from_email"], email["from_name"],
+                   email["to_email"], email["subject"], email["html_content"])
+        return {STATUS: SUCCESS}
     except Exception as err:
         print(err)
 
 
-@router.post("/sms_email_notify")
-async def api_cc_send_sms_email(CCSendNotiRequest: CCSendNotiRequest, user: User = Depends(get_current_user)):
+@router.post("/sms_email_notify", dependencies=[Security(authorise_user, scopes=[p.SMS_EMAIL_NOTIFY])])
+async def api_cc_send_sms_email(CCSendNotiRequest: CCSendNotiRequest):
     try:
-        if is_contact_center(user):
+
             email = formatted_email_message(
                 CCSendNotiRequest.first_name, CCSendNotiRequest.token, CCSendNotiRequest.to_email)
             send_email(email["from_email"], email["from_name"],
@@ -87,11 +75,7 @@ async def api_cc_send_sms_email(CCSendNotiRequest: CCSendNotiRequest, user: User
             send_sms(CCSendNotiRequest.to_number, formatted_sms_message(
                 CCSendNotiRequest.first_name, CCSendNotiRequest.token))
             return {STATUS: SUCCESS}
-        else:
-            raise HTTPException(
-                status_code=401,
-                detail=AUTH_FAILED_MESSAGE
-            )
+
     except Exception as err:
         print(err)
 
@@ -121,10 +105,10 @@ def formatted_email_message(first_name, token, to_email):
     return email_message
 
 
-@router.post("/outbound_result")
-def api_cc_outbound_result(CCOutboundResultRequest: CCOutboundResultRequest, user: User = Depends(get_current_user)):
+@router.post("/outbound_result", dependencies=[Security(authorise_user, scopes=[p.OUTBOUND_RESULT])])
+def api_cc_outbound_result(CCOutboundResultRequest: CCOutboundResultRequest):
     try:
-        if is_contact_center(user):
+
             result_prompt = ""
             if CCOutboundResultRequest.test_result == "neg":
                 result_prompt = "Your test results for sample collected on " + CCOutboundResultRequest.test_date + \
@@ -168,20 +152,14 @@ def api_cc_outbound_result(CCOutboundResultRequest: CCOutboundResultRequest, use
                                            CCOutboundResultRequest.test_result,
                                            'call_attempted')
             return {STATUS: SUCCESS}
-        else:
-            raise HTTPException(
-                status_code=401,
-                detail=AUTH_FAILED_MESSAGE
-            )
+
     except Exception as err:
         print(err)
 
 
-@router.post("/outbound_result_status")
-def outbound_result_status(CCOutboundResultStatusRequest: CCOutboundResultStatusRequest,
-                           user: User = Depends(get_current_user)):
+@router.post("/outbound_result_status", dependencies=[Security(authorise_user, scopes=[p.OUTBOUND_RESULT_STATUS])])
+def outbound_result_status(CCOutboundResultStatusRequest: CCOutboundResultStatusRequest):
     try:
-        if is_contact_center(user):
             cc_update_outbound_call_status(CCOutboundResultStatusRequest.test_id,
                                            CCOutboundResultStatusRequest.first_name,
                                            CCOutboundResultStatusRequest.test_date,
@@ -191,10 +169,5 @@ def outbound_result_status(CCOutboundResultStatusRequest: CCOutboundResultStatus
                                            CCOutboundResultStatusRequest.to_number,
                                            CCOutboundResultStatusRequest.test_result,
                                            CCOutboundResultStatusRequest.call_status)
-        else:
-            raise HTTPException(
-                status_code=401,
-                detail=AUTH_FAILED_MESSAGE
-            )
     except Exception as err:
         print(err)
