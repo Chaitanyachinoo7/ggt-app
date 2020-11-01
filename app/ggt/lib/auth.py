@@ -2,15 +2,16 @@ import json
 import os
 import urllib.request as urllib2
 
-from fastapi import Depends
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import Depends, Request, HTTPException
+from fastapi.security import SecurityScopes
 from google.auth.transport import requests
 from google.oauth2 import id_token
 from jose import jwt, JWTError
 
 from ggt.lib.constants import (
-    ERROR
-)
+    ERROR,
+    AUTH_FAILED_MESSAGE)
+from ggt.lib.oath2_wrapper import GgtOAuth2PasswordBearer
 
 from ggt.lib.utils import (
     log_generic,
@@ -20,13 +21,13 @@ from ggt.lib.utils import (
 
 from ggt.models.data_models.data_types import (
     User,
-    AuthError
-)
+    AuthError,
+    PermissionsEnum as p)
 
 # TODO: read from config/DB
 CLIENT_ID = "269165607649-ejpvn7ar1llub2e8tr6ur4ad2p1srucf.apps.googleusercontent.com"
 # TODO: read from config/DB
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="https://" + get_config_val('vendors.auth0.auth0_domain') +
+oauth2_scheme = GgtOAuth2PasswordBearer(tokenUrl="https://" + get_config_val('vendors.auth0.auth0_domain') +
                                      "/oauth/token")
 
 
@@ -52,65 +53,6 @@ def verify_google_idtoken(token):
             error=err
         )
         return False
-
-
-async def requires_auth(token):
-    """Determines if the Access Token is valid
-    """
-    rsa_key = await get_rsa_key(token)
-
-    if rsa_key:
-        try:
-            user = jwt.decode(
-                token,
-                rsa_key,
-                algorithms=get_config_val('vendors.auth0.algorithms'),
-                audience=get_config_val('vendors.auth0.api_audience'),
-                issuer="https://" +
-                get_config_val('vendors.auth0.auth0_domain') + "/"
-            )
-
-            return User(
-                iss=get_value(user, 'iss'),
-                sub=get_value(user, 'sub'),
-                aud=get_value(user, 'aud'),
-                iat=get_value(user, 'iat'),
-                euserp=get_value(user, 'euserp'),
-                azp=get_value(user, 'azp'),
-                scope=get_value(user, 'scope'),
-                roles=json.dumps(
-                    user[get_config_val('vendors.auth0.roles')]
-                )
-            )
-
-        except jwt.ExpiredSignatureError:
-            await get_rsa_key_auth0(token)
-            raise AuthError({
-                "code": "token_expired",
-                "description": "token is expired"
-            }, 401)
-
-        except jwt.JWTClaimsError:
-            await get_rsa_key_auth0(token)
-            raise AuthError({
-                "code": "invalid_claims",
-                "description":
-                    "incorrect claims,"
-                    "please check the audience and issuer"}, 401)
-
-        except Exception:
-            await get_rsa_key_auth0(token)
-            raise AuthError({
-                "code": "invalid_header",
-                "description":
-                    "Unable to parse authentication"
-                    " token."}, 401)
-
-    await get_rsa_key_auth0(token)
-    raise AuthError({
-        "code": "invalid_header",
-        "description": "Unable to find appropriate key"
-    }, 401)
 
 
 def get_value(user, key):
@@ -160,16 +102,50 @@ async def get_rsa_key_auth0(token):
         }, 401)
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
-    user: User = None
+async def authorise_user(security_scopes: SecurityScopes, token: str = Depends(oauth2_scheme)):
     try:
-        user = await requires_auth(token)
+        scopes = security_scopes.scopes
+        if p.ANONYMOUS in scopes:
+            return True
+        elif token is not None:
+            auth = await authorise(scopes, token)
+            return auth
+        else:
+            raise HTTPException(status_code=401, detail=AUTH_FAILED_MESSAGE)
 
     except AuthError as err:
-        log_generic(
-            type=ERROR,
-            function=whoami(),
-            error=err
-        )
+        print(err)
+        return None
 
-    return user
+
+async def authorise(scopes, token):
+    """Determines if the Access Token is valid
+    """
+    rsa_key = await get_rsa_key(token)
+    if rsa_key:
+        try:
+            user = jwt.decode(
+                token,
+                rsa_key,
+                algorithms=get_config_val('vendors.auth0.algorithms'),
+                audience=get_config_val('vendors.auth0.api_audience'),
+                issuer="https://" +
+                       get_config_val('vendors.auth0.auth0_domain') + "/"
+            )
+
+            if len(list(set(user['permissions']).intersection(scopes))) > 0:
+                return True
+            else:
+                raise HTTPException(status_code=401, detail=AUTH_FAILED_MESSAGE)
+        except jwt.ExpiredSignatureError:
+            await get_rsa_key_auth0(token)
+            raise HTTPException(status_code=401, detail=AUTH_FAILED_MESSAGE)
+        except jwt.JWTClaimsError:
+            await get_rsa_key_auth0(token)
+            raise HTTPException(status_code=401, detail=AUTH_FAILED_MESSAGE)
+        except Exception:
+            await get_rsa_key_auth0(token)
+            raise HTTPException(status_code=401, detail=AUTH_FAILED_MESSAGE)
+    await get_rsa_key_auth0(token)
+    raise HTTPException(status_code=401, detail=AUTH_FAILED_MESSAGE)
+
