@@ -156,7 +156,7 @@ async def api_get_all_services(user: User = Depends(get_current_user)):
             detail=AUTH_FAILED_MESSAGE
         )
 
-
+'''
 @router.post("/site-admin/general_search")
 async def api_site_admin_general_search(portal_general_search_request: PortalGeneralSearchRequest,
                                         user: User = Depends(get_current_user)):
@@ -179,6 +179,23 @@ async def api_site_admin_general_search(portal_general_search_request: PortalGen
             status_code=401,
             detail=AUTH_FAILED_MESSAGE
         )
+'''
+@router.post("/site-admin/general_search")
+async def api_site_admin_general_search(portal_general_search_request: PortalGeneralSearchRequest,
+                                        user: User = Depends(get_current_user)):
+    return site_admin_general_search(
+        portal_general_search_request.auth_token,
+        portal_general_search_request.first_name,
+        portal_general_search_request.middle_name,
+        portal_general_search_request.last_name,
+        portal_general_search_request.dob,
+        portal_general_search_request.phone_number,
+        portal_general_search_request.email,
+        portal_general_search_request.appointment_id,
+        portal_general_search_request.group_code,
+        portal_general_search_request.appointment_date,
+        portal_general_search_request.location_id
+    )
 
 
 @router.get("/site-admin/generate_schedule/{location_id}")

@@ -76,6 +76,7 @@ async def api_cc_send_email(CCSendEmailRequest: CCSendEmailRequest, user: User =
         print(err)
 
 
+'''
 @router.post("/sms_email_notify")
 async def api_cc_send_sms_email(CCSendNotiRequest: CCSendNotiRequest, user: User = Depends(get_current_user)):
     try:
@@ -92,6 +93,20 @@ async def api_cc_send_sms_email(CCSendNotiRequest: CCSendNotiRequest, user: User
                 status_code=401,
                 detail=AUTH_FAILED_MESSAGE
             )
+    except Exception as err:
+        print(err)
+'''
+@router.post("/sms_email_notify")
+async def api_cc_send_sms_email(CCSendNotiRequest: CCSendNotiRequest, user: User = Depends(get_current_user)):
+    try:
+        email = formatted_email_message(
+            CCSendNotiRequest.first_name, CCSendNotiRequest.token, CCSendNotiRequest.to_email)
+        send_email(email["from_email"], email["from_name"],
+                    email["to_email"], email["subject"], email["html_content"])
+        send_sms(CCSendNotiRequest.to_number, formatted_sms_message(
+            CCSendNotiRequest.first_name, CCSendNotiRequest.token))
+        return {STATUS: SUCCESS}
+
     except Exception as err:
         print(err)
 
@@ -177,6 +192,7 @@ def api_cc_outbound_result(CCOutboundResultRequest: CCOutboundResultRequest, use
         print(err)
 
 
+'''
 @router.post("/outbound_result_status")
 def outbound_result_status(CCOutboundResultStatusRequest: CCOutboundResultStatusRequest,
                            user: User = Depends(get_current_user)):
@@ -196,5 +212,21 @@ def outbound_result_status(CCOutboundResultStatusRequest: CCOutboundResultStatus
                 status_code=401,
                 detail=AUTH_FAILED_MESSAGE
             )
+    except Exception as err:
+        print(err)
+'''
+@router.post("/outbound_result_status")
+def outbound_result_status(CCOutboundResultStatusRequest: CCOutboundResultStatusRequest,
+                           user: User = Depends(get_current_user)):
+    try:
+        cc_update_outbound_call_status(CCOutboundResultStatusRequest.test_id,
+                                        CCOutboundResultStatusRequest.first_name,
+                                        CCOutboundResultStatusRequest.test_date,
+                                        CCOutboundResultStatusRequest.dob,
+                                        CCOutboundResultStatusRequest.token,
+                                        CCOutboundResultStatusRequest.to_email,
+                                        CCOutboundResultStatusRequest.to_number,
+                                        CCOutboundResultStatusRequest.test_result,
+                                        CCOutboundResultStatusRequest.call_status)
     except Exception as err:
         print(err)

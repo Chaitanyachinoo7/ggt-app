@@ -21,12 +21,11 @@ from ggt.routers import (
     rt_printer_hub
 )
 
-app = FastAPI()
+docs_url = None if (get_config_val('env') == 'PROD') else '/docs'
+redoc_url = None if (get_config_val('env') == 'PROD') else '/redoc'
+    
+app = FastAPI(docs_url=docs_url, redoc_url=redoc_url)
 
-# Disable pubishing API documentation
-if get_config_val('env') != 'DEV':
-    app.redoc_url = None
-    app.docs_url = None
 
 origins = [
     "https://gogettested.com",
@@ -116,4 +115,4 @@ app.include_router(
 
 if __name__ == '__main__':
     uvicorn.run(app, host='0.0.0.0', port=5000)
-    # uvicorn.run(app, host='0.0.0.0', port=8000)
+    #uvicorn.run(app, host='0.0.0.0', port=8000)

@@ -57,7 +57,8 @@ from ggt.models.data_models.data_types import (
     GgtPatient,
     GgtBooking,
     GgtAppointment,
-    GgtThirdPartyGroup
+    GgtThirdPartyGroup,
+    GgtCustomField
 )
 
 from ggt.lib.storage import (
@@ -104,7 +105,8 @@ def bp_get_screen_flow_seq(group_code: str):
                 "content": {
                     "logo": [group_info.logo_1, group_info.logo_2],
                     "provider_name": group_info.consent_party_name,
-                    "consent_url": group_info.consent_url if (group_info.consent_url and group_info.consent_url != '') else None
+                    "consent_url": group_info.consent_url if (group_info.consent_url and group_info.consent_url != '') else None,
+                    "additional_fields": group_info.additional_fields
                 }
             }
         }

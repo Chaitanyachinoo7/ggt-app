@@ -566,6 +566,12 @@ class AuthError(Exception):
         self.status_code = status_code
 
 
+
+class GgtCustomField(BaseModel):
+    name: str = None
+    label: str = None
+
+
 class GgtThirdPartyGroup(BaseModel):
     account_name: str = None
     group_code: str = None
@@ -583,3 +589,4 @@ class GgtThirdPartyGroup(BaseModel):
     required_screens: List[str] = None
     optional_screens: List[str] = None #Redundant, remove
     screen_seq: List[str] = None
+    additional_fields: List[GgtCustomField] = None
