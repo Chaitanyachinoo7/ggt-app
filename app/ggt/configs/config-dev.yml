@@ -35,7 +35,7 @@ notifications:
 twilio:
   account_sid: AC9cef9b4155030ee2683281ccc72d4001
   auth_token: 62ee76165984c54f91ee80aac9cb3f0e
-  from_number: '+19723099019'
+  from_number: '+18772802151'
 
 sendgrid:
   sendgrid_api_key: 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

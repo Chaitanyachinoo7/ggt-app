@@ -375,7 +375,7 @@ def get_available_times(location_id, date):
                 location_id = %s 
                 AND status = 'available' 
                 AND date(start_dt) IN (%s) 
-                AND start_dt >= CONVERT_TZ(NOW(), '+00:00', '-05:00')
+                AND start_dt >= CONVERT_TZ(NOW(), '+00:00', '-06:00')
             ORDER BY id
         """
         vals = (location_id, date)
@@ -956,7 +956,7 @@ def __get_all_available_dtl(group_code):
             services_catalog c ON (c.id = m.service_id)
         WHERE
             DATE(nd.first_date_available) = DATE(s.start_dt)
-                AND start_dt >= CONVERT_TZ(NOW(), '+00:00', '-05:00')
+                AND start_dt >= CONVERT_TZ(NOW(), '+00:00', '-06:00')
                 AND s.status = 'available'
                 AND s.location_id IN (SELECT 
                     m.location_id
@@ -1011,7 +1011,7 @@ def __get_all_available_dtl(group_code):
             services_catalog c ON (c.id = m.service_id)
         WHERE
             DATE(nd.first_date_available) = DATE(s.start_dt)
-                AND start_dt >= CONVERT_TZ(NOW(), '+00:00', '-05:00')
+                AND start_dt >= CONVERT_TZ(NOW(), '+00:00', '-06:00')
                 AND s.status = 'available'
                 AND s.location_id IN (SELECT 
                     m.location_id

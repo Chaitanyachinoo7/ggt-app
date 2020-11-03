@@ -236,6 +236,10 @@ def __map_to_booking_req(finalize_registration_request):
 
             b.signature = finalize_registration_request.consent.full_name.strip()
             b.consent_provider_signature = finalize_registration_request.consent_provider.full_name.strip()
+            b.provider_consent_custom_field_1 = finalize_registration_request.consent_provider.provider_consent_custom_field_1.strip()
+            b.provider_consent_custom_field_2 = finalize_registration_request.consent_provider.provider_consent_custom_field_2.strip()
+            b.provider_consent_custom_field_3 = finalize_registration_request.consent_provider.provider_consent_custom_field_3.strip()
+
             b.influenza_consent_signature = finalize_registration_request.influenzaConsent.full_name.strip()
 
             b.flu_screen_severely_ill = finalize_registration_request.influenzaScreening.severely_ill

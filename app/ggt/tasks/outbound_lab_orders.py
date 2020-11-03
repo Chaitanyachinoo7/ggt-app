@@ -267,7 +267,7 @@ def get_orders_ready_to_transmit():
                 WHEN
                     ISNULL(`t`.`sample_collection_start_dt`)
                 THEN
-                    DATE_FORMAT(CONVERT_TZ(NOW(), '+00:00', '-05:00'),
+                    DATE_FORMAT(CONVERT_TZ(NOW(), '+00:00', '-06:00'),
                             '%m/%d/%y')
                 ELSE DATE_FORMAT(`t`.`sample_collection_start_dt`,
                         '%m/%d/%y')

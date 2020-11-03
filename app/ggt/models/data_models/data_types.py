@@ -84,6 +84,9 @@ class Consent(BaseModel):
 
 class ConsentProvider(BaseModel):
     full_name: str
+    provider_consent_custom_field_1: Optional[str] = None
+    provider_consent_custom_field_2: Optional[str] = None
+    provider_consent_custom_field_3: Optional[str] = None
 
 
 class InfluenzaConsent(BaseModel):
@@ -466,7 +469,12 @@ class GgtBooking(BaseModel):
     allergies: bool = False
 
     signature: str = None
+
     consent_provider_signature: str = None
+    provider_consent_custom_field_1: str = None
+    provider_consent_custom_field_2: str = None
+    provider_consent_custom_field_3: str = None
+
     influenza_consent_signature: str = None
 
     service_covid19_test: bool = False

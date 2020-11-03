@@ -133,6 +133,9 @@ def create_patient_questionnaire(booking_req):
                 token,
                 has_insurance_photo,
                 provider_consent_signature,
+                provider_consent_custom_field_1,
+                provider_consent_custom_field_2,
+                provider_consent_custom_field_3,
                 influenza_consent_signature,
                 public_places_bars_restaurants_cafes,
                 public_places_gas_stations,
@@ -174,7 +177,12 @@ def create_patient_questionnaire(booking_req):
             booking_req.signature, 
             booking_req.token, 
             booking_req.has_insurance_photo,
+
             booking_req.consent_provider_signature, 
+            booking_req.provider_consent_custom_field_1, 
+            booking_req.provider_consent_custom_field_2, 
+            booking_req.provider_consent_custom_field_3, 
+
             booking_req.influenza_consent_signature,
             booking_req.public_places_bars_restaurants_cafes,
             booking_req.public_places_gas_stations,
