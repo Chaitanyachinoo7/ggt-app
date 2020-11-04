@@ -4,6 +4,7 @@ from ggt.lib.utils import (
     log_generic,
     whoami)
 from ggt.models.data_models.groups import get_all_groups, create_group, update_group
+from ggt.models.data_models.providers import get_provider_processing_list
 from ggt.models.data_models.service_catalog import get_all_services
 
 from ggt.models.data_models.users import (
@@ -83,6 +84,20 @@ def bp_get_general_search_results(first_name, middle_name, last_name, dob, phone
     
         return find_patients(first_name, middle_name, last_name, dob, phone_number, 
                                 email, appointment_id, group_code, appointment_date, location_id)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+
+
+def bp_get_provider_processing_list(offset, consultation_status, consultation_notes, positive_call):
+    try:
+        if not offset:
+            offset = 0
+
+        return get_provider_processing_list(offset, consultation_status, consultation_notes, positive_call)
     except Exception as err:
         log_generic(
             type=ERROR,

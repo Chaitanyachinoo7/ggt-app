@@ -15,7 +15,6 @@ class LocationToServiceMap(BaseModel):
     service_id: str
 
 
-
 class User(BaseModel):
     iss: str
     sub: str
@@ -25,6 +24,29 @@ class User(BaseModel):
     azp: Optional[str] = None
     scope: Optional[str] = None
     roles: Optional[str] = None
+
+
+class ConsultationStatusEnum(str, Enum):
+    pending = 'pending'
+    in_progress = 'in_progress'
+    completed = 'completed'
+
+
+class PositiveCall(str, Enum):
+    must_call = 'must_call'
+    already_called = 'already_called'
+
+
+class ConsultationNotesEnum(str, Enum):
+    with_notes = 'with_notes'
+    without_notes = 'without_notes'
+
+
+class ProviderProcessListRequest(BaseModel):
+    offset: int
+    consultation_status: Optional[ConsultationStatusEnum] = None
+    consultation_notes: Optional[ConsultationNotesEnum] = None
+    positive_call: Optional[PositiveCall] = None
 
 
 class VerifyPhoneRequest(BaseModel):

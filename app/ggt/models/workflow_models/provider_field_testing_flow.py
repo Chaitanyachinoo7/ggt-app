@@ -16,8 +16,8 @@ from ggt.models.process_models.bp_printers import (
 
 from ggt.models.process_models.bp_portal_experience import (
     bp_record_label_scan,
-    bp_create_test_sample_from_appointment
-)
+    bp_create_test_sample_from_appointment,
+    bp_get_provider_processing_list)
 
 from ggt.lib.constants import (
     STATUS,
@@ -50,10 +50,18 @@ def provider_login(auth_token):
         is_authenticated(auth_token)
     )
 
+
 '''
 def printer_queue_check(printer_id, printer_token):
     return x_response(bp_printer_queue_check)
 '''
+
+
+def get_provider_processing_list(provide_request):
+    return y_response(
+        bp_get_provider_processing_list(provide_request.offset, provide_request.consultation_status,
+                                        provide_request.consultation_notes, provide_request.positive_call)
+    )
 
 
 def provider_get_workstations():
@@ -69,9 +77,10 @@ def provider_update_appointment(appointment_id, action, workstation_id):
 
 
 def scan_label(appointment_id):
-    #TODO add to sys log, multiple scans can happen, keeps only latest scan
+    # TODO add to sys log, multiple scans can happen, keeps only latest scan
     bp_create_test_sample_from_appointment(appointment_id)
     return x_response(bp_record_label_scan(appointment_id))
+
 
 ########################################################################################################
 # [Protected] functions

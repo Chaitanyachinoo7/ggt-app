@@ -310,3 +310,4 @@ def find_patients(first_name='', middle_name='', last_name='', dob='', phone_num
             error=err
         )
         return None
+
