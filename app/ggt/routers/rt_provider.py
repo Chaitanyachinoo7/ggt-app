@@ -4,13 +4,13 @@ from ggt.lib.auth import authorise_user
 from ggt.models.data_models.data_types import (
     ProviderUpdateAppointmentRequest,
     ProviderLookupAppointmentRequest,
-    ScanLabelRequest, PermissionsEnum as p, ProviderProcessListRequest)
+    ScanLabelRequest, PermissionsEnum as p, ProviderProcessListRequest, LockProviderTask, UpdateNoteReq,
+    UpdateProviderTask)
 from ggt.models.workflow_models.provider_field_testing_flow import (
     provider_get_workstations,
     provider_lookup_appointment,
     provider_update_appointment,
-    scan_label,
-    get_provider_processing_list)
+    scan_label)
 
 router = APIRouter()
 
@@ -27,12 +27,6 @@ router = APIRouter()
 #             status_code=401,
 #             detail=AUTH_FAILED_MESSAGE
 #         )
-
-
-@router.post("/get_provider_processing_list")#, dependencies=[Security(authorise_user, scopes=[p.GET_WORKSTATIONS])])
-async def api_get_provider_processing_list(provide_request: ProviderProcessListRequest):
-    return get_provider_processing_list(provide_request)
-
 
 @router.get("/get_workstations", dependencies=[Security(authorise_user, scopes=[p.GET_WORKSTATIONS])])
 async def api_provider_get_workstations():

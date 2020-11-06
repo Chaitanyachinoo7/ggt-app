@@ -6,7 +6,12 @@
       "scan_label"
    ],
    "care_provider":[
-      "lookup_appointment"
+      "lookup_appointment",
+      "provider_rollback_to_pending_task",
+      "provider_complete_task",
+      "update_consultation_note",
+      "lock_provider_task",
+      "get_provider_processing_list"
    ],
    "site_admin":[
       "create_location",
@@ -75,7 +80,12 @@
       "sms_email_notify",
       "outbound_result",
       "outbound_result_status",
-      "schedule_result_notifications_and_followups"
+      "schedule_result_notifications_and_followups",
+      "provider_rollback_to_pending_task",
+		"provider_complete_task",
+		"update_consultation_note",
+		"lock_provider_task",
+		"get_provider_processing_list"
    ],
    "customer_contact":[
       "sendsms",
@@ -91,7 +101,12 @@
       "scan_label"
    ],
    "Care Provider":[
-      "lookup_appointment"
+      "lookup_appointment",
+      "provider_rollback_to_pending_task",
+		"provider_complete_task",
+		"update_consultation_note",
+		"lock_provider_task",
+		"get_provider_processing_list"
    ],
    "Site Admin":[
       "create_location",
@@ -157,7 +172,12 @@
       "sms_email_notify",
       "outbound_result",
       "outbound_result_status",
-      "schedule_result_notifications_and_followups"
+      "schedule_result_notifications_and_followups",
+      "provider_rollback_to_pending_task",
+		"provider_complete_task",
+		"update_consultation_note",
+		"lock_provider_task",
+		"get_provider_processing_list"
    ],
    "Contact Center":[
       "sendsms",

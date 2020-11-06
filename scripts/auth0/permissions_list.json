@@ -38,7 +38,12 @@
 "sms_email_notify",
 "outbound_result",
 "outbound_result_status",
-		"schedule_result_notifications_and_followups"
+		"schedule_result_notifications_and_followups",
+		"provider_rollback_to_pending_task",
+		"provider_complete_task",
+		"update_consultation_note",
+		"lock_provider_task",
+		"get_provider_processing_list"
 ],
 	"roles":[
 		"clinical_provider",

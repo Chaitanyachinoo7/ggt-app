@@ -167,6 +167,26 @@
       {
          "value":"schedule_result_notifications_and_followups",
          "description":"Roles with schedule_result_notifications_and_followups permission will allow to access API endbpoint which contains schedule_result_notifications_and_followups in path."
+      },
+      {
+         "value":"provider_rollback_to_pending_task",
+         "description":"Roles with provider_rollback_to_pending_task permission will allow to access API end point which contains provider_rollback_to_pending_task in scopes."
+      },
+      {
+         "value":"provider_complete_task",
+         "description":"Roles with provider_complete_task permission will allow to access API end point which contains provider_complete_task in scopes."
+      },
+      {
+         "value":"update_consultation_note",
+         "description":"Roles with update_consultation_note permission will allow to access API end point which contains update_consultation_note in scopes."
+      },
+      {
+         "value":"lock_provider_task",
+         "description":"Roles with lock_provider_task permission will allow to access API end point which contains lock_provider_task in scopes."
+      },
+      {
+         "value":"get_provider_processing_list",
+         "description":"Roles with get_provider_processing_list permission will allow to access API end point which contains get_provider_processing_list in scopes."
       }
    ]
 }

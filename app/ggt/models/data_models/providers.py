@@ -29,14 +29,18 @@ from ggt.models.data_models.data_types import ConsultationNotesEnum, PositiveCal
 def get_provider_processing_list(offset, consultation_status, consultation_notes, positive_call):
     try:
         where_conditions = '(TO_DAYS(NOW()) - TO_DAYS(t.create_dt)) <= 15'
-        if consultation_status:
-            where_conditions = "{} AND t.consultation_status = '{}'".format(
-                where_conditions, consultation_status)
+        if consultation_status != ConsultationStatusEnum.any:
+            if consultation_status == ConsultationStatusEnum.pending:
+                where_conditions = "{} AND ( t.consultation_status = '{}' OR t.consultation_status is null)".format(
+                    where_conditions, consultation_status)
+            else:
+                where_conditions = "{} AND t.consultation_status = '{}'".format(
+                    where_conditions, consultation_status)
         if consultation_notes == ConsultationNotesEnum.with_notes:
-            where_conditions = "{} AND t.consultation_notes is not null".format(
+            where_conditions = "{} AND c.notes is not null".format(
                 where_conditions)
         if consultation_notes == ConsultationNotesEnum.without_notes:
-            where_conditions = "{} AND t.consultation_notes is null".format(
+            where_conditions = "{} AND c.notes is null".format(
                 where_conditions)
         if positive_call == PositiveCall.must_call:
             where_conditions = "{} AND t.test_result = 'pos' AND (t.consultation_status is null OR " \
@@ -47,28 +51,14 @@ def get_provider_processing_list(offset, consultation_status, consultation_notes
                 where_conditions, ConsultationStatusEnum.completed)
 
         sql = """SELECT 
-    appointment_id,
-    t.group_code AS group_code,
-    p.id AS patient_id,
-    pq.id AS patient_questionnaire_id,
-    provider_id,
-    lab_id,
-    lab_submission_batch_id,
-    test_result,
-    notification_status,
-    notification_method,
-    notification_acknowledgement_dt,
-    consultation_status,
-    consultation_notes,
-    t.status AS test_status,
-    test_type,
-    first_name,
-    middle_name,
-    last_name,
-    gender,
-    height_ft,
-    height_in,
-    weight_lb,
+            p.id AS patient_id,
+            p.first_name AS first_name,
+            p.middle_name AS middle_name,
+            p.last_name AS last_name,
+            p.gender AS gender,
+            p.height_ft AS height_ft,
+            p.height_in AS height_in,
+            p.weight_lb AS weight_lb,
     (CASE
         WHEN (p.ethnicity = 'true') THEN 'Hispanic or Latino'
         WHEN (p.ethnicity = 'false') THEN 'Not Hispanic or Latino'
@@ -84,47 +74,109 @@ def get_provider_processing_list(offset, consultation_status, consultation_notes
         WHEN (p.race = 'race_white') THEN 'White'
         ELSE 'Unknown'
     END) AS race,
-    addr1,
-    addr2,
-    city,
-    st,
-    zip,
-    dob,
-    phone_number,
-    phone_number_verified,
-    email,
-    email_verified,
-    p.token AS token,
-    symptom_fever,
-    symptom_shortness_breath,
-    symptom_cough,
-    symptom_chest_pain,
-    symptom_lack_of_smell,
-    symptom_other_breathing,
-    covid_contact,
-    prescription_use,
-    heart_disease,
-    diabetes,
-    respiratory_diseases,
-    autoimmune_disease,
-    other_chronic,
-    allergies
-FROM
-    test_samples t
-        INNER JOIN
-    appointments a ON t.appointment_id = a.id
-        INNER JOIN
-    patients p ON t.patient_id = p.id
-        INNER JOIN
-    patient_questionnaires pq ON pq.patient_id = p.id
-WHERE
-    {}
-ORDER BY t.create_dt ASC
-LIMIT 10 OFFSET {};
+            p.addr1 AS addr1,
+            p.addr2 AS addr2,
+            p.addr3 AS addr3,
+            p.city AS city,
+            p.county AS county,
+            p.st AS st,
+            p.zip AS zip,
+            p.dob AS dob,
+            p.phone_number AS phone_number,
+            p.phone_number_verified AS phone_number_verified,
+            p.email AS email,
+            p.email_verified AS email_verified,
+            p.create_dt AS register_dt,
+            p.token AS token,
+            q.symptom_fever AS symptom_fever,
+            q.symptom_shortness_breath AS symptom_shortness_breath,
+            q.symptom_cough AS symptom_cough,
+            q.symptom_chest_pain AS symptom_chest_pain,
+            q.symptom_lack_of_smell AS symptom_lack_of_smell,
+            q.symptom_other_breathing AS symptom_other_breathing,
+            q.covid_contact AS covid_contact,
+            q.prescription_use AS prescription_use,
+            q.heart_disease AS heart_disease,
+            q.diabetes AS diabetes,
+            q.respiratory_diseases AS respiratory_diseases,
+            q.autoimmune_disease AS autoimmune_disease,
+            q.other_chronic AS other_chronic,
+            q.allergies AS allergies,
+            q.insurance_details,
+            a.id AS appointment_id,
+            a.scheduled_dt AS scheduled_dt,
+            a.check_in_dt AS check_in_dt,
+            a.location_id AS location_id,
+            a.group_code AS group_code,
+            a.test_start_dt AS test_start_dt,
+            a.test_end_dt AS test_end_dt,
+            a.total_cost AS total_cost,
+            a.billed_amount AS billed_amount,
+            a.wp_customer_info_id AS wp_customer_info_id,
+            a.status AS appointment_status,
+            t.provider_id AS provider_id,
+            t.sample_collection_location_id AS sample_collection_location_id,
+            t.sample_collection_start_dt AS sample_collection_start_dt,
+            t.sample_collection_end_dt AS sample_collection_end_dt,
+            t.lab_physical_submission_dt AS lab_pysical_submission_dt,
+            t.lab_electronic_submission_dt AS lab_electronic_submission_dt,
+            t.lab_result_receive_dt AS lab_result_receive_dt,
+            t.test_result AS test_result,
+            t.consultation_status AS consultation_status,
+            t.consultation_notes AS consultation_notes,
+            t.status AS test_status,
+	        l.id AS location_id,
+            l.site_code AS site_code,
+            l.account AS account,
+            l.addr1 AS loc_addr1,
+            l.addr2 AS loc_addr2,
+            l.city AS loc_city,
+            l.st AS loc_st,
+            l.zip AS loc_zip,
+            l.time_zone AS time_zone,
+            l.test_type_offered AS test_type_offered,
+            r.sms_sent,
+            r.sms_dt,
+            r.email_sent,
+            r.email_dt,
+            r.voice_sent,
+            r.voice_dt,
+            r.group_notify,
+            r.overall_status,
+            c.id AS consultaion_id,
+            c.notes AS consultation_notes,
+            c.start_dt AS consultation_start_dt,
+            c.end_dt AS consultation_end_dt,
+            c.provider_external_id AS provider_id,
+            u.name AS provider_name,
+            u.given_name AS provider_given_name,
+            u.family_name AS provider_family_name,
+            u.email AS provider_email,
+            u.email_verified AS provider_email_verified,
+            u.picture AS provider_image_url
+    FROM
+        test_samples t
+            INNER JOIN
+        appointments a ON t.appointment_id = a.id
+            INNER JOIN
+        patients p ON t.patient_id = p.id
+            INNER JOIN
+        patient_questionnaires q ON q.patient_id = p.id
+            LEFT JOIN
+        locations l ON (a.location_id = l.id)
+            LEFT JOIN
+        result_notification_campaigns r ON (t.id = r.test_id)
+            LEFT JOIN
+        patient_consultations  c ON t.id = c.test_id
+            LEFT JOIN
+        ggt_users u ON u.external_id = c.provider_external_id
+    WHERE
+        {}
+    ORDER BY t.create_dt ASC
+    LIMIT 20 OFFSET {};
 """.format(where_conditions, offset)
         rows = read_rows(sql)
-        return rows
-
+        return __process_task_list_response(rows)
     except Exception as err:
         log_generic(
             type=ERROR,
@@ -133,6 +185,148 @@ LIMIT 10 OFFSET {};
         )
         return None
 
+
+def provider_lock_task(test_id):
+    """
+    Update the test sample table 1st, if updated then update patient consultation table
+    """
+    try:
+        sql = """UPDATE test_samples
+                 SET
+                     consultation_status = %s
+                 WHERE
+                     id = %s AND (consultation_status = %s OR consultation_status is null);
+                """
+        in_progress = ConsultationStatusEnum.in_progress
+        pending = ConsultationStatusEnum.pending
+        vals = (
+            in_progress,
+            test_id,
+            pending
+        )
+        updated = exec_update(sql, vals)
+        return updated
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def create_patient_test_consultation(test_id, user_id):
+    try:
+        sql = """INSERT INTO `patient_consultations`
+                        (
+                        `provider_external_id`,
+                        `test_id`,
+                        `start_dt`
+                        )
+                    VALUES
+                        (%s, %s, NOW()); """
+        vals = (
+            user_id,
+            test_id,
+        )
+        id = exec_insert(sql, vals)
+
+        if id:
+            return {"consultation_id": id}
+        else:
+            return None
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def update_consultation_note(consultation_id, notes):
+    """
+    Update the test sample table 1st, if updated then update patient consultation table
+    """
+    try:
+        sql = """UPDATE patient_consultations
+                 SET
+                     notes = %s
+                 WHERE
+                     id = %s;
+                """
+        vals = (
+            notes,
+            consultation_id
+        )
+        updated = exec_update(sql, vals)
+        return updated
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def provider_complete_task(test_id):
+    try:
+        sql = """UPDATE test_samples
+                     SET
+                         consultation_status = %s
+                     WHERE
+                         id = %s AND consultation_status = %s;
+                    """
+        completed = ConsultationStatusEnum.completed
+        in_progress = ConsultationStatusEnum.in_progress
+        vals = (
+            completed,
+            test_id,
+            in_progress
+        )
+        updated = exec_update(sql, vals)
+        return updated
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def provider_rollback_to_pending_task(test_id):
+    try:
+        sql = """UPDATE test_samples
+                     SET
+                         consultation_status = %s
+                     WHERE
+                         id = %s;
+                    """
+        pending = ConsultationStatusEnum.pending
+        vals = (
+            pending,
+            test_id
+        )
+        updated = exec_update(sql, vals)
+        return updated
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
+
+def __process_task_list_response(tasks):
+    for task in tasks:
+        task['insurance_photo'] = 'Insurance Photo'
+    return tasks
+
+

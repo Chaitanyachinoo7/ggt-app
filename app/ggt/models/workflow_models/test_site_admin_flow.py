@@ -10,7 +10,7 @@ from ggt.models.process_models.bp_portal_experience import (
     bp_get_location_search_results,
     bp_create_location, bp_get_all_groups, bp_update_location, bp_assign_group, bp_remove_group, bp_assign_service,
     bp_remove_service, bp_get_all_services, bp_get_locations, bp_create_group, bp_update_group,
-    bp_get_provider_processing_list)
+    )
 
 from ggt.models.process_models.bp_schedules import (
     bp_generate_full_schedule,

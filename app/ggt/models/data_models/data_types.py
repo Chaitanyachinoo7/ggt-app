@@ -15,6 +15,20 @@ class LocationToServiceMap(BaseModel):
     service_id: str
 
 
+class LockProviderTask(BaseModel):
+    test_id: str
+    user_id: str
+
+
+class UpdateProviderTask(BaseModel):
+    test_id: str
+
+
+class UpdateNoteReq(BaseModel):
+    consultation_id: str
+    note: str
+
+
 class User(BaseModel):
     iss: str
     sub: str
@@ -30,16 +44,19 @@ class ConsultationStatusEnum(str, Enum):
     pending = 'pending'
     in_progress = 'in_progress'
     completed = 'completed'
+    any = 'any'
 
 
 class PositiveCall(str, Enum):
     must_call = 'must_call'
     already_called = 'already_called'
+    any = 'any'
 
 
 class ConsultationNotesEnum(str, Enum):
     with_notes = 'with_notes'
     without_notes = 'without_notes'
+    any = 'any'
 
 
 class ProviderProcessListRequest(BaseModel):
@@ -387,6 +404,11 @@ class PermissionsEnum(str, Enum):
     PRINTER_QUEUE_CHECK = 'printer_queue_check'
     PRINTER_GET_NEXT_LABEL = 'printer_get_next_label'
     SCHEDULE_RESULT_NOTIFICATIONS_AND_FOLLOWUPS = 'schedule_result_notifications_and_followups'
+    PROVIDER_ROLLBACK_TO_PENDING_TASK = 'provider_rollback_to_pending_task'
+    PROVIDER_COMPLETE_TASK = 'provider_complete_task'
+    UPDATE_CONSULTATION_NOTE = 'update_consultation_note'
+    LOCK_PROVIDER_TASK = 'lock_provider_task'
+    GET_PROVIDER_PROCESSING_LIST = 'get_provider_processing_list'
 
 
 class GgtPatient(BaseModel):
