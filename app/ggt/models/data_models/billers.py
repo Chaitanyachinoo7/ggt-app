@@ -1,0 +1,208 @@
+from ggt.lib.adapters.mysql_adapter import (
+    read_rows,
+    exec_update)
+from ggt.lib.constants import (
+    ERROR
+)
+from ggt.lib.utils import (
+    log_generic,
+    whoami
+)
+
+
+########################################################################################################
+# [Public] functions
+########################################################################################################
+from ggt.models.data_models.data_types import BillingStatusEnum, TestResultsEnum
+
+
+def get_billing_list(offset, status, from_dt, to_dt):
+    try:
+
+        where_conditions = ''
+        if from_dt:
+            where_conditions = "{} AND t.create_dt >= '{}'".format(
+                    where_conditions, from_dt)
+        if to_dt:
+            where_conditions = "{} AND  t.create_dt <= '{}'".format(
+                where_conditions, to_dt)
+        if status:
+            if status == BillingStatusEnum.pending:
+                where_conditions = "{} AND (a.billing_status = '{}' OR a.billing_status is NULL)".format(
+                    where_conditions, BillingStatusEnum.pending)
+            elif status == BillingStatusEnum.billed:
+                where_conditions = "{} AND a.billing_status = '{}'".format(
+                    where_conditions, BillingStatusEnum.billed)
+
+        sql = """
+        SELECT 
+              p.id AS patient_id,
+            p.first_name AS first_name,
+            p.middle_name AS middle_name,
+            p.last_name AS last_name,
+            p.gender AS gender,
+            p.height_ft AS height_ft,
+            p.height_in AS height_in,
+            p.weight_lb AS weight_lb,
+            (CASE
+                WHEN (p.race = 'race_american_indian') THEN 'American Indian or Alaska Native'
+                WHEN (p.race = 'race_asian') THEN 'Asian'
+                WHEN (p.race = 'race_black') THEN 'Black or African American'
+                WHEN (p.race = 'race_hawaiian') THEN 'Native Hawaiian or Other Pacific Islander'
+                WHEN (p.race = 'race_other') THEN 'Other'
+                WHEN (p.race = 'race_white') THEN 'White'
+                ELSE 'Unknown'
+            END) AS race,
+            (CASE
+                WHEN (p.ethnicity = 'true') THEN 'Hispanic or Latino'
+                WHEN (p.ethnicity = 'false') THEN 'Not Hispanic or Latino'
+                WHEN (p.ethnicity = 'hispanic_latino_spanish') THEN 'Hispanic or Latino'
+                ELSE 'Unknown'
+            END) AS ethnicity,
+            p.addr1 AS addr1,
+            p.addr2 AS addr2,
+            p.addr3 AS addr3,
+            p.city AS city,
+            p.county AS county,
+            p.st AS st,
+            p.zip AS zip,
+            p.dob AS dob,
+            p.phone_number AS phone_number,
+            p.phone_number_verified AS phone_number_verified,
+            p.email AS email,
+            p.email_verified AS email_verified,
+            p.create_dt AS register_dt,
+            p.token AS token,
+            q.symptom_fever AS symptom_fever,
+            q.symptom_shortness_breath AS symptom_shortness_breath,
+            q.symptom_cough AS symptom_cough,
+            q.symptom_chest_pain AS symptom_chest_pain,
+            q.symptom_lack_of_smell AS symptom_lack_of_smell,
+            q.symptom_other_breathing AS symptom_other_breathing,
+            q.covid_contact AS covid_contact,
+            q.prescription_use AS prescription_use,
+            q.heart_disease AS heart_disease,
+            q.diabetes AS diabetes,
+            q.respiratory_diseases AS respiratory_diseases,
+            q.autoimmune_disease AS autoimmune_disease,
+            q.other_chronic AS other_chronic,
+            q.allergies AS allergies,
+            q.insurance_details,
+            a.id AS appointment_id,
+            a.scheduled_dt AS scheduled_dt,
+            a.check_in_dt AS check_in_dt,
+            a.location_id AS location_id,
+            a.group_code AS group_code,
+            a.test_start_dt AS test_start_dt,
+            a.test_end_dt AS test_end_dt,
+            a.total_cost AS total_cost,
+            a.billed_amount AS billed_amount,
+            a.wp_customer_info_id AS wp_customer_info_id,
+            a.status AS appointment_status,
+            a.billing_status AS billing_status,
+            a.consultation_notes AS pre_consultation_notes,
+            t.provider_id AS provider_id,
+            t.sample_collection_location_id AS sample_collection_location_id,
+            t.sample_collection_start_dt AS sample_collection_start_dt,
+            t.sample_collection_end_dt AS sample_collection_end_dt,
+            t.lab_physical_submission_dt AS lab_pysical_submission_dt,
+            t.lab_electronic_submission_dt AS lab_electronic_submission_dt,
+            t.lab_result_receive_dt AS lab_result_receive_dt,
+            t.test_result AS test_result,
+            t.consultation_status AS consultation_status,
+            t.consultation_notes AS consultation_notes,
+            t.status AS test_status,
+            l.id AS location_id,
+            l.site_code AS site_code,
+            l.account AS account,
+            l.addr1 AS loc_addr1,
+            l.addr2 AS loc_addr2,
+            l.city AS loc_city,
+            l.st AS loc_st,
+            l.zip AS loc_zip,
+            l.time_zone AS time_zone,
+            l.test_type_offered AS test_type_offered,
+            r.sms_sent,
+            r.sms_dt,
+            r.email_sent,
+            r.email_dt,
+            r.voice_sent,
+            r.voice_dt,
+            r.group_notify,
+            r.overall_status
+        FROM
+            patients p
+                LEFT JOIN
+            patient_questionnaires q ON (p.id = q.patient_id)
+                LEFT JOIN
+            appointments a ON (p.id = a.patient_id)
+                LEFT JOIN
+            test_samples t ON (a.id = t.id)
+                LEFT JOIN
+            locations l ON (a.location_id = l.id)
+                LEFT JOIN
+            result_notification_campaigns r ON (t.id = r.test_id)
+        WHERE  1=1 
+        {}
+        ORDER BY register_dt DESC
+        LIMIT 20  offset {};
+        """.format(where_conditions, offset)
+        rows = read_rows(sql)
+        return __process_biller_response(rows)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def update_billing_status(appointment_id):
+    try:
+        sql = """UPDATE appointments
+                  SET
+                      billing_status = %s
+                  WHERE
+                      id = %s AND (billing_status = %s OR billing_status is null);
+                 """
+        pending = BillingStatusEnum.pending
+        billed = BillingStatusEnum.billed
+        vals = (
+            billed,
+            appointment_id,
+            pending
+        )
+        updated = exec_update(sql, vals)
+        return updated
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def __process_biller_response(tasks):
+    biller_codes = []
+    updated_tasks = []
+    for task in tasks:
+        pre_consultation_notes = task['pre_consultation_notes']
+        test_result = task['test_result']
+
+        # TODO What is status is not detectable
+        if test_result == TestResultsEnum.neg and pre_consultation_notes:
+            biller_codes = [99203, 99072, 99000, 99422]
+        if test_result == TestResultsEnum.pos and pre_consultation_notes:
+            biller_codes = [99203, 99072, 99000, 99214]
+        if test_result == TestResultsEnum.neg and not pre_consultation_notes:
+            biller_codes = [99203, 99072, 99000, 99422, 99423]
+        if test_result == TestResultsEnum.pos and not pre_consultation_notes:
+            biller_codes = [99211, 99072, 99000, 99204]
+        task['biller_codes'] = biller_codes
+        task['insurance_photo'] = 'Insurance Photo'
+        updated_tasks.append(task)
+
+    return updated_tasks

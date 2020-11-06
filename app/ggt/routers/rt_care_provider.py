@@ -2,9 +2,7 @@ from fastapi import APIRouter, Security
 
 from ggt.lib.auth import authorise_user
 from ggt.models.data_models.data_types import (
-    ProviderUpdateAppointmentRequest,
-    ProviderLookupAppointmentRequest,
-    ScanLabelRequest, PermissionsEnum as p, ProviderProcessListRequest, LockProviderTask, UpdateNoteReq,
+    PermissionsEnum as p, ProviderProcessListRequest, LockProviderTask, UpdateNoteReq,
     UpdateProviderTask)
 from ggt.models.workflow_models.care_provider_field_flow import (
     get_provider_processing_list, lock_provider_task, update_consultation_note, provider_complete_task,

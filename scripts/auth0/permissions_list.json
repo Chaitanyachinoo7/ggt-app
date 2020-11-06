@@ -43,7 +43,9 @@
 		"provider_complete_task",
 		"update_consultation_note",
 		"lock_provider_task",
-		"get_provider_processing_list"
+		"get_provider_processing_list",
+		"get_billing_list",
+		"update_billing_status"
 ],
 	"roles":[
 		"clinical_provider",

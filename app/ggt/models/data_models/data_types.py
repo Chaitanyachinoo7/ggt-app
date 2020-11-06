@@ -29,6 +29,18 @@ class UpdateNoteReq(BaseModel):
     note: str
 
 
+class BillingStatusEnum(str, Enum):
+    pending = 'pending'
+    billed = 'billed'
+
+
+class GetBillingListReq(BaseModel):
+    offset: int = 0
+    from_dt: str
+    to_dt: str
+    status: Optional[BillingStatusEnum] = None
+
+
 class User(BaseModel):
     iss: str
     sub: str
@@ -53,10 +65,20 @@ class PositiveCall(str, Enum):
     any = 'any'
 
 
+class UpdateBilligStatus(BaseModel):
+    appointment_id: str
+
+
 class ConsultationNotesEnum(str, Enum):
     with_notes = 'with_notes'
     without_notes = 'without_notes'
     any = 'any'
+
+
+class TestResultsEnum(str, Enum):
+    pos = 'pos'
+    neg = 'neg'
+    inconclusive = 'inconclusive'
 
 
 class ProviderProcessListRequest(BaseModel):
@@ -409,6 +431,8 @@ class PermissionsEnum(str, Enum):
     UPDATE_CONSULTATION_NOTE = 'update_consultation_note'
     LOCK_PROVIDER_TASK = 'lock_provider_task'
     GET_PROVIDER_PROCESSING_LIST = 'get_provider_processing_list'
+    GET_BILLING_LIST = 'get_billing_list'
+    UPDATE_BILLING_STATUS = 'update_billing_status'
 
 
 class GgtPatient(BaseModel):

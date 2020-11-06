@@ -187,6 +187,14 @@
       {
          "value":"get_provider_processing_list",
          "description":"Roles with get_provider_processing_list permission will allow to access API end point which contains get_provider_processing_list in scopes."
+      },
+       {
+         "value":"get_billing_list",
+         "description":"Roles with get_billing_list permission will allow to access API end point which contains get_billing_list in scopes."
+      },
+      {
+         "value":"update_billing_status",
+         "description":"Roles with update_billing_status permission will allow to access API end point which contains update_billing_status in scopes."
       }
    ]
 }

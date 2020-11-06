@@ -39,7 +39,9 @@
       "api"
    ],
    "billing_admin":[
-      "lookup_appointment"
+      "lookup_appointment",
+      "get_billing_list",
+      "update_billing_status"
    ],
    "super_admin":[
       "process_inbound_lab_reports",
@@ -85,7 +87,9 @@
 		"provider_complete_task",
 		"update_consultation_note",
 		"lock_provider_task",
-		"get_provider_processing_list"
+		"get_provider_processing_list",
+       "get_billing_list",
+      "update_billing_status"
    ],
    "customer_contact":[
       "sendsms",
