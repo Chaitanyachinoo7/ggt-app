@@ -11,7 +11,8 @@
       "provider_complete_task",
       "update_consultation_note",
       "lock_provider_task",
-      "get_provider_processing_list"
+      "get_provider_processing_list",
+      "call_patient"
    ],
    "site_admin":[
       "create_location",

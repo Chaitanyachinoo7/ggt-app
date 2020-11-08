@@ -45,7 +45,8 @@
 		"lock_provider_task",
 		"get_provider_processing_list",
 		"get_billing_list",
-		"update_billing_status"
+		"update_billing_status",
+		"call_patient"
 ],
 	"roles":[
 		"clinical_provider",

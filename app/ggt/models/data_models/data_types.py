@@ -18,15 +18,41 @@ class LocationToServiceMap(BaseModel):
 class LockProviderTask(BaseModel):
     test_id: str
     user_id: str
+    appointment_id: str
 
 
 class UpdateProviderTask(BaseModel):
     test_id: str
 
 
+class ResolutionCodesEnum(str, Enum):
+    neg_with_pmh = 'neg_with_pmh'
+    neg_without_pmh = 'neg_without_pmh'
+    pos_stable = 'pos_stable'
+    pos_unstable = 'pos_unstable'
+
+
+class ConsultationTypeCodesEnum(str, Enum):
+    pre_covid_consultation = 'pre_covid_consultation'
+    post_covid_consultation = 'pre_covid_consultation'
+
+
+class CompleteNoteReq(BaseModel):
+    consultation_id: str
+    note: str
+    test_id: str
+    consultation_type_code: ConsultationTypeCodesEnum
+    resolution_code: ResolutionCodesEnum
+
+
 class UpdateNoteReq(BaseModel):
     consultation_id: str
     note: str
+
+
+class CallReq(BaseModel):
+    patient_mobile: str
+    provider_mobile: str
 
 
 class BillingStatusEnum(str, Enum):
@@ -433,6 +459,7 @@ class PermissionsEnum(str, Enum):
     GET_PROVIDER_PROCESSING_LIST = 'get_provider_processing_list'
     GET_BILLING_LIST = 'get_billing_list'
     UPDATE_BILLING_STATUS = 'update_billing_status'
+    CALL_PATIENT = 'call_patient'
 
 
 class GgtPatient(BaseModel):

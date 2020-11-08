@@ -51,14 +51,24 @@ def get_provider_processing_list(offset, consultation_status, consultation_notes
                 where_conditions, ConsultationStatusEnum.completed)
 
         sql = """SELECT 
-            p.id AS patient_id,
-            p.first_name AS first_name,
-            p.middle_name AS middle_name,
-            p.last_name AS last_name,
-            p.gender AS gender,
-            p.height_ft AS height_ft,
-            p.height_in AS height_in,
-            p.weight_lb AS weight_lb,
+    t.group_code AS group_code,
+    t.lab_id,
+    t.lab_submission_batch_id,
+    t.test_result,
+    t.notification_status,
+    t.notification_method,
+    t.notification_acknowledgement_dt,
+    t.consultation_status,
+    t.status AS test_status,
+    t.test_type,
+    p.id AS patient_id,
+    p.first_name,
+    p.middle_name,
+    p.last_name,
+    p.gender,
+    p.height_ft,
+    p.height_in,
+    p.weight_lb,
     (CASE
         WHEN (p.ethnicity = 'true') THEN 'Hispanic or Latino'
         WHEN (p.ethnicity = 'false') THEN 'Not Hispanic or Latino'
@@ -74,104 +84,87 @@ def get_provider_processing_list(offset, consultation_status, consultation_notes
         WHEN (p.race = 'race_white') THEN 'White'
         ELSE 'Unknown'
     END) AS race,
-            p.addr1 AS addr1,
-            p.addr2 AS addr2,
-            p.addr3 AS addr3,
-            p.city AS city,
-            p.county AS county,
-            p.st AS st,
-            p.zip AS zip,
-            p.dob AS dob,
-            p.phone_number AS phone_number,
-            p.phone_number_verified AS phone_number_verified,
-            p.email AS email,
-            p.email_verified AS email_verified,
-            p.create_dt AS register_dt,
-            p.token AS token,
-            q.symptom_fever AS symptom_fever,
-            q.symptom_shortness_breath AS symptom_shortness_breath,
-            q.symptom_cough AS symptom_cough,
-            q.symptom_chest_pain AS symptom_chest_pain,
-            q.symptom_lack_of_smell AS symptom_lack_of_smell,
-            q.symptom_other_breathing AS symptom_other_breathing,
-            q.covid_contact AS covid_contact,
-            q.prescription_use AS prescription_use,
-            q.heart_disease AS heart_disease,
-            q.diabetes AS diabetes,
-            q.respiratory_diseases AS respiratory_diseases,
-            q.autoimmune_disease AS autoimmune_disease,
-            q.other_chronic AS other_chronic,
-            q.allergies AS allergies,
-            q.insurance_details,
-            a.id AS appointment_id,
-            a.scheduled_dt AS scheduled_dt,
-            a.check_in_dt AS check_in_dt,
-            a.location_id AS location_id,
-            a.group_code AS group_code,
-            a.test_start_dt AS test_start_dt,
-            a.test_end_dt AS test_end_dt,
-            a.total_cost AS total_cost,
-            a.billed_amount AS billed_amount,
-            a.wp_customer_info_id AS wp_customer_info_id,
-            a.status AS appointment_status,
-            t.provider_id AS provider_id,
-            t.sample_collection_location_id AS sample_collection_location_id,
-            t.sample_collection_start_dt AS sample_collection_start_dt,
-            t.sample_collection_end_dt AS sample_collection_end_dt,
-            t.lab_physical_submission_dt AS lab_pysical_submission_dt,
-            t.lab_electronic_submission_dt AS lab_electronic_submission_dt,
-            t.lab_result_receive_dt AS lab_result_receive_dt,
-            t.test_result AS test_result,
-            t.consultation_status AS consultation_status,
-            t.consultation_notes AS consultation_notes,
-            t.status AS test_status,
-	        l.id AS location_id,
-            l.site_code AS site_code,
-            l.account AS account,
-            l.addr1 AS loc_addr1,
-            l.addr2 AS loc_addr2,
-            l.city AS loc_city,
-            l.st AS loc_st,
-            l.zip AS loc_zip,
-            l.time_zone AS time_zone,
-            l.test_type_offered AS test_type_offered,
-            r.sms_sent,
-            r.sms_dt,
-            r.email_sent,
-            r.email_dt,
-            r.voice_sent,
-            r.voice_dt,
-            r.group_notify,
-            r.overall_status,
-            c.id AS consultaion_id,
-            c.notes AS consultation_notes,
-            c.start_dt AS consultation_start_dt,
-            c.end_dt AS consultation_end_dt,
-            c.provider_external_id AS provider_id,
-            u.name AS provider_name,
-            u.given_name AS provider_given_name,
-            u.family_name AS provider_family_name,
-            u.email AS provider_email,
-            u.email_verified AS provider_email_verified,
-            u.picture AS provider_image_url
+    p.addr1,
+    p.addr2,
+    p.city,
+    p.st,
+    p.zip,
+    p.dob,
+    p.phone_number AS phone_number,
+    p.phone_number_verified AS phone_number_verified,
+    p.email AS patient_email,
+    p.email_verified AS email_verified,
+    p.token AS token,
+    q.id AS patient_questionnaire_id,
+    q.symptom_fever,
+    q.symptom_shortness_breath,
+    q.symptom_cough,
+    q.symptom_chest_pain,
+    q.symptom_lack_of_smell,
+    q.symptom_other_breathing,
+    q.covid_contact,
+    q.prescription_use,
+    q.heart_disease,
+    q.diabetes,
+    q.respiratory_diseases,
+    q.autoimmune_disease,
+    q.other_chronic,
+    q.allergies,
+    c.id AS consultaion_id,
+    c.notes AS consultation_notes,
+    c.id_start_dt AS id_start_dt,
+    c.id_end_dt AS id_end_dt,
+    c.provider_external_ids AS provider_ids,
+    c.consultation_type_codes AS consultation_type_codes,
+    c.resolution_codes AS resolution_codes,
+    c.id_provider_names AS id_provider_names,
+    c.id_given_names AS id_given_names,
+    c.id_family_names AS id_family_names,
+    c.id_email AS id_email,
+    c.id_email_verified AS id_email_verified,
+    c.id_pictures AS id_pictures,
+    a.id AS appointment_id,
+    a.scheduled_dt AS scheduled_dt,
+    a.check_in_dt AS check_in_dt,
+    a.location_id AS location_id,
+    a.group_code AS group_code,
+    a.test_start_dt AS test_start_dt,
+    a.test_end_dt AS test_end_dt,
+    a.total_cost AS total_cost,
+    a.billed_amount AS billed_amount,
+    a.wp_customer_info_id AS wp_customer_info_id,
+    a.status AS appointment_status
+FROM
+    test_samples t
+        INNER JOIN
+    appointments a ON t.appointment_id = a.id
+        INNER JOIN
+    patients p ON t.patient_id = p.id
+        INNER JOIN
+    patient_questionnaires q ON q.patient_id = p.id
+        LEFT JOIN
+    (SELECT 
+        appointment_id,
+            GROUP_CONCAT(provider_external_id, ":", notes) AS notes,
+            GROUP_CONCAT(provider_external_id) AS provider_external_ids,
+            GROUP_CONCAT(provider_external_id, "__", pc.start_dt) AS id_start_dt,
+            GROUP_CONCAT(provider_external_id, "__", pc.end_dt) AS id_end_dt,
+            GROUP_CONCAT(pc.id) AS id,
+            GROUP_CONCAT(pc.consultation_type_code) AS consultation_type_codes,
+            GROUP_CONCAT(pc.resolution_code) AS resolution_codes,
+            GROUP_CONCAT(u.external_id, ":", u.name) AS id_provider_names,
+            GROUP_CONCAT(u.external_id, ":", u.family_name) AS id_family_names,
+            GROUP_CONCAT(u.external_id, ":", u.given_name) AS id_given_names,
+            GROUP_CONCAT(u.external_id, ":", u.email) AS id_email,
+            GROUP_CONCAT(u.external_id, ":", u.email_verified) AS id_email_verified,
+            GROUP_CONCAT(u.external_id, "__", u.picture) AS id_pictures
     FROM
-        test_samples t
-            INNER JOIN
-        appointments a ON t.appointment_id = a.id
-            INNER JOIN
-        patients p ON t.patient_id = p.id
-            INNER JOIN
-        patient_questionnaires q ON q.patient_id = p.id
-            LEFT JOIN
-        locations l ON (a.location_id = l.id)
-            LEFT JOIN
-        result_notification_campaigns r ON (t.id = r.test_id)
-            LEFT JOIN
-        patient_consultations  c ON t.id = c.test_id
-            LEFT JOIN
-        ggt_users u ON u.external_id = c.provider_external_id
+        patient_consultations pc
+    LEFT JOIN appointments ap ON pc.appointment_id = ap.id
+    LEFT JOIN  ggt_users u ON u.external_id = pc.provider_external_id
+    GROUP BY appointment_id) c ON a.id = c.appointment_id
     WHERE
-        {}
+        {} and t.id = 526036
     ORDER BY t.create_dt ASC
     LIMIT 20 OFFSET {};
 """.format(where_conditions, offset)
@@ -195,14 +188,13 @@ def provider_lock_task(test_id):
                  SET
                      consultation_status = %s
                  WHERE
-                     id = %s AND (consultation_status = %s OR consultation_status is null);
+                     id = %s AND consultation_status != %s;
                 """
         in_progress = ConsultationStatusEnum.in_progress
-        pending = ConsultationStatusEnum.pending
         vals = (
             in_progress,
             test_id,
-            pending
+            in_progress
         )
         updated = exec_update(sql, vals)
         return updated
@@ -215,19 +207,19 @@ def provider_lock_task(test_id):
         return None
 
 
-def create_patient_test_consultation(test_id, user_id):
+def create_patient_test_consultation(appointment_id, user_id):
     try:
         sql = """INSERT INTO `patient_consultations`
                         (
                         `provider_external_id`,
-                        `test_id`,
+                        `appointment_id`,
                         `start_dt`
                         )
                     VALUES
                         (%s, %s, NOW()); """
         vals = (
             user_id,
-            test_id,
+            appointment_id,
         )
         id = exec_insert(sql, vals)
 
@@ -244,19 +236,23 @@ def create_patient_test_consultation(test_id, user_id):
         return None
 
 
-def update_consultation_note(consultation_id, notes):
+def update_consultation_note(consultation_id, notes, consultation_type_code, resolution_code):
     """
     Update the test sample table 1st, if updated then update patient consultation table
     """
     try:
         sql = """UPDATE patient_consultations
                  SET
-                     notes = %s
+                     notes = %s,
+                     consultation_type_code = %s,
+                     resolution_code = %s
                  WHERE
                      id = %s;
                 """
         vals = (
             notes,
+            consultation_type_code,
+            resolution_code,
             consultation_id
         )
         updated = exec_update(sql, vals)
@@ -327,6 +323,63 @@ def provider_rollback_to_pending_task(test_id):
 def __process_task_list_response(tasks):
     for task in tasks:
         task['insurance_photo'] = 'Insurance Photo'
+        provider_ids = task['provider_ids'].split(',') if task['provider_ids'] else []
+        task.pop('provider_ids', None)
+        consultation_notes = task['consultation_notes'].split(',') if task['consultation_notes'] else []
+        task.pop('consultation_notes', None)
+        consultation_type_codes = task['consultation_type_codes'].split(',') if task['consultation_type_codes'] else []
+        task.pop('consultation_type_codes', None)
+        resolution_codes = task['resolution_codes'].split(',') if task['resolution_codes'] else []
+        task.pop('resolution_codes', None)
+        id_provider_names = task['id_provider_names'].split(',') if task['id_provider_names'] else []
+        task.pop('id_provider_names', None)
+        id_given_names = task['id_given_names'].split(',') if task['id_given_names'] else []
+        task.pop('id_given_names', None)
+        id_family_names = task['id_family_names'].split(',') if task['id_family_names'] else []
+        task.pop('id_family_names', None)
+        id_email = task['id_email'].split(',') if task['id_email'] else []
+        task.pop('id_email', None)
+        id_email_verified = task['id_email_verified'].split(',') if task['id_email_verified'] else []
+        task.pop('id_email_verified', None)
+        id_pictures = task['id_pictures'].split(',') if task['id_pictures'] else []
+        task.pop('id_pictures', None)
+        start_dt = task['id_start_dt'].split(',') if task['id_start_dt'] else []
+        task.pop('id_start_dt', None)
+        end_dt = task['id_end_dt'].split(',') if task['id_end_dt'] else []
+        task.pop('id_end_dt', None)
+
+        consultations = []
+
+        for idx, id in enumerate(provider_ids):
+            provider_id = id
+            consultation_code = consultation_type_codes[idx] if len(consultation_type_codes) > idx else None
+            consultation_note = consultation_notes[idx].split(":")[1] if len(consultation_notes) > idx else None
+            resolution_code = resolution_codes[idx] if len(resolution_codes) > idx else None
+            provider_name = id_provider_names[idx].split(":")[1] if len(id_provider_names) > idx else None
+            provider_given_name = id_given_names[idx].split(":")[1] if len(id_given_names) > idx else None
+            provider_family_name = id_family_names[idx].split(":")[1] if len(id_family_names) > idx else None
+            provider_email = id_email[idx].split(":")[1] if len(id_email) > idx else None
+            provider_email_verified = id_email_verified[idx].split(":")[1] if len(id_email_verified) > idx else None
+            provider_photo = id_pictures[idx].split("__")[1] if len(id_pictures) > idx else None
+            consultation_start_dt = start_dt[idx].split("__")[1] if len(start_dt) > idx else None
+            consultation_end_dt = end_dt[idx].split("__")[1] if len(end_dt) > idx else None
+
+            consultations.append({
+                "provider_id": provider_id,
+                "consultation_note": consultation_note,
+                "consultation_code": consultation_code,
+                "resolution_code": resolution_code,
+                "provider_name": provider_name,
+                "provider_given_name": provider_given_name,
+                "provider_family_name": provider_family_name,
+                "provider_email": provider_email,
+                "provider_email_verified": provider_email_verified,
+                "provider_photo": provider_photo,
+                "consultation_start_dt": consultation_start_dt,
+                "consultation_end_dt": consultation_end_dt
+            })
+        task['consultations'] = consultations
+
     return tasks
 
 

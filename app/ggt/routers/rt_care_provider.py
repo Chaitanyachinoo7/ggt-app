@@ -3,10 +3,10 @@ from fastapi import APIRouter, Security
 from ggt.lib.auth import authorise_user
 from ggt.models.data_models.data_types import (
     PermissionsEnum as p, ProviderProcessListRequest, LockProviderTask, UpdateNoteReq,
-    UpdateProviderTask)
+    UpdateProviderTask, CompleteNoteReq, CallReq)
 from ggt.models.workflow_models.care_provider_field_flow import (
     get_provider_processing_list, lock_provider_task, update_consultation_note, provider_complete_task,
-    provider_rollback_to_pending_task)
+    provider_rollback_to_pending_task, call_patient)
 
 router = APIRouter()
 
@@ -17,13 +17,13 @@ async def api_provider_rollback_to_pending_task(complete_task: UpdateProviderTas
 
 
 @router.post("/provider_complete_task", dependencies=[Security(authorise_user, scopes=[p.PROVIDER_COMPLETE_TASK])])
-async def api_provider_complete_task(complete_task: UpdateProviderTask):
-    return provider_complete_task(complete_task.test_id)
+async def api_provider_complete_task(complete_task: CompleteNoteReq):
+    return provider_complete_task(complete_task)
 
 
-@router.post("/update_consultation_note", dependencies=[Security(authorise_user, scopes=[p.UPDATE_CONSULTATION_NOTE])])
-async def api_update_consultation_note(note_request: UpdateNoteReq):
-    return update_consultation_note(note_request)
+@router.post("/call_patient", dependencies=[Security(authorise_user, scopes=[p.CALL_PATIENT])])
+async def api_call_patient(call_request: CallReq):
+    return call_patient(call_request)
 
 
 @router.post("/lock_provider_task", dependencies=[Security(authorise_user, scopes=[p.LOCK_PROVIDER_TASK])])
@@ -34,5 +34,6 @@ async def api_lock_provider_task(lock_request: LockProviderTask):
 @router.post("/get_provider_processing_list", dependencies=[Security(authorise_user, scopes=[p.GET_PROVIDER_PROCESSING_LIST])])
 async def api_get_provider_processing_list(provide_request: ProviderProcessListRequest):
     return get_provider_processing_list(provide_request)
+
 
 
