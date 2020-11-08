@@ -1,0 +1,28 @@
+{
+	"roles" : [
+		{
+			"name": "clinical_provider",
+			"description": "Users with this role are allowed to access all the APIs in provider route."
+		},
+		{
+			"name": "care_provider",
+			"description": "Users with this role are allowed to access all the APIs needed for care providers."
+		},
+		{
+			"name": "site_admin",
+			"description": "Users with this role are allowed to access all the APIs in admin portal and some selected APIs from other routes."
+		},
+		{
+			"name": "billing_admin",
+			"description": "Users with this role are allowed to access all the APIs related to billing."
+		},
+		{
+			"name": "super_admin",
+			"description": "Users with this role are allowed to access all the APIs."
+		},
+		{
+			"name": "customer_contact",
+			"description": "Users with this role are allowed to access all the APIs related to customer care services."
+		}
+	]
+}

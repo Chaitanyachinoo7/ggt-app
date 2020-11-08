@@ -14,6 +14,58 @@ class LocationToServiceMap(BaseModel):
     service_id: str = None
 
 
+class LockProviderTask(BaseModel):
+    test_id: str
+    user_id: str
+    appointment_id: str
+
+
+class UpdateProviderTask(BaseModel):
+    test_id: str
+
+
+class ResolutionCodesEnum(str, Enum):
+    neg_with_pmh = 'neg_with_pmh'
+    neg_without_pmh = 'neg_without_pmh'
+    pos_stable = 'pos_stable'
+    pos_unstable = 'pos_unstable'
+
+
+class ConsultationTypeCodesEnum(str, Enum):
+    pre_covid_consultation = 'pre_covid_consultation'
+    post_covid_consultation = 'pre_covid_consultation'
+
+
+class CompleteNoteReq(BaseModel):
+    consultation_id: str
+    note: str
+    test_id: str
+    consultation_type_code: ConsultationTypeCodesEnum
+    resolution_code: ResolutionCodesEnum
+
+
+class UpdateNoteReq(BaseModel):
+    consultation_id: str
+    note: str
+
+
+class CallReq(BaseModel):
+    patient_mobile: str
+    provider_mobile: str
+
+
+class BillingStatusEnum(str, Enum):
+    pending = 'pending'
+    billed = 'billed'
+
+
+class GetBillingListReq(BaseModel):
+    offset: int = 0
+    from_dt: str
+    to_dt: str
+    status: Optional[BillingStatusEnum] = None
+
+
 class User(BaseModel):
     iss: str
     sub: str
@@ -23,6 +75,42 @@ class User(BaseModel):
     azp: Optional[str] = None
     scope: Optional[str] = None
     roles: Optional[str] = None
+
+
+class ConsultationStatusEnum(str, Enum):
+    pending = 'pending'
+    in_progress = 'in_progress'
+    completed = 'completed'
+    any = 'any'
+
+
+class PositiveCall(str, Enum):
+    must_call = 'must_call'
+    already_called = 'already_called'
+    any = 'any'
+
+
+class UpdateBilligStatus(BaseModel):
+    appointment_id: str
+
+
+class ConsultationNotesEnum(str, Enum):
+    with_notes = 'with_notes'
+    without_notes = 'without_notes'
+    any = 'any'
+
+
+class TestResultsEnum(str, Enum):
+    pos = 'pos'
+    neg = 'neg'
+    inconclusive = 'inconclusive'
+
+
+class ProviderProcessListRequest(BaseModel):
+    offset: int
+    consultation_status: Optional[ConsultationStatusEnum] = None
+    consultation_notes: Optional[ConsultationNotesEnum] = None
+    positive_call: Optional[PositiveCall] = None
 
 
 class VerifyPhoneRequest(BaseModel):
@@ -323,6 +411,59 @@ class GenderEnum(str, Enum):
     unknown = 'unknown'
 
 
+class PermissionsEnum(str, Enum):
+    GET_WORKSTATIONS = 'get_workstations'
+    LOOKUP_APPOINTMENT = 'lookup_appointment'
+    UPDATE_APPOINTMENT = 'update_appointment'
+    SCAN_LABEL = 'scan_label'
+    PROCESS_INBOUND_LAB_REPORTS = 'process_inbound_lab_reports'
+    PROCESS_PROCESS_OUTBOUND_LAB_ORDERS = 'process_process_outbound_lab_orders'
+    PROCESS_VOICE_QUEUE = 'process_voice_queue'
+    PROCESS_EMAIL_QUEUE = 'process_email_queue'
+    PROCESS_SMS_QUEUE = 'process_sms_queue'
+    POPULATE_LOCATION_THUMBNAILS = 'populate_location_thumbnails'
+    MISC_PROCESSOR = 'misc_processor'
+    CREATE_LOCATION = 'create_location'
+    CREATE_GROUP = 'create_group'
+    UPDATE_GROUP = 'update_group'
+    ASSIGN_GROUP = 'assign_group'
+    REMOVE_SERVICE = 'remove_service'
+    ASSIGN_SERVICE = 'assign_service'
+    REMOVE_GROUPS = 'remove_groups'
+    GET_LOCATIONS = 'get_locations'
+    UPDATE_LOCATION = 'update_location'
+    GET_ALL_GROUPS = 'get_all_groups'
+    GET_ALL_SERVICES = 'get_all_services'
+    GENERAL_SEARCH = 'general_search'
+    GENERATE_SCHEDULE = 'generate_schedule'
+    GENERATE_ALL_SCHEDULES = 'generate_all_schedules'
+    LOCATION_SEARCH = 'location_search'
+    ADD_SCHEDULE_GENERATION_RULE = 'add_schedule_generation_rule'
+    EDIT_SCHEDULE_GENERATION_RULE = 'edit_schedule_generation_rule'
+    DELETE_SCHEDULE_GENERATION_RULE = 'delete_schedule_generation_rule'
+    DELETE_SCHEDULE = 'delete_schedule'
+    GET_SCHEDULE_GENERATION_RULES = 'get_schedule_generation_rules'
+    PATIENT_LOOKUP = 'patient_lookup'
+    GET_ALL_TEST_RESULTS = 'get_all_test_results'
+    SENDSMS = 'sendsms'
+    SENDEMAIL = 'sendemail'
+    SMS_EMAIL_NOTIFY = 'sms_email_notify'
+    OUTBOUND_RESULT = 'outbound_result'
+    OUTBOUND_RESULT_STATUS = 'outbound_result_status'
+    ANONYMOUS = 'anonymous'
+    PRINTER_QUEUE_CHECK = 'printer_queue_check'
+    PRINTER_GET_NEXT_LABEL = 'printer_get_next_label'
+    SCHEDULE_RESULT_NOTIFICATIONS_AND_FOLLOWUPS = 'schedule_result_notifications_and_followups'
+    PROVIDER_ROLLBACK_TO_PENDING_TASK = 'provider_rollback_to_pending_task'
+    PROVIDER_COMPLETE_TASK = 'provider_complete_task'
+    UPDATE_CONSULTATION_NOTE = 'update_consultation_note'
+    LOCK_PROVIDER_TASK = 'lock_provider_task'
+    GET_PROVIDER_PROCESSING_LIST = 'get_provider_processing_list'
+    GET_BILLING_LIST = 'get_billing_list'
+    UPDATE_BILLING_STATUS = 'update_billing_status'
+    CALL_PATIENT = 'call_patient'
+
+
 class GgtPatient(BaseModel):
     id: int = None
     first_name: str = None
@@ -600,3 +741,46 @@ class GgtThirdPartyGroup(BaseModel):
 class VerifyExistingPatientRequest(BaseModel):
     phone_number: str = None
     dob: str = None
+    optional_screens: List[str] = None  # Redundant, remove
+    screen_seq: List[str] = None
+
+
+class GgtThirdPartyDbGroup(BaseModel):
+    account: str
+    group_code: str
+    is_referral_code: int = 0
+    billing_type: str = 'insurance'
+    consent_req: int = 0
+    collect_insurance: int = 0
+    insurance_req: int = 0
+    allow_insurance_skip: int = 1
+    upfront_payment_req: int = 0
+    screen_seq: str = None
+    optional_screens: str = None
+    required_screens: str = None
+    display_group_consent: str = None
+    consent_party_name: str = None
+    consent_url: str = None
+    logo_1: str = None
+    logo_2: str = None
+
+
+class GgtThirdPartyDbUpdateGroup(BaseModel):
+    id: str
+    account: str
+    group_code: str
+    is_referral_code: int = 0
+    billing_type: str = 'insurance'
+    consent_req: int = 0
+    collect_insurance: int = 0
+    insurance_req: int = 0
+    allow_insurance_skip: int = 1
+    upfront_payment_req: int = 0
+    screen_seq: str = None
+    optional_screens: str = None
+    required_screens: str = None
+    display_group_consent: str = None
+    consent_party_name: str = None
+    consent_url: str = None
+    logo_1: str = None
+    logo_2: str = None

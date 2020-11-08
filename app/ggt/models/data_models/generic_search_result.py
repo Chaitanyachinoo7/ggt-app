@@ -190,7 +190,7 @@ def find_patients(first_name='', middle_name='', last_name='', dob='', phone_num
 
         sql = """
         SELECT 
-            p.id AS patient_id,
+              p.id AS patient_id,
             p.first_name AS first_name,
             p.middle_name AS middle_name,
             p.last_name AS last_name,
@@ -310,3 +310,4 @@ def find_patients(first_name='', middle_name='', last_name='', dob='', phone_num
             error=err
         )
         return None
+

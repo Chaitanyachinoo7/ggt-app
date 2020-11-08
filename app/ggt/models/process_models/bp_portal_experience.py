@@ -3,7 +3,10 @@ from datetime import datetime
 from ggt.lib.utils import (
     log_generic,
     whoami)
-from ggt.models.data_models.groups import get_all_groups
+from ggt.models.data_models.groups import get_all_groups, create_group, update_group
+from ggt.models.data_models.providers import get_provider_processing_list, provider_lock_task, \
+    create_patient_test_consultation, update_consultation_note, provider_complete_task, \
+    provider_rollback_to_pending_task
 from ggt.models.data_models.service_catalog import get_all_services
 
 from ggt.models.data_models.users import (
@@ -38,12 +41,13 @@ from ggt.lib.constants import (
     ERROR
 )
 
+
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
 def bp_cc_search_details_by_name_and_dob(last_name, dob):
     return search_details_by_name_and_dob(last_name, dob)
-    
+
 
 def bp_cc_view_test_details(test_id):
     return get_test_details(test_id)
@@ -76,13 +80,36 @@ def bp_get_all_test_results():
         # return False
 
 
-def bp_get_general_search_results(first_name, middle_name, last_name, dob, phone_number, email, appointment_id, group_code, appointment_date, location_id):
+def bp_get_general_search_results(first_name, middle_name, last_name, dob, phone_number, email, appointment_id,
+                                  group_code, appointment_date, location_id):
     try:
         if appointment_date != '':
             appointment_date = datetime.strptime(appointment_date, "%m%d%Y")
-    
-        return find_patients(first_name, middle_name, last_name, dob, phone_number, 
-                                email, appointment_id, group_code, appointment_date, location_id)
+
+        return find_patients(first_name, middle_name, last_name, dob, phone_number,
+                             email, appointment_id, group_code, appointment_date, location_id)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+
+
+def bp_create_group(group):
+    try:
+        return create_group(group)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+
+
+def bp_update_group(group):
+    try:
+        return update_group(group)
     except Exception as err:
         log_generic(
             type=ERROR,
@@ -92,48 +119,132 @@ def bp_get_general_search_results(first_name, middle_name, last_name, dob, phone
 
 
 def bp_create_location(location):
-    return create_location(location)
+    try:
+        return create_location(location)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
 
 
 def bp_assign_group(req):
-    return assign_group(req)
+    try:
+        return assign_group(req)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
 
 
 def bp_assign_service(req):
-    return assign_service(req)
+    try:
+        return assign_service(req)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
 
 
 def bp_remove_group(req):
-    return remove_group(req)
+    try:
+        return remove_group(req)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
 
 
 def bp_get_locations():
-    return get_all_locations_without_thumbnail()
+    try:
+        return get_all_locations_without_thumbnail()
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
 
 
 def bp_remove_service(req):
-    return remove_service(req)
+    try:
+        return remove_service(req)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
 
 
 def bp_update_location(location):
-    return update_location(location)
+    try:
+        return update_location(location)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
 
 
 def bp_get_all_groups():
-    return get_all_groups()
+    try:
+        return get_all_groups()
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
 
 
 def bp_get_all_services():
-    return get_all_services()
+    try:
+        return get_all_services()
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
 
 
 def bp_get_location_search_results(account, group_code, site_code):
-    return search_locations(account, group_code, site_code)
+    try:
+        return search_locations(account, group_code, site_code)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
 
 
 def bp_create_test_sample_from_appointment(appointment_id):
-    return create_test_sample_from_appointment(appointment_id)
+    try:
+        return create_test_sample_from_appointment(appointment_id)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
 
 
 def bp_record_label_scan(appointment_id):
-    return record_label_scan(appointment_id)
+    try:
+        return record_label_scan(appointment_id)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )

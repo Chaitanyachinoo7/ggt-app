@@ -1119,7 +1119,6 @@ def __map_row_to_dtl(row):
         if 'distance' in row:
             dtl.distance = row['distance']
 
-
     except Exception as err:
         log_generic(
             type=ERROR,

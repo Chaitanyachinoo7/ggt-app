@@ -1,0 +1,204 @@
+{
+   "permissions":[
+      {
+         "value":"get_workstations",
+         "description":"Roles with get_workstations permission will allow to access API endbpoint which contains get_workstations in scopes."
+      },
+      {
+         "value":"lookup_appointment",
+         "description":"Roles with lookup_appointment permission will allow to access API endbpoint which contains lookup_appointment in scopes."
+      },
+      {
+         "value":"update_appointment",
+         "description":"Roles with update_appointment permission will allow to access API endbpoint which contains update_appointment in scopes."
+      },
+      {
+         "value":"scan_label",
+         "description":"Roles with scan_label permission will allow to access API endbpoint which contains scan_label in scopes."
+      },
+      {
+         "value":"process_inbound_lab_reports",
+         "description":"Roles with process_inbound_lab_reports permission will allow to access API endbpoint which contains process_inbound_lab_reports in scopes."
+      },
+      {
+         "value":"process_process_outbound_lab_orders",
+         "description":"Roles with process_process_outbound_lab_orders permission will allow to access API endbpoint which contains process_process_outbound_lab_orders in scopes."
+      },
+      {
+         "value":"process_voice_queue",
+         "description":"Roles with process_voice_queue permission will allow to access API endbpoint which contains process_voice_queue in scopes."
+      },
+      {
+         "value":"process_email_queue",
+         "description":"Roles with process_email_queue permission will allow to access API endbpoint which contains process_email_queue in scopes."
+      },
+      {
+         "value":"process_sms_queue",
+         "description":"Roles with process_sms_queue permission will allow to access API endbpoint which contains process_sms_queue in scopes."
+      },
+      {
+         "value":"populate_location_thumbnails",
+         "description":"Roles with populate_location_thumbnails permission will allow to access API endbpoint which contains populate_location_thumbnails in scopes."
+      },
+      {
+         "value":"misc_processor",
+         "description":"Roles with misc_processor permission will allow to access API endbpoint which contains misc_processor in scopes."
+      },
+      {
+         "value":"create_location",
+         "description":"Roles with create_location permission will allow to access API endbpoint which contains create_location in scopes."
+      },
+      {
+         "value":"create_group",
+         "description":"Roles with create_group permission will allow to access API endbpoint which contains create_group in scopes."
+      },
+      {
+         "value":"update_group",
+         "description":"Roles with update_group permission will allow to access API endbpoint which contains update_group in scopes."
+      },
+      {
+         "value":"assign_group",
+         "description":"Roles with assign_group permission will allow to access API endbpoint which contains assign_group in scopes."
+      },
+      {
+         "value":"remove_service",
+         "description":"Roles with remove_service permission will allow to access API endbpoint which contains remove_service in scopes."
+      },
+      {
+         "value":"assign_service",
+         "description":"Roles with assign_service permission will allow to access API endbpoint which contains assign_service in scopes."
+      },
+      {
+         "value":"remove_groups",
+         "description":"Roles with remove_groups permission will allow to access API endbpoint which contains remove_groups in scopes."
+      },
+      {
+         "value":"get_locations",
+         "description":"Roles with get_locations permission will allow to access API endbpoint which contains get_locations in scopes."
+      },
+      {
+         "value":"update_location",
+         "description":"Roles with update_location permission will allow to access API endbpoint which contains update_location in scopes."
+      },
+      {
+         "value":"get_all_groups",
+         "description":"Roles with get_all_groups permission will allow to access API endbpoint which contains get_all_groups in scopes."
+      },
+      {
+         "value":"get_all_services",
+         "description":"Roles with get_all_services permission will allow to access API endbpoint which contains get_all_services in scopes."
+      },
+      {
+         "value":"general_search",
+         "description":"Roles with general_search permission will allow to access API endbpoint which contains general_search in scopes."
+      },
+      {
+         "value":"generate_schedule",
+         "description":"Roles with generate_schedule permission will allow to access API endbpoint which contains generate_schedule in scopes."
+      },
+      {
+         "value":"generate_all_schedules",
+         "description":"Roles with generate_all_schedules permission will allow to access API endbpoint which contains generate_all_schedules in scopes."
+      },
+      {
+         "value":"location_search",
+         "description":"Roles with location_search permission will allow to access API endbpoint which contains location_search in scopes."
+      },
+      {
+         "value":"add_schedule_generation_rule",
+         "description":"Roles with add_schedule_generation_rule permission will allow to access API endbpoint which contains add_schedule_generation_rule in scopes."
+      },
+      {
+         "value":"edit_schedule_generation_rule",
+         "description":"Roles with edit_schedule_generation_rule permission will allow to access API endbpoint which contains edit_schedule_generation_rule in scopes."
+      },
+      {
+         "value":"delete_schedule_generation_rule",
+         "description":"Roles with delete_schedule_generation_rule permission will allow to access API endbpoint which contains delete_schedule_generation_rule in scopes."
+      },
+      {
+         "value":"delete_schedule",
+         "description":"Roles with delete_schedule permission will allow to access API endbpoint which contains delete_schedule in scopes."
+      },
+      {
+         "value":"get_schedule_generation_rules",
+         "description":"Roles with get_schedule_generation_rules permission will allow to access API endbpoint which contains get_schedule_generation_rules in scopes."
+      },
+      {
+         "value":"patient_lookup",
+         "description":"Roles with patient_lookup permission will allow to access API endbpoint which contains patient_lookup in scopes."
+      },
+      {
+         "value":"get_all_test_results",
+         "description":"Roles with get_all_test_results permission will allow to access API endbpoint which contains get_all_test_results in scopes."
+      },
+      {
+         "value":"sendsms",
+         "description":"Roles with sendsms permission will allow to access API endbpoint which contains sendsms in scopes."
+      },
+      {
+         "value":"sendemail",
+         "description":"Roles with sendemail permission will allow to access API endbpoint which contains sendemail in scopes."
+      },
+      {
+         "value":"sms_email_notify",
+         "description":"Roles with sms_email_notify permission will allow to access API endbpoint which contains sms_email_notify in scopes."
+      },
+      {
+         "value":"outbound_result",
+         "description":"Roles with outbound_result permission will allow to access API endbpoint which contains outbound_result in scopes."
+      },
+      {
+         "value":"outbound_result_status",
+         "description":"Roles with outbound_result_status permission will allow to access API endbpoint which contains outbound_result_status in scopes."
+      },
+      {
+         "value":"printer_queue_check",
+         "description":"Roles with printer_queue_check permission will allow to access API endbpoint which contains printer_queue_check in scopes."
+      },
+      {
+         "value":"printer_get_next_label",
+         "description":"Roles with printer_get_next_label permission will allow to access API endbpoint which contains printer_get_next_label in scopes."
+      },
+      {
+         "value":"api",
+         "description":"Roles with api permission will allow to access API endbpoint which contains api in scopes."
+      },
+      {
+         "value":"schedule_result_notifications_and_followups",
+         "description":"Roles with schedule_result_notifications_and_followups permission will allow to access API endbpoint which contains schedule_result_notifications_and_followups in path."
+      },
+      {
+         "value":"provider_rollback_to_pending_task",
+         "description":"Roles with provider_rollback_to_pending_task permission will allow to access API end point which contains provider_rollback_to_pending_task in scopes."
+      },
+      {
+         "value":"provider_complete_task",
+         "description":"Roles with provider_complete_task permission will allow to access API end point which contains provider_complete_task in scopes."
+      },
+      {
+         "value":"update_consultation_note",
+         "description":"Roles with update_consultation_note permission will allow to access API end point which contains update_consultation_note in scopes."
+      },
+      {
+         "value":"lock_provider_task",
+         "description":"Roles with lock_provider_task permission will allow to access API end point which contains lock_provider_task in scopes."
+      },
+      {
+         "value":"get_provider_processing_list",
+         "description":"Roles with get_provider_processing_list permission will allow to access API end point which contains get_provider_processing_list in scopes."
+      },
+       {
+         "value":"get_billing_list",
+         "description":"Roles with get_billing_list permission will allow to access API end point which contains get_billing_list in scopes."
+      },
+      {
+         "value":"update_billing_status",
+         "description":"Roles with update_billing_status permission will allow to access API end point which contains update_billing_status in scopes."
+      },
+       {
+         "value":"call_patient",
+         "description":"Roles with call_patient permission will allow to access API end point which contains call_patient in scopes."
+      }
+   ]
+}

@@ -9,7 +9,8 @@ from ggt.models.process_models.bp_portal_experience import (
     bp_get_general_search_results,
     bp_get_location_search_results,
     bp_create_location, bp_get_all_groups, bp_update_location, bp_assign_group, bp_remove_group, bp_assign_service,
-    bp_remove_service, bp_get_all_services, bp_get_locations)
+    bp_remove_service, bp_get_all_services, bp_get_locations, bp_create_group, bp_update_group,
+    )
 
 from ggt.models.process_models.bp_schedules import (
     bp_generate_full_schedule,
@@ -29,14 +30,18 @@ from ggt.lib.constants import (
     ERROR
 )
 
+
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
 
-def site_admin_general_search(auth_token, first_name, middle_name, last_name, dob, phone_number, email, appointment_id, group_code, appointment_date, location_id):
+
+def site_admin_general_search(auth_token, first_name, middle_name, last_name, dob, phone_number, email, appointment_id,
+                              group_code, appointment_date, location_id):
     return y_response(
         bp_get_general_search_results(
-            first_name, middle_name, last_name, dob, phone_number, email, appointment_id, group_code, appointment_date, location_id
+            first_name, middle_name, last_name, dob, phone_number, email, appointment_id, group_code, appointment_date,
+            location_id
         )
     )
 
@@ -52,6 +57,18 @@ def site_admin_location_search(account, group_code, site_code):
 def create_location(location):
     return y_response(
         bp_create_location(location)
+    )
+
+
+def create_group(group):
+    return y_response(
+        bp_create_group(group)
+    )
+
+
+def update_group(group):
+    return x_response(
+        bp_update_group(group)
     )
 
 

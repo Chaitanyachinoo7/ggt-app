@@ -12,8 +12,11 @@ from ggt.lib.constants import (
     BACKGROUND_TASK_RT_TAG,
     ADMIN_PORTAL_RT_TAG,
     CONTACT_CENTER_RT_TAG,
-    PRINTER_HUB_RT_TAG
+    PRINTER_HUB_RT_TAG,
+    CARE_PROVIDER_RT_TAG, 
+    BILLER_APP_TAG
 )
+
 from ggt.lib.utils import (
     get_config_val
 )
@@ -25,8 +28,8 @@ from ggt.routers import (
     rt_task,
     rt_portal,
     rt_contact_center,
-    rt_printer_hub
-)
+    rt_printer_hub,
+    rt_care_provider, rt_billing)
 
 docs_url = None if (get_config_val('env') == 'PROD') else '/docs'
 redoc_url = None if (get_config_val('env') == 'PROD') else '/redoc'
@@ -68,6 +71,26 @@ app.include_router(
     prefix="/api/provider",
     tags=[CLINICAL_PROVIDER_RT_TAG],
     responses={404: {DESCRIPTION: NOT_FOUND}},
+)
+
+############################################################
+# rt_care_provider route is only for role - Clinical Provider   #
+############################################################
+app.include_router(
+    rt_care_provider.router,
+    prefix="/api/care_provider",
+    tags=[CARE_PROVIDER_RT_TAG],
+    responses={404: {"description": NOT_FOUND}},
+)
+
+############################################################
+# rt_billing route is only for role - Clinical Provider   #
+############################################################
+app.include_router(
+    rt_billing.router,
+    prefix="/api/billing",
+    tags=[BILLER_APP_TAG],
+    responses={404: {"description": NOT_FOUND}},
 )
 
 ############################################################
