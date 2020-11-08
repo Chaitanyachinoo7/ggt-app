@@ -44,25 +44,25 @@ def create_pending_signup_record(phone_number, otp, token=None, ip=None, device_
         VALUES (%s, %s, %s, %s, %s, %s)
         """
         vals = (
-            phone_number, 
-            otp, 
-            ip, 
-            device_data, 
-            status, 
+            phone_number,
+            otp,
+            ip,
+            device_data,
+            status,
             token
         )
         return exec_insert(sql, vals)
 
     except Exception as err:
         log_generic(
-            type=ERROR, 
-            phone_number=phone_number, 
-            otp=otp, 
-            token=token, 
+            type=ERROR,
+            phone_number=phone_number,
+            otp=otp,
+            token=token,
             ip=ip,
-            device_data=device_data, 
-            status=status, 
-            function=whoami(), 
+            device_data=device_data,
+            status=status,
+            function=whoami(),
             error=err
         )
         return None
@@ -82,9 +82,9 @@ def get_signup_record(id):
 
     except Exception as err:
         log_generic(
-            type=ERROR, 
-            id=id, 
-            function=whoami(), 
+            type=ERROR,
+            id=id,
+            function=whoami(),
             error=err
         )
         return None
@@ -108,10 +108,10 @@ def get_signup_record_by_phone_otp(phone_number, otp):
 
     except Exception as err:
         log_generic(
-            type=ERROR, 
+            type=ERROR,
             phone_number=phone_number,
-            otp=otp, 
-            function=whoami(), 
+            otp=otp,
+            function=whoami(),
             error=err
         )
         return None
@@ -131,9 +131,9 @@ def get_signup_record_by_token(token):
 
     except Exception as err:
         log_generic(
-            type=ERROR, 
-            token=token, 
-            function=whoami(), 
+            type=ERROR,
+            token=token,
+            function=whoami(),
             error=err
         )
         return None
@@ -154,9 +154,9 @@ def update_signup_record(id):
 
     except Exception as err:
         log_generic(
-            type=ERROR, 
-            id=id, 
-            function=whoami(), 
+            type=ERROR,
+            id=id,
+            function=whoami(),
             error=err
         )
         return None
@@ -180,9 +180,9 @@ def get_group_info(group_code: str) -> GgtThirdPartyGroup:
 
     except Exception as err:
         log_generic(
-            type=ERROR, 
+            type=ERROR,
             group_code=group_code,
-            function=whoami(), 
+            function=whoami(),
             error=err
         )
 
@@ -191,6 +191,7 @@ def get_group_info(group_code: str) -> GgtThirdPartyGroup:
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
+
 
 def __map_row_to_group(row) -> GgtThirdPartyGroup:
     g: GgtThirdPartyGroup = GgtThirdPartyGroup()
@@ -218,18 +219,17 @@ def __map_row_to_group(row) -> GgtThirdPartyGroup:
                 field_vals = field.split(':')
                 g.additional_fields.append(
                     GgtCustomField(
-                        name=field_vals[0].replace('"',''), 
-                        label=field_vals[1].replace('"','')
+                        name=field_vals[0].replace('"', ''),
+                        label=field_vals[1].replace('"', '')
                     )
                 )
 
     except Exception as err:
         log_generic(
-            type=ERROR, 
+            type=ERROR,
             row=row,
-            function=whoami(), 
+            function=whoami(),
             error=err
         )
 
     return g
-    

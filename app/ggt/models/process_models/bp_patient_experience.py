@@ -30,8 +30,9 @@ from ggt.models.data_models.questionnaires import (
 
 from ggt.models.data_models.appointments import (
     get_appointment,
-    update_appointment_with_confirmed_scheduled,
+    get_appointment_count_by_phone_dob,
     create_appointment,
+    update_appointment_with_confirmed_scheduled,
     update_appointment_with_receipt_token
 )
 
@@ -256,131 +257,6 @@ def bp_finalize_booking(booking_req: GgtBooking):
     return appointment, status_message
 
 
-def __save_insurance_image(appointment_id: int, insurance_image: str) -> bool:
-    try:
-        if insurance_image and len(insurance_image) > 0:
-            if "," in insurance_image:
-                base64string = insurance_image.split(",")[1]
-
-            dest_file_name = '{}.png'.format(appointment_id)
-            if upload_insurance_card_from_base64_string(base64string, 'image/png', dest_file_name):
-                print('uploaded image: {}'.format(dest_file_name))
-                return True
-
-    except Exception as err:
-        log_generic(
-            type=ERROR,
-            appointment_id=appointment_id,
-            insurance_image=insurance_image,
-            function=whoami(),
-            error=err
-        )
-
-    return False
-
-
-def __inject_payment_flow(appointment: GgtAppointment):
-    try:
-        wp_bill = __create_wp_bill(appointment)
-
-        appointment.wp_receipt_token = wp_bill.receipt_token
-        appointment.wp_customer_info_id = wp_bill.customer_id
-        appointment.payment_url = wp_bill.url
-
-        if update_appointment_with_receipt_token(appointment):
-            return wp_bill.url
-
-        else:
-            raise ValueError('Appointment update failed')
-
-    except Exception as err:
-        log_generic(
-            type=ERROR,
-            appointment=appointment,
-            function=whoami(),
-            error=err
-        )
-
-    return None
-
-
-# Returns payment_required, total_cost, billed_amount
-def __evaluate_upfront_payment(booking_req: GgtBooking):
-    try:
-        r = UpfrontPaymemtResponse()
-
-        if booking_req.service_flu_shot:
-            r.is_payment_required = True
-            r.total_cost = 3000
-            r.billed_amount = 3000
-        else:
-            # business decision to make all testing free 08/06/2020
-            r.is_payment_required = False
-            r.total_cost = 0
-            r.billed_amount = 0
-
-        return r
-
-    except Exception as err:
-        log_generic(
-            type=ERROR,
-            booking_req=booking_req,
-            function=whoami(),
-            error=err
-        )
-
-    return None
-
-
-def __create_wp_bill(appointment: GgtAppointment):
-    res: WellpayCreateBillResponse = WellpayCreateBillResponse()
-    try:
-        wp_api_key, wp_refresh_token = __get_wp_api_tokens()
-
-        base_url = get_config_val('vendors.wellpay.endpoint')
-        url = "{}/bill/submit".format(base_url)
-        headers = {
-            'Authorization': 'Bearer {}'.format(wp_api_key),
-            'Content-Type': 'application/json'
-        }
-
-        payload = {
-            "first_name": appointment.patient.first_name,
-            "last_name": appointment.patient.last_name,
-            "phone": appointment.patient.phone_number,
-            "email": appointment.patient.email,
-            "date_of_birth": appointment.patient.dob.strftime('%Y-%m-%d'),
-            "street_address": appointment.patient.addr1,
-            # "adddress_complement": ''+appointment.patient.addr2,
-            "city": appointment.patient.city,
-            "state": appointment.patient.st,
-            "zip_code": appointment.patient.zip,
-            "external_account_id": appointment.id,
-            "autopay": False,
-            "external_bill_id": appointment.id,
-            "billed_amount": int(appointment.billed_amount*100),
-            "service_date": appointment.scheduled_dt.strftime('%Y-%m-%d'),
-
-            "onSuccess": "{}/appointment/{}/pay/success".format(get_config_val('base_url'), appointment.id),
-            "onFailure": "{}/appointment/{}/pay/error".format(get_config_val('base_url'), appointment.id)
-        }
-
-        r = requests.post(url, headers=headers, json=payload)
-        response = r.json()
-
-        res.url = response['url']
-        res.receipt_token = response['receipt_token']
-
-    except Exception as err:
-        log_generic(
-            type=ERROR,
-            appointment=appointment,
-            function=whoami(),
-            error=err
-        )
-
-    return res
-
 
 def bp_finalize_payment(appointment_id: int, wp_receipt_token: str):
     try:
@@ -442,6 +318,30 @@ def bp_get_test_result(token: str, dob: str):
         )
 
     return False
+
+
+def bp_has_appointments(phone_number: str, dob: str) -> bool:
+    try:
+        if get_appointment_count_by_phone_dob(phone_number, dob) > 0:
+            log_generic(
+                type=INFO,
+                phone_number=phone_number,
+                dob=dob,
+                function=whoami()
+            )
+            return True
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            phone_number=phone_number,
+            dob=dob,
+            function=whoami(),
+            error=err
+        )
+
+    return False
+
 
 ########################################################################################################
 # [Protected] functions
@@ -699,3 +599,130 @@ class UpfrontPaymemtResponse():
     is_payment_required: bool = None
     total_cost: int = None
     billed_amount: int = None
+
+
+
+def __save_insurance_image(appointment_id: int, insurance_image: str) -> bool:
+    try:
+        if insurance_image and len(insurance_image) > 0:
+            if "," in insurance_image:
+                base64string = insurance_image.split(",")[1]
+
+            dest_file_name = '{}.png'.format(appointment_id)
+            if upload_insurance_card_from_base64_string(base64string, 'image/png', dest_file_name):
+                print('uploaded image: {}'.format(dest_file_name))
+                return True
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            appointment_id=appointment_id,
+            insurance_image=insurance_image,
+            function=whoami(),
+            error=err
+        )
+
+    return False
+
+
+def __inject_payment_flow(appointment: GgtAppointment):
+    try:
+        wp_bill = __create_wp_bill(appointment)
+
+        appointment.wp_receipt_token = wp_bill.receipt_token
+        appointment.wp_customer_info_id = wp_bill.customer_id
+        appointment.payment_url = wp_bill.url
+
+        if update_appointment_with_receipt_token(appointment):
+            return wp_bill.url
+
+        else:
+            raise ValueError('Appointment update failed')
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            appointment=appointment,
+            function=whoami(),
+            error=err
+        )
+
+    return None
+
+
+# Returns payment_required, total_cost, billed_amount
+def __evaluate_upfront_payment(booking_req: GgtBooking):
+    try:
+        r = UpfrontPaymemtResponse()
+
+        if booking_req.service_flu_shot:
+            r.is_payment_required = True
+            r.total_cost = 3000
+            r.billed_amount = 3000
+        else:
+            # business decision to make all testing free 08/06/2020
+            r.is_payment_required = False
+            r.total_cost = 0
+            r.billed_amount = 0
+
+        return r
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            booking_req=booking_req,
+            function=whoami(),
+            error=err
+        )
+
+    return None
+
+
+def __create_wp_bill(appointment: GgtAppointment):
+    res: WellpayCreateBillResponse = WellpayCreateBillResponse()
+    try:
+        wp_api_key, wp_refresh_token = __get_wp_api_tokens()
+
+        base_url = get_config_val('vendors.wellpay.endpoint')
+        url = "{}/bill/submit".format(base_url)
+        headers = {
+            'Authorization': 'Bearer {}'.format(wp_api_key),
+            'Content-Type': 'application/json'
+        }
+
+        payload = {
+            "first_name": appointment.patient.first_name,
+            "last_name": appointment.patient.last_name,
+            "phone": appointment.patient.phone_number,
+            "email": appointment.patient.email,
+            "date_of_birth": appointment.patient.dob.strftime('%Y-%m-%d'),
+            "street_address": appointment.patient.addr1,
+            # "adddress_complement": ''+appointment.patient.addr2,
+            "city": appointment.patient.city,
+            "state": appointment.patient.st,
+            "zip_code": appointment.patient.zip,
+            "external_account_id": appointment.id,
+            "autopay": False,
+            "external_bill_id": appointment.id,
+            "billed_amount": int(appointment.billed_amount*100),
+            "service_date": appointment.scheduled_dt.strftime('%Y-%m-%d'),
+
+            "onSuccess": "{}/appointment/{}/pay/success".format(get_config_val('base_url'), appointment.id),
+            "onFailure": "{}/appointment/{}/pay/error".format(get_config_val('base_url'), appointment.id)
+        }
+
+        r = requests.post(url, headers=headers, json=payload)
+        response = r.json()
+
+        res.url = response['url']
+        res.receipt_token = response['receipt_token']
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            appointment=appointment,
+            function=whoami(),
+            error=err
+        )
+
+    return res

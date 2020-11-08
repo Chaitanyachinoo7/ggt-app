@@ -411,6 +411,36 @@ def update_appointment_with_test_completed(appointment_id: int):
 
     return None
 
+
+def get_appointment_count_by_phone_dob(phone_number, dob):
+    try:
+        sql = """
+        SELECT 
+            COUNT(*) AS count
+        FROM
+            appointments a
+                JOIN
+            patients p ON (p.id = a.patient_id)
+        WHERE
+            p.phone_number = %s
+                AND p.dob = %s
+        """
+        vals = (phone_number, dob)
+        row = read_row(sql, vals)
+        if row:
+            return row['count']
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            phone_number=phone_number,
+            dob=dob,
+            function=whoami(),
+            error=err
+        )
+        
+    return 0
+
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################

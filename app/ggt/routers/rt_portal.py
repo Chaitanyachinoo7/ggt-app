@@ -205,7 +205,7 @@ async def api_generate_schedule(location_id: str, background_tasks: BackgroundTa
         background_tasks.add_task(generate_schedule, location_id)
         return {
             STATUS: SUCCESS,
-            "description": "Background Task Initiated"
+            DESCRIPTION: "Background Task Initiated"
         }
     else:
         raise HTTPException(
@@ -221,7 +221,7 @@ async def api_generate_all_schedules(background_tasks: BackgroundTasks,
         background_tasks.add_task(generate_all_schedules)
         return {
             STATUS: SUCCESS,
-            "description": "Background Task Initiated"
+            DESCRIPTION: "Background Task Initiated"
         }
     else:
         raise HTTPException(

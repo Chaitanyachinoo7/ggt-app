@@ -5,11 +5,18 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from ggt.lib.constants import (
-    NOT_FOUND,CLINICAL_PROVIDER_RT_TAG, PATIENT_RT_TAG,
-    BACKGROUND_TASK_RT_TAG, ADMIN_PORTAL_RT_TAG,
-    CONTACT_CENTER_RT_TAG, PRINTER_HUB_RT_TAG)
+    DESCRIPTION,
+    NOT_FOUND,
+    CLINICAL_PROVIDER_RT_TAG,
+    PATIENT_RT_TAG,
+    BACKGROUND_TASK_RT_TAG,
+    ADMIN_PORTAL_RT_TAG,
+    CONTACT_CENTER_RT_TAG,
+    PRINTER_HUB_RT_TAG
+)
 from ggt.lib.utils import (
-    get_config_val)
+    get_config_val
+)
 # local
 from ggt.routers import (
     rt_redirect,
@@ -23,7 +30,7 @@ from ggt.routers import (
 
 docs_url = None if (get_config_val('env') == 'PROD') else '/docs'
 redoc_url = None if (get_config_val('env') == 'PROD') else '/redoc'
-    
+
 app = FastAPI(docs_url=docs_url, redoc_url=redoc_url)
 
 
@@ -60,7 +67,7 @@ app.include_router(
     rt_provider.router,
     prefix="/api/provider",
     tags=[CLINICAL_PROVIDER_RT_TAG],
-    responses={404: {"description": NOT_FOUND}},
+    responses={404: {DESCRIPTION: NOT_FOUND}},
 )
 
 ############################################################
@@ -70,7 +77,7 @@ app.include_router(
     rt_patient.router,
     prefix="/api",
     tags=[PATIENT_RT_TAG],
-    responses={404: {"description": NOT_FOUND}},
+    responses={404: {DESCRIPTION: NOT_FOUND}},
 )
 
 ############################################################
@@ -80,7 +87,7 @@ app.include_router(
     rt_task.router,
     prefix="/api/task",
     tags=[BACKGROUND_TASK_RT_TAG],
-    responses={404: {"description": NOT_FOUND}},
+    responses={404: {DESCRIPTION: NOT_FOUND}},
 )
 
 ############################################################
@@ -90,7 +97,7 @@ app.include_router(
     rt_portal.router,
     prefix="/api/portal",
     tags=[ADMIN_PORTAL_RT_TAG],
-    responses={404: {"description": NOT_FOUND}},
+    responses={404: {DESCRIPTION: NOT_FOUND}},
 )
 
 #############################################################
@@ -100,7 +107,7 @@ app.include_router(
     rt_contact_center.router,
     prefix="/api/cc",
     tags=[CONTACT_CENTER_RT_TAG],
-    responses={404: {"description": NOT_FOUND}},
+    responses={404: {DESCRIPTION: NOT_FOUND}},
 )
 
 #############################################################
@@ -110,7 +117,7 @@ app.include_router(
     rt_printer_hub.router,
     prefix="/api/print",
     tags=[PRINTER_HUB_RT_TAG],
-    responses={404: {"description": NOT_FOUND}},
+    responses={404: {DESCRIPTION: NOT_FOUND}},
 )
 
 if __name__ == '__main__':

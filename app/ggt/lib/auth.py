@@ -9,6 +9,7 @@ from google.oauth2 import id_token
 from jose import jwt, JWTError
 
 from ggt.lib.constants import (
+    DESCRIPTION,
     ERROR
 )
 
@@ -87,14 +88,14 @@ async def requires_auth(token):
             await get_rsa_key_auth0(token)
             raise AuthError({
                 "code": "token_expired",
-                "description": "token is expired"
+                DESCRIPTION: "token is expired"
             }, 401)
 
         except jwt.JWTClaimsError:
             await get_rsa_key_auth0(token)
             raise AuthError({
                 "code": "invalid_claims",
-                "description":
+                DESCRIPTION:
                     "incorrect claims,"
                     "please check the audience and issuer"}, 401)
 
@@ -102,14 +103,14 @@ async def requires_auth(token):
             await get_rsa_key_auth0(token)
             raise AuthError({
                 "code": "invalid_header",
-                "description":
+                DESCRIPTION:
                     "Unable to parse authentication"
                     " token."}, 401)
 
     await get_rsa_key_auth0(token)
     raise AuthError({
         "code": "invalid_header",
-        "description": "Unable to find appropriate key"
+        DESCRIPTION: "Unable to find appropriate key"
     }, 401)
 
 
@@ -156,7 +157,7 @@ async def get_rsa_key_auth0(token):
     except JWTError:
         raise AuthError({
             "code": "invalid_header",
-            "description": "Unable to find appropriate key"
+            DESCRIPTION: "Unable to find appropriate key"
         }, 401)
 
 

@@ -78,6 +78,7 @@ def record_label_scan(appointment_id):
         """
 
         vals = (appointment_id,)
+        
         return exec_update(sql, vals)
 
     except Exception as err:

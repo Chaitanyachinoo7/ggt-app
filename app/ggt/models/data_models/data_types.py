@@ -1,19 +1,17 @@
 import datetime
 from enum import Enum
 from typing import List, Optional
-
 from pydantic import BaseModel
 
 
 class LocationToGroupMap(BaseModel):
-    location_id: str
-    group_id: str
+    location_id: str = None
+    group_id: str = None
 
 
 class LocationToServiceMap(BaseModel):
-    location_id: str
-    service_id: str
-
+    location_id: str = None
+    service_id: str = None
 
 
 class User(BaseModel):
@@ -28,80 +26,80 @@ class User(BaseModel):
 
 
 class VerifyPhoneRequest(BaseModel):
-    phone_number: str
+    phone_number: str = None
 
 
 class ValidateOtpRequest(BaseModel):
-    phone_number: str
-    otp: str
+    phone_number: str = None
+    otp: str = None
 
 
 class Symptoms(BaseModel):
-    symptom_fever: bool
-    symptom_short_breath: bool
-    symptom_cough: bool
-    symptom_chest_pains: bool
-    symptom_other: bool
-    symptom_lack_of_smell: bool
+    symptom_fever: bool = None
+    symptom_short_breath: bool = None
+    symptom_cough: bool = None
+    symptom_chest_pains: bool = None
+    symptom_other: bool = None
+    symptom_lack_of_smell: bool = None
 
 
 class PatientDetails(BaseModel):
-    first_name: str
-    middle_name: Optional[str] = ""
-    last_name: str
-    dob: str
+    first_name: str = None
+    middle_name: Optional[str] = ''
+    last_name: str = None
+    dob: str = None
 
 
 class PatientAddress(BaseModel):
-    state: str
-    street: str
-    city: str
-    zip_code: str
+    state: str = None
+    street: str = None
+    city: str = None
+    zip_code: str = None
 
 
 class PatientContact(BaseModel):
-    email: str
+    email: str = None
 
 
 class PatientVitals(BaseModel):
-    height: str
-    weight: str
-    medications: bool
+    height: str = None
+    weight: str = None
+    medications: bool = None
 
 
 class PreExistingConditions(BaseModel):
-    heart_disease: bool
-    diabetes: bool
-    respiratory_disease: bool
-    autoimmune_disease: bool
-    other_chronic_disease: bool
-    allergies: bool
+    heart_disease: bool = None
+    diabetes: bool = None
+    respiratory_disease: bool = None
+    autoimmune_disease: bool = None
+    other_chronic_disease: bool = None
+    allergies: bool = None
 
 
 class Consent(BaseModel):
-    full_name: str
+    full_name: str = None
 
 
 class ConsentProvider(BaseModel):
-    full_name: str
+    full_name: str = None
     provider_consent_custom_field_1: Optional[str] = None
     provider_consent_custom_field_2: Optional[str] = None
     provider_consent_custom_field_3: Optional[str] = None
 
 
 class InfluenzaConsent(BaseModel):
-    full_name: str
+    full_name: str = None
 
 
 class PublicPlaces(BaseModel):
-    bars_restaurants_cafes: bool
-    gas_stations: bool
-    medical_offices: bool
-    place_of_work: bool
-    retail_grocery_stores: bool
-    places_of_worship: bool
-    public_parks: bool
-    other: bool
+    bars_restaurants_cafes: bool = None
+    gas_stations: bool = None
+    medical_offices: bool = None
+    place_of_work: bool = None
+    retail_grocery_stores: bool = None
+    places_of_worship: bool = None
+    public_parks: bool = None
+    other: bool = None
 
 
 class ServiceSelection(BaseModel):
@@ -123,27 +121,27 @@ class GgtServiceCatalogItem(BaseModel):
 
 
 class InfluenzaScreening(BaseModel):
-    severely_ill: bool
-    guillain_barre_syndrome: bool
-    life_threatening_reaction: bool
-    egg_allergy: bool
+    severely_ill: bool = None
+    guillain_barre_syndrome: bool = None
+    life_threatening_reaction: bool = None
+    egg_allergy: bool = None
 
 
 class FinalizeRegistrationRequest(BaseModel):
-    groupCode: str
-    phone_number: str
-    token: str
-    isPatient: bool
-    gender: str
-    race: str
-    ethnicity: str
-    symptoms: Symptoms
+    groupCode: str = None
+    phone_number: str = None
+    token: str = None
+    isPatient: bool = None
+    gender: str = None
+    race: str = None
+    ethnicity: str = None
+    symptoms: Symptoms = None
     contactTracing: Optional[bool]
-    patientDetails: PatientDetails
-    patientAddress: PatientAddress
-    patientContact: PatientContact
-    patientVitals: PatientVitals
-    preExistingConditions: PreExistingConditions
+    patientDetails: PatientDetails = None
+    patientAddress: PatientAddress = None
+    patientContact: PatientContact = None
+    patientVitals: PatientVitals = None
+    preExistingConditions: PreExistingConditions = None
     insurancePhoto: Optional[str] = None
     consent: Optional[Consent] = None
     consent_provider: Optional[ConsentProvider] = None
@@ -160,126 +158,126 @@ class FinalizeRegistrationRequest(BaseModel):
 
 
 class PhoneData(BaseModel):
-    cellphone: str
+    cellphone: str = None
 
 
 class FinalizePaymentRequest(BaseModel):
-    appointment_id: str
-    receipt_token: str
+    appointment_id: str = None
+    receipt_token: str = None
 
 
 class ValidatePhoneInputRequest(BaseModel):
-    phone_number: str
+    phone_number: str = None
 
 
 class GetAvailableTimesRequest(BaseModel):
-    location_id: str
-    dates: str
+    location_id: str = None
+    dates: str = None
 
 
 class ProviderLoginRequest(BaseModel):
-    token: str
+    token: str = None
 
 
 class ProviderPatientCodeRequest(BaseModel):
-    code: str
-    token: str
+    code: str = None
+    token: str = None
 
 
 class ProviderUpdateAppointmentRequest(BaseModel):
-    appointment_id: str
-    action: str
-    workstation_id: int
+    appointment_id: str = None
+    action: str = None
+    workstation_id: int = None
 
 
 class ProviderLookupAppointmentRequest(BaseModel):
-    appointment_id: str
+    appointment_id: str = None
 
 
 class PortalLoginRequest(BaseModel):
-    token: str
+    token: str = None
 
 
 class PortalUserRoleRequest(BaseModel):
-    email: str
+    email: str = None
 
 
 class ProviderGetMonthlyCalendarRequest(BaseModel):
-    date: str
-    auth_token: str
-    location_id: str
+    date: str = None
+    auth_token: str = None
+    location_id: str = None
 
 
 class PortalCcPatientSearchRequest(BaseModel):
-    auth_token: str
-    last_name: str
-    dob: str
+    auth_token: str = None
+    last_name: str = None
+    dob: str = None
 
 
 class PortalCcTestLookupRequest(BaseModel):
-    auth_token: str
-    test_id: str
+    auth_token: str = None
+    test_id: str = None
 
 
 class PortalCcPatientLookupRequest(BaseModel):
-    last_name: str
-    dob: str
+    last_name: str = None
+    dob: str = None
 
 
 class CCSendSMSRequest(BaseModel):
-    first_name: str
-    token: str
-    to_number: str
+    first_name: str = None
+    token: str = None
+    to_number: str = None
 
 
 class CCSendEmailRequest(BaseModel):
-    first_name: str
-    token: str
-    to_email: str
+    first_name: str = None
+    token: str = None
+    to_email: str = None
 
 
 class CCSendNotiRequest(BaseModel):
-    first_name: str
-    token: str
-    to_email: str
-    to_number: str
+    first_name: str = None
+    token: str = None
+    to_email: str = None
+    to_number: str = None
 
 
 class CCOutboundResultRequest(BaseModel):
-    test_id: str
-    first_name: str
-    test_date: str
-    dob: str
-    token: str
-    to_email: str
-    to_number: str
-    test_result: str
+    test_id: str = None
+    first_name: str = None
+    test_date: str = None
+    dob: str = None
+    token: str = None
+    to_email: str = None
+    to_number: str = None
+    test_result: str = None
 
 
 class CCOutboundResultStatusRequest(BaseModel):
-    test_id: str
-    first_name: str
-    test_date: str
-    dob: str
-    token: str
-    to_email: str
-    to_number: str
-    test_result: str
-    call_status: str
+    test_id: str = None
+    first_name: str = None
+    test_date: str = None
+    dob: str = None
+    token: str = None
+    to_email: str = None
+    to_number: str = None
+    test_result: str = None
+    call_status: str = None
 
 
 class PortalGeneralSearchRequest(BaseModel):
-    auth_token: str
-    first_name: str
-    middle_name: str
-    last_name: str
-    dob: str
-    phone_number: str
-    email: str
-    appointment_id: str
-    group_code: str
-    appointment_date: str
-    location_id: str
+    auth_token: str = None
+    first_name: str = None
+    middle_name: str = None
+    last_name: str = None
+    dob: str = None
+    phone_number: str = None
+    email: str = None
+    appointment_id: str = None
+    group_code: str = None
+    appointment_date: str = None
+    location_id: str = None
 
 
 class PortalLocationSearchRequest(BaseModel):
@@ -311,12 +309,12 @@ class ScheduleGenerationRule(BaseModel):
 
 
 class LookupAppointmentRequest(BaseModel):
-    appointment_id: str
-    dob: str
+    appointment_id: str = None
+    dob: str = None
 
 
 class ScanLabelRequest(BaseModel):
-    appointment_id: str
+    appointment_id: str = None
 
 
 class GenderEnum(str, Enum):
@@ -412,14 +410,14 @@ class GgtDbLocation(BaseModel):
 
 
 class GgtUpdateLocation(BaseModel):
-    id: str
-    test_type_offered: str
-    status: str
-    type: str
-    billing_type: str
-    collect_insurance_info: str
-    allow_insurance_skip: str
-    collect_upfront_payment: str
+    id: str = None
+    test_type_offered: str = None
+    status: str = None
+    type: str = None
+    billing_type: str = None
+    collect_insurance_info: str = None
+    allow_insurance_skip: str = None
+    collect_upfront_payment: str = None
 
 
 class GgtDateTimeLocation(BaseModel):
@@ -574,7 +572,6 @@ class AuthError(Exception):
         self.status_code = status_code
 
 
-
 class GgtCustomField(BaseModel):
     name: str = None
     label: str = None
@@ -595,6 +592,11 @@ class GgtThirdPartyGroup(BaseModel):
     logo_1: str = None
     logo_2: str = None
     required_screens: List[str] = None
-    optional_screens: List[str] = None #Redundant, remove
+    optional_screens: List[str] = None  # Redundant, remove
     screen_seq: List[str] = None
     additional_fields: List[GgtCustomField] = None
+
+
+class VerifyExistingPatientRequest(BaseModel):
+    phone_number: str = None
+    dob: str = None
