@@ -164,7 +164,7 @@ FROM
     LEFT JOIN  ggt_users u ON u.external_id = pc.provider_external_id
     GROUP BY appointment_id) c ON a.id = c.appointment_id
     WHERE
-        {} and t.id = 526036
+        {}
     ORDER BY t.create_dt ASC
     LIMIT 20 OFFSET {};
 """.format(where_conditions, offset)
