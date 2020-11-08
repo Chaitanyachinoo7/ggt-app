@@ -333,6 +333,8 @@ def __process_task_list_response(tasks):
     response = {}
     for idx, task in enumerate(tasks):
 
+        consultation_notes = task['consultation_notes']
+        task.pop('consultation_notes', None)
         consultation_id = task['consultation_id']
         task.pop('consultation_id', None)
         consultation_start_dt = task['consultation_start_dt']
@@ -359,6 +361,7 @@ def __process_task_list_response(tasks):
         appointment_id = task['appointment_id']
         consultation = {
             "consultation_id": consultation_id,
+            "consultation_notes": consultation_notes,
             "consultation_start_dt": consultation_start_dt,
             "consultation_end_dt": consultation_end_dt,
             "provider_name": provider_name,
