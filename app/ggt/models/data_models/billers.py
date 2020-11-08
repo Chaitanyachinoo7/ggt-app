@@ -130,19 +130,6 @@ def get_billing_list(offset, status, from_dt, to_dt):
     r.voice_dt,
     r.group_notify,
     r.overall_status,
-    c.id AS consultaion_id,
-    c.notes AS consultation_notes,
-    c.id_start_dt AS id_start_dt,
-    c.id_end_dt AS id_end_dt,
-    c.provider_external_ids AS provider_ids,
-    c.consultation_type_codes AS consultation_type_codes,
-    c.resolution_codes AS resolution_codes,
-    c.id_provider_names AS id_provider_names,
-    c.id_given_names AS id_given_names,
-    c.id_family_names AS id_family_names,
-    c.id_email AS id_email,
-    c.id_email_verified AS id_email_verified,
-    c.id_pictures AS id_pictures,
     (CASE
         WHEN
             (a.status = 'test_completed'
@@ -198,7 +185,7 @@ def get_billing_list(offset, status, from_dt, to_dt):
                 OR c.consultation_type_codes IS NULL))
         THEN
             '99211,99072,99000'
-        ELSE '0,0'
+        ELSE null 
     END) AS billing_codes
 FROM
     patients p
@@ -215,23 +202,10 @@ FROM
         LEFT JOIN
     (SELECT 
         appointment_id,
-            GROUP_CONCAT(provider_external_id, ':', notes) AS notes,
-            GROUP_CONCAT(provider_external_id) AS provider_external_ids,
-            GROUP_CONCAT(provider_external_id, '__', pc.start_dt) AS id_start_dt,
-            GROUP_CONCAT(provider_external_id, '__', pc.end_dt) AS id_end_dt,
-            GROUP_CONCAT(pc.id) AS id,
-            GROUP_CONCAT(pc.consultation_type_code) AS consultation_type_codes,
-            GROUP_CONCAT(pc.resolution_code) AS resolution_codes,
-            GROUP_CONCAT(u.external_id, ':', u.name) AS id_provider_names,
-            GROUP_CONCAT(u.external_id, ':', u.family_name) AS id_family_names,
-            GROUP_CONCAT(u.external_id, ':', u.given_name) AS id_given_names,
-            GROUP_CONCAT(u.external_id, ':', u.email) AS id_email,
-            GROUP_CONCAT(u.external_id, ':', u.email_verified) AS id_email_verified,
-            GROUP_CONCAT(u.external_id, '__', u.picture) AS id_pictures
+        GROUP_CONCAT(DISTINCT pc.consultation_type_code) AS consultation_type_codes
     FROM
         patient_consultations pc
     LEFT JOIN appointments ap ON pc.appointment_id = ap.id
-    LEFT JOIN ggt_users u ON u.external_id = pc.provider_external_id
     GROUP BY appointment_id) c ON a.id = c.appointment_id
         LEFT JOIN
     (SELECT 
@@ -284,10 +258,9 @@ def update_billing_status(appointment_id):
 
 
 def __process_billing_response(tasks):
-    formatted = __process_task_list_response(tasks)
-    for task in formatted:
+    for task in tasks:
         task['billing_codes'] = task['billing_codes'].split(',') if task['billing_codes'] else []
         if len(task['billing_codes']) < 3:
             task['billing_codes'] = []
-    return formatted
+    return tasks
 

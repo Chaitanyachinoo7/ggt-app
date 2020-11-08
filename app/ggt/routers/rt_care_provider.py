@@ -16,7 +16,7 @@ async def api_provider_rollback_to_pending_task(complete_task: UpdateProviderTas
     return provider_rollback_to_pending_task(complete_task.test_id)
 
 
-@router.post("/provider_complete_task", dependencies=[Security(authorise_user, scopes=[p.PROVIDER_COMPLETE_TASK])])
+@router.post("/end_consultation", dependencies=[Security(authorise_user, scopes=[p.PROVIDER_COMPLETE_TASK])])
 async def api_provider_complete_task(complete_task: CompleteNoteReq):
     return provider_complete_task(complete_task)
 
@@ -26,7 +26,7 @@ async def api_call_patient(call_request: CallReq):
     return call_patient(call_request)
 
 
-@router.post("/lock_provider_task", dependencies=[Security(authorise_user, scopes=[p.LOCK_PROVIDER_TASK])])
+@router.post("/begin_consultation", dependencies=[Security(authorise_user, scopes=[p.LOCK_PROVIDER_TASK])])
 async def api_lock_provider_task(lock_request: LockProviderTask):
     return lock_provider_task(lock_request)
 
