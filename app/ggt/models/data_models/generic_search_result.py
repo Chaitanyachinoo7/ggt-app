@@ -297,7 +297,6 @@ def find_patients(first_name='', middle_name='', last_name='', dob='', phone_num
             result_notification_campaigns r ON (t.id = r.test_id)
         WHERE 1=1
             {}
-        ORDER BY register_dt DESC
         LIMIT {}
         """.format(where_conditions, limit)
         rows = read_rows(sql)

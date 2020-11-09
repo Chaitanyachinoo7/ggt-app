@@ -26,7 +26,7 @@ from ggt.lib.adapters.mysql_adapter import (
 from ggt.models.data_models.data_types import ConsultationNotesEnum, PositiveCall, ConsultationStatusEnum
 
 
-def get_provider_processing_list(offset, consultation_status, consultation_notes, positive_call):
+def get_provider_processing_list(offset, consultation_status, consultation_notes, positive_call, limit=20):
     try:
         where_conditions = '(TO_DAYS(NOW()) - TO_DAYS(t.create_dt)) <= 15'
         if consultation_status != ConsultationStatusEnum.any:
@@ -175,8 +175,8 @@ def get_provider_processing_list(offset, consultation_status, consultation_notes
     WHERE
         {}
     ORDER BY t.create_dt ASC
-    LIMIT 20 OFFSET {};
-""".format(where_conditions, offset)
+    LIMIT {} OFFSET {};
+""".format(where_conditions, limit, offset)
         rows = read_rows(sql)
         return __process_task_list_response(rows)
     except Exception as err:
@@ -254,7 +254,8 @@ def update_consultation_note(consultation_id, notes, consultation_type_code, res
                  SET
                      notes = %s,
                      consultation_type_code = %s,
-                     resolution_code = %s
+                     resolution_code = %s,
+                     end_dt = NOW()
                  WHERE
                      id = %s;
                 """
