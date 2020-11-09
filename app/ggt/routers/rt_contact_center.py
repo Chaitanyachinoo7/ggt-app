@@ -87,9 +87,8 @@ async def api_cc_send_sms_email(CCSendNotiRequest: CCSendNotiRequest):
         print(err)
 
 
-@router.post("/outbound_result_status")
-def outbound_result_status(CCOutboundResultStatusRequest: CCOutboundResultStatusRequest,
-                           user: User = Depends(get_current_user)):
+@router.post("/outbound_result_status", dependencies=[Security(authorise_user, scopes=[p.OUTBOUND_RESULT_STATUS])])
+def outbound_result_status(CCOutboundResultStatusRequest: CCOutboundResultStatusRequest):
     try:
         cc_update_outbound_call_status(
             CCOutboundResultStatusRequest.test_id,

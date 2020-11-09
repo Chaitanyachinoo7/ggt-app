@@ -13,7 +13,7 @@ from ggt.lib.constants import (
     ADMIN_PORTAL_RT_TAG,
     CONTACT_CENTER_RT_TAG,
     PRINTER_HUB_RT_TAG,
-    CARE_PROVIDER_RT_TAG, 
+    CARE_PROVIDER_RT_TAG,
     BILLER_APP_TAG
 )
 
@@ -29,7 +29,10 @@ from ggt.routers import (
     rt_portal,
     rt_contact_center,
     rt_printer_hub,
-    rt_care_provider, rt_billing)
+    rt_care_provider,
+    rt_billing
+)
+
 
 docs_url = None if (get_config_val('env') == 'PROD') else '/docs'
 redoc_url = None if (get_config_val('env') == 'PROD') else '/redoc'

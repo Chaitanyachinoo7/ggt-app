@@ -7,13 +7,12 @@ from ggt.models.data_models.data_types import (
     FinalizeRegistrationRequest,
     FinalizePaymentRequest,
     LookupAppointmentRequest,
-    VerifyExistingPatientRequest
+    VerifyExistingPatientRequest,
+    PermissionsEnum as p
 )
 
 from ggt.models.workflow_models.patient_portal_flow import (
     verify_existing_patient
-    LookupAppointmentRequest, 
-    PermissionsEnum as p
 )
 
 from ggt.models.workflow_models.patient_test_scheduling_flow import (
