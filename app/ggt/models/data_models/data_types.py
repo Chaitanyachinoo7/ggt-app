@@ -33,7 +33,7 @@ class ResolutionCodesEnum(str, Enum):
 
 class ConsultationTypeCodesEnum(str, Enum):
     pre_covid_consultation = 'pre_covid_consultation'
-    post_covid_consultation = 'pre_covid_consultation'
+    post_covid_consultation = 'post_covid_consultation'
 
 
 class CompleteNoteReq(BaseModel):
@@ -57,6 +57,7 @@ class CallReq(BaseModel):
 class BillingStatusEnum(str, Enum):
     pending = 'pending'
     billed = 'billed'
+    any = 'any'
 
 
 class GetBillingListReq(BaseModel):
