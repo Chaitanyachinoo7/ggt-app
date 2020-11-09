@@ -57,6 +57,7 @@ class CallReq(BaseModel):
 class BillingStatusEnum(str, Enum):
     pending = 'pending'
     billed = 'billed'
+    any = 'any'
 
 
 class GetBillingListReq(BaseModel):
