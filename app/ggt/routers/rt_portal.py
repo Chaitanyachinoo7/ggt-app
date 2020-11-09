@@ -139,7 +139,6 @@ async def api_get_all_services():
 @router.post("/site-admin/general_search", dependencies=[Security(authorise_user, scopes=[p.GENERAL_SEARCH])])
 async def api_site_admin_general_search(portal_general_search_request: PortalGeneralSearchRequest):
     return site_admin_general_search(
-        portal_general_search_request.auth_token,
         portal_general_search_request.first_name,
         portal_general_search_request.middle_name,
         portal_general_search_request.last_name,

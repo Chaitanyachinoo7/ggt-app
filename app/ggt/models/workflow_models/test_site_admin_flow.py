@@ -36,11 +36,19 @@ from ggt.lib.constants import (
 ########################################################################################################
 
 
-def site_admin_general_search(auth_token, first_name, middle_name, last_name, dob, phone_number, email, appointment_id,
+def site_admin_general_search(first_name, middle_name, last_name, dob, phone_number, email, appointment_id,
                               group_code, appointment_date, location_id):
     return y_response(
         bp_get_general_search_results(
-            first_name, middle_name, last_name, dob, phone_number, email, appointment_id, group_code, appointment_date,
+            first_name, 
+            middle_name, 
+            last_name, 
+            dob, 
+            phone_number, 
+            email, 
+            appointment_id, 
+            group_code, 
+            appointment_date,
             location_id
         )
     )

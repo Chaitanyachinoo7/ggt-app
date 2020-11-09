@@ -292,18 +292,15 @@ class PortalUserRoleRequest(BaseModel):
 
 class ProviderGetMonthlyCalendarRequest(BaseModel):
     date: str = None
-    auth_token: str = None
     location_id: str = None
 
 
 class PortalCcPatientSearchRequest(BaseModel):
-    auth_token: str = None
     last_name: str = None
     dob: str = None
 
 
 class PortalCcTestLookupRequest(BaseModel):
-    auth_token: str = None
     test_id: str = None
 
 
@@ -355,7 +352,6 @@ class CCOutboundResultStatusRequest(BaseModel):
 
 
 class PortalGeneralSearchRequest(BaseModel):
-    auth_token: str = None
     first_name: str = None
     middle_name: str = None
     last_name: str = None
