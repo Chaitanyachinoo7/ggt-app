@@ -563,6 +563,7 @@ class GgtDateTimeLocation(BaseModel):
     location: GgtLocation = GgtLocation()
     first_date_time_available: datetime.datetime = None
     average_processing_time: float = None
+    wait_time: float = None
     slot_count: int = None
     distance: float = None
 
@@ -726,6 +727,7 @@ class GgtThirdPartyGroup(BaseModel):
     allow_insurance_skip: bool = None
     upfront_payment_req: bool = None
     display_group_consent: bool = None
+    intro_text: str = None
     consent_party_name: str = None
     consent_url: str = None
     logo_1: str = None

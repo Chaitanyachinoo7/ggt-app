@@ -205,6 +205,7 @@ def __map_row_to_group(row) -> GgtThirdPartyGroup:
         g.allow_insurance_skip = row['allow_insurance_skip']
         g.upfront_payment_req = row['upfront_payment_req']
         g.display_group_consent = row['display_group_consent']
+        g.intro_text = row['intro_text']
         g.consent_party_name = row['consent_party_name']
         g.consent_url = row['consent_url']
         g.logo_1 = row['logo_1']
