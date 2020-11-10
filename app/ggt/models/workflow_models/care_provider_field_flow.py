@@ -15,7 +15,8 @@ from ggt.models.process_models.bp_care_provider_experience import (
 def get_provider_processing_list(provide_request):
     return y_response(
         bp_get_provider_processing_list(provide_request.offset, provide_request.consultation_status,
-                                        provide_request.consultation_notes, provide_request.positive_call)
+                                        provide_request.consultation_notes, provide_request.positive_call,
+                                        provide_request.limit)
     )
 
 

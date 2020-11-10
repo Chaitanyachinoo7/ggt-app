@@ -56,3 +56,17 @@ UUcY4XjLSLeTXUZu8p9iEQstrOJ5qQgikcqUUOjOycUYMlot_lV_0oG3LZoSCOXO
 
 siteadmin@test.com
 Test11@@
+
+
+
+
+Local Processing
+Start API Service:
+`cd "/Users/suresh/Library/Mobile Documents/com~apple~CloudDocs/IO Technology/wellhealth/ggt-pfe-api/"`
+`source "/Users/suresh/Library/Mobile Documents/com~apple~CloudDocs/IO Technology/wellhealth/ggt-pfe-api/venv/bin/activate"`
+`./swith_env.sh prod`
+`python3 app/main.py`
+
+Start inbound file processing:
+`cd "/Users/suresh/Library/Mobile Documents/com~apple~CloudDocs/IO Technology/wellhealth/ggt-pfe-api/"`
+`./inbound-resulting.sh`

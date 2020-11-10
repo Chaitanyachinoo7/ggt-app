@@ -33,6 +33,13 @@ from ggt.tasks.reminder_sms import (
     task_process_sms_reminders
 )
 
+
+###TODO: Temp
+from ggt.models.workflow_models.test_site_admin_flow import (
+    site_admin_general_search
+)
+
+
 router = APIRouter()
 
 
@@ -42,13 +49,12 @@ async def api_get_screen_flow_seq(group_code: str):
 
 
 @router.post("/verify_phone", dependencies=[Security(authorise_user, scopes=[p.ANONYMOUS])])
-async def api_verify_phone(verify_phone_request: VerifyPhoneRequest):
-    return initiate_verification_flow(
-        verify_phone_request.phone_number)
+async def api_verify_phone(req: VerifyPhoneRequest):
+    return initiate_verification_flow(req.phone_number)
 
 
 @router.post("/validate_otp", dependencies=[Security(authorise_user, scopes=[p.ANONYMOUS])])
-async def api_validate_otp(validate_otp_request: ValidateOtpRequest):
+async def api_validate_otp(req: ValidateOtpRequest):
     return validate_phone_number(
         req.phone_number,
         req.otp
@@ -103,15 +109,11 @@ async def api_finalize_payment(finalize_payment_request: FinalizePaymentRequest)
 
 
 @router.post("/lookup_appointment", dependencies=[Security(authorise_user, scopes=[p.ANONYMOUS])])
-async def api_lookup_appointment(lookup_appointment_request: LookupAppointmentRequest):
-    return lookup_appointment(lookup_appointment_request.appointment_id, lookup_appointment_request.dob)
-
-'''
-@router.get("/lookup_appointment/{appointment_id}/{dob}", dependencies=[Security(authorise_user, scopes=[p.ANONYMOUS])])
-async def api_lookup_appointment(appointment_id: str, dob: str):
-    return lookup_appointment(appointment_id, dob)
-'''
-
+async def api_lookup_appointment(req: LookupAppointmentRequest):
+    return lookup_appointment(
+        req.appointment_id, 
+        req.dob
+    )
 
 @router.get("/appointment/result/{token}/{dob}", dependencies=[Security(authorise_user, scopes=[p.ANONYMOUS])])
 async def api_lookup_test_result(token: str, dob: str):
@@ -131,4 +133,19 @@ async def api_verify_existing_patient(req: VerifyExistingPatientRequest):
     return verify_existing_patient(
         req.phone_number,
         req.dob
+    )
+
+@router.post("/lookup_appointments_by_phone/{phone_number}/{dob}")
+async def api_lookup_appointments_by_phone(phone_number: str, dob: str):
+    return site_admin_general_search(
+        '',
+        '',
+        '',
+        dob,
+        phone_number,
+        '',
+        '',
+        '',
+        '',
+        ''
     )
