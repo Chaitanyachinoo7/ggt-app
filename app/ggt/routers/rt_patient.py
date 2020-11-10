@@ -74,6 +74,7 @@ async def api_get_available_locations(group_code: str, date: str):
 #TODO: Radial Search
 @router.get("/get_locations_near_me/{lat}/{lng}", dependencies=[Security(authorise_user, scopes=[p.ANONYMOUS])])
 @router.get("/get_locations_near_me/{lat}/{lng}/{radius}", dependencies=[Security(authorise_user, scopes=[p.ANONYMOUS])])
+@router.get("/get_locations_near_me/{group_code}/{lat}/{lng}/{radius}", dependencies=[Security(authorise_user, scopes=[p.ANONYMOUS])])
 @router.get("/get_locations_near_me/{group_code}/{date}/{lat}/{lng}/{radius}", dependencies=[Security(authorise_user, scopes=[p.ANONYMOUS])])
 async def api_get_available_locations(lat: float, lng:float, radius: int = None, group_code: str = None, date: str = None):
     return get_schedule_locations_available_near_lat_lng(date, group_code, lat, lng, radius)
