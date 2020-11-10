@@ -85,9 +85,9 @@ vendors:
     outbound_file_prefix: ggt-outbound
 
   wellpay:
-    endpoint: https://api-staging.getwellpay.com/api/public/v1
+    endpoint: https://api.getwellpay.com/api/public/v1
     auth_user: suresh@wellpay.com
-    auth_password: 8,tp{Na{76<~@.>(
+    auth_password: y7f{=/$>VfRF$vqE
 
 pfe:
   signup:

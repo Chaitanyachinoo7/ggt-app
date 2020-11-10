@@ -197,7 +197,7 @@ def provider_lock_task(test_id):
                  SET
                      consultation_status = %s
                  WHERE
-                     id = %s AND consultation_status != %s;
+                     id = %s AND (consultation_status != %s OR consultation_status is null);
                 """
         in_progress = ConsultationStatusEnum.in_progress
         vals = (
