@@ -1,28 +1,9 @@
-import base64
 import requests
-import json
 from requests import Response
-
-from ggt.lib.utils import (
-    get_config_val,
-    log_generic,
-    generate_session_id,
-    whoami
-)
 
 from ggt.lib.adapters.mysql_adapter import (
     exec_insert,
-    exec_update,
-    read_rows,
-    exec_batch_execute
-)
-
-from ggt.lib.constants import (
-    STATUS,
-    SUCCESS,
-    FAILED,
-    INFO,
-    ERROR
+    exec_update
 )
 
 # TODO: read the params from Config files
@@ -98,7 +79,7 @@ def task_populate_users(existing_users):
         user['picture'] if 'picture' in user.keys() else "",
         user['user_id']
     ], users))
-    # update_ggt_users(filtered_users)
+    update_ggt_users(filtered_users)
 
     for u in users:
         id = str(u['user_id'])

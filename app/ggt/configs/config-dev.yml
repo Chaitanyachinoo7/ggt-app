@@ -18,9 +18,9 @@ gcp:
 
 databases:
   mysql:
-    host: 34.66.63.242
+    host: 35.184.98.83
     username: root
-    password: gvMBO96Ohbq3mwFp
+    password: Jr6EEMI2aBNguL1K
     db: ggt_prod
 
   sqlite:
@@ -42,7 +42,7 @@ sendgrid:
 
 google:
   maps:
-    api_key: AIzaSyAf7kDO2y7Hz7HYb3LHqvXimqJQcA6X8DQ
+    api_key: AIzaSyBJmU3ueSBRmXz4mU1MRgdOxAWcfImbQNQ
     base_url: https://maps.googleapis.com/maps/api/staticmap
     zoom_level: 10
     map_type: roadmap
@@ -64,7 +64,7 @@ app:
 vendors:
   auth0:
     auth0_domain: gogettested.us.auth0.com
-    api_audience: https://pfe-api.gogettested.com/api
+    api_audience: https://role-base-auth.test/api
     algorithms: ["RS256"]
     roles: http://roles.ggt/roles
 
