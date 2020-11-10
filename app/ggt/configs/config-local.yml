@@ -1,7 +1,7 @@
 app_name: COVID-19 Testing
 log_level: INFO
 base_url: https://start.GoGetTested.com
-env: PROD
+env: DEV
 
 aws:
   region: us-east-1
