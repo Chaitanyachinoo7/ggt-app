@@ -199,6 +199,15 @@
        {
          "value":"call_patient",
          "description":"Roles with call_patient permission will allow to access API end point which contains call_patient in scopes."
+      },
+         {
+         "value":"view_insurance_card",
+         "description":"Roles with view_insurance_card permission will allow to access API end point which contains view_insurance_card in scopes."
+      },
+      {
+         "value":"view_test_report",
+         "description":"Roles with view_test_report permission will allow to access API end point which contains view_test_report in scopes."
       }
+
    ]
 }

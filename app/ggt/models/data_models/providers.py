@@ -28,7 +28,7 @@ from ggt.models.data_models.data_types import ConsultationNotesEnum, PositiveCal
 
 def get_provider_processing_list(offset, consultation_status, consultation_notes, positive_call, limit=20):
     try:
-        where_conditions = '(TO_DAYS(NOW()) - TO_DAYS(t.create_dt)) <= 15'
+        where_conditions = '(TO_DAYS(NOW()) - TO_DAYS(t.create_dt)) <= 25'
         if consultation_status != ConsultationStatusEnum.any:
             if consultation_status == ConsultationStatusEnum.pending:
                 where_conditions = "{} AND ( t.consultation_status = '{}' OR t.consultation_status is null)".format(
@@ -360,6 +360,8 @@ def __process_task_list_response(tasks):
         task.pop('consultation_type_code', None)
 
         appointment_id = task['appointment_id']
+        task['insurance_card_url'] = '/api/billing/image/{}.png'.format(appointment_id)
+        task['test_report_url'] = '/api/billing/report/{}.pdf'.format(appointment_id)
         consultation = {
             "consultation_id": consultation_id,
             "consultation_notes": consultation_notes,

@@ -151,6 +151,29 @@ def blob_exists(bucket_name, filename):
         )
 
 
+async def serve_file(bucket_name, filename):
+    try:
+        storage_client = storage.Client.from_service_account_json(
+            service_account_file)
+        bucket = storage_client.get_bucket(bucket_name)
+        blob = bucket.blob(filename)
+        # image_bytes = blob.download_as_bytes()
+        # base64EncodedStr = base64.b64encode(image_bytes.encode('utf-8'))
+        if blob.exists():
+            return blob
+        else:
+            blob = bucket.blob('card.png')
+            return blob
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            bucket_name=bucket_name,
+            filename=filename,
+            function=whoami(),
+            error=err
+        )
+
+
 def get_signed_url(bucket_name,
                    object_name,
                    subresource=None,
