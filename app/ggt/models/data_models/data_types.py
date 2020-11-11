@@ -460,6 +460,8 @@ class PermissionsEnum(str, Enum):
     GET_BILLING_LIST = 'get_billing_list'
     UPDATE_BILLING_STATUS = 'update_billing_status'
     CALL_PATIENT = 'call_patient'
+    VIEW_INSURANCE_CARD = 'view_insurance_card'
+    VIEW_TEST_REPORT = 'view_test_report'
 
 
 class GgtPatient(BaseModel):

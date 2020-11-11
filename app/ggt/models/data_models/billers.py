@@ -259,7 +259,10 @@ def update_billing_status(appointment_id):
 
 def __process_billing_response(tasks):
     for task in tasks:
+        appointment_id = task['appointment_id']
         task['billing_codes'] = task['billing_codes'].split(',') if task['billing_codes'] else []
+        task['insurance_card_url'] = '/api/billing/image/{}.png'.format(appointment_id)
+        task['test_report_url'] = '/api/billing/report/{}.pdf'.format(appointment_id)
         if len(task['billing_codes']) < 3:
             task['billing_codes'] = []
     return tasks

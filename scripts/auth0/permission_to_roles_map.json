@@ -12,7 +12,9 @@
       "update_consultation_note",
       "lock_provider_task",
       "get_provider_processing_list",
-      "call_patient"
+      "call_patient",
+      "view_insurance_card",
+      "view_test_report"
    ],
    "site_admin":[
       "create_location",
