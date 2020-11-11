@@ -174,7 +174,7 @@ def get_provider_processing_list(offset, consultation_status, consultation_notes
         ggt_users u ON u.external_id = c.provider_external_id
     WHERE
         {}
-    ORDER BY t.create_dt ASC
+    ORDER BY t.create_dt DESC
     LIMIT {} OFFSET {};
 """.format(where_conditions, limit, offset)
         rows = read_rows(sql)
