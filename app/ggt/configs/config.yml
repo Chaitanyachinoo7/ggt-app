@@ -1,0 +1,98 @@
+app_name: COVID-19 Testing
+log_level: DEBUG
+base_url: https://start-dev.GoGetTested.com
+env: DEV
+
+aws:
+  region: us-east-1
+  access_key_id: AKIAR7AATMMMGKHVWYP6
+  secret_access_key: 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
+  sqs_print_queue_base_url: https://sqs.us-east-1.amazonaws.com/135292740376/ggt-print-queue
+
+gcp:
+  service_account_file: gcp-service-account-dev.json
+  default_link_expiration_time_limit: 300
+  all_inbound_files_bucket_name: ggt-all-inbound-files-dev
+  lab_reports_bucket_name: ggt-lab-reports-dev
+  insurance_cards_bucket_name: ggt-insurance-cards-dev
+
+databases:
+  mysql:
+    host: 35.184.98.83
+    username: root
+    password: Jr6EEMI2aBNguL1K
+    db: ggt_prod
+
+  sqlite:
+    tasks_sqlite_db: /Users/suresh/ggt-tasks/ggt_tasks_local_cache.db
+
+notifications:
+  from_email: support@gogettested.com
+  from_name: Go Get Tested
+  result_subject: COVID-19 Testing Result Available
+  result_template: GGT-5-RESULT-AVAILABLE-EMAIL.html
+
+twilio:
+  account_sid: AC9cef9b4155030ee2683281ccc72d4001
+  auth_token: 62ee76165984c54f91ee80aac9cb3f0e
+  from_number: '+18772802151'
+
+sendgrid:
+  sendgrid_api_key: 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
+
+google:
+  maps:
+    api_key: AIzaSyBJmU3ueSBRmXz4mU1MRgdOxAWcfImbQNQ
+    base_url: https://maps.googleapis.com/maps/api/staticmap
+    zoom_level: 10
+    map_type: roadmap
+    thumbnail_size: 110x110
+    markers_color: red
+    markers_size: tiny
+    
+email:
+  template_folder: /templates/email/
+
+app:
+  roles:
+    admin: Super Admin
+    site_admin: Site Admin
+    clinical_provider: Clinical Provider
+    care_provider: Care Provider
+    contact_center: Contact Center
+
+vendors:
+  auth0:
+    auth0_domain: gogettested.us.auth0.com
+    api_audience: https://role-base-auth.test/api
+    algorithms: ["RS256"]
+    roles: http://roles.ggt/roles
+
+  healthtrackrx:
+    hostname: sftp.healthtrackrx.com
+    username: wellpay
+    password: 9cTE3fh@8H
+    port: 22
+    remote_downloads_folder: /Reports
+    remote_insurance_images_path: /insurance_files
+    remote_backups_path: /backups
+    remote_processed_orders_path: /processed_order_files
+    local_download_path: /Users/suresh/ggt-tasks/downloads
+    local_outbound_file_path: /Users/suresh/ggt-tasks/outbound
+    local_insurance_card_file_path: /Users/suresh/ggt-tasks/insurance_images
+    local_process_summary_path: /Users/suresh/ggt-tasks/process_summary
+    local_backups_path: /Users/suresh/ggt-tasks/backups
+    outbound_file_prefix: ggt-outbound
+
+  wellpay:
+    endpoint: https://api-staging.getwellpay.com/api/public/v1
+    auth_user: suresh@wellpay.com
+    auth_password: 8,tp{Na{76<~@.>(
+
+pfe:
+  signup:
+    special_phone_1: '+14158888888'
+    special_phone_2: '+14159999999'
+    special_phone_3: '4158888888'
+    special_phone_4: '4159999999'
+    override_otp_code: '000000'
