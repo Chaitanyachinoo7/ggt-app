@@ -14,7 +14,7 @@ from ggt.lib.utils import (
 # [Public] functions
 ########################################################################################################
 from ggt.models.data_models.data_types import BillingStatusEnum, TestResultsEnum
-from ggt.models.data_models.providers import __process_task_list_response
+from ggt.models.data_models.providers import process_consultations
 
 
 def get_billing_list(offset, status, from_dt, to_dt):

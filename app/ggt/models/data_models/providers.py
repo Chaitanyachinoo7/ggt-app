@@ -28,7 +28,8 @@ from ggt.models.data_models.data_types import ConsultationNotesEnum, PositiveCal
 
 def get_provider_processing_list(offset, consultation_status, consultation_notes, positive_call, limit=20):
     try:
-        where_conditions = '(TO_DAYS(NOW()) - TO_DAYS(t.create_dt)) <= 25'
+        where_conditions = '1=1'
+        # where_conditions = '(TO_DAYS(NOW()) - TO_DAYS(t.create_dt)) <= 25'
         if consultation_status != ConsultationStatusEnum.any:
             if consultation_status == ConsultationStatusEnum.pending:
                 where_conditions = "{} AND ( t.consultation_status = '{}' OR t.consultation_status is null)".format(
@@ -174,11 +175,11 @@ def get_provider_processing_list(offset, consultation_status, consultation_notes
         ggt_users u ON u.external_id = c.provider_external_id
     WHERE
         {}
-    ORDER BY t.create_dt DESC
+    ORDER BY t.create_dt ASC 
     LIMIT {} OFFSET {};
 """.format(where_conditions, limit, offset)
         rows = read_rows(sql)
-        return __process_task_list_response(rows)
+        return process_consultations(rows)
     except Exception as err:
         log_generic(
             type=ERROR,
@@ -330,7 +331,7 @@ def provider_rollback_to_pending_task(test_id):
 # [Protected] functions
 ########################################################################################################
 
-def __process_task_list_response(tasks):
+def process_consultations(tasks):
     response = {}
     for idx, task in enumerate(tasks):
 
@@ -360,8 +361,8 @@ def __process_task_list_response(tasks):
         task.pop('consultation_type_code', None)
 
         appointment_id = task['appointment_id']
-        task['insurance_card_url'] = '/api/billing/image/{}.png'.format(appointment_id)
-        task['test_report_url'] = '/api/billing/report/{}.pdf'.format(appointment_id)
+        task['insurance_card_url'] = '/billing/image/{}.png'.format(appointment_id)
+        task['test_report_url'] = 'x/billing/report/{}.pdf'.format(appointment_id)
         consultation = {
             "consultation_id": consultation_id,
             "consultation_notes": consultation_notes,
@@ -379,10 +380,13 @@ def __process_task_list_response(tasks):
         }
 
         if appointment_id in list(response.keys()):
-            response[appointment_id]['consultations'].append(consultation)
+            if consultation_id:
+                response[appointment_id]['consultations'].append(consultation)
         else:
             response[appointment_id] = task
-            response[appointment_id]['consultations'] = [consultation, ]
+            response[appointment_id]['consultations'] = []
+            if consultation_id:
+                response[appointment_id]['consultations'].append(consultation)
     return __sort_consultations(list(response.values()))
 
 
