@@ -1,6 +1,5 @@
 from typing import List, Set, Dict, Tuple, Optional
 from contextlib import suppress
-from datetime import date
 from ggt.lib.utils import (
     get_config_val,
     log_generic,
@@ -280,27 +279,25 @@ def delete_schedule_generation_rule(id):
 
 def get_available_dates(group_code):
     try:
-        today = date.today().strftime("%Y-%m-%d")
         sql = """
-            SELECT DISTINCT
-                DATE(s.start_dt) AS available_date
-            FROM
-                schedules s
-            WHERE
-                location_id IN (
-                    SELECT 
-                        m.location_id
-                    FROM
-                        group_codes_to_locations_mapping m
-                            INNER JOIN
-                        groups g ON (g.id = m.group_id)
-                    WHERE
-                        g.group_code = %s)
-                    AND status = 'available'
-                    AND DATE(start_dt) >= %s
-            ORDER BY DATE(start_dt)
+        SELECT DISTINCT
+            DATE(s.start_dt) AS available_date
+        FROM
+            schedules s
+        WHERE
+            location_id IN (SELECT 
+                    m.location_id
+                FROM
+                    group_codes_to_locations_mapping m
+                        INNER JOIN
+                    groups g ON (g.id = m.group_id)
+                WHERE
+                    g.group_code = %s)
+                AND status = 'available'
+                AND (CAST(s.start_dt AS DATE) >= CAST(CONVERT_TZ(NOW(), '+00:00', '-06:00') AS DATE))
+        ORDER BY DATE(start_dt)
         """
-        vals = (group_code, today)
+        vals = (group_code,)
         return read_rows(sql, vals)
 
     except Exception as err:
