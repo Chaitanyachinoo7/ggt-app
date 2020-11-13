@@ -27,6 +27,8 @@ from ggt.lib.adapters.mysql_adapter import (
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
+from ggt.models.data_models.providers import process_consultations
+
 
 class PatientDetails(BaseModel):
     first_name: str
@@ -283,7 +285,20 @@ def find_patients(first_name='', middle_name='', last_name='', dob='', phone_num
             r.voice_sent,
             r.voice_dt,
             r.group_notify,
-            r.overall_status
+            r.overall_status,
+            c.id AS consultation_id,
+            c.notes AS consultation_notes,
+            c.start_dt AS consultation_start_dt,
+            c.end_dt AS consultation_end_dt,
+            c.provider_external_id AS provider_id,
+            c.consultation_type_code AS consultation_type_code,
+            c.resolution_code AS resolution_code,
+            u.name AS provider_name,
+            u.given_name AS provider_given_name,
+            u.family_name AS provider_family_name,
+            u.email AS provider_email,
+            u.email_verified AS provider_email_verified,
+            u.picture AS provider_image_url
         FROM
             patients p
                 LEFT JOIN
@@ -296,12 +311,16 @@ def find_patients(first_name='', middle_name='', last_name='', dob='', phone_num
             locations l ON (a.location_id = l.id)
                 LEFT JOIN
             result_notification_campaigns r ON (t.id = r.test_id)
+                LEFT JOIN
+            patient_consultations  c ON a.id = c.appointment_id
+                LEFT JOIN
+            ggt_users u ON u.external_id = c.provider_external_id
         WHERE 1=1
             {}
         LIMIT {}
         """.format(where_conditions, limit)
         rows = read_rows(sql)
-        return rows
+        return process_consultations(rows)
 
     except Exception as err:
         log_generic(
