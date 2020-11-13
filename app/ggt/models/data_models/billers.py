@@ -1,6 +1,6 @@
 from ggt.lib.adapters.mysql_adapter import (
     read_rows,
-    exec_update)
+    exec_update, exec_insert)
 from ggt.lib.constants import (
     ERROR
 )
@@ -255,6 +255,85 @@ def update_billing_status(appointment_id):
             error=err
         )
         return None
+
+
+def create_insurance_record(insurance_record):
+    try:
+        sql = """INSERT INTO `insurance_info`
+            (
+            `patient_id`,
+            `insurance_carrier`,
+            `group_number`,
+            `member_number`,
+            `validated`)
+                VALUES
+                    (%s, %s, %s, %s, %s);"""
+        vals = (insurance_record.patient_id,
+                insurance_record.insurance_carrier,
+                insurance_record.group_number,
+                insurance_record.member_number,
+                insurance_record.validated)
+        res = exec_insert(sql, vals)
+        return res
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err)
+
+
+def update_insurance_record(insurance_record):
+    try:
+        sql = """UPDATE `insurance_info` 
+                    SET
+                    `insurance_carrier` = %s,
+                    `group_number` = %s,
+                    `member_number` = %s,
+                    `validated` = %s
+                     WHERE `id` = %s"""
+        vals = (
+            insurance_record.insurance_carrier,
+            insurance_record.group_number,
+            insurance_record.member_number,
+            insurance_record.validated,
+            insurance_record.id)
+        res = exec_update(sql, vals)
+        return res
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err)
+
+
+def validate_insurance_record(insurance_record):
+    try:
+        sql = """UPDATE `insurance_info` 
+                SET
+                    `validated` = 1
+                 WHERE `id` = %s"""
+        vals = (insurance_record.id,)
+        res = exec_update(sql, vals)
+        return res
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err)
+
+
+def delete_insurance_record(insurance_record):
+    try:
+        sql = """DELETE FROM `insurance_info` 
+                 WHERE `id` = %s"""
+        vals = (insurance_record.id,)
+        res = exec_update(sql, vals)
+        return res
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err)
 
 
 def __process_billing_response(tasks):

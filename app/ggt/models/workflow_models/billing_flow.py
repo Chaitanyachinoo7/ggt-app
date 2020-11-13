@@ -5,7 +5,8 @@ from ggt.lib.utils import (
     y_response
 )
 from ggt.models.process_models.bp_biller_experience import bp_get_billing_list, bp_update_billing_status, \
-    bp_image_from_bucket, bp_report_from_bucket
+    bp_image_from_bucket, bp_report_from_bucket, bp_create_insurance_record, bp_update_insurance_record, \
+    bp_validate_insurance_record, bp_delete_insurance_record
 
 from ggt.models.process_models.bp_care_provider_experience import (
     bp_get_provider_processing_list, bp_lock_provider_task, bp_create_patient_test_consultation,
@@ -25,6 +26,30 @@ def get_billing_list(billing_request):
 def update_billing_status(billing_request):
     return x_response(
         bp_update_billing_status(billing_request.appointment_id)
+    )
+
+
+def create_insurance_record(record):
+    return y_response(
+        bp_create_insurance_record(record)
+    )
+
+
+def update_insurance_record(record):
+    return y_response(
+        bp_update_insurance_record(record)
+    )
+
+
+def validate_insurance_record(record):
+    return y_response(
+        bp_validate_insurance_record(record)
+    )
+
+
+def delete_insurance_record(record):
+    return y_response(
+        bp_delete_insurance_record(record)
     )
 
 
