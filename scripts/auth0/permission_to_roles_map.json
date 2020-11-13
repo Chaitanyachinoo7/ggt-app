@@ -44,7 +44,11 @@
    "billing_admin":[
       "lookup_appointment",
       "get_billing_list",
-      "update_billing_status"
+      "update_billing_status",
+      	"create_insurance_record",
+		"update_insurance_record",
+		"validate_insurance_record",
+		"delete_insurance_record"
    ],
    "super_admin":[
       "process_inbound_lab_reports",

@@ -207,6 +207,22 @@
       {
          "value":"view_test_report",
          "description":"Roles with view_test_report permission will allow to access API end point which contains view_test_report in scopes."
+      },
+       {
+         "value":"create_insurance_record",
+         "description":"Roles with create_insurance_record permission will allow to access API end point which contains create_insurance_record in scopes."
+      },
+      {
+         "value":"update_insurance_record",
+         "description":"Roles with update_insurance_record permission will allow to access API end point which contains update_insurance_record in scopes."
+      },
+      {
+         "value":"validate_insurance_record",
+         "description":"Roles with validate_insurance_record permission will allow to access API end point which contains validate_insurance_record in scopes."
+      },
+      {
+         "value":"delete_insurance_record",
+         "description":"Roles with delete_insurance_record permission will allow to access API end point which contains delete_insurance_record in scopes."
       }
 
    ]

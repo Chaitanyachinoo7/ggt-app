@@ -91,3 +91,4 @@ for role in roles:
         break;
 
 print("\n\n########################### END OF MAPPING PERMISSIONS TO ROLES ############################\n")
+print("\n\n\nPlease re-assign permissions to machine to machine APIs...")

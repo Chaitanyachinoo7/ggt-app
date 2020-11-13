@@ -2,13 +2,11 @@ from fastapi import APIRouter, Security
 
 from ggt.lib.auth import authorise_user
 from ggt.models.data_models.data_types import (
-    PermissionsEnum as p, ProviderProcessListRequest, LockProviderTask, UpdateNoteReq,
-    UpdateProviderTask, GetBillingListReq, UpdateBilligStatus)
+    PermissionsEnum as p, GetBillingListReq, UpdateBilligStatus, InsuranceRecord, InsuranceUpdateRecord,
+    InsuranceIDRecord)
 from ggt.models.workflow_models.billing_flow import get_billing_list, update_billing_status, get_image_from_bucket, \
-    get_report_from_bucket
-from ggt.models.workflow_models.care_provider_field_flow import (
-    get_provider_processing_list, lock_provider_task, update_consultation_note, provider_complete_task,
-    provider_rollback_to_pending_task)
+    get_report_from_bucket, create_insurance_record, update_insurance_record, validate_insurance_record, \
+    delete_insurance_record
 
 router = APIRouter()
 
@@ -31,5 +29,25 @@ async def api_get_image_from_bucket(image_id: str):
 @router.get("/report/{report_id}", dependencies=[Security(authorise_user, scopes=[p.VIEW_TEST_REPORT])])
 async def api_get_report_from_bucket(report_id: str):
     return get_report_from_bucket(report_id)
+
+
+@router.post("/create_insurance_record", dependencies=[Security(authorise_user, scopes=[p.CREATE_INSURANCE_RECORD])])
+async def api_create_insurance_record(record: InsuranceRecord):
+    return create_insurance_record(record)
+
+
+@router.post("/update_insurance_record", dependencies=[Security(authorise_user, scopes=[p.UPDATE_INSURANCE_RECORD])])
+async def api_update_insurance_record(record: InsuranceUpdateRecord):
+    return update_insurance_record(record)
+
+
+@router.post("/validate_insurance_record", dependencies=[Security(authorise_user, scopes=[p.VALIDATE_INSURANCE_RECORD])])
+async def api_validate_insurance_record(record: InsuranceIDRecord):
+    return validate_insurance_record(record)
+
+
+@router.post("/delete_insurance_record", dependencies=[Security(authorise_user, scopes=[p.DELETE_INSURANCE_RECORD])])
+async def api_delete_insurance_record(record: InsuranceIDRecord):
+    return delete_insurance_record(record)
 
 

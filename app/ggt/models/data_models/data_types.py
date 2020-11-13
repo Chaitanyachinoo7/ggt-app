@@ -462,6 +462,10 @@ class PermissionsEnum(str, Enum):
     CALL_PATIENT = 'call_patient'
     VIEW_INSURANCE_CARD = 'view_insurance_card'
     VIEW_TEST_REPORT = 'view_test_report'
+    CREATE_INSURANCE_RECORD = 'create_insurance_record'
+    UPDATE_INSURANCE_RECORD = 'update_insurance_record'
+    VALIDATE_INSURANCE_RECORD = 'validate_insurance_record'
+    DELETE_INSURANCE_RECORD = 'delete_insurance_record'
 
 
 class GgtPatient(BaseModel):
@@ -786,3 +790,23 @@ class GgtThirdPartyDbUpdateGroup(BaseModel):
     consent_url: str = None
     logo_1: str = None
     logo_2: str = None
+
+
+class InsuranceRecord(BaseModel):
+    patient_id: str
+    insurance_carrier: str = None
+    group_number: str = None
+    member_number: str = None
+    validated: int = 0
+
+
+class InsuranceUpdateRecord(BaseModel):
+    id: str
+    insurance_carrier: str = None
+    group_number: str = None
+    member_number: str = None
+    validated: int = 0
+
+
+class InsuranceIDRecord(BaseModel):
+    id: str

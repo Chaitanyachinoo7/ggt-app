@@ -48,7 +48,11 @@
 		"update_billing_status",
 		"call_patient",
 		"view_insurance_card",
-		"view_test_report"
+		"view_test_report",
+		"create_insurance_record",
+		"update_insurance_record",
+		"validate_insurance_record",
+		"delete_insurance_record"
 ],
 	"roles":[
 		"clinical_provider",

@@ -49,6 +49,30 @@ def formatted_sms_message(first_name, token):
            "results {}/r/{}".format(first_name, base_url, token)
 
 
+def formatted_email_message(first_name, token, to_email):
+    base_url = get_config_val('base_url')
+    from_email = get_config_val('notifications.from_email')
+    from_name = get_config_val('notifications.from_name')
+    subject = get_config_val('notifications.result_subject')
+
+    template_vars = {
+        "first_name": first_name,
+        "result_link": "{}/r/{}".format(base_url, token)
+    }
+
+    template_name = get_config_val('notifications.result_template')
+    html_content = render_template(template_name, **template_vars)
+
+    email_message = {
+        'from_email': from_email,
+        'from_name': from_name,
+        'to_email': to_email,
+        'subject': subject,
+        'html_content': html_content
+    }
+
+    return email_message
+
 @router.post("/sendsms", dependencies=[Security(authorise_user, scopes=[p.SENDSMS])])
 async def api_cc_send_sms(CCSendSMSRequest: CCSendSMSRequest):
     try:

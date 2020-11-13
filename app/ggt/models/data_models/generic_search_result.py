@@ -298,7 +298,12 @@ def find_patients(first_name='', middle_name='', last_name='', dob='', phone_num
             u.family_name AS provider_family_name,
             u.email AS provider_email,
             u.email_verified AS provider_email_verified,
-            u.picture AS provider_image_url
+            u.picture AS provider_image_url,
+            i.id AS insurance_id,
+            i.insurance_carrier AS insurance_carrier,
+            i.group_number AS insurance_group_number,
+            i.member_number AS insurance_member_number,
+            i.validated AS insurance_validated
         FROM
             patients p
                 LEFT JOIN
@@ -315,6 +320,8 @@ def find_patients(first_name='', middle_name='', last_name='', dob='', phone_num
             patient_consultations  c ON a.id = c.appointment_id
                 LEFT JOIN
             ggt_users u ON u.external_id = c.provider_external_id
+                LEFT JOIN 
+            insurance_info i ON p.id = i.patient_id
         WHERE 1=1
             {}
         LIMIT {}
