@@ -41,11 +41,15 @@ from ggt.lib.constants import (
     DEFAULT_GROUP_CODE
 )
 
+from ggt.lib.cache import (
+    timed_lru_cache
+)
+
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
 
-
+@timed_lru_cache(seconds=3600)
 def get_screen_flow_seq(group_code):
     return x_response(
         bp_get_screen_flow_seq(group_code)
@@ -69,7 +73,7 @@ def validate_phone_number(phone_number, otp):
         )
     )
 
-
+@timed_lru_cache(seconds=600)
 def get_schedule_dates_available(group_code=DEFAULT_GROUP_CODE):
     return x_response(
         bp_get_schedule_dates_available(
@@ -77,7 +81,7 @@ def get_schedule_dates_available(group_code=DEFAULT_GROUP_CODE):
         )
     )
 
-
+@timed_lru_cache(seconds=600)
 def get_schedule_locations_available(group_code, date):
     return x_response(
         bp_get_schedule_locations_available(
@@ -86,7 +90,7 @@ def get_schedule_locations_available(group_code, date):
         )
     )
 
-
+@timed_lru_cache(seconds=600)
 def get_schedule_locations_available_near_lat_lng(date, group_code, lat, lng, radius):
     return x_response(
         bp_get_schedule_locations_available_near_lat_lng(
@@ -98,13 +102,13 @@ def get_schedule_locations_available_near_lat_lng(date, group_code, lat, lng, ra
         )
     )
 
-
+@timed_lru_cache(seconds=600)
 def get_all_available_locations_and_times(group_code):
     return x_response(
         bp_get_all_available_locations_and_times(group_code)
     )
 
-
+@timed_lru_cache(seconds=600)
 def get_schedule_times_available(
         location_id, 
         date=date.today().strftime("%Y-%m-%d")

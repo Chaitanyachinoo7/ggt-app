@@ -33,7 +33,6 @@ from ggt.tasks.reminder_sms import (
     task_process_sms_reminders
 )
 
-
 ###TODO: Temp
 from ggt.models.workflow_models.test_site_admin_flow import (
     site_admin_general_search

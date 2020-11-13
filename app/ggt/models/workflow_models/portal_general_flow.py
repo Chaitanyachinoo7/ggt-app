@@ -17,10 +17,13 @@ from ggt.lib.constants import (
     ERROR
 )
 
+from ggt.lib.cache import (
+    timed_lru_cache
+)
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-
+@timed_lru_cache(seconds=60)
 def portal_get_user_role(email):
     return bp_get_user_role(email)
 

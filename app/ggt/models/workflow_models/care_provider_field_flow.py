@@ -7,11 +7,14 @@ from ggt.models.process_models.bp_care_provider_experience import (
     bp_get_provider_processing_list, bp_lock_provider_task, bp_create_patient_test_consultation,
     bp_update_consultation_note, bp_provider_complete_task, bp_provider_rollback_to_pending_task, bp_call_patient)
 
+from ggt.lib.cache import (
+    timed_lru_cache
+)
 
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-
+@timed_lru_cache(seconds=30)
 def get_provider_processing_list(provide_request):
     return y_response(
         bp_get_provider_processing_list(provide_request.offset, provide_request.consultation_status,

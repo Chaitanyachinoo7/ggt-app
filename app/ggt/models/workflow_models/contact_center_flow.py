@@ -21,11 +21,14 @@ from ggt.lib.constants import (
     ERROR
 )
 
+from ggt.lib.cache import (
+    timed_lru_cache
+)
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
 
-
+@timed_lru_cache(seconds=60)
 def cc_view_test_details(auth_token, test_id):
     return x_response(
         bp_cc_view_test_details(
@@ -33,7 +36,7 @@ def cc_view_test_details(auth_token, test_id):
         )
     )
 
-
+@timed_lru_cache(seconds=60)
 def cc_search_details_by_name_and_dob(last_name, dob):
     return y_response(
         bp_cc_search_details_by_name_and_dob(

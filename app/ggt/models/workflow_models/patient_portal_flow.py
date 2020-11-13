@@ -20,11 +20,14 @@ from ggt.lib.constants import (
     DEFAULT_GROUP_CODE
 )
 
+from ggt.lib.cache import (
+    timed_lru_cache
+)
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
 
-
+@timed_lru_cache(seconds=600)
 def verify_existing_patient(phone_number, dob):
     return x_response(
         bp_has_appointments(phone_number, dob)

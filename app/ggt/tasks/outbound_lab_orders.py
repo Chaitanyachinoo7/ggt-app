@@ -48,7 +48,8 @@ def task_process_outbound_lab_orders():
     print('looking up ready to transmit orders')
     orders = get_orders_ready_to_transmit()
 
-    upload_insurance_files(orders)
+    #upload_insurance_files_from_db(orders)
+    upload_insurance_files_from_gstore(orders)
 
     if len(orders)>0:
         print('generating outbound file')
@@ -71,7 +72,7 @@ def task_process_outbound_lab_orders():
     print('\n\n************************************************\n\n')
 
 
-def upload_insurance_files(orders):
+def upload_insurance_files_from_db(orders):
     try:
         print('converting insurance image files to PDF')
         file_buffer = []
@@ -95,15 +96,29 @@ def upload_insurance_files(orders):
 
     except Exception as err:
         print(err)
-    
 
 
-def get_insurance_photo_from_gstorage(appointment_id):
-    file_blob = serve_file('ggt-insurance-cards-prod', '{}.png'.format(appointment_id))
-    destination_uri = ''
-    file_blob.download_to_filename(destination_uri)
-    
+def upload_insurance_files_from_gstore(orders):
+    try:
+        print('converting insurance image files to PDF')
+        file_buffer = []
+        for order in orders:
+            if order['bill'] == 'Insurance Attached':
+                file_path_png = "{}/{}_001.png".format(local_insurance_card_file_path, order['id'])
+                filename = "{}_001.pdf".format(order['id'])
+                file_path_pdf = "{}/{}".format(local_insurance_card_file_path, filename)
 
+                blob = serve_file('ggt-insurance-cards-prod', '{}.png'.format(appointment_id))
+                blob.download_to_filename(file_path_png)
+
+                Image.open(file_path_png).convert('RGB').save(file_path_pdf)
+                file_buffer.append((filename, file_path_pdf))
+        
+        print('uploading insurance files to FTP')
+        upload_file_list_to_ftp(file_buffer)
+
+    except Exception as err:
+        print(err)
 
 
 

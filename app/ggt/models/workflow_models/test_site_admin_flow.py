@@ -10,7 +10,7 @@ from ggt.models.process_models.bp_portal_experience import (
     bp_get_location_search_results,
     bp_create_location, bp_get_all_groups, bp_update_location, bp_assign_group, bp_remove_group, bp_assign_service,
     bp_remove_service, bp_get_all_services, bp_get_locations, bp_create_group, bp_update_group,
-    )
+)
 
 from ggt.models.process_models.bp_schedules import (
     bp_generate_full_schedule,
@@ -30,30 +30,35 @@ from ggt.lib.constants import (
     ERROR
 )
 
+from ggt.lib.cache import (
+    timed_lru_cache
+)
 
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
 
 
+@timed_lru_cache(seconds=60)
 def site_admin_general_search(first_name, middle_name, last_name, dob, phone_number, email, appointment_id,
                               group_code, appointment_date, location_id):
     return y_response(
         bp_get_general_search_results(
-            first_name, 
-            middle_name, 
-            last_name, 
-            dob, 
-            phone_number, 
-            email, 
-            appointment_id, 
-            group_code, 
+            first_name,
+            middle_name,
+            last_name,
+            dob,
+            phone_number,
+            email,
+            appointment_id,
+            group_code,
             appointment_date,
             location_id
         )
     )
 
 
+@timed_lru_cache(seconds=60)
 def site_admin_location_search(account, group_code, site_code):
     return y_response(
         bp_get_location_search_results(
@@ -98,6 +103,7 @@ def remove_group(req):
     )
 
 
+@timed_lru_cache(seconds=60)
 def get_locations():
     return y_response(
         bp_get_locations()
@@ -116,12 +122,14 @@ def update_location(location):
     )
 
 
+@timed_lru_cache(seconds=60)
 def get_all_groups():
     return y_response(
         bp_get_all_groups()
     )
 
 
+@timed_lru_cache(seconds=3600)
 def get_all_services():
     return y_response(
         bp_get_all_services()

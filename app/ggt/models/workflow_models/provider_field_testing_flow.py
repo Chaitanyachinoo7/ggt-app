@@ -12,6 +12,10 @@ from ggt.models.process_models.bp_printers import (
     bp_provider_get_workstations
 )
 
+from ggt.lib.cache import (
+    timed_lru_cache
+)
+
 '''
 bp_get_monthly_calendar,
 bp_get_monthly_calendar,
@@ -42,6 +46,7 @@ def printer_queue_check(printer_id, printer_token):
 '''
 
 
+@timed_lru_cache(seconds=3600)
 def provider_get_workstations():
     return x_response(bp_provider_get_workstations())
 
