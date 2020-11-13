@@ -20,6 +20,10 @@ from ggt.lib.adapters.mysql_adapter import (
     read_rows
 )
 
+from ggt.lib.adapters.google_adapter import (
+    serve_file
+)
+
 from ggt.lib.constants import (
     STATUS,
     SUCCESS,
@@ -69,6 +73,7 @@ def task_process_outbound_lab_orders():
 
 def upload_insurance_files(orders):
     try:
+        print('converting insurance image files to PDF')
         file_buffer = []
         for order in orders:
             if order['bill'] == 'Insurance Attached':
@@ -85,11 +90,21 @@ def upload_insurance_files(orders):
                 Image.open(file_path_png).convert('RGB').save(file_path_pdf)
                 file_buffer.append((filename, file_path_pdf))
         
+        print('uploading insurance files to FTP')
         upload_file_list_to_ftp(file_buffer)
 
     except Exception as err:
         print(err)
     
+
+
+def get_insurance_photo_from_gstorage(appointment_id):
+    file_blob = serve_file('ggt-insurance-cards-prod', '{}.png'.format(appointment_id))
+    destination_uri = ''
+    file_blob.download_to_filename(destination_uri)
+    
+
+
 
 
 def get_insurance_photo_base64(appointment_id):

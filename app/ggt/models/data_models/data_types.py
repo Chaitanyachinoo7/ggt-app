@@ -743,8 +743,8 @@ class GgtThirdPartyGroup(BaseModel):
 class VerifyExistingPatientRequest(BaseModel):
     phone_number: str = None
     dob: str = None
-    optional_screens: List[str] = None  # Redundant, remove
-    screen_seq: List[str] = None
+    #optional_screens: List[str] = None  # Redundant, remove
+    #screen_seq: List[str] = None
 
 
 class GgtThirdPartyDbGroup(BaseModel):
