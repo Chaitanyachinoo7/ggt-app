@@ -23,4 +23,4 @@ handlers:
 
 root:  # Loggers are organized in hierarchy - this is the root logger config
   level: DEBUG
-  handlers: [console]  # Attaches both handler defined above
+  handlers: [console, file]  # Attaches both handler defined above

@@ -1,21 +1,16 @@
-image: node:10.15.3
+image: python:3.7.2
 
 pipelines:
   branches:
-    dev2:
+    master:
       - step:
-          name: Build
+          name: Deployment
+          image: google/cloud-sdk:latest
+          caches:
+            - docker
           script:
-            - npm install && npm run build:dev2
-          artifacts:
-            - build/**
+            - pipenv lock --requirements > app/requirements.txt
+            - cp app/ggt/configs/config-dev2.yml app/ggt/configs/config.yml
 
-      - step:
-          name: Deploy to Firebase
-          deployment: staging
-          script:
-            - cd functions; npm install; cd ..
-            - pipe: atlassian/firebase-deploy:0.7.0
-              variables:
-                FIREBASE_TOKEN: $FIREBASE_TOKEN
-                PROJECT_ID: dev2
+  options:
+  docker: trueID: dev2
