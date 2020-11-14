@@ -13,4 +13,4 @@ pipelines:
             - cp app/ggt/configs/config-dev2.yml app/ggt/configs/config.yml
 
   options:
-  docker: trueID: dev2
+  docker: true
