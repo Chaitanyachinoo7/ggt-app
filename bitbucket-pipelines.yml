@@ -12,6 +12,7 @@ pipelines:
             - cp app/ggt/configs/config-dev2.yml app/ggt/configs/config.yml
             - cp app/ggt/configs/log-config-dev2.yml app/ggt/configs/log-config.yml
             - cp app/ggt/configs/gcp-service-account-dev2.json app/ggt/configs/gcp-service-account.json
+            - gcloud auth activate-service-account --key-file app/ggt/configs/gcp-service-account.json
 
 options:
   docker: true
