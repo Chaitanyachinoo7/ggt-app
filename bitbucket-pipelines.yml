@@ -1,0 +1,21 @@
+image: node:10.15.3
+
+pipelines:
+  branches:
+    dev2:
+      - step:
+          name: Build
+          script:
+            - npm install && npm run build:dev2
+          artifacts:
+            - build/**
+
+      - step:
+          name: Deploy to Firebase
+          deployment: staging
+          script:
+            - cd functions; npm install; cd ..
+            - pipe: atlassian/firebase-deploy:0.7.0
+              variables:
+                FIREBASE_TOKEN: $FIREBASE_TOKEN
+                PROJECT_ID: dev2
