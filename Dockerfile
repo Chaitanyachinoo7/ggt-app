@@ -3,6 +3,4 @@ RUN pip install pipenv
 COPY ./app /app
 RUN pipenv lock --requirements
 RUN pipenv lock --requirements > requirements.txt
-RUN ls
-RUN cat requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
