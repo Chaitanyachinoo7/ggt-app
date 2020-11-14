@@ -9,7 +9,8 @@ pipelines:
           caches:
             - docker
           script:
-            - ls
+            - pip install pipenv
+            - pipenv lock --requirements > app/requirements.txt
             - cp app/ggt/configs/config-dev2.yml app/ggt/configs/config.yml
 
 options:
