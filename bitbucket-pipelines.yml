@@ -12,5 +12,5 @@ pipelines:
             - pipenv lock --requirements > app/requirements.txt
             - cp app/ggt/configs/config-dev2.yml app/ggt/configs/config.yml
 
-  options:
-    docker: true
+options:
+  docker: true
