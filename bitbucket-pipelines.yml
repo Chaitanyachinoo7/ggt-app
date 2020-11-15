@@ -50,7 +50,7 @@ pipelines:
             - gcloud run deploy --image gcr.io/ggt-pfe-qa/ggt-pfe-services --platform managed  --allow-unauthenticated --region us-central1 ggt-pfe-services
     dev2:
       - step:
-          name:DEV2 Deployment
+          name: DEV2 Deployment
           image: google/cloud-sdk:latest
           deployment: staging
           caches:
