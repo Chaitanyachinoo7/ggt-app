@@ -10,12 +10,15 @@ def timed_lru_cache(**timedelta_kwargs):
 
         @functools.wraps(f)
         def _wrapped(*args, **kwargs):
-            print('cached response')
             nonlocal next_update
             now = datetime.utcnow()
             if now >= next_update:
                 f.cache_clear()
                 next_update = now + update_delta
+                print('cache miss')
+            else:
+                print('cache hit')
+
             return f(*args, **kwargs)
 
         return _wrapped
