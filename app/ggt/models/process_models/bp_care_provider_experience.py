@@ -1,3 +1,4 @@
+from ggt.lib.cache import timed_lru_cache
 from ggt.lib.constants import (
     ERROR
 )
@@ -13,7 +14,7 @@ from ggt.models.data_models.providers import get_provider_processing_list, provi
 # [Public] functions
 ########################################################################################################
 
-
+@timed_lru_cache(seconds=30)
 def bp_get_provider_processing_list(offset, consultation_status, consultation_notes, positive_call, limit):
     try:
         if not offset:

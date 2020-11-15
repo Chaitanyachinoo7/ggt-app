@@ -11,10 +11,10 @@ from ggt.lib.cache import (
     timed_lru_cache
 )
 
+
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-@timed_lru_cache(seconds=30)
 def get_provider_processing_list(provide_request):
     return y_response(
         bp_get_provider_processing_list(provide_request.offset, provide_request.consultation_status,
