@@ -7,7 +7,7 @@ from fastapi import (
     Security
 )
 
-from ggt.lib.auth import authorise_user
+from ggt.lib.auth import authorize_user
 from ggt.lib.constants import (
     STATUS,
     SUCCESS,
@@ -32,7 +32,7 @@ router = APIRouter()
 
 # TODO: With Cloud Run, consider Disabling Background Task. Ideally all asynchronous operations finish before
 #  delivering response
-#@router.post("/process_inbound_lab_reports", dependencies=[Security(authorise_user, scopes=[p.PROCESS_INBOUND_LAB_REPORTS])])
+#@router.post("/process_inbound_lab_reports", dependencies=[Security(authorize_user, scopes=[p.PROCESS_INBOUND_LAB_REPORTS])])
 @router.post("/process_inbound_lab_reports")
 async def api_process_inbound_lab_reports(background_tasks: BackgroundTasks):
     background_tasks.add_task(task_process_inbound_lab_reports)
@@ -42,7 +42,7 @@ async def api_process_inbound_lab_reports(background_tasks: BackgroundTasks):
     }
 
 
-#@router.post("/process_process_outbound_lab_orders", dependencies=[Security(authorise_user, scopes=[p.PROCESS_PROCESS_OUTBOUND_LAB_ORDERS])])
+#@router.post("/process_process_outbound_lab_orders", dependencies=[Security(authorize_user, scopes=[p.PROCESS_PROCESS_OUTBOUND_LAB_ORDERS])])
 @router.post("/process_process_outbound_lab_orders")
 async def api_process_outbound_lab_orders(background_tasks: BackgroundTasks):
     background_tasks.add_task(task_process_outbound_lab_orders)
@@ -52,7 +52,7 @@ async def api_process_outbound_lab_orders(background_tasks: BackgroundTasks):
     }
 
 
-#@router.post("/schedule_result_notifications_and_followups", dependencies=[Security(authorise_user, scopes=[p.SCHEDULE_RESULT_NOTIFICATIONS_AND_FOLLOWUPS])])
+#@router.post("/schedule_result_notifications_and_followups", dependencies=[Security(authorize_user, scopes=[p.SCHEDULE_RESULT_NOTIFICATIONS_AND_FOLLOWUPS])])
 @router.post("/schedule_result_notifications_and_followups")
 async def api_schedule_result_notifications_and_followups(background_tasks: BackgroundTasks):
     background_tasks.add_task(task_schedule_result_notifications_and_followups)
@@ -62,7 +62,7 @@ async def api_schedule_result_notifications_and_followups(background_tasks: Back
     }
 
 
-#@router.post("/process_voice_queue", dependencies=[Security(authorise_user, scopes=[p.PROCESS_VOICE_QUEUE])])
+#@router.post("/process_voice_queue", dependencies=[Security(authorize_user, scopes=[p.PROCESS_VOICE_QUEUE])])
 @router.post("/process_voice_queue")
 async def api_process_voice_queue(background_tasks: BackgroundTasks):
     background_tasks.add_task(task_process_voice_queue)
@@ -72,21 +72,21 @@ async def api_process_voice_queue(background_tasks: BackgroundTasks):
     }
 
 
-#@router.post("/process_email_queue", dependencies=[Security(authorise_user, scopes=[p.PROCESS_EMAIL_QUEUE])])
+#@router.post("/process_email_queue", dependencies=[Security(authorize_user, scopes=[p.PROCESS_EMAIL_QUEUE])])
 @router.post("/process_email_queue")
 async def api_process_email_queue():
     task_process_email_queue()
     return {STATUS: SUCCESS}
 
 
-#@router.post("/process_sms_queue", dependencies=[Security(authorise_user, scopes=[p.PROCESS_SMS_QUEUE])])
+#@router.post("/process_sms_queue", dependencies=[Security(authorize_user, scopes=[p.PROCESS_SMS_QUEUE])])
 @router.post("/process_sms_queue")
 async def api_process_sms_queue():
     task_process_sms_queue()
     return {STATUS: SUCCESS}
 
 
-#@router.post("/populate_location_thumbnails", dependencies=[Security(authorise_user, scopes=[p.POPULATE_LOCATION_THUMBNAILS])])
+#@router.post("/populate_location_thumbnails", dependencies=[Security(authorize_user, scopes=[p.POPULATE_LOCATION_THUMBNAILS])])
 @router.post("/populate_location_thumbnails")
 async def api_populate_location_thumbnails():
     task_populate_location_thumbnails()
@@ -99,7 +99,7 @@ async def api_process_sms_queue(request: Request):
     return {STATUS: SUCCESS}
 
 
-@router.post("/misc_processor", dependencies=[Security(authorise_user, scopes=[p.MISC_PROCESSOR])])
+@router.post("/misc_processor", dependencies=[Security(authorize_user, scopes=[p.MISC_PROCESSOR])])
 async def api_process_outbound_lab_orders(background_tasks: BackgroundTasks):
     background_tasks.add_task(task_process_misc)
     return {

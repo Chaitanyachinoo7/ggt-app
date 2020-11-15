@@ -1,7 +1,7 @@
 app_name: COVID-19 Testing
-log_level: DEBUG
-base_url: https://start-qa.GoGetTested.com
-env: QA
+log_level: INFO
+base_url: https://start.GoGetTested.com
+env: DEV
 
 aws:
   region: us-east-1
@@ -10,11 +10,11 @@ aws:
   sqs_print_queue_base_url: https://sqs.us-east-1.amazonaws.com/135292740376/ggt-print-queue
 
 gcp:
-  service_account_file: gcp-service-account-qa.json
+  service_account_file: gcp-service-account-prod.json
   default_link_expiration_time_limit: 300
-  all_inbound_files_bucket_name: ggt-all-inbound-files-qa
-  lab_reports_bucket_name: ggt-lab-reports-qa
-  insurance_cards_bucket_name: ggt-insurance-cards-qa
+  all_inbound_files_bucket_name: ggt-all-inbound-files-prod
+  lab_reports_bucket_name: ggt-lab-reports-prod
+  insurance_cards_bucket_name: ggt-insurance-cards-prod
 
 databases:
   mysql:
@@ -49,7 +49,7 @@ google:
     thumbnail_size: 110x110
     markers_color: red
     markers_size: tiny
-    
+
 email:
   template_folder: /templates/email/
 
@@ -65,7 +65,7 @@ vendors:
   auth0:
     auth0_domain: gogettested.us.auth0.com
     api_audience: https://pfe-api.gogettested.com/api
-    algorithms: ["RS256"]
+    algorithms: ['RS256']
     roles: http://roles.ggt/roles
 
   healthtrackrx:

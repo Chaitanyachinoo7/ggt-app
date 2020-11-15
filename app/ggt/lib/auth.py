@@ -105,7 +105,7 @@ async def get_rsa_key_auth0(token):
         }, 401)
 
 
-async def authorise_user(security_scopes: SecurityScopes, token: str = Depends(oauth2_scheme)):
+async def authorize_user(security_scopes: SecurityScopes, token: str = Depends(oauth2_scheme)):
     try:
         scopes = security_scopes.scopes
         if p.ANONYMOUS in scopes:
