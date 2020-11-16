@@ -14,20 +14,6 @@ from ggt.models.workflow_models.provider_field_testing_flow import (
 
 router = APIRouter()
 
-
-# TODO Retire this function
-# @router.post("/login")
-# async def api_provider_login(provider_login_request: ProviderLoginRequest,
-#                              user: User = Depends(get_current_user)):
-#     if is_clinical_provider(user):
-#         return provider_login(
-#             provider_login_request.token)
-#     else:
-#         raise HTTPException(
-#             status_code=401,
-#             detail=AUTH_FAILED_MESSAGE
-#         )
-
 @router.get("/get_workstations", dependencies=[Security(authorise_user, scopes=[p.GET_WORKSTATIONS])])
 async def api_provider_get_workstations():
     return provider_get_workstations()
