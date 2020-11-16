@@ -31,7 +31,7 @@ async def api_lock_provider_task(lock_request: LockProviderTask):
     return lock_provider_task(lock_request)
 
 
-@router.post("/get_provider_processing_list")#, dependencies=[Security(authorise_user, scopes=[p.GET_PROVIDER_PROCESSING_LIST])])
+@router.post("/get_provider_processing_list", dependencies=[Security(authorise_user, scopes=[p.GET_PROVIDER_PROCESSING_LIST])])
 async def api_get_provider_processing_list(provide_request: ProviderProcessListRequest):
     return get_provider_processing_list(provide_request)
 
