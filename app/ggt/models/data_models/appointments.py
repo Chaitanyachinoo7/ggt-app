@@ -1,6 +1,8 @@
 from datetime import datetime
 from contextlib import suppress
 
+import ggt.lib.constants as c
+
 from ggt.lib.utils import (
     log_generic,
     whoami
@@ -19,17 +21,6 @@ from ggt.models.data_models.data_types import (
     GgtBooking,
     GgtLocation,
     GgtPatient
-)
-
-from ggt.lib.constants import (
-    STATUS,
-    SUCCESS,
-    FAILED,
-    INFO,
-    ERROR,
-    SERVICE_CODE_COVID19_TEST,
-    SERVICE_CODE_FLU_SHOT,
-    SERVICE_CODE_CONSULT
 )
 
 ########################################################################################################
@@ -259,18 +250,6 @@ def positive_result_followup():
 
 def update_appointment_with_receipt_token(appointment: GgtAppointment):
     try:
-        '''
-        sql = """
-            UPDATE appointments
-            SET
-                wp_receipt_token = %s,
-                wp_customer_info_id = %s
-            WHERE
-                id = %s
-        """
-        vals = (appointment.wp_receipt_token, appointment.wp_customer_info_id, appointment.id)
-        return exec_update(sql, vals)
-        '''
         sql = """
             UPDATE appointments
             SET
@@ -290,30 +269,7 @@ def update_appointment_with_receipt_token(appointment: GgtAppointment):
         )
 
     return None
-
-
-def update_appointment_with_confirmed_scheduled(appointment_id: int):
-    try:
-        sql = """
-            UPDATE appointments
-            SET
-                status = 'scheduled'
-            WHERE
-                id = %s
-        """
-        vals = (appointment_id,)
-        return exec_update(sql, vals)
-
-    except Exception as err:
-        log_generic(
-            type=ERROR,
-            appointment_id=appointment_id,
-            function=whoami(),
-            error=err
-        )
-
-    return None
-
+    
 
 def update_positive_result_followup(id: int, date_time: datetime):
     try:
@@ -333,78 +289,6 @@ def update_positive_result_followup(id: int, date_time: datetime):
             type=ERROR,
             id=id,
             date_time=date_time,
-            function=whoami(),
-            error=err
-        )
-
-    return None
-
-
-def update_appointment_with_checkin(appointment_id: int):
-    try:
-        sql = """
-            UPDATE appointments
-            SET
-                check_in_dt = NOW(),
-                status = 'checked_in'
-            WHERE
-                id = %s
-        """
-        vals = (appointment_id,)
-        return exec_update(sql, vals)
-
-    except Exception as err:
-        log_generic(
-            type=ERROR,
-            appointment_id=appointment_id,
-            function=whoami(),
-            error=err
-        )
-
-    return None
-
-
-def update_appointment_with_test_start(appointment_id: int):
-    try:
-        sql = """
-            UPDATE appointments
-            SET
-                test_start_dt = NOW(),
-                status = 'test_in_progress'
-            WHERE
-                id = %s
-        """
-        vals = (appointment_id,)
-        return exec_update(sql, vals)
-
-    except Exception as err:
-        log_generic(
-            type=ERROR,
-            appointment_id=appointment_id,
-            function=whoami(),
-            error=err
-        )
-
-    return None
-
-
-def update_appointment_with_test_completed(appointment_id: int):
-    try:
-        sql = """
-            UPDATE appointments
-            SET
-                test_end_dt = NOW(),
-                status = 'test_completed'
-            WHERE
-                id = %s
-            """
-        vals = (appointment_id,)
-        return exec_update(sql, vals)
-
-    except Exception as err:
-        log_generic(
-            type=ERROR,
-            appointment_id=appointment_id,
             function=whoami(),
             error=err
         )
@@ -453,12 +337,57 @@ def get_appointment_count_by_phone_dob(phone_number, dob):
             function=whoami(),
             error=err
         )
-        
+
     return 0
+
+
+def update_appointment_with_confirmed_scheduled(appointment_id: int):
+    return __update_appointment_status(appointment_id, c.APPOINTMENT_STATUS_SCHEDULED)
+
+
+def update_appointment_with_checkin(appointment_id: int):
+    return __update_appointment_status(appointment_id, c.APPOINTMENT_STATUS_CHECKED_IN)
+
+
+def update_appointment_with_test_start(appointment_id: int):
+    return __update_appointment_status(appointment_id, c.APPOINTMENT_STATUS_TEST_IN_PROGRESS)
+
+
+def update_appointment_with_scan_vial(appointment_id: int):
+    return __update_appointment_status(appointment_id, c.APPOINTMENT_STATUS_VIAL_SCANNED)
+
+
+def update_appointment_with_test_completed(appointment_id: int):
+    return __update_appointment_status(appointment_id, c.APPOINTMENT_STATUS_TEST_COMPLETED)
 
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
+
+
+def __update_appointment_status(appointment_id: int, status: str):
+    try:
+        sql = """
+            UPDATE appointments
+            SET
+                test_end_dt = NOW(),
+                status = %s
+            WHERE
+                id = %s
+            """
+        vals = (status, appointment_id)
+        return exec_update(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            appointment_id=appointment_id,
+            status=status,
+            function=whoami(),
+            error=err
+        )
+
+    return None
 
 
 def __map_row_to_appointment(row: dict):
@@ -538,10 +467,11 @@ def __map_row_to_appointment(row: dict):
 def __add_services_to_appointment(appointment_id: int, appointment_req: GgtBooking) -> bool:
     try:
         if appointment_req.service_covid19_test:
-            add_service_to_appointment(
-                appointment_id, SERVICE_CODE_COVID19_TEST)
+            add_service_to_appointment(appointment_id, SERVICE_CODE_COVID19_TEST)
+
         if appointment_req.service_flu_shot:
             add_service_to_appointment(appointment_id, SERVICE_CODE_FLU_SHOT)
+
         if appointment_req.service_consult:
             add_service_to_appointment(appointment_id, SERVICE_CODE_CONSULT)
 
