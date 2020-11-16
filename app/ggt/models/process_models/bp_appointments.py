@@ -21,6 +21,7 @@ from ggt.models.data_models.appointments import (
     get_appointment,
     update_appointment_with_checkin,
     update_appointment_with_test_start,
+    update_appointment_with_scan_vial,
     update_appointment_with_test_completed
 )
 
@@ -88,6 +89,8 @@ def bp_appointment_update(appointment_id: int, action: str, workstation_id: int)
             update_appointment_with_checkin(appointment.id)
         elif action == 'start_test':
             __appointment_begin_test(appointment.id, workstation_id)
+        elif action == 'scan_vial':
+            update_appointment_with_scan_vial(appointment_id)
         elif action == 'end_test':
             update_appointment_with_test_completed(appointment.id)
             __send_test_complete_sms(appointment)
@@ -109,54 +112,6 @@ def bp_appointment_update(appointment_id: int, action: str, workstation_id: int)
     return False
 
 
-'''
-def bp_get_monthly_calendar(date, location_id):
-    try:
-        print(date, location_id)
-        date_time_obj = datetime.datetime.strptime(date, '%Y-%m-%d')
-        from_date = date_time_obj.date().replace(day=1)
-        to_date = date_time_obj.date().replace(day=31)
-        results = get_monthy_calendar(from_date, to_date, location_id)
-        # print(results)
-        response = []
-        for record in results:
-            # print(record)
-            appointment = {}
-            appointment['title'] = record['last_name'] + \
-                ", " + record['first_name']
-            appointment['start'] = record['scheduled_dt']
-            appointment['end'] = record['scheduled_dt'] + \
-                datetime.timedelta(minutes=30)
-            appointment['allDay'] = False
-            appointment['backgroundColor'] = "#3c8dbc"
-            response.append(appointment)
-        return response
-    except Exception as err:
-        log_generic(
-            type=ERROR,
-            date=date,
-            location_id=location_id,
-            function=whoami(),
-            error=err
-        )
-
-
-def bp_provider_positive_result_followup():
-    try:
-        results = positive_result_followup()
-        update_positive_result_followup(
-            results['test_id'], datetime.datetime.now())
-        return results
-    except Exception as err:
-        log_generic(
-            type=ERROR,
-            location_id="",
-            function=whoami(),
-            error=err
-        )
-
-
-'''
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
@@ -196,7 +151,8 @@ def __next_action(appointment):
     switcher = {
         'scheduled': 'check_in',
         'checked_in': 'start_test',
-        'test_in_progress': 'end_test'
+        'test_in_progress': 'scan_vial',
+        'vial_scanned': 'end_test'
     }
     return switcher.get(appointment.status, "")
 
@@ -216,7 +172,6 @@ def __send_test_complete_sms(appointment):
 def __appointment_begin_test(appointment_id, workstation_id=1):
     update_appointment_with_test_start(appointment_id)
     return __send_label_to_printer(appointment_id, workstation_id)
-
 
 def __appointment_reprint_label(appointment_id, workstation_id=1):
     return __send_label_to_printer(appointment_id, workstation_id)

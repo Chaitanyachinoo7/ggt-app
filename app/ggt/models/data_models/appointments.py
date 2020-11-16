@@ -388,6 +388,30 @@ def update_appointment_with_test_start(appointment_id: int):
     return None
 
 
+def update_appointment_with_scan_vial(appointment_id: int):
+    try:
+        sql = """
+            UPDATE appointments
+            SET
+                test_start_dt = NOW(),
+                status = 'vial_scanned'
+            WHERE
+                id = %s
+        """
+        vals = (appointment_id,)
+        return exec_update(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            appointment_id=appointment_id,
+            function=whoami(),
+            error=err
+        )
+
+    return None
+
+
 def update_appointment_with_test_completed(appointment_id: int):
     try:
         sql = """
