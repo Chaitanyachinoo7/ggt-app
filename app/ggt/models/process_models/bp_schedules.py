@@ -28,8 +28,8 @@ from ggt.models.data_models.schedules import (
     add_schedule_generation_rule,
     update_schedule_generation_rule,
     delete_schedule_generation_rule,
-    get_all_available_dtl
-)
+    get_all_available_dtl,
+    update_schedule_generation_rules_start_dt)
 
 from ggt.models.data_models.locations import (
     get_all_locations,
@@ -387,7 +387,9 @@ def bp_generate_full_schedule(location_id):
             location_id, datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         )
         )
+        latest_schedule_dt = datetime.today() - timedelta(days=1)
         delete_schedule_entries_by_location_id(location_id)
+        update_schedule_generation_rules_start_dt(location_id, latest_schedule_dt)
         rules = get_schedule_generation_rules_by_location_id(location_id)
 
         for rule in rules:
@@ -498,6 +500,7 @@ def __process_schedule_rule(rule):
         start_time = rule['local_start_time']
         end_time = rule['local_end_time']
         schedule_date = start_date
+        current_dt = datetime.today()
 
         if rule_type == 'exception':
             bp_delete_schedule_for_date(location_id, start_date_str)
@@ -505,27 +508,28 @@ def __process_schedule_rule(rule):
         rows = []
         valid_days = __get_valid_days(rule)
         while schedule_date <= end_date:  # day loop
-            if valid_days[schedule_date.strftime("%A")]:
-                day_end_dt = schedule_date + end_time
-                day_curr_time = schedule_date + start_time
+            if (current_dt - schedule_date).days < 2:
+                if valid_days[schedule_date.strftime("%A")]:
+                    day_end_dt = schedule_date + end_time
+                    day_curr_time = schedule_date + start_time
 
-                while day_curr_time <= day_end_dt:  # time loop
-                    slot_increment = rule['slot_increment'] * 60
-                    day_curr_appointment_end_time = day_curr_time + \
-                        timedelta(0, slot_increment)
+                    while day_curr_time <= day_end_dt:  # time loop
+                        slot_increment = rule['slot_increment'] * 60
+                        day_curr_appointment_end_time = day_curr_time + \
+                            timedelta(0, slot_increment)
 
-                    row = (
-                        location_id,
-                        day_curr_time.strftime('%Y-%m-%d %H:%M:%S'),
-                        day_curr_appointment_end_time,
-                        rule['time_zone'],
-                        rule['time_zone_offset'],
-                        slot_increment,
-                        'available'
-                    )
-                    rows.append(row)
+                        row = (
+                            location_id,
+                            day_curr_time.strftime('%Y-%m-%d %H:%M:%S'),
+                            day_curr_appointment_end_time,
+                            rule['time_zone'],
+                            rule['time_zone_offset'],
+                            slot_increment,
+                            'available'
+                        )
+                        rows.append(row)
 
-                    day_curr_time = day_curr_appointment_end_time
+                        day_curr_time = day_curr_appointment_end_time
 
             schedule_date = schedule_date + timedelta(days=1)
 
