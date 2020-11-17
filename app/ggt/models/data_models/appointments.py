@@ -58,7 +58,7 @@ def create_appointment(appointment_req: GgtBooking):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             appointment_req=appointment_req,
             error=err
@@ -100,7 +100,7 @@ def add_service_to_appointment(appointment_id: int, service_code: str) -> bool:
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             appointment_id=appointment_id,
             service_code=service_code,
@@ -161,7 +161,7 @@ def get_appointment(appointment_id: int):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             appointment_id=appointment_id,
             function=whoami(),
             error=err
@@ -186,7 +186,7 @@ def get_monthy_calendar(from_date: str, to_date: str, location_id: int):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             location_id=location_id,
             from_date=from_date,
             to_date=to_date,
@@ -240,7 +240,7 @@ def positive_result_followup():
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
@@ -262,7 +262,7 @@ def update_appointment_with_receipt_token(appointment: GgtAppointment):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             appointment=appointment,
             function=whoami(),
             error=err
@@ -286,7 +286,7 @@ def update_positive_result_followup(id: int, date_time: datetime):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             id=id,
             date_time=date_time,
             function=whoami(),
@@ -331,7 +331,7 @@ def get_appointment_count_by_phone_dob(phone_number, dob):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             phone_number=phone_number,
             dob=dob,
             function=whoami(),
@@ -380,7 +380,7 @@ def __update_appointment_status(appointment_id: int, status: str):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             appointment_id=appointment_id,
             status=status,
             function=whoami(),
@@ -455,7 +455,7 @@ def __map_row_to_appointment(row: dict):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             appointment_id=row,
             function=whoami(),
             error=err
@@ -467,19 +467,19 @@ def __map_row_to_appointment(row: dict):
 def __add_services_to_appointment(appointment_id: int, appointment_req: GgtBooking) -> bool:
     try:
         if appointment_req.service_covid19_test:
-            add_service_to_appointment(appointment_id, SERVICE_CODE_COVID19_TEST)
+            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST)
 
         if appointment_req.service_flu_shot:
-            add_service_to_appointment(appointment_id, SERVICE_CODE_FLU_SHOT)
+            add_service_to_appointment(appointment_id, c.SERVICE_CODE_FLU_SHOT)
 
         if appointment_req.service_consult:
-            add_service_to_appointment(appointment_id, SERVICE_CODE_CONSULT)
+            add_service_to_appointment(appointment_id, c.SERVICE_CODE_CONSULT)
 
         return True
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             appointment_req=appointment_req,
             error=err
