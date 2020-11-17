@@ -167,6 +167,7 @@ def __get_header_row():
         'Last Name',
         'Date of Birth',
         'Gender',
+        'Date of Collection',
         'Race',
         'Ethnicity',
         'Address',
@@ -179,9 +180,10 @@ def __get_header_row():
         'Physician NPI',
         'Bill',
         'Client Order Number',
+        'Sample Code',
+        'Collected By',
         'Sample Type',
         'Sample Source',
-        'Date of Collection',
         'Panel Code',
         'Panel Name',
         'First Test?',
@@ -202,6 +204,7 @@ def __get_formatted_row(order):
         order['last_name'],
         order['dob'],
         order['gender'],
+        order['date_of_collection'],
         order['race'],
         order['ethnicity'],
         order['addr1'],
@@ -214,9 +217,10 @@ def __get_formatted_row(order):
         order['physician_npi'],
         order['bill'],
         order['client_order_number'],
+        order['sample_code'],
+        order['collected_by'],
         order['sample_type'],
         order['sample_source'],
-        order['date_of_collection'],
         order['panel_code'],
         order['panel_name'],
         order['is_first_test'],
@@ -246,6 +250,15 @@ def get_orders_ready_to_transmit():
                 WHEN (p.gender = 'female') THEN 'Female'
                 ELSE 'Unknown'
             END) AS gender,
+            (CASE
+                WHEN
+                    ISNULL(t.sample_collection_start_dt)
+                THEN
+                    DATE_FORMAT(CONVERT_TZ(NOW(), '+00:00', '-06:00'),
+                            '%m/%d/%y')
+                ELSE DATE_FORMAT(t.sample_collection_start_dt,
+                        '%m/%d/%y')
+            END) AS date_of_collection,
             (CASE
                 WHEN (p.race = 'race_american_indian') THEN 'American Indian or Alaska Native'
                 WHEN (p.race = 'race_asian') THEN 'Asian'
@@ -281,6 +294,11 @@ def get_orders_ready_to_transmit():
             (CASE
                 WHEN
                     ((l.billing_type = 'insurance')
+                        AND (q.insurance_photo = 1))
+                THEN
+                    'Insurance Attached'
+                WHEN
+                    ((l.billing_type = 'insurance')
                         AND (LENGTH(q.insurance_photo) > 100))
                 THEN
                     'Insurance Attached'
@@ -288,20 +306,16 @@ def get_orders_ready_to_transmit():
                 ELSE 'Client Bill'
             END) AS bill,
             t.id AS client_order_number,
+            '' AS sample_code,
+            (CASE
+                WHEN (l.st = 'SC') THEN 'Pod 1 South Carolina'
+                ELSE ''
+            END) AS collected_by,
             'Respiratory' AS sample_type,
             (CASE
                 WHEN (l.test_type_offered = 'oral') THEN 'MOUTH'
                 ELSE 'Nasopharynx'
             END) AS sample_source,
-            (CASE
-                WHEN
-                    ISNULL(`t`.`sample_collection_start_dt`)
-                THEN
-                    DATE_FORMAT(CONVERT_TZ(NOW(), '+00:00', '-06:00'),
-                            '%m/%d/%y')
-                ELSE DATE_FORMAT(`t`.`sample_collection_start_dt`,
-                        '%m/%d/%y')
-            END) AS `date_of_collection`,
             'RESPI507' AS panel_code,
             'COVID-19 Coronavirus (SARS-CoV-2)' AS panel_name,
             'Unknown' AS is_first_test,
@@ -314,8 +328,8 @@ def get_orders_ready_to_transmit():
         FROM
             (((test_samples t
             JOIN patients p ON ((t.patient_id = p.id)))
-            LEFT JOIN locations l ON ((t.sample_collection_location_id = l.id)))
-            LEFT JOIN patient_questionnaires q ON ((p.id = q.patient_id)))
+            JOIN locations l ON ((t.sample_collection_location_id = l.id)))
+            JOIN patient_questionnaires q ON ((p.id = q.patient_id)))
         WHERE
             (t.status = 'ready_to_tx')
             """
