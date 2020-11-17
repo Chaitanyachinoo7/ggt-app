@@ -59,9 +59,10 @@ pipelines:
             - cp app/ggt/configs/config-dev2.yml app/ggt/configs/config.yml
             - cp app/ggt/configs/log-config-dev2.yml app/ggt/configs/log-config.yml
             - cp app/ggt/configs/gcp-service-account-dev2.json app/ggt/configs/gcp-service-account.json
+            - cp app/ggt/configs/buildconfigs/cloudbuild-dev2.yml app/ggt/configs/buildconfigs/cloudbuild.yml
             - gcloud auth activate-service-account --key-file app/ggt/configs/gcp-service-account.json
             - gcloud config set project ggt-pfe-dev2
-            - gcloud builds submit --tag gcr.io/ggt-pfe-dev2/ggt-pfe-services
-            - gcloud run deploy --image gcr.io/ggt-pfe-dev2/ggt-pfe-services --platform managed  --allow-unauthenticated --region us-central1 ggt-pfe-services
+            - gcloud builds submit --config app/ggt/configs/buildconfigs/cloudbuild.yml .
+            - gcloud run deploy --image gcr.io/ggt-pfe-dev2/ggt-pfe-services:latest --platform managed  --allow-unauthenticated --region us-central1 ggt-pfe-services
 options:
   docker: true
