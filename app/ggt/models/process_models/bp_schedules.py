@@ -388,6 +388,8 @@ def bp_generate_full_schedule(location_id):
         )
         )
         latest_schedule_dt = datetime.today() - timedelta(days=1)
+        latest_schedule_dt = latest_schedule_dt.replace(
+           hour=0, minute=0, second=0, microsecond=0)
         delete_schedule_entries_by_location_id(location_id)
         update_schedule_generation_rules_start_dt(location_id, latest_schedule_dt)
         rules = get_schedule_generation_rules_by_location_id(location_id)

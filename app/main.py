@@ -23,7 +23,7 @@ from ggt.lib.utils import (
 # local
 from ggt.routers import (
     rt_redirect,
-    rt_provider,
+    rt_clinical_provider,
     rt_patient,
     rt_task,
     rt_portal,
@@ -67,10 +67,10 @@ app.include_router(
 )
 
 ############################################################
-# rt_provider route is only for role - Clinical Provider   #
+# rt_clinical_provider route is only for role - Clinical Provider   #
 ############################################################
 app.include_router(
-    rt_provider.router,
+    rt_clinical_provider.router,
     prefix="/api/provider",
     tags=[CLINICAL_PROVIDER_RT_TAG],
     responses={404: {DESCRIPTION: NOT_FOUND}},
