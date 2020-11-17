@@ -360,3 +360,4 @@ def upload_blob_from_string(bucket_name: str, base64string: str, content_type: s
         )
 
     return False
+

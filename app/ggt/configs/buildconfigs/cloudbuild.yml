@@ -1,0 +1,12 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args: ['-c', 'docker pull gcr.io/ggt-pfe-dev2/ggt-pfe-services:latest || exit 0']
+- name: 'gcr.io/cloud-builders/docker'
+  args: [
+            'build',
+            '-t', 'gcr.io/ggt-pfe-dev2/ggt-pfe-services:latest',
+            '--cache-from', 'gcr.io/ggt-pfe-dev2/ggt-pfe-services:latest',
+            '.'
+        ]
+images: ['gcr.io/ggt-pfe-dev2/ggt-pfe-services:latest']
