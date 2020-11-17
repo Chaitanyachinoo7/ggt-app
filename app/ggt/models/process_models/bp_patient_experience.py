@@ -1,6 +1,8 @@
 import requests
 from requests.auth import HTTPBasicAuth
 
+import ggt.lib.constants as c
+
 from ggt.lib.utils import (
     get_config_val,
     generate_otp,
@@ -65,14 +67,6 @@ from ggt.models.data_models.data_types import (
 from ggt.lib.storage import (
     file_exists_in_insurance_cards,
     upload_insurance_card_from_base64_string
-)
-
-from ggt.lib.constants import (
-    STATUS,
-    SUCCESS,
-    FAILED,
-    INFO,
-    ERROR
 )
 
 from ggt.lib.storage import get_temporary_lab_report_url
@@ -144,7 +138,7 @@ def bp_initiate_verification_flow(phone_number: str, with_otp: bool = True):
             # send SMS
             if __send_otp_sms(phone_number, message):
                 log_generic(
-                    type=INFO,
+                    type=c.INFO,
                     phone_number=phone_number,
                     otp_code=otp_code,
                     token=token,
@@ -160,7 +154,7 @@ def bp_initiate_verification_flow(phone_number: str, with_otp: bool = True):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             phone_number=phone_number,
             function=whoami(),
             error=err
@@ -181,7 +175,7 @@ def bp_validate_phone_number(phone_number: str, otp: str):
             raise ValueError('Invalid Token')
 
         log_generic(
-            type=INFO,
+            type=c.INFO,
             phone_number=phone_number,
             otp=otp,
             token=token,
@@ -194,7 +188,7 @@ def bp_validate_phone_number(phone_number: str, otp: str):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             phone_number=phone_number,
             otp=otp,
             function=whoami(),
@@ -249,7 +243,7 @@ def bp_finalize_booking(booking_req: GgtBooking):
     except Exception as err:
         status_message = str(err)
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             booking_req=booking_req,
             function=whoami(),
             error=err
@@ -270,7 +264,7 @@ def bp_finalize_payment(appointment_id: int, wp_receipt_token: str):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             appointment_id=appointment_id,
             wp_receipt_token=wp_receipt_token,
             function=whoami(),
@@ -312,7 +306,7 @@ def bp_get_test_result(token: str, dob: str):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             token=token,
             function=whoami(),
             error=err
@@ -325,7 +319,7 @@ def bp_has_appointments(phone_number: str, dob: str) -> bool:
     try:
         if get_appointment_count_by_phone_dob(phone_number, dob) > 0:
             log_generic(
-                type=INFO,
+                type=c.INFO,
                 phone_number=phone_number,
                 dob=dob,
                 function=whoami()
@@ -334,7 +328,7 @@ def bp_has_appointments(phone_number: str, dob: str) -> bool:
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             phone_number=phone_number,
             dob=dob,
             function=whoami(),
@@ -364,7 +358,7 @@ def __generate_appointment(booking_req: GgtBooking):
 
         if appointment:
             log_generic(
-                type=INFO,
+                type=c.INFO,
                 booking_req=booking_req,
                 appointment=appointment,
                 function=whoami(),
@@ -376,7 +370,7 @@ def __generate_appointment(booking_req: GgtBooking):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             data=booking_req,
             function=whoami(),
             error=err
@@ -395,7 +389,7 @@ def __create_pending_entry(phone_number: str):
         token = generate_token()
 
         log_generic(
-            type=INFO,
+            type=c.INFO,
             phone_number=phone_number,
             otp_code=otp_code,
             token=token,
@@ -412,7 +406,7 @@ def __create_pending_entry(phone_number: str):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             phone_number=phone_number,
             function=whoami(),
             error=err
@@ -447,7 +441,7 @@ def __send_qrcode_sms(appointment: GgtAppointment):
         '''
 
         log_generic(
-            type=INFO,
+            type=c.INFO,
             appointment=appointment,
             phone_number=appointment.patient.phone_number,
             message=message,
@@ -458,7 +452,7 @@ def __send_qrcode_sms(appointment: GgtAppointment):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             appointment=appointment,
             function=whoami(),
             error=err
@@ -470,7 +464,7 @@ def __send_qrcode_sms(appointment: GgtAppointment):
 def __send_otp_sms(phone_number: str, message: str) -> bool:
     try:
         log_generic(
-            type=INFO,
+            type=c.INFO,
             phone_number=phone_number,
             message=message,
             function=whoami()
@@ -479,7 +473,7 @@ def __send_otp_sms(phone_number: str, message: str) -> bool:
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             phone_number=phone_number,
             message=message,
             function=whoami(),
@@ -500,7 +494,7 @@ def __override_random_otp(phone_number: str):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             phone_number=phone_number,
             function=whoami(),
             error=err
@@ -524,7 +518,7 @@ def __is_valid_token(token: str) -> bool:
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             token=token,
             function=whoami(),
             error=err
@@ -558,7 +552,7 @@ def __extract_patient_from_booking_req(booking_req: GgtBooking) -> GgtPatient:
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             booking_req=booking_req,
             error=err
@@ -588,7 +582,7 @@ def __get_wp_api_tokens():
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
@@ -616,7 +610,7 @@ def __save_insurance_image(appointment_id: int, insurance_image: str) -> bool:
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             appointment_id=appointment_id,
             insurance_image=insurance_image,
             function=whoami(),
@@ -642,7 +636,7 @@ def __inject_payment_flow(appointment: GgtAppointment):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             appointment=appointment,
             function=whoami(),
             error=err
@@ -670,7 +664,7 @@ def __evaluate_upfront_payment(booking_req: GgtBooking):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             booking_req=booking_req,
             function=whoami(),
             error=err
@@ -720,7 +714,7 @@ def __create_wp_bill(appointment: GgtAppointment):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             appointment=appointment,
             function=whoami(),
             error=err
