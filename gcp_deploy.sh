@@ -25,6 +25,7 @@ cp app/ggt/configs/buildconfigs/cloudbuild-${ENV}.yml app/ggt/configs/buildconfi
 #docker push gcr.io/${PROJECT_ID}/${SERVICE_NAME}:latest
 
 #build and deploy all in GCP
+#gcloud builds submit --tag gcr.io/${PROJECT_ID}/${SERVICE_NAME}
 gcloud builds submit --config app/ggt/configs/buildconfigs/cloudbuild.yml .
 gcloud run deploy --image gcr.io/${PROJECT_ID}/${SERVICE_NAME} --platform managed  --allow-unauthenticated --region ${REGION} ${SERVICE_NAME} 
 
