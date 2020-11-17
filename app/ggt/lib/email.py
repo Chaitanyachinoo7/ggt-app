@@ -6,6 +6,7 @@ from ggt.lib.utils import (
 
 from ggt.lib.adapters.sendgrid_adapter import send_email as __send_email
 
+#TODO: [GGT-95] remove this
 #if get_config_val('env') == 'TEST':
 #    from ggt.lib.adapters.test_email_adapter import send_email as __send_email
 
