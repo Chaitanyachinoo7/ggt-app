@@ -235,6 +235,29 @@ def delete_schedule_entries_by_location_id(location_id):
         return None
 
 
+def update_schedule_generation_rules_start_dt(location_id, new_dt):
+    try:
+        sql = """
+        UPDATE schedule_generation_rules
+        SET 
+        active_local_start_dt = %s
+        WHERE
+            location_id = %s
+            AND id <> 0 AND DATEDIFF(%s , active_local_start_dt) > 2
+        """
+        vals = (new_dt, location_id, new_dt)
+        return exec_update(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            location_id=location_id,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 def delete_schedule_entries_by_location_id_for_date(location_id, date_str):
     try:
         sql = """

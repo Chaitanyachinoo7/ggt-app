@@ -29,9 +29,6 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
     lookup_test_result,
     get_all_available_locations_and_times
 )
-from ggt.tasks.reminder_sms import (
-    task_process_sms_reminders
-)
 
 ###TODO: Temp
 from ggt.models.workflow_models.test_site_admin_flow import (
@@ -122,11 +119,6 @@ async def api_lookup_test_result(token: str, dob: str):
         token,
         dob
     )
-
-
-@router.get("/appointment/reminders", dependencies=[Security(authorise_user, scopes=[p.ANONYMOUS])])
-def reminder_sms():
-    return task_process_sms_reminders()
 
 
 @router.post("/verify_existing_patient")
