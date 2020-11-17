@@ -15,9 +15,9 @@ pipelines:
             - cp app/ggt/configs/gcp-service-account-prod.json app/ggt/configs/gcp-service-account.json
             - gcloud auth activate-service-account --key-file app/ggt/configs/gcp-service-account.json
             - gcloud config set project ggt-pfe-prod
-            - gcloud builds submit --tag gcr.io/ggt-pfe-prod/ggt-pfe-ops
-            - gcloud run deploy --image gcr.io/ggt-pfe-prod/ggt-pfe-ops --platform managed  --allow-unauthenticated --region us-central1 ggt-pfe-ops
-            - gcloud run services update-traffic ggt-pfe-ops --platform managed --region us-central1 --to-latest
+            - gcloud builds submit --tag gcr.io/ggt-pfe-prod/ggt-ops-services
+            - gcloud run deploy --image gcr.io/ggt-pfe-prod/ggt-ops-services --platform managed  --allow-unauthenticated --region us-central1 ggt-ops-services
+            - gcloud run services update-traffic ggt-ops-services --platform managed --region us-central1 --to-latest
     production-portal:
       - step:
           name: Portal Production Deployemrnt
@@ -31,9 +31,9 @@ pipelines:
             - cp app/ggt/configs/gcp-service-account-prod.json app/ggt/configs/gcp-service-account.json
             - gcloud auth activate-service-account --key-file app/ggt/configs/gcp-service-account.json
             - gcloud config set project ggt-pfe-prod
-            - gcloud builds submit --tag gcr.io/ggt-pfe-prod/ggt-pfe-portal
-            - gcloud run deploy --image gcr.io/ggt-pfe-prod/ggt-pfe-portal --platform managed  --allow-unauthenticated --region us-central1 ggt-pfe-portal
-            - gcloud run services update-traffic ggt-pfe-portal --platform managed --region us-central1 --to-latest
+            - gcloud builds submit --tag gcr.io/ggt-pfe-prod/ggt-portal-services
+            - gcloud run deploy --image gcr.io/ggt-pfe-prod/ggt-portal-services --platform managed  --allow-unauthenticated --region us-central1 ggt-portal-services
+            - gcloud run services update-traffic ggt-portal-services --platform managed --region us-central1 --to-latest
     master:
       - step:
           name: Production Deployemrnt
