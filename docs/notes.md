@@ -70,3 +70,13 @@ Start API Service:
 Start inbound file processing:
 `cd "/Users/suresh/Library/Mobile Documents/com~apple~CloudDocs/IO Technology/wellhealth/ggt-pfe-api/"`
 `./inbound-resulting.sh`
+
+
+
+
+Make a copy of Prod DB to Dev
+In Prod - From Cloud SQL "export" .sql file to GStorage
+In Dev or Prod:
+Launch cloudshell
+`gsutil cp "gs://ggt-db-exports/Cloud_SQL_Export_2020-11-17 (15:49:58).sql" gs://ggt-dev-db-exports/`
+In Dev "import" file to Cloud SQL instance
