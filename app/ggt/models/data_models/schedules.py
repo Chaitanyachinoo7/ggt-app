@@ -220,6 +220,7 @@ def delete_schedule_entries_by_location_id(location_id):
             schedules
         WHERE
             location_id = %s
+            AND status = 'available'
             AND id <> 0
         """
         vals = (location_id,)
@@ -471,7 +472,8 @@ def update_slot_information(slot_id, appointment_id):
             UPDATE 
                 schedules 
             SET 
-                appointment_id = %s 
+                appointment_id = %s, 
+                status = 'booked'
             WHERE 
                 id = %s
         """
@@ -508,6 +510,52 @@ def add_schedule_entries(rows):
 
     except Exception as err:
         print(ERROR, err)
+
+
+def get_slots_matching_dt_list(dt_list, location_id):
+    slot_list = []
+    try:
+        format_strings = ','.join(['%s'] * len(dt_list))
+    
+        sql = """
+            SELECT 
+                id,
+                location_id,
+                start_dt,
+                end_dt,
+                duration,
+                status,
+                appointment_id
+            FROM
+                schedules
+            WHERE
+                location_id = {}
+                AND start_dt IN ({})
+        """.format(location_id, format_strings)
+
+        vals = tuple(dt_list)
+
+        rows = read_rows(sql, vals)
+        if rows:
+            for row in rows:
+                slot = GgtScheduleSlot()
+                slot.id = row['id']
+                slot.location_id = row['location_id']
+                slot.start_dt = row['start_dt']
+                slot.end_dt = row['end_dt']
+                slot.duration = row['duration']
+                slot.status = row['status']
+                slot.appointment_id = row['appointment_id']
+                slot_list.append(slot)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+
+    return slot_list
 
 
 ########################################################################################################
