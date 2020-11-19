@@ -151,8 +151,8 @@ async def api_site_admin_general_search(portal_general_search_request: PortalGen
         portal_general_search_request.location_id
     )
 
-
-@router.get("/site-admin/generate_schedule/{location_id}",dependencies=[Security(authorise_user, scopes=[p.GENERATE_SCHEDULE])])
+#@router.get("/site-admin/generate_schedule/{location_id}",dependencies=[Security(authorise_user, scopes=[p.GENERATE_SCHEDULE])])
+@router.get("/site-admin/generate_schedule/{location_id}")
 async def api_generate_schedule(location_id: str, background_tasks: BackgroundTasks):
     background_tasks.add_task(generate_schedule, location_id)
     return {
