@@ -43,7 +43,8 @@ from ggt.models.data_models.locations import (
 )
 
 from ggt.models.data_models.schedules import (
-    get_slot_information
+    get_slot_information,
+    update_slot_information
 )
 
 from ggt.models.data_models.test_results import (
@@ -357,6 +358,8 @@ def __generate_appointment(booking_req: GgtBooking):
         appointment = create_appointment(booking_req)
 
         if appointment:
+            update_slot_information(booking_req.timeslot_id, appointment.id)
+
             log_generic(
                 type=c.INFO,
                 booking_req=booking_req,
