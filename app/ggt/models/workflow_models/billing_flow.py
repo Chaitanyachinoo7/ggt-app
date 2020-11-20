@@ -22,7 +22,15 @@ from ggt.lib.cache import (
 
 def get_billing_list(billing_request):
     return y_response(
-        bp_get_billing_list(billing_request.offset, billing_request.status, billing_request.from_dt, billing_request.to_dt)
+        bp_get_billing_list(billing_request.offset,
+                            billing_request.status,
+                            billing_request.from_dt,
+                            billing_request.to_dt,
+                            billing_request.limit,
+                            billing_request.sort,
+                            billing_request.pre_consultation,
+                            billing_request.provider_reviewed
+                            )
     )
 
 

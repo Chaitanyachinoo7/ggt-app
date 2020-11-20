@@ -9,31 +9,44 @@ from ggt.lib.utils import (
     whoami
 )
 
-
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-from ggt.models.data_models.data_types import BillingStatusEnum, TestResultsEnum
+from ggt.models.data_models.data_types import BillingStatusEnum, TestResultsEnum, ProviderReviewedEnum, \
+    PreConsultationEnum
 from ggt.models.data_models.providers import process_consultations
 
 
-def get_billing_list(offset, status, from_dt, to_dt):
+def get_billing_list(offset, status, from_dt, to_dt, limit=20, sort='DESC', pre_consulted='any', provider_reviewed='any'):
     try:
 
         where_conditions = ''
         if from_dt:
             where_conditions = "{} AND t.create_dt >= '{}'".format(
-                    where_conditions, from_dt)
+                where_conditions, from_dt)
         if to_dt:
             where_conditions = "{} AND  t.create_dt <= '{}'".format(
                 where_conditions, to_dt)
         if status:
             if status == BillingStatusEnum.pending:
-                where_conditions = "{} AND (a.billing_status = '{}' OR a.billing_status is NULL)".format(
-                    where_conditions, BillingStatusEnum.pending)
-            elif status == BillingStatusEnum.billed:
-                where_conditions = "{} AND a.billing_status = '{}'".format(
-                    where_conditions, BillingStatusEnum.billed)
+                where_conditions = "{} AND (t.initial_billed_status = {} OR a.billing_status is NULL)".format(
+                    where_conditions, 0)
+            elif status == BillingStatusEnum.initial_billed_status:
+                where_conditions = "{} AND t.initial_billed_status = {}".format(
+                    where_conditions, 1)
+            elif status == BillingStatusEnum.post_test_billed_status:
+                where_conditions = "{} AND t.post_test_billed_status = {}".format(
+                    where_conditions, 1)
+        if pre_consulted != PreConsultationEnum.any:
+            where_conditions = "{} AND (select (CASE WHEN c.consultation_type_codes LIKE '%pre%' THEN 1 ELSE 0 END) " \
+                               "AS pre_consulted) = {}".format(where_conditions, pre_consulted)
+        if provider_reviewed != ProviderReviewedEnum.any:
+            if provider_reviewed == ProviderReviewedEnum.provider_reviewed:
+                where_conditions = "{} AND t.consultation_status = '{}'".format(
+                    where_conditions, ProviderReviewedEnum.provider_reviewed)
+            if provider_reviewed == ProviderReviewedEnum.not_provider_reviewed:
+                where_conditions = "{} AND (t.consultation_status = '{}' OR a.billing_status is NULL)".format(
+                    where_conditions, ProviderReviewedEnum.not_provider_reviewed)
 
         sql = """SELECT 
     p.id AS patient_id,
@@ -100,7 +113,6 @@ def get_billing_list(offset, status, from_dt, to_dt):
     a.wp_customer_info_id AS wp_customer_info_id,
     a.status AS appointment_status,
     a.billing_status AS billing_status,
-    a.consultation_notes AS pre_consultation_notes,
     t.provider_id AS provider_id,
     t.sample_collection_location_id AS sample_collection_location_id,
     t.sample_collection_start_dt AS sample_collection_start_dt,
@@ -112,6 +124,8 @@ def get_billing_list(offset, status, from_dt, to_dt):
     t.consultation_status AS consultation_status,
     t.consultation_notes AS consultation_notes,
     t.status AS test_status,
+    t.initial_billed_status AS initial_billed_status,
+    t.post_test_billed_status AS post_test_billed_status,
     l.id AS location_id,
     l.site_code AS site_code,
     l.account AS account,
@@ -186,7 +200,14 @@ def get_billing_list(offset, status, from_dt, to_dt):
         THEN
             '99211,99072,99000'
         ELSE null 
-    END) AS billing_codes
+    END) AS billing_codes,
+    (CASE
+        WHEN
+            c.consultation_type_codes LIKE '%pre%'
+        THEN
+             1
+        ELSE 0 
+    END) AS pre_consulted
 FROM
     patients p
         LEFT JOIN
@@ -216,9 +237,9 @@ FROM
     LEFT JOIN patient_questionnaires pq ON pq.patient_id = ps.id) mq ON mq.patient_id = p.id
         WHERE  1=1 
         {}
-        ORDER BY register_dt DESC
-        LIMIT 20  offset {};
-        """.format(where_conditions, offset)
+        ORDER BY register_dt {}
+        LIMIT {}  offset {};
+        """.format(where_conditions, sort, limit, offset)
         rows = read_rows(sql)
         return __process_billing_response(rows)
 
@@ -344,5 +365,4 @@ def __process_billing_response(tasks):
         task['test_report_url'] = '/api/billing/report/{}.pdf'.format(appointment_id)
         if len(task['billing_codes']) < 3:
             task['billing_codes'] = []
-    return tasks
-
+    return {"list": tasks}
