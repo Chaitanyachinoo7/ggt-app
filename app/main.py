@@ -23,7 +23,7 @@ from ggt.lib.utils import (
 # local
 from ggt.routers import (
     rt_redirect,
-    rt_provider,
+    rt_clinical_provider,
     rt_patient,
     rt_task,
     rt_portal,
@@ -46,6 +46,12 @@ origins = [
     "https://start.gogettested.com",
     "https://start-dev.gogettested.com",
     "https://start-qa.gogettested.com",
+    "https://portal.gogettested.com",
+    "https://portal-dev.gogettested.com",
+    "https://portal-qa.gogettested.com",
+    "https://ops.gogettested.com",
+    "https://ops-dev.gogettested.com",
+    "https://ops-qa.gogettested.com",
     "http://localhost",
     "http://localhost:3000",
     "http://localhost:5000",
@@ -67,10 +73,10 @@ app.include_router(
 )
 
 ############################################################
-# rt_provider route is only for role - Clinical Provider   #
+# rt_clinical_provider route is only for role - Clinical Provider   #
 ############################################################
 app.include_router(
-    rt_provider.router,
+    rt_clinical_provider.router,
     prefix="/api/provider",
     tags=[CLINICAL_PROVIDER_RT_TAG],
     responses={404: {DESCRIPTION: NOT_FOUND}},

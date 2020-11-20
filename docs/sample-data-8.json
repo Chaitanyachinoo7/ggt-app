@@ -1,0 +1,89 @@
+{
+	"groupCode": "_DEFAULT_",
+	"phone_number": "8018602474",
+	"token": "dcb4f9da-f832-42b2-86f1-ab04a5a9b038",
+	"isPatient": true,
+	"gender": "male",
+	"race": "race_asian",
+	"ethnicity": "",
+	"symptoms": {
+		"symptom_fever": false,
+		"symptom_short_breath": false,
+		"symptom_cough": false,
+		"symptom_chest_pains": false,
+		"symptom_other": false,
+		"symptom_lack_of_smell": false
+	},
+	"contactTracing": false,
+	"publicPlaces": {
+		"bars_restaurants_cafes": false,
+		"gas_stations": true,
+		"medical_offices": false,
+		"place_of_work": false,
+		"retail_grocery_stores": false,
+		"places_of_worship": false,
+		"public_parks": false,
+		"other": false
+	},
+	"patientDetails": {
+		"first_name": "Suresh",
+		"last_name": "Subasinghe",
+		"dob": "1980-10-31"
+	},
+	"patientAddress": {
+		"state": "FL",
+		"street": "16303 Dobson Ct",
+		"city": "Tampa",
+		"zip_code": "33647"
+	},
+	"patientContact": {
+		"email": "suresh@wellpay.com"
+	},
+	"patientVitals": {
+		"medications": false,
+		"height": "666",
+		"weight": "666"
+	},
+	"preExistingConditions": {
+		"heart_disease": false,
+		"diabetes": false,
+		"respiratory_disease": false,
+		"autoimmune_disease": false,
+		"other_chronic_disease": false,
+		"allergies": false
+	},
+	"consent": {
+		"full_name": "Suresh Subasinghe"
+	},
+	"date": "2020-11-24",
+	"location": 242,
+	"locationServices": [{
+		"id": 1,
+		"service_code": "COVID_19_TEST",
+		"service_name": "Covid-19 Test",
+		"price": 17500,
+		"selfpay_amount": null,
+		"copay_amount": null,
+		"insurance_amount": null,
+		"sku": "COVID_19_TEST",
+		"cost": 0
+	}],
+	"locationConfig": {
+		"insurance": {
+			"ignore": [{
+				"scheduleStateKey": "location",
+				"compare": "EQ",
+				"value": 242
+			}]
+		},
+		"insurance-card": {
+			"ignore": [{
+				"scheduleStateKey": "location",
+				"compare": "EQ",
+				"value": 242
+			}]
+		}
+	},
+	"timeSlot": 2292906,
+	"forceFinish": true
+}
