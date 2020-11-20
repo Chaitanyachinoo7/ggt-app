@@ -29,7 +29,9 @@ from ggt.models.data_models.schedules import (
     update_schedule_generation_rule,
     delete_schedule_generation_rule,
     get_all_available_dtl,
-    update_schedule_generation_rules_start_dt)
+    update_schedule_generation_rules_start_dt,
+    get_slots_matching_dt_list
+)
 
 from ggt.models.data_models.locations import (
     get_all_locations,
@@ -125,7 +127,7 @@ def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: float, rad
                     'allow_insurance_skip': dtl.location.allow_insurance_skip,
                     'collect_upfront_payment': dtl.location.collect_upfront_payment,
                     'next_test_date': dtl.first_date_time_available.strftime("%a, %-d %b %Y @ %-I:%M %p"),
-                    'wait_time_mins': '< 5m',
+                    'wait_time_mins': '< 30m',
                     'result_time_hours': '{}h'.format(dtl.average_processing_time),
                     'slots_available': dtl.slot_count*8,
                     'type': 'public',
@@ -197,7 +199,7 @@ def bp_get_schedule_locations_available(date, group_code=DEFAULT_GROUP_CODE):
                     'allow_insurance_skip': dtl.location.allow_insurance_skip,
                     'collect_upfront_payment': dtl.location.collect_upfront_payment,
                     'next_test_date': dtl.first_date_time_available.strftime("%a, %-d %b %Y @ %-I:%M %p"),
-                    'wait_time_mins': '< 5m',
+                    'wait_time_mins': '< 30m',
                     'result_time_hours': '{}h'.format(dtl.average_processing_time),
                     'slots_available': dtl.slot_count*8,
                     'type': 'public',
@@ -271,7 +273,7 @@ def bp_get_all_available_locations_and_times(group_code=DEFAULT_GROUP_CODE):
                     'allow_insurance_skip': dtl.location.allow_insurance_skip,
                     'collect_upfront_payment': dtl.location.collect_upfront_payment,
                     'next_test_date': dtl.first_date_time_available.strftime("%a, %-d %b %Y @ %-I:%M %p"),
-                    'wait_time_mins': '< 5m',
+                    'wait_time_mins': '< 30m',
                     'result_time_hours': '{}h'.format(dtl.average_processing_time),
                     'slots_available': dtl.slot_count*8,
                     'type': 'public',
@@ -384,10 +386,12 @@ def bp_delete_schedule_for_date(location_id, date_str):
 def bp_generate_full_schedule(location_id):
     try:
         print('START schedule generation / location id: {} / at: {}'.format(
-            location_id, datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        )
+                location_id, datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            )
         )
         latest_schedule_dt = datetime.today() - timedelta(days=1)
+        latest_schedule_dt = latest_schedule_dt.replace(
+           hour=0, minute=0, second=0, microsecond=0)
         delete_schedule_entries_by_location_id(location_id)
         update_schedule_generation_rules_start_dt(location_id, latest_schedule_dt)
         rules = get_schedule_generation_rules_by_location_id(location_id)
@@ -395,8 +399,10 @@ def bp_generate_full_schedule(location_id):
         for rule in rules:
             __process_schedule_rule(rule)
 
-        print('END schedule generation / location id: {} / at: {}'.format(location_id,
-                                                                          datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+        print('END schedule generation / location id: {} / at: {}'.format(
+            location_id,
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        )
         return True
 
     except Exception as err:
@@ -527,12 +533,15 @@ def __process_schedule_rule(rule):
                             slot_increment,
                             'available'
                         )
-                        rows.append(row)
+
+                        for _ in range(rule['slot_multiplier']):
+                            rows.append(row)
 
                         day_curr_time = day_curr_appointment_end_time
 
             schedule_date = schedule_date + timedelta(days=1)
 
+        rows = __remove_reserved_slots(rows, location_id)
         add_schedule_entries(rows)
         return True
 
@@ -556,6 +565,52 @@ def __get_valid_days(row):
         'Saturday': True if row['sat'] else False
     }
 
+
+def __remove_reserved_slots(rows, location_id):
+    try:
+        generated_dt_counts = {} #counts map
+        generated_dt_list = [] #flat list
+        for row in rows:
+            dtkey = row[1]
+            if dtkey in generated_dt_list: 
+                generated_dt_counts[dtkey] = generated_dt_counts[dtkey] + 1
+            else:
+                generated_dt_counts[dtkey] = 1
+                generated_dt_list.append(dtkey)
+        
+        reserved_slots = get_slots_matching_dt_list(generated_dt_list, location_id)
+
+        for slot in reserved_slots:
+            slot_start_dt_str = slot.start_dt.strftime('%Y-%m-%d %H:%M:%S')
+            if slot_start_dt_str in generated_dt_counts: 
+                val = generated_dt_counts[slot_start_dt_str]
+                if val <= 1:
+                    generated_dt_counts.pop(slot_start_dt_str)
+                else:
+                    generated_dt_counts[slot_start_dt_str] = val - 1
+
+        
+        for row in rows:
+            dtkey = row[1]
+            if dtkey in generated_dt_counts:
+                val = generated_dt_counts[dtkey]
+                if val <= 1:
+                    generated_dt_counts.pop(dtkey)
+                else:
+                    generated_dt_counts[dtkey] = val - 1
+            else:
+                rows.remove(row)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            location_id=location_id,
+            function=whoami(),
+            error=err
+        )
+
+    return rows
+    
 
 def normalize_group_code(group_code):
     whitelist = set('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_')
