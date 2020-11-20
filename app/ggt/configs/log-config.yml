@@ -22,10 +22,6 @@ handlers:
     encoding: utf8
 
 root:  # Loggers are organized in hierarchy - this is the root logger config
-<<<<<<< HEAD
-  level: DEBUG
-=======
   level: INFO
   #handlers: [console, file]  # Attaches both handler defined above
->>>>>>> 95635f8622d9fe5c7f614de8381283c4343c1ad6
   handlers: [console]  # Attaches both handler defined above
