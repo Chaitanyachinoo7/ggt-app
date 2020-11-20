@@ -1,6 +1,6 @@
 app_name: COVID-19 Testing
-log_level: DEBUG
-base_url: https://start-dev.GoGetTested.com
+log_level: INFO
+base_url: https://start.GoGetTested.com
 env: DEV
 
 aws:
@@ -10,17 +10,17 @@ aws:
   sqs_print_queue_base_url: https://sqs.us-east-1.amazonaws.com/135292740376/ggt-print-queue
 
 gcp:
-  service_account_file: gcp-service-account-dev.json
+  service_account_file: gcp-service-account-prod.json
   default_link_expiration_time_limit: 300
-  all_inbound_files_bucket_name: ggt-all-inbound-files-dev
-  lab_reports_bucket_name: ggt-lab-reports-dev
-  insurance_cards_bucket_name: ggt-insurance-cards-dev
+  all_inbound_files_bucket_name: ggt-all-inbound-files-prod
+  lab_reports_bucket_name: ggt-lab-reports-prod
+  insurance_cards_bucket_name: ggt-insurance-cards-prod
 
 databases:
   mysql:
-    host: 35.184.98.83
+    host: 34.66.63.242
     username: root
-    password: Jr6EEMI2aBNguL1K
+    password: gvMBO96Ohbq3mwFp
     db: ggt_prod
 
   sqlite:
@@ -42,14 +42,14 @@ sendgrid:
 
 google:
   maps:
-    api_key: AIzaSyBJmU3ueSBRmXz4mU1MRgdOxAWcfImbQNQ
+    api_key: AIzaSyAf7kDO2y7Hz7HYb3LHqvXimqJQcA6X8DQ
     base_url: https://maps.googleapis.com/maps/api/staticmap
     zoom_level: 10
     map_type: roadmap
     thumbnail_size: 110x110
     markers_color: red
     markers_size: tiny
-    
+
 email:
   template_folder: /templates/email/
 
@@ -64,8 +64,8 @@ app:
 vendors:
   auth0:
     auth0_domain: gogettested.us.auth0.com
-    api_audience: https://role-base-auth.test/api
-    algorithms: ["RS256"]
+    api_audience: https://pfe-api.gogettested.com/api
+    algorithms: ['RS256']
     roles: http://roles.ggt/roles
 
   healthtrackrx:
@@ -85,9 +85,9 @@ vendors:
     outbound_file_prefix: ggt-outbound
 
   wellpay:
-    endpoint: https://api-staging.getwellpay.com/api/public/v1
+    endpoint: https://api.getwellpay.com/api/public/v1
     auth_user: suresh@wellpay.com
-    auth_password: 8,tp{Na{76<~@.>(
+    auth_password: y7f{=/$>VfRF$vqE
 
 pfe:
   signup:

@@ -296,6 +296,102 @@ def update_positive_result_followup(id: int, date_time: datetime):
     return None
 
 
+def update_appointment_with_checkin(appointment_id: int):
+    try:
+        sql = """
+            UPDATE appointments
+            SET
+                check_in_dt = NOW(),
+                status = 'checked_in'
+            WHERE
+                id = %s
+        """
+        vals = (appointment_id,)
+        return exec_update(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            appointment_id=appointment_id,
+            function=whoami(),
+            error=err
+        )
+
+    return None
+
+
+def update_appointment_with_test_start(appointment_id: int):
+    try:
+        sql = """
+            UPDATE appointments
+            SET
+                test_start_dt = NOW(),
+                status = 'test_in_progress'
+            WHERE
+                id = %s
+        """
+        vals = (appointment_id,)
+        return exec_update(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            appointment_id=appointment_id,
+            function=whoami(),
+            error=err
+        )
+
+    return None
+
+
+def update_appointment_with_scan_vial(appointment_id: int):
+    try:
+        sql = """
+            UPDATE appointments
+            SET
+                test_start_dt = NOW(),
+                status = 'vial_scanned'
+            WHERE
+                id = %s
+        """
+        vals = (appointment_id,)
+        return exec_update(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            appointment_id=appointment_id,
+            function=whoami(),
+            error=err
+        )
+
+    return None
+
+
+def update_appointment_with_test_completed(appointment_id: int):
+    try:
+        sql = """
+            UPDATE appointments
+            SET
+                test_end_dt = NOW(),
+                status = 'test_completed'
+            WHERE
+                id = %s
+            """
+        vals = (appointment_id,)
+        return exec_update(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            appointment_id=appointment_id,
+            function=whoami(),
+            error=err
+        )
+
+    return None
+
+
 def get_appointment_count_by_phone_dob(phone_number, dob):
     try:
         if dob:

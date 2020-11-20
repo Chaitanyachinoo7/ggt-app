@@ -63,7 +63,14 @@ def bp_get_appointment_info(appointment_id, dob):
 def bp_appointment_update(appointment_id: int, action: str, workstation_id: int):
     try:
         appointment = get_appointment(appointment_id)
-
+        if action == 'checkin' or action == 'check_in':
+            update_appointment_with_checkin(appointment.id)
+        elif action == 'start_test':
+            __appointment_begin_test(appointment.id, workstation_id)
+        elif action == 'scan_vial':
+            update_appointment_with_scan_vial(appointment_id)
+        elif action == 'end_test':
+            update_appointment_with_test_completed(appointment.id)
         if action == c.APPOINTMENT_ACTION_CHECK_IN:
             update_appointment_with_checkin(appointment_id)
 
@@ -139,6 +146,10 @@ def __formatted_patient_dob(appointment):
 
 def __next_action(appointment, pre_labeled=False):
     switcher = {
+        'scheduled': 'check_in',
+        'checked_in': 'start_test',
+        'test_in_progress': 'scan_vial',
+        'vial_scanned': 'end_test',
         c.APPOINTMENT_STATUS_SCHEDULED: c.APPOINTMENT_ACTION_CHECK_IN,
         c.APPOINTMENT_STATUS_CHECKED_IN: c.APPOINTMENT_ACTION_START_TEST,
         c.APPOINTMENT_STATUS_TEST_IN_PROGRESS: c.APPOINTMENT_ACTION_SCAN_VIAL,
@@ -177,7 +188,6 @@ def __appointment_begin_test(appointment_id, workstation_id=1):
         return True
     
     return __send_label_to_printer(appointment_id, workstation_id)
-
 
 def __appointment_reprint_label(appointment_id, workstation_id=1):
     return __send_label_to_printer(appointment_id, workstation_id)
