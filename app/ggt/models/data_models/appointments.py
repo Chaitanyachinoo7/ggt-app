@@ -296,7 +296,6 @@ def update_positive_result_followup(id: int, date_time: datetime):
     return None
 
 
-<<<<<<< HEAD
 def update_appointment_with_checkin(appointment_id: int):
     try:
         sql = """
@@ -336,7 +335,7 @@ def update_appointment_with_test_start(appointment_id: int):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             appointment_id=appointment_id,
             function=whoami(),
             error=err
@@ -360,7 +359,7 @@ def update_appointment_with_scan_vial(appointment_id: int):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             appointment_id=appointment_id,
             function=whoami(),
             error=err
@@ -384,7 +383,7 @@ def update_appointment_with_test_completed(appointment_id: int):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             appointment_id=appointment_id,
             function=whoami(),
             error=err
@@ -393,8 +392,6 @@ def update_appointment_with_test_completed(appointment_id: int):
     return None
 
 
-=======
->>>>>>> 95635f8622d9fe5c7f614de8381283c4343c1ad6
 def get_appointment_count_by_phone_dob(phone_number, dob):
     try:
         if dob:

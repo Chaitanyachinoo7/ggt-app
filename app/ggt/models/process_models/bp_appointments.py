@@ -63,8 +63,6 @@ def bp_get_appointment_info(appointment_id, dob):
 def bp_appointment_update(appointment_id: int, action: str, workstation_id: int):
     try:
         appointment = get_appointment(appointment_id)
-
-<<<<<<< HEAD
         if action == 'checkin' or action == 'check_in':
             update_appointment_with_checkin(appointment.id)
         elif action == 'start_test':
@@ -73,7 +71,6 @@ def bp_appointment_update(appointment_id: int, action: str, workstation_id: int)
             update_appointment_with_scan_vial(appointment_id)
         elif action == 'end_test':
             update_appointment_with_test_completed(appointment.id)
-=======
         if action == c.APPOINTMENT_ACTION_CHECK_IN:
             update_appointment_with_checkin(appointment_id)
 
@@ -85,7 +82,6 @@ def bp_appointment_update(appointment_id: int, action: str, workstation_id: int)
             
         elif action == c.APPOINTMENT_ACTION_END_TEST:
             update_appointment_with_test_completed(appointment_id)
->>>>>>> 95635f8622d9fe5c7f614de8381283c4343c1ad6
             __send_test_complete_sms(appointment)
             
         elif action == 'reprint':
@@ -112,10 +108,6 @@ def bp_appointment_update(appointment_id: int, action: str, workstation_id: int)
 
     return False
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 95635f8622d9fe5c7f614de8381283c4343c1ad6
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
@@ -154,18 +146,15 @@ def __formatted_patient_dob(appointment):
 
 def __next_action(appointment, pre_labeled=False):
     switcher = {
-<<<<<<< HEAD
         'scheduled': 'check_in',
         'checked_in': 'start_test',
         'test_in_progress': 'scan_vial',
-        'vial_scanned': 'end_test'
-=======
+        'vial_scanned': 'end_test',
         c.APPOINTMENT_STATUS_SCHEDULED: c.APPOINTMENT_ACTION_CHECK_IN,
         c.APPOINTMENT_STATUS_CHECKED_IN: c.APPOINTMENT_ACTION_START_TEST,
         c.APPOINTMENT_STATUS_TEST_IN_PROGRESS: c.APPOINTMENT_ACTION_SCAN_VIAL,
         c.APPOINTMENT_STATUS_VIAL_SCANNED: c.APPOINTMENT_ACTION_END_TEST,
         c.APPOINTMENT_STATUS_TEST_COMPLETED: c.APPOINTMENT_ACTION_NONE
->>>>>>> 95635f8622d9fe5c7f614de8381283c4343c1ad6
     }
 
     if not pre_labeled: #vial scanning not required
