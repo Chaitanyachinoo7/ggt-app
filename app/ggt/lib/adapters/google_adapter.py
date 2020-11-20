@@ -157,13 +157,10 @@ async def serve_file(bucket_name, filename):
             service_account_file)
         bucket = storage_client.get_bucket(bucket_name)
         blob = bucket.blob(filename)
-        # image_bytes = blob.download_as_bytes()
-        # base64EncodedStr = base64.b64encode(image_bytes.encode('utf-8'))
         if blob.exists():
             return blob
         else:
-            blob = bucket.blob('card.png')
-            return blob
+            return None
     except Exception as err:
         log_generic(
             type=ERROR,
