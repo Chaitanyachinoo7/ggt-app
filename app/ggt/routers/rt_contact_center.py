@@ -8,7 +8,7 @@ from fastapi import (
     HTTPException, 
     Security
 )
-from ggt.lib.auth import authorise_user
+from ggt.lib.auth import authorize_user
 from ggt.lib.constants import (
     STATUS,
     SUCCESS,
@@ -73,7 +73,7 @@ def formatted_email_message(first_name, token, to_email):
 
     return email_message
 
-@router.post("/sendsms", dependencies=[Security(authorise_user, scopes=[p.SENDSMS])])
+@router.post("/sendsms", dependencies=[Security(authorize_user, scopes=[p.SENDSMS])])
 async def api_cc_send_sms(CCSendSMSRequest: CCSendSMSRequest):
     try:
         send_sms(CCSendSMSRequest.to_number, formatted_sms_message(
@@ -83,7 +83,7 @@ async def api_cc_send_sms(CCSendSMSRequest: CCSendSMSRequest):
         print(err)
 
 
-@router.post("/sendemail", dependencies=[Security(authorise_user, scopes=[p.SENDEMAIL])])
+@router.post("/sendemail", dependencies=[Security(authorize_user, scopes=[p.SENDEMAIL])])
 async def api_cc_send_email(CCSendEmailRequest: CCSendEmailRequest):
     try:
         email = formatted_email_message(
@@ -95,7 +95,7 @@ async def api_cc_send_email(CCSendEmailRequest: CCSendEmailRequest):
         print(err)
 
 
-@router.post("/sms_email_notify", dependencies=[Security(authorise_user, scopes=[p.SMS_EMAIL_NOTIFY])])
+@router.post("/sms_email_notify", dependencies=[Security(authorize_user, scopes=[p.SMS_EMAIL_NOTIFY])])
 async def api_cc_send_sms_email(CCSendNotiRequest: CCSendNotiRequest):
     try:
 
@@ -111,7 +111,7 @@ async def api_cc_send_sms_email(CCSendNotiRequest: CCSendNotiRequest):
         print(err)
 
 
-@router.post("/outbound_result_status", dependencies=[Security(authorise_user, scopes=[p.OUTBOUND_RESULT_STATUS])])
+@router.post("/outbound_result_status", dependencies=[Security(authorize_user, scopes=[p.OUTBOUND_RESULT_STATUS])])
 def outbound_result_status(CCOutboundResultStatusRequest: CCOutboundResultStatusRequest):
     try:
         cc_update_outbound_call_status(

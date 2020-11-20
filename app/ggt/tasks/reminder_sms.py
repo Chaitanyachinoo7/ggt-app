@@ -66,9 +66,8 @@ def task_process_daily_sms_reminders():
             data.append(
                 (phone_number, prepare_appointment_details(row))
             )
-        print(data)
-        # Uncomment below line once cron is setup. 
-        # batch_enqueue_sms_notifications(data)
+
+        batch_enqueue_sms_notifications(data)
         log_generic(
             type="info",
             function='task_process_inbound_lab_reports',
