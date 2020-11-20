@@ -89,7 +89,7 @@ async def api_populate_location_thumbnails():
     task_populate_location_thumbnails()
     return {STATUS: SUCCESS}
 
-
+#TODO: [GGT-127] create security permission
 @router.post("/populate_gps_coordinates")
 async def api_process_sms_queue(request: Request):
     task_populate_gps_coordinates()
@@ -105,7 +105,7 @@ async def api_process_outbound_lab_orders(background_tasks: BackgroundTasks):
     }
 
 
-@router.post("/process_daily_appointment_reminders", dependencies=[Security(authorise_user, scopes=[p.ANONYMOUS])])
+@router.post("/process_daily_appointment_reminders", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def reminder_sms():
     task_process_daily_sms_reminders()
     return {STATUS: SUCCESS}

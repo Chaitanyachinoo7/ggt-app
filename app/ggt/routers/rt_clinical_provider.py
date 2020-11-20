@@ -14,7 +14,7 @@ from ggt.models.workflow_models.provider_field_testing_flow import (
 
 router = APIRouter()
 
-@router.get("/get_workstations", dependencies=[Security(authorise_user, scopes=[p.GET_WORKSTATIONS])])
+@router.get("/get_workstations", dependencies=[Security(authorize_user, scopes=[p.GET_WORKSTATIONS])])
 async def api_provider_get_workstations():
     return provider_get_workstations()
 

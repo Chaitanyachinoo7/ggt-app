@@ -27,14 +27,14 @@ from ggt.models.data_models.data_types import (
     AuthError,
     PermissionsEnum as p)
 
-# TODO: [GGD-1] read from config/DB
+# TODO: [GGT-81] read from config/DB
 CLIENT_ID = "269165607649-ejpvn7ar1llub2e8tr6ur4ad2p1srucf.apps.googleusercontent.com"
-# TODO: [GGD-2] read from config/DB as a single value of "tokenUrl" e.g.  GgtOAuth2PasswordBearer(tokenUrl=get_config_val('vendors.auth0.auth0_domain'))
+# TODO: [GGT-82] read from config/DB as a single value of "tokenUrl" e.g. GgtOAuth2PasswordBearer(tokenUrl=get_config_val('vendors.auth0.auth0_domain'))
 oauth2_scheme = GgtOAuth2PasswordBearer(tokenUrl="https://" + get_config_val('vendors.auth0.auth0_domain') +
                                         "/oauth/token")
 
 
-# TODO: [GGD-3] read from config/DB
+# TODO: [GGT-84] read from config/DB
 def verify_google_idtoken(token):
     try:
         decoded_token = id_token.verify_oauth2_token(
@@ -73,7 +73,7 @@ async def get_rsa_key(token):
         rsa_key = await get_rsa_key_auth0(token)
         return rsa_key
 
-# TODO: [GGD-4] read from config/DB as already concatinated value of tokenUrl or use a function that generates these auth0 urls
+# TODO: [GGT-83] read from config/DB as already concatinated value of tokenUrl or use a function that generates these auth0 urls
 async def get_rsa_key_auth0(token):
     jsonurl = urllib2.urlopen(
         "https://" + get_config_val('vendors.auth0.auth0_domain') + "/.well-known/jwks.json")
@@ -104,6 +104,8 @@ async def get_rsa_key_auth0(token):
 
 
 async def authorize_user(security_scopes: SecurityScopes, token: str = Depends(oauth2_scheme)):
+    if (get_config_val('env') == 'DEV'): #Allow auth override for dev
+        return True
     try:
         scopes = security_scopes.scopes
         if p.ANONYMOUS in scopes:
@@ -139,18 +141,14 @@ async def authorize(scopes, token):
             else:
                 raise HTTPException(
                     status_code=401, detail=AUTH_FAILED_MESSAGE)
-
         except jwt.ExpiredSignatureError:
             await get_rsa_key_auth0(token)
             raise HTTPException(status_code=401, detail=AUTH_FAILED_MESSAGE)
-        
         except jwt.JWTClaimsError:
             await get_rsa_key_auth0(token)
             raise HTTPException(status_code=401, detail=AUTH_FAILED_MESSAGE)
-
         except Exception:
             await get_rsa_key_auth0(token)
             raise HTTPException(status_code=401, detail=AUTH_FAILED_MESSAGE)
-
     await get_rsa_key_auth0(token)
     raise HTTPException(status_code=401, detail=AUTH_FAILED_MESSAGE)

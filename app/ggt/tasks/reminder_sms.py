@@ -66,6 +66,7 @@ def task_process_daily_sms_reminders():
             data.append(
                 (phone_number, prepare_appointment_details(row))
             )
+
         batch_enqueue_sms_notifications(data)
         log_generic(
             type="info",
