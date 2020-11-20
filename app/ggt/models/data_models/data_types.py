@@ -56,7 +56,25 @@ class CallReq(BaseModel):
 
 class BillingStatusEnum(str, Enum):
     pending = 'pending'
-    billed = 'billed'
+    initial_billed_status = 'initial_test_billed'
+    post_test_billed_status = 'test_result_billed'
+    any = 'any'
+
+
+class SortEnum(str, Enum):
+    desc = 'DESC'
+    asc = 'ASC'
+
+
+class PreConsultationEnum(str, Enum):
+    pre_consulted = 1
+    not_pre_consulted = 0
+    any = 'any'
+
+
+class ProviderReviewedEnum(str, Enum):
+    provider_reviewed = 'completed'
+    not_provider_reviewed = 'pending'
     any = 'any'
 
 
@@ -64,7 +82,11 @@ class GetBillingListReq(BaseModel):
     offset: int = 0
     from_dt: str
     to_dt: str
-    status: Optional[BillingStatusEnum] = None
+    status: BillingStatusEnum = 'any'
+    sort: SortEnum = 'DESC'
+    limit: int = 20
+    pre_consultation: PreConsultationEnum = 'any'
+    provider_reviewed: ProviderReviewedEnum = 'any'
 
 
 class User(BaseModel):
