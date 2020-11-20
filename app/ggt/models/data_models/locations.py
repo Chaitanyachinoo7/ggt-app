@@ -269,7 +269,21 @@ def create_location(location):
             location.image_thumbnail
         )
         location_id = exec_insert(sql, vals)
-        return location_id
+        s_id = 2000 + int(location_id)
+
+        site_code = 'GGT{}{}'.format(location.st, str(s_id))
+
+        sql_2 = """UPDATE locations
+                SET 
+                    site_code = %s
+                WHERE id = %s"""
+
+        vals_2 = (site_code, location_id)
+        update = exec_update(sql_2, vals_2)
+        if update:
+            return location_id
+        else:
+            return None
 
     except Exception as err:
         log_generic(

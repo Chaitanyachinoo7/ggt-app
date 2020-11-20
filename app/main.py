@@ -70,7 +70,7 @@ app.include_router(
 )
 
 ############################################################
-# rt_provider route is only for role - Clinical Provider   #
+# rt_clinical_provider route is only for role - Clinical Provider   #
 ############################################################
 app.include_router(
     rt_clinical_provider.router,

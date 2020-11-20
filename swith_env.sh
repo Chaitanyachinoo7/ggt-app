@@ -17,3 +17,4 @@ pipenv lock --requirements > app/requirements.txt
 cp app/ggt/configs/config-${ENV}.yml app/ggt/configs/config.yml
 cp app/ggt/configs/log-config-${ENV}.yml app/ggt/configs/log-config.yml
 cp app/ggt/configs/gcp-service-account-${ENV}.json app/ggt/configs/gcp-service-account.json
+cp app/ggt/configs/buildconfigs/cloudbuild-${ENV}.yml app/ggt/configs/buildconfigs/config.yml

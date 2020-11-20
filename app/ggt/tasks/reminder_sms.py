@@ -46,7 +46,7 @@ from ggt.models.data_models.tasks_local_cache import (
 session_id = generate_session_id()
 
 
-def task_process_sms_reminders():
+def task_process_daily_sms_reminders():
     try:
         start = time.time()
         print_header(
@@ -57,19 +57,15 @@ def task_process_sms_reminders():
             task_session_id=session_id,
             info='SMS Reminders started')
         rows = get_appointments_for_today()
-        print(rows)
         data = []
-        # for row in rows:
-        # phone_number = row['phone_number']
-        # data.append(
-        #     (phone_number, prepare_sms_text(row))
-        # )
-        data.append(
-            ("+14372309014", prepare_sms_text(rows[0])[0])
-        )
-        data.append(
-            ("+14372309014", prepare_appointment_details(rows[0]))
-        )
+        for row in rows:
+            phone_number = row['phone_number']
+            data.append(
+                (phone_number, prepare_sms_text(row))
+            )
+            data.append(
+                (phone_number, prepare_appointment_details(row))
+            )
         batch_enqueue_sms_notifications(data)
         log_generic(
             type="info",
@@ -79,6 +75,9 @@ def task_process_sms_reminders():
 
         print_header(
             '\n\n****************** COMPLETED ******************************\nElapsed Time: {}\n'.format(time.time() - start))
+        return {
+            "success": True
+        }
     except Exception as err:
         print(err)
 
@@ -119,7 +118,6 @@ def prepare_sms_text(appointment):
 
 
 def prepare_appointment_details(appointment):
-    print(appointment["scheduled_dt"].strftime('%I:%M%p'))
     return "Please make sure to bring and show this QR code {}/appointment/{}/{}, and Acceptable ID when you arrive at the test. We will scan the QR code to check you in for testing. Please no eating or drinking at least 15 minutes prior to testing as this may impact your test results.".format(
         get_config_val('base_url'), str(appointment["id"]).rjust(6, '0'), str(appointment["dob"]).replace('-', ''))
 

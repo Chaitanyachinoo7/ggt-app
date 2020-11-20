@@ -1,7 +1,13 @@
 app_name: COVID-19 Testing
+<<<<<<< HEAD
 log_level: DEBUG
 base_url: https://start-qa.GoGetTested.com
 env: QA
+=======
+log_level: INFO
+base_url: https://start.GoGetTested.com
+env: DEV
+>>>>>>> 95635f8622d9fe5c7f614de8381283c4343c1ad6
 
 aws:
   region: us-east-1
@@ -49,7 +55,7 @@ google:
     thumbnail_size: 110x110
     markers_color: red
     markers_size: tiny
-    
+
 email:
   template_folder: /templates/email/
 
@@ -65,7 +71,11 @@ vendors:
   auth0:
     auth0_domain: gogettested.us.auth0.com
     api_audience: https://pfe-api.gogettested.com/api
+<<<<<<< HEAD
     algorithms: ["RS256"]
+=======
+    algorithms: ['RS256']
+>>>>>>> 95635f8622d9fe5c7f614de8381283c4343c1ad6
     roles: http://roles.ggt/roles
 
   healthtrackrx:

@@ -14,8 +14,12 @@ from ggt.models.workflow_models.provider_field_testing_flow import (
 
 router = APIRouter()
 
+<<<<<<< HEAD:app/ggt/routers/rt_clinical_provider.py
 # @router.get("/get_workstations", dependencies=[Security(authorize_user, scopes=[p.GET_WORKSTATIONS])])
 @router.get("/get_workstations", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+=======
+@router.get("/get_workstations", dependencies=[Security(authorise_user, scopes=[p.GET_WORKSTATIONS])])
+>>>>>>> 95635f8622d9fe5c7f614de8381283c4343c1ad6:app/ggt/routers/rt_clinical_provider.py
 async def api_provider_get_workstations():
     return provider_get_workstations()
 

@@ -9,12 +9,12 @@ formatters:
 handlers:
   console:  # handler which will log into stdout
     class: logging.StreamHandler
-    level: DEBUG
+    level: INFO
     formatter: standard  # Use formatter defined above
     stream: ext://sys.stdout
   file:  # handler which will log into file
     class: logging.handlers.RotatingFileHandler
-    level: DEBUG
+    level: INFO
     formatter: standard  # Use formatter defined above
     filename: application.log
     maxBytes: 10485760 # 10MB
@@ -22,5 +22,10 @@ handlers:
     encoding: utf8
 
 root:  # Loggers are organized in hierarchy - this is the root logger config
+<<<<<<< HEAD
   level: DEBUG
+=======
+  level: INFO
+  #handlers: [console, file]  # Attaches both handler defined above
+>>>>>>> 95635f8622d9fe5c7f614de8381283c4343c1ad6
   handlers: [console]  # Attaches both handler defined above

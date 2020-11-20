@@ -2,8 +2,8 @@ from fastapi import (
     APIRouter,
     BackgroundTasks,
     Request,
-    Depends, 
-    HTTPException, 
+    Depends,
+    HTTPException,
     Security
 )
 
@@ -14,6 +14,9 @@ from ggt.lib.constants import (
     DESCRIPTION,
     BACKGROUND_TASK_INITIATE_MESSAGE,
     AUTH_FAILED_MESSAGE
+)
+from ggt.tasks.reminder_sms import (
+    task_process_daily_sms_reminders
 )
 from ggt.lib.utils import is_admin
 from ggt.models.data_models.data_types import PermissionsEnum as p
@@ -32,7 +35,11 @@ router = APIRouter()
 
 # TODO: With Cloud Run, consider Disabling Background Task. Ideally all asynchronous operations finish before
 #  delivering response
+<<<<<<< HEAD
 #@router.post("/process_inbound_lab_reports", dependencies=[Security(authorize_user, scopes=[p.PROCESS_INBOUND_LAB_REPORTS])])
+=======
+# @router.post("/process_inbound_lab_reports", dependencies=[Security(authorise_user, scopes=[p.PROCESS_INBOUND_LAB_REPORTS])])
+>>>>>>> 95635f8622d9fe5c7f614de8381283c4343c1ad6
 @router.post("/process_inbound_lab_reports")
 async def api_process_inbound_lab_reports(background_tasks: BackgroundTasks):
     background_tasks.add_task(task_process_inbound_lab_reports)
@@ -42,7 +49,11 @@ async def api_process_inbound_lab_reports(background_tasks: BackgroundTasks):
     }
 
 
+<<<<<<< HEAD
 #@router.post("/process_process_outbound_lab_orders", dependencies=[Security(authorize_user, scopes=[p.PROCESS_PROCESS_OUTBOUND_LAB_ORDERS])])
+=======
+# @router.post("/process_process_outbound_lab_orders", dependencies=[Security(authorise_user, scopes=[p.PROCESS_PROCESS_OUTBOUND_LAB_ORDERS])])
+>>>>>>> 95635f8622d9fe5c7f614de8381283c4343c1ad6
 @router.post("/process_process_outbound_lab_orders")
 async def api_process_outbound_lab_orders(background_tasks: BackgroundTasks):
     background_tasks.add_task(task_process_outbound_lab_orders)
@@ -52,7 +63,11 @@ async def api_process_outbound_lab_orders(background_tasks: BackgroundTasks):
     }
 
 
+<<<<<<< HEAD
 #@router.post("/schedule_result_notifications_and_followups", dependencies=[Security(authorize_user, scopes=[p.SCHEDULE_RESULT_NOTIFICATIONS_AND_FOLLOWUPS])])
+=======
+# @router.post("/schedule_result_notifications_and_followups", dependencies=[Security(authorise_user, scopes=[p.SCHEDULE_RESULT_NOTIFICATIONS_AND_FOLLOWUPS])])
+>>>>>>> 95635f8622d9fe5c7f614de8381283c4343c1ad6
 @router.post("/schedule_result_notifications_and_followups")
 async def api_schedule_result_notifications_and_followups(background_tasks: BackgroundTasks):
     background_tasks.add_task(task_schedule_result_notifications_and_followups)
@@ -62,7 +77,11 @@ async def api_schedule_result_notifications_and_followups(background_tasks: Back
     }
 
 
+<<<<<<< HEAD
 #@router.post("/process_voice_queue", dependencies=[Security(authorize_user, scopes=[p.PROCESS_VOICE_QUEUE])])
+=======
+# @router.post("/process_voice_queue", dependencies=[Security(authorise_user, scopes=[p.PROCESS_VOICE_QUEUE])])
+>>>>>>> 95635f8622d9fe5c7f614de8381283c4343c1ad6
 @router.post("/process_voice_queue")
 async def api_process_voice_queue(background_tasks: BackgroundTasks):
     background_tasks.add_task(task_process_voice_queue)
@@ -72,21 +91,33 @@ async def api_process_voice_queue(background_tasks: BackgroundTasks):
     }
 
 
+<<<<<<< HEAD
 #@router.post("/process_email_queue", dependencies=[Security(authorize_user, scopes=[p.PROCESS_EMAIL_QUEUE])])
+=======
+# @router.post("/process_email_queue", dependencies=[Security(authorise_user, scopes=[p.PROCESS_EMAIL_QUEUE])])
+>>>>>>> 95635f8622d9fe5c7f614de8381283c4343c1ad6
 @router.post("/process_email_queue")
 async def api_process_email_queue():
     task_process_email_queue()
     return {STATUS: SUCCESS}
 
 
+<<<<<<< HEAD
 #@router.post("/process_sms_queue", dependencies=[Security(authorize_user, scopes=[p.PROCESS_SMS_QUEUE])])
+=======
+# @router.post("/process_sms_queue", dependencies=[Security(authorise_user, scopes=[p.PROCESS_SMS_QUEUE])])
+>>>>>>> 95635f8622d9fe5c7f614de8381283c4343c1ad6
 @router.post("/process_sms_queue")
 async def api_process_sms_queue():
     task_process_sms_queue()
     return {STATUS: SUCCESS}
 
 
+<<<<<<< HEAD
 #@router.post("/populate_location_thumbnails", dependencies=[Security(authorize_user, scopes=[p.POPULATE_LOCATION_THUMBNAILS])])
+=======
+# @router.post("/populate_location_thumbnails", dependencies=[Security(authorise_user, scopes=[p.POPULATE_LOCATION_THUMBNAILS])])
+>>>>>>> 95635f8622d9fe5c7f614de8381283c4343c1ad6
 @router.post("/populate_location_thumbnails")
 async def api_populate_location_thumbnails():
     task_populate_location_thumbnails()
@@ -106,3 +137,9 @@ async def api_process_outbound_lab_orders(background_tasks: BackgroundTasks):
         STATUS: SUCCESS,
         DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
     }
+
+
+@router.post("/process_daily_appointment_reminders", dependencies=[Security(authorise_user, scopes=[p.ANONYMOUS])])
+async def reminder_sms():
+    task_process_daily_sms_reminders()
+    return {STATUS: SUCCESS}
