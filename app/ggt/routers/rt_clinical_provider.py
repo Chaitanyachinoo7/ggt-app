@@ -36,3 +36,4 @@ async def api_provider_update_appointment(provider_update_appointment_request: P
 async def api_scan_label(scan_label_request: ScanLabelRequest):
     return scan_label(scan_label_request.appointment_id)
 
+
