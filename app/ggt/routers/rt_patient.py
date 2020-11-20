@@ -121,14 +121,6 @@ async def api_lookup_test_result(token: str, dob: str):
     )
 
 
-<<<<<<< HEAD
-@router.get("/appointment/reminders", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
-def reminder_sms():
-    return task_process_sms_reminders()
-
-
-=======
->>>>>>> 95635f8622d9fe5c7f614de8381283c4343c1ad6
 @router.post("/verify_existing_patient")
 async def api_verify_existing_patient(req: VerifyExistingPatientRequest):
     return verify_existing_patient(
