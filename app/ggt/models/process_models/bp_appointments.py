@@ -139,10 +139,6 @@ def __formatted_patient_dob(appointment):
 
 def __next_action(appointment, pre_labeled=False):
     switcher = {
-        'scheduled': 'check_in',
-        'checked_in': 'start_test',
-        'test_in_progress': 'scan_vial',
-        'vial_scanned': 'end_test',
         c.APPOINTMENT_STATUS_SCHEDULED: c.APPOINTMENT_ACTION_CHECK_IN,
         c.APPOINTMENT_STATUS_CHECKED_IN: c.APPOINTMENT_ACTION_START_TEST,
         c.APPOINTMENT_STATUS_TEST_IN_PROGRESS: c.APPOINTMENT_ACTION_SCAN_VIAL,
