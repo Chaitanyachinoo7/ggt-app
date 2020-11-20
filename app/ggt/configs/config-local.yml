@@ -11,6 +11,7 @@ aws:
 
 gcp:
   service_account_file: gcp-service-account-prod.json
+  service_account_file_prod: gcp-service-account-prod.json
   default_link_expiration_time_limit: 300
   all_inbound_files_bucket_name: ggt-all-inbound-files-prod
   lab_reports_bucket_name: ggt-lab-reports-prod
