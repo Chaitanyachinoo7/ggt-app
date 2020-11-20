@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Security
 
-from ggt.lib.auth import authorise_user
+from ggt.lib.auth import authorize_user
 from ggt.models.data_models.data_types import (
     PermissionsEnum as p, GetBillingListReq, UpdateBilligStatus, InsuranceRecord, InsuranceUpdateRecord,
     InsuranceIDRecord)
@@ -11,42 +11,42 @@ from ggt.models.workflow_models.billing_flow import get_billing_list, update_bil
 router = APIRouter()
 
 
-@router.post("/get_billing_list", dependencies=[Security(authorise_user, scopes=[p.GET_BILLING_LIST])])
+@router.post("/get_billing_list", dependencies=[Security(authorize_user, scopes=[p.GET_BILLING_LIST])])
 async def api_get_billing_list(bill_req: GetBillingListReq):
     return get_billing_list(bill_req)
 
 
-@router.post("/update_billing_status", dependencies=[Security(authorise_user, scopes=[p.UPDATE_BILLING_STATUS])])
+@router.post("/update_billing_status", dependencies=[Security(authorize_user, scopes=[p.UPDATE_BILLING_STATUS])])
 async def api_update_billing_status(bill_req: UpdateBilligStatus):
     return update_billing_status(bill_req)
 
 
-@router.get("/image/{image_id}", dependencies=[Security(authorise_user, scopes=[p.VIEW_INSURANCE_CARD])])
+@router.get("/image/{image_id}", dependencies=[Security(authorize_user, scopes=[p.VIEW_INSURANCE_CARD])])
 async def api_get_image_from_bucket(image_id: str):
     return get_image_from_bucket(image_id)
 
 
-@router.get("/report/{report_id}", dependencies=[Security(authorise_user, scopes=[p.VIEW_TEST_REPORT])])
+@router.get("/report/{report_id}", dependencies=[Security(authorize_user, scopes=[p.VIEW_TEST_REPORT])])
 async def api_get_report_from_bucket(report_id: str):
     return get_report_from_bucket(report_id)
 
 
-@router.post("/create_insurance_record", dependencies=[Security(authorise_user, scopes=[p.CREATE_INSURANCE_RECORD])])
+@router.post("/create_insurance_record", dependencies=[Security(authorize_user, scopes=[p.CREATE_INSURANCE_RECORD])])
 async def api_create_insurance_record(record: InsuranceRecord):
     return create_insurance_record(record)
 
 
-@router.post("/update_insurance_record", dependencies=[Security(authorise_user, scopes=[p.UPDATE_INSURANCE_RECORD])])
+@router.post("/update_insurance_record", dependencies=[Security(authorize_user, scopes=[p.UPDATE_INSURANCE_RECORD])])
 async def api_update_insurance_record(record: InsuranceUpdateRecord):
     return update_insurance_record(record)
 
 
-@router.post("/validate_insurance_record", dependencies=[Security(authorise_user, scopes=[p.VALIDATE_INSURANCE_RECORD])])
+@router.post("/validate_insurance_record", dependencies=[Security(authorize_user, scopes=[p.VALIDATE_INSURANCE_RECORD])])
 async def api_validate_insurance_record(record: InsuranceIDRecord):
     return validate_insurance_record(record)
 
 
-@router.post("/delete_insurance_record", dependencies=[Security(authorise_user, scopes=[p.DELETE_INSURANCE_RECORD])])
+@router.post("/delete_insurance_record", dependencies=[Security(authorize_user, scopes=[p.DELETE_INSURANCE_RECORD])])
 async def api_delete_insurance_record(record: InsuranceIDRecord):
     return delete_insurance_record(record)
 
