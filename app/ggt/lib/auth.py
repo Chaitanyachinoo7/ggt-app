@@ -103,13 +103,15 @@ async def get_rsa_key_auth0(token):
         }, 401)
 
 
-async def authorise_user(security_scopes: SecurityScopes, token: str = Depends(oauth2_scheme)):
+async def authorize_user(security_scopes: SecurityScopes, token: str = Depends(oauth2_scheme)):
+    if (get_config_val('env') == 'DEV'): #Allow auth override for dev
+        return True
     try:
         scopes = security_scopes.scopes
         if p.ANONYMOUS in scopes:
             return True
         elif token is not None:
-            auth = await authorise(scopes, token)
+            auth = await authorize(scopes, token)
             return auth
         else:
             raise HTTPException(status_code=401, detail=AUTH_FAILED_MESSAGE)
@@ -119,7 +121,7 @@ async def authorise_user(security_scopes: SecurityScopes, token: str = Depends(o
         return None
 
 
-async def authorise(scopes, token):
+async def authorize(scopes, token):
     """Determines if the Access Token is valid
     """
     rsa_key = await get_rsa_key(token)

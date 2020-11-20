@@ -533,7 +533,9 @@ def __process_schedule_rule(rule):
                             slot_increment,
                             'available'
                         )
-                        rows.append(row)
+
+                        for _ in range(rule['slot_multiplier']):
+                            rows.append(row)
 
                         day_curr_time = day_curr_appointment_end_time
 
