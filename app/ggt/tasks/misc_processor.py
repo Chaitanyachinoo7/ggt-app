@@ -47,14 +47,15 @@ def task_process_misc():
         task_session_id=session_id,
         info='Begin Processing Misc Task')
 
-    # upload_insurance_images_to_gcp()
-    sync_appointments_with_schedule_slots()
+    #upload_insurance_images_to_gcp()
+    #sync_appointments_with_schedule_slots()
+    upload_insurance_images_to_gcp_with_small_table()
 
     log_generic(
         type=INFO,
         function=whoami(),
         task_session_id=session_id,
-        info='End Processing outbound Lab Reports')
+        info='End Processing Misc Task')
     print('\n\n************************************************\n\n')
 
 
@@ -107,7 +108,7 @@ def sync_appointments_with_schedule_slots():
 
 
 def upload_insurance_images_to_gcp():
-    limit = 100000
+    limit = 500000
     increment = 1000
     start = random.randint(0, 100000)
     start = 0
@@ -146,6 +147,46 @@ def upload_insurance_images_to_gcp():
 
                 except Exception as err:
                     print(err)
+
+    except Exception as err:
+        print(err)
+
+def upload_insurance_images_to_gcp_with_small_table():
+    print('starting...')
+    try:
+        sql = """
+        SELECT 
+            q.id, a.id as appointment_id, q.patient_id, insurance_photo
+        FROM
+            patient_questionnaires q
+                JOIN
+            appointments a ON (a.patient_id = q.patient_id)
+        WHERE length(q.insurance_photo)>10
+        LIMIT 100
+        """
+        rows = read_rows(sql)
+
+        for row in rows:
+            try:
+                qid = row['id']
+                insurance_photo = row['insurance_photo']
+                appointment_id = row['appointment_id']
+
+                if insurance_photo is None or len(insurance_photo) < 250:
+                    pass
+                else:
+                    if "," in insurance_photo:
+                        base64string = insurance_photo.split(",")[1]
+
+                    dest_file_name = '{}.png'.format(appointment_id)
+                    upload_insurance_card_from_base64_string(
+                        base64string, 'image/png', dest_file_name)
+
+                    print('uploaded image: {}'.format(dest_file_name))
+                    remove_image_from_questionnnaires_table(qid)
+
+            except Exception as err:
+                print(err)
 
     except Exception as err:
         print(err)

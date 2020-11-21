@@ -9,6 +9,7 @@ ENV="${1}"
 PROJECT_ID='ggt-pfe-'${ENV}
 SERVICE_NAME='ggt-pfe-services'
 REGION='us-central1'
+VPC='default'
 
 gcloud config configurations activate ggt-pfe-${ENV}
 
@@ -27,6 +28,8 @@ cp app/ggt/configs/buildconfigs/cloudbuild-${ENV}.yml app/ggt/configs/buildconfi
 #build and deploy all in GCP
 #gcloud builds submit --tag gcr.io/${PROJECT_ID}/${SERVICE_NAME}
 gcloud builds submit --config app/ggt/configs/buildconfigs/cloudbuild.yml .
-gcloud run deploy --image gcr.io/${PROJECT_ID}/${SERVICE_NAME} --platform managed  --allow-unauthenticated --region ${REGION} ${SERVICE_NAME} 
+#gcloud run deploy --image gcr.io/${PROJECT_ID}/${SERVICE_NAME} --platform managed  --allow-unauthenticated --region ${REGION} ${SERVICE_NAME}
+#gcloud run deploy --image gcr.io/${PROJECT_ID}/${SERVICE_NAME} --platform managed  --allow-unauthenticated --region ${REGION} ${SERVICE_NAME}
 
+gcloud beta run deploy ${SERVICE_NAME} --image=gcr.io/${PROJECT_ID}/${SERVICE_NAME} --vpc-connector=vpc-connector-${ENV}  --vpc-egress=all --platform=managed  --allow-unauthenticated --region=${REGION}
 #gcloud run services update-traffic ${SERVICE_NAME} --to-latest
