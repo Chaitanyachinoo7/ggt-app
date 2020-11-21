@@ -45,8 +45,8 @@ router = APIRouter()
 
 def formatted_sms_message(first_name, token):
     base_url = get_config_val('base_url')
-    return "Hi {}, your GoGetTested.com COVID-19 test results are available. Please follow this link to view your " \
-           "results {}/r/{}".format(first_name, base_url, token)
+    return "Hi {}, your COVID-19 test results are ready. " \
+           "Follow this link to view {}/r/{} reply STOP to cancel msgs".format(first_name, base_url, token)
 
 
 def formatted_email_message(first_name, token, to_email):
