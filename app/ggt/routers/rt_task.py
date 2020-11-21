@@ -1,3 +1,6 @@
+import json
+
+import requests
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -97,7 +100,7 @@ async def api_process_sms_queue(request: Request):
 
 
 @router.post("/misc_processor", dependencies=[Security(authorize_user, scopes=[p.MISC_PROCESSOR])])
-async def api_process_outbound_lab_orders(background_tasks: BackgroundTasks):
+async def api_misc_processor(background_tasks: BackgroundTasks):
     background_tasks.add_task(task_process_misc)
     return {
         STATUS: SUCCESS,
@@ -109,3 +112,10 @@ async def api_process_outbound_lab_orders(background_tasks: BackgroundTasks):
 async def reminder_sms():
     task_process_daily_sms_reminders()
     return {STATUS: SUCCESS}
+
+
+@router.post("/get_my_ip", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_get_my_ip():
+    r = requests.get('http://curlmyip.org/')
+    return {"my_ip": r.text}
+
