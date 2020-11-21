@@ -47,14 +47,14 @@ def task_process_misc():
         task_session_id=session_id,
         info='Begin Processing Misc Task')
 
-    # upload_insurance_images_to_gcp()
-    sync_appointments_with_schedule_slots()
+    upload_insurance_images_to_gcp()
+    #sync_appointments_with_schedule_slots()
 
     log_generic(
         type=INFO,
         function=whoami(),
         task_session_id=session_id,
-        info='End Processing outbound Lab Reports')
+        info='End Processing Misc Task')
     print('\n\n************************************************\n\n')
 
 
@@ -107,10 +107,10 @@ def sync_appointments_with_schedule_slots():
 
 
 def upload_insurance_images_to_gcp():
-    limit = 100000
+    limit = 500000
     increment = 1000
     start = random.randint(0, 100000)
-    start = 0
+    start = 225000
     print('starting at: ', start)
     try:
         for i in range(start, limit, increment):
