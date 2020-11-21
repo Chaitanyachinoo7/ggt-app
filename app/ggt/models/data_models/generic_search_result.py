@@ -243,7 +243,7 @@ def find_patients(first_name='', middle_name='', last_name='', dob='', phone_num
             q.autoimmune_disease AS autoimmune_disease,
             q.other_chronic AS other_chronic,
             q.allergies AS allergies,
-            '' AS q.insurance_photo,
+            '' AS insurance_photo,
             q.insurance_details,
             a.id AS appointment_id,
             a.scheduled_dt AS scheduled_dt,
