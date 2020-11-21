@@ -159,8 +159,10 @@ def __next_action(appointment, pre_labeled=False):
 
 #TODO: [GGT-80] Move copy to CMS
 def __send_test_complete_sms(appointment):
-    message = "Hi {}, thank you for getting tested with GoGetTested.com. Your COVID-19 test results will be available in 48-96hours. If you have any questions, please visit GoGetTested.com".format(
-        appointment.patient.first_name)
+    message = "" \
+        "Hi {}, thank you for getting tested with GoGetTested.com. Your COVID-19 test results will be available in 48-96hours. " \
+        "If you have any questions, please visit GoGetTested.com Reply STOP to cancel msgs".format(appointment.patient.first_name)
+
     log_generic(
         type="info",
         first_name=appointment.patient.first_name,
