@@ -35,7 +35,6 @@ def create_patient_questionnaire(booking_req):
         INSERT INTO 
             patient_questionnaires
             (
-                id,
                 patient_id, 
                 group_code, 
                 symptom_fever, 
@@ -76,11 +75,10 @@ def create_patient_questionnaire(booking_req):
                 flu_screen_life_threatening_reaction,
                 flu_screen_egg_allergy
             )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
 
         vals = (
-            questionnaire_id,
             booking_req.patient_id, 
             booking_req.group_code, 
             booking_req.symptom_fever, 
@@ -123,7 +121,8 @@ def create_patient_questionnaire(booking_req):
             booking_req.flu_screen_life_threatening_reaction,
             booking_req.flu_screen_egg_allergy
         )
-        result = exec_insert(sql, vals)
+
+        questionnaire_id = exec_insert(sql, vals)
         return questionnaire_id 
 
     except Exception as err:
