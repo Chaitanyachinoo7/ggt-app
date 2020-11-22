@@ -18,6 +18,7 @@ from ggt.lib.constants import (
     BACKGROUND_TASK_INITIATE_MESSAGE,
     AUTH_FAILED_MESSAGE
 )
+from ggt.tasks.archive_notifications import archive_processed_notifications
 from ggt.tasks.reminder_sms import (
     task_process_daily_sms_reminders
 )
@@ -51,6 +52,16 @@ async def api_process_inbound_lab_reports(background_tasks: BackgroundTasks):
 @router.post("/process_process_outbound_lab_orders", dependencies=[Security(authorize_user, scopes=[p.PROCESS_PROCESS_OUTBOUND_LAB_ORDERS])])
 async def api_process_outbound_lab_orders(background_tasks: BackgroundTasks):
     background_tasks.add_task(task_process_outbound_lab_orders)
+    return {
+        STATUS: SUCCESS,
+        DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
+    }
+
+
+@router.post("/archive_processed_notifications", dependencies=[Security(authorize_user,
+                                                                        scopes=[p.ARCHIVE_PROCESSED_NOTIFICATIONS])])
+async def api_archive_processed_notifications(background_tasks: BackgroundTasks):
+    background_tasks.add_task(archive_processed_notifications)
     return {
         STATUS: SUCCESS,
         DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE

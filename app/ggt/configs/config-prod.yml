@@ -16,6 +16,7 @@ gcp:
   all_inbound_files_bucket_name: ggt-all-inbound-files-prod
   lab_reports_bucket_name: ggt-lab-reports-prod
   insurance_cards_bucket_name: ggt-insurance-cards-prod
+  notification_archive_bucket_name: ggt-notification-archive
 
 databases:
   mysql:
