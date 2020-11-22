@@ -53,6 +53,7 @@
    "super_admin":[
       "process_inbound_lab_reports",
       "process_process_outbound_lab_orders",
+      "archive_processed_notifications",
       "process_voice_queue",
       "process_email_queue",
       "process_sms_queue",
@@ -147,6 +148,7 @@
    "Super Admin":[
       "process_inbound_lab_reports",
       "process_process_outbound_lab_orders",
+      "archive_processed_notifications",
       "process_voice_queue",
       "process_email_queue",
       "process_sms_queue",

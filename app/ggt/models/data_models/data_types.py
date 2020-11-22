@@ -488,6 +488,7 @@ class PermissionsEnum(str, Enum):
     UPDATE_INSURANCE_RECORD = 'update_insurance_record'
     VALIDATE_INSURANCE_RECORD = 'validate_insurance_record'
     DELETE_INSURANCE_RECORD = 'delete_insurance_record'
+    ARCHIVE_PROCESSED_NOTIFICATIONS = 'archive_processed_notifications'
 
 
 class GgtPatient(BaseModel):
