@@ -19,11 +19,12 @@ from ggt.lib.constants import (
     AUTH_FAILED_MESSAGE
 )
 from ggt.tasks.archive_notifications import archive_processed_notifications
+from ggt.tasks.mass_sms_notifications import notify_patients
 from ggt.tasks.reminder_sms import (
     task_process_daily_sms_reminders
 )
 from ggt.lib.utils import is_admin
-from ggt.models.data_models.data_types import PermissionsEnum as p
+from ggt.models.data_models.data_types import PermissionsEnum as p, PatientNotificationRequest
 from ggt.tasks.call_queue_processor import task_process_voice_queue
 from ggt.tasks.email_queue_processor import task_process_email_queue
 from ggt.tasks.inbound_lab_reports import task_process_inbound_lab_reports
@@ -90,6 +91,16 @@ async def api_process_voice_queue(background_tasks: BackgroundTasks):
 async def api_process_email_queue():
     task_process_email_queue()
     return {STATUS: SUCCESS}
+
+
+@router.post("/notify_patients")#,
+            # dependencies=[Security(authorize_user, scopes=[p.GET_SCHEDULE_GENERATION_RULES])])
+async def api_notify_patients(request: PatientNotificationRequest, background_tasks: BackgroundTasks):
+    background_tasks.add_task(notify_patients, request)
+    return {
+        STATUS: SUCCESS,
+        DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
+    }
 
 
 @router.post("/process_sms_queue", dependencies=[Security(authorize_user, scopes=[p.PROCESS_SMS_QUEUE])])

@@ -421,6 +421,21 @@ class LookupAppointmentRequest(BaseModel):
     dob: str = None
 
 
+class NotificationEnum(str, Enum):
+    reschedule = 'reschedule'
+    cancelled = 'cancelled'
+
+
+class PatientNotificationRequest(BaseModel):
+    location_id: str
+    start_dt: str
+    end_dt: str
+    type: NotificationEnum
+    reschedule_mins: int = None
+    reschedule_hours: int = None
+    reschedule_days: int = None
+
+
 class ScanLabelRequest(BaseModel):
     appointment_id: str = None
 
