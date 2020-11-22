@@ -103,7 +103,7 @@ def get_available_sms_notifications(limit):
 def insert_email_archive_table(records):
     print('Archiving  {} email notifications'.format(len(records)))
     sql = """INSERT INTO archived_email_notification
-            (notification_id,
+            (id,
             from_email,
             from_name,
             to_email,
@@ -131,7 +131,7 @@ def insert_email_archive_table(records):
 def insert_sms_archive_table(records):
     print('Archiving  {} sms notifications'.format(len(records)))
     sql = """INSERT INTO archived_sms_notification
-            (notification_id,
+            (id,
             to_number,
             create_dt,
             update_dt)
@@ -162,7 +162,7 @@ def delete_archived_email_record():
                             FROM
                                 email_notification_queue AS en
                             INNER JOIN archived_email_notification AS an 
-                                ON en.id = an.notification_id) as 
+                                ON en.id = an.id) as 
                             temp);"""
     return exec_delete(sql)
 
@@ -179,7 +179,7 @@ def delete_archived_sms_record():
                             FROM
                                 sms_notification_queue AS en
                             INNER JOIN archived_sms_notification AS an 
-                                ON en.id = an.notification_id) as 
+                                ON en.id = an.id) as 
                             temp);"""
     return exec_delete(sql)
 
@@ -189,7 +189,7 @@ def archive_sms_notifications(records):
     for rec in records:
         note = rec['message']
         note = str(note)
-        destination_blob_name = "{}_sms_notification_archive.json".format(rec['id'])
+        destination_blob_name = "{}_sms_{}_{}.json".format(rec['id'], rec['to_number'],  rec['update_dt'])
         upload_archived_notification(note, destination_blob_name)
 
 
@@ -198,7 +198,7 @@ def archive_email_notifications(records):
     for rec in records:
         note = rec['html_content']
         note = str(note)
-        destination_blob_name = "{}_email_notification_archive.json".format(rec['id'])
+        destination_blob_name = "{}_email_{}_{}.json".format(rec['id'], rec['to_email'],  rec['update_dt'])
         upload_archived_notification(note, destination_blob_name)
 
 
