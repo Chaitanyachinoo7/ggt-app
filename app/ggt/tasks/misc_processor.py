@@ -16,6 +16,7 @@ from ggt.lib.utils import (
 
 from ggt.lib.adapters.mysql_adapter import (
     exec_insert,
+    exec_batch_execute,
     exec_update,
     read_row,
     read_rows
@@ -25,6 +26,8 @@ from ggt.lib.storage import (
     file_exists_in_insurance_cards,
     upload_insurance_card_from_base64_string
 )
+
+from ggt.lib.email import render_template
 
 import ggt.lib.constants as c
 
@@ -47,9 +50,10 @@ def task_process_misc():
         task_session_id=session_id,
         info='Begin Processing Misc Task')
 
-    #upload_insurance_images_to_gcp()
-    #sync_appointments_with_schedule_slots()
-    upload_insurance_images_to_gcp_with_small_table()
+    # upload_insurance_images_to_gcp()
+    # sync_appointments_with_schedule_slots()
+    # upload_insurance_images_to_gcp_with_small_table()
+    # process_email_notifications()
 
     log_generic(
         type=INFO,
@@ -57,6 +61,114 @@ def task_process_misc():
         task_session_id=session_id,
         info='End Processing Misc Task')
     print('\n\n************************************************\n\n')
+
+
+def process_sms_notifications():
+    rows = get_appointments()
+    data = []
+    for row in rows:
+        phone_number = row['phone_number']
+        data.append(
+            (phone_number, prepare_sms_text(row))
+        )
+
+    batch_enqueue_sms_notifications(data)
+
+
+def process_email_notifications():
+    rows = get_appointments()
+    data = []
+
+    for row in rows:
+        email = formatted_email_message(row)
+
+        data.append(
+            (email['from_email'], email['from_name'],
+             email['to_email'], email['subject'], email['html_content'])
+        )
+
+    batch_enqueue_email_notifications(data)
+
+
+def formatted_email_message(row):
+    from_email = get_config_val('notifications.from_email')
+    from_name = get_config_val('notifications.from_name')
+    subject = "{}, Your Appointment has changed".format(row['first_name'])
+
+    template_vars = {
+        "first_name": row['first_name']
+    }
+
+    template_name = 'GGT-4-APPOINTMENT-RESCHEDULE-EMAIL.html'
+    html_content = render_template(template_name, **template_vars)
+
+    email_message = {
+        'from_email': from_email,
+        'from_name': from_name,
+        'to_email': row['email'],
+        'subject': subject,
+        'html_content': html_content
+    }
+
+    return email_message
+
+
+def batch_enqueue_email_notifications(data):
+    try:
+        sql = """
+            INSERT INTO email_notification_queue
+                (from_email, from_name, to_email, subject, html_content)
+            VALUES
+                (%s, %s, %s, %s, %s);
+        """
+        exec_batch_execute(sql, data)
+        return True
+
+    except Exception as err:
+        print("err:", err)
+        return False
+
+
+def batch_enqueue_sms_notifications(data):
+    try:
+        sql = """
+            INSERT INTO sms_notification_queue
+                (to_number,message)
+            VALUES
+                (%s, %s);
+        """
+        exec_batch_execute(sql, data)
+
+    except Exception as err:
+        print("err:", err)
+
+
+def get_appointments():
+    try:
+        sql = """
+        SELECT 
+            p.first_name, p.phone_number, p.email
+        FROM
+            appointments a
+            JOIN patients p ON a.patient_id = p.id 
+        WHERE
+            location_id IN (152 , 72, 98, 110, 20, 166, 174, 140)
+                AND scheduled_dt > '2020-11-23'
+                AND status = 'scheduled'
+        """
+        return read_rows(sql)
+
+    except Exception as err:
+        print(err)
+
+
+def prepare_sms_text(appointment):
+    return """Hi {}, we’ve had to close the testing location where you have registered for your COVID-19 test. We apologize for the inconvenience. 
+
+Please visit GoGetTested.com and register for another appointment at a convenient location. Thank you for choosing GoGetTested.
+
+Reply STOP to cancel msgs
+    """.format(appointment["first_name"])
 
 
 def sync_appointments_with_schedule_slots():
@@ -94,10 +206,11 @@ def sync_appointments_with_schedule_slots():
                 LIMIT 1
             """
             vals = (row['id'], row['scheduled_dt'], row['location_id'])
-            #if exec_update(sql, vals):
+            # if exec_update(sql, vals):
             #    print(row['id'], row['scheduled_dt'])
-            
-            print("""UPDATE schedules SET status = 'booked', appointment_id = {} WHERE start_dt = '{}' AND location_id = {} AND status = 'available' LIMIT 1""".format(row['id'], row['scheduled_dt'], row['location_id']))
+
+            print("""UPDATE schedules SET status = 'booked', appointment_id = {} WHERE start_dt = '{}' AND location_id = {} AND status = 'available' LIMIT 1""".format(
+                row['id'], row['scheduled_dt'], row['location_id']))
 
         except Exception as err:
             log_generic(
@@ -150,6 +263,7 @@ def upload_insurance_images_to_gcp():
 
     except Exception as err:
         print(err)
+
 
 def upload_insurance_images_to_gcp_with_small_table():
     print('starting...')

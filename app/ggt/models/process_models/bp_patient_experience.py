@@ -130,10 +130,10 @@ def bp_initiate_verification_flow(phone_number: str, with_otp: bool = True):
                 get_config_val('base_url'), phone_number, token)
 
             if with_otp:
-                message = "Enter the Code: {}\nOr click {}".format(
+                message = "Enter Code: {}\nOr click {} \nReply STOP to cancel msgs".format(
                     otp_code, activation_url)
             else:
-                message = "Thank you. You're now ready to schedule your GoGetTested COVID-19 test. To start follow this {} to schedule your test".format(
+                message = "Thank you. You're now ready to schedule your GoGetTested COVID-19 test by clicking on {}. \nReply STOP to cancel msgs".format(
                     activation_url)
 
             # send SMS
@@ -419,12 +419,10 @@ def __create_pending_entry(phone_number: str):
 
 def __send_qrcode_sms(appointment: GgtAppointment):
     try:
-        message = """Hi {}, thank you for completing your registration at GoGetTested.com. Your appointment is confirmed for {} at {}. 
-        Your appointment details can be found here\n {}/appointment/{}/{}
-        
-        Please make sure to bring and show this QR code, and an Acceptable ID when you arrive at the test. We will scan the QR code to check you in for testing. 
-        
-        Please, no eating or drinking at least 15 minutes prior to testing as this may impact your test results.""".format(
+        message = "" \
+            "Hi {}, thank you for completing your registration at GoGetTested.com " \
+            "Your appointment is confirmed for {} at {}. Details at {}/appointment/{}/{} " \
+            "\nReply STOP to cancel msgs".format(
             appointment.patient.first_name,
             appointment.date_text,
             appointment.location_text,
@@ -434,14 +432,10 @@ def __send_qrcode_sms(appointment: GgtAppointment):
         )
         result_1 = send_sms(appointment.patient.phone_number, message.replace('\t', ''))
 
-        '''
-        followup_message = """""".format(
-            get_config_val('base_url'),
-            str(appointment.id).rjust(6, '0'),
-            str(appointment.patient.dob).replace('-', '')
-        )
+        followup_message = "" \
+            "Please bring this QR code, and an Acceptable ID when you arrive at the test. " \
+            "We will scan the QR code to check you in for testing. Please, no eating or drinking at least 15 minutes prior to testing as this may impact your test results."
         result_2 = send_sms(appointment.patient.phone_number, followup_message)
-        '''
 
         log_generic(
             type=c.INFO,

@@ -39,7 +39,8 @@
       "get_schedule_generation_rules",
       "patient_lookup",
       "get_all_test_results",
-      "api"
+      "api",
+      "notify_patients"
    ],
    "billing_admin":[
       "lookup_appointment",
@@ -53,6 +54,7 @@
    "super_admin":[
       "process_inbound_lab_reports",
       "process_process_outbound_lab_orders",
+      "archive_processed_notifications",
       "process_voice_queue",
       "process_email_queue",
       "process_sms_queue",
@@ -96,7 +98,8 @@
 		"lock_provider_task",
 		"get_provider_processing_list",
        "get_billing_list",
-      "update_billing_status"
+      "update_billing_status",
+      "notify_patients"
    ],
    "customer_contact":[
       "sendsms",
@@ -147,6 +150,7 @@
    "Super Admin":[
       "process_inbound_lab_reports",
       "process_process_outbound_lab_orders",
+      "archive_processed_notifications",
       "process_voice_queue",
       "process_email_queue",
       "process_sms_queue",
