@@ -254,12 +254,11 @@ def get_orders_ready_to_transmit():
                 ELSE 'Unknown'
             END) AS gender,
             (CASE
-                WHEN
-                    ISNULL(t.sample_collection_start_dt)
-                THEN
-                    DATE_FORMAT(CONVERT_TZ(NOW(), '+00:00', '-06:00'),
-                            '%m/%d/%y')
-                ELSE DATE_FORMAT(t.sample_collection_start_dt, '%m/%d/%y')
+                WHEN (t.sample_collection_start_dt IS NOT NULL) THEN DATE_FORMAT(t.sample_collection_start_dt, '%m/%d/%y')
+                WHEN (t.sample_collection_end_dt IS NOT NULL) THEN DATE_FORMAT(t.sample_collection_end_dt, '%m/%d/%y')
+                WHEN (t.pre_ship_label_scan_dt IS NOT NULL) THEN DATE_FORMAT(t.pre_ship_label_scan_dt, '%m/%d/%y')
+                ELSE DATE_FORMAT(CONVERT_TZ(NOW(), '+00:00', '-06:00'),
+                        '%m/%d/%y')
             END) AS date_of_collection,
             (CASE
                 WHEN (p.race = 'race_american_indian') THEN 'American Indian or Alaska Native'
