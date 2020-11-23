@@ -103,7 +103,7 @@ def get_reschedule_sms_body(data):
                                                           data['new_addr3'] if data['new_addr3'] else '')
         }
 
-        message = "Hi (First Name), \nwe’ve had to close the testing location where you have registered for your " \
+        message = "Hi {}, \nwe’ve had to close the testing location where you have registered for your " \
                   "COVID-19 test. We apologize for the inconvenience this may cause. Please visit GoGetTested.com and " \
                   "register for another appointment at a convenient location. \nThank you for choosing " \
                   "GoGetTested.".format(template_vars['first_name'])
