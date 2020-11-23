@@ -32,7 +32,12 @@ notifications:
   from_email: support@gogettested.com
   from_name: Go Get Tested
   result_subject: COVID-19 Testing Result Available
+  relocate_subject: COVID-19 Testing Appointment is Re-Located
+  reschedule_subject: COVID-19 Testing Appointment is Re-Scheduled
   result_template: GGT-5-RESULT-AVAILABLE-EMAIL.html
+  relocate_template: GGT-7-APPOINTMENT-RESCHEDULE-EMAIL.html
+  reschedule_template: GGT-8-APPOINTMENT-RESCHEDULE-2-EMAIL.html
+
 
 twilio:
   account_sid: AC9cef9b4155030ee2683281ccc72d4001

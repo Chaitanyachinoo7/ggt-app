@@ -53,7 +53,8 @@
 		"update_insurance_record",
 		"validate_insurance_record",
 		"delete_insurance_record",
-		"archive_processed_notifications"
+		"archive_processed_notifications",
+		"notify_patients"
 ],
 	"roles":[
 		"clinical_provider",
