@@ -32,6 +32,7 @@ notifications:
   from_name: Go Get Tested
   result_subject: COVID-19 Testing Result Available
   result_template: GGT-5-RESULT-AVAILABLE-EMAIL.html
+  relocate_template: GGT-7-APPOINTMENT-RESCHEDULE-EMAIL.html
 
 twilio:
   account_sid: AC9cef9b4155030ee2683281ccc72d4001

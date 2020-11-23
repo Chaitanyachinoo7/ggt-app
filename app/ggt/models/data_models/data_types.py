@@ -421,6 +421,26 @@ class LookupAppointmentRequest(BaseModel):
     dob: str = None
 
 
+class NotificationEnum(str, Enum):
+    relocate = 'relocate'
+    reschedule = 'reschedule'
+
+
+class PatientRelocateNotificationRequest(BaseModel):
+    location_id: str
+    start_dt: str
+    end_dt: str
+    type: NotificationEnum = 'relocate'
+    next_location_id: str
+
+
+class PatientRescheduleNotificationRequest(BaseModel):
+    location_id: str
+    start_dt: str
+    end_dt: str
+    type: NotificationEnum = 'reschedule'
+
+
 class ScanLabelRequest(BaseModel):
     appointment_id: str = None
 
@@ -489,6 +509,7 @@ class PermissionsEnum(str, Enum):
     VALIDATE_INSURANCE_RECORD = 'validate_insurance_record'
     DELETE_INSURANCE_RECORD = 'delete_insurance_record'
     ARCHIVE_PROCESSED_NOTIFICATIONS = 'archive_processed_notifications'
+    NOTIFY_PATIENTS = 'notify_patients'
 
 
 class GgtPatient(BaseModel):
