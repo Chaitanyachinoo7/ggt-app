@@ -72,6 +72,15 @@ def upload_insurance_card_from_base64_string(base64string: str, content_type: st
     )
 
 
+def upload_archived_notification_from_base64_string(bucket_name: str, base64string: str, content_type: str, destination_blob_name: str) -> bool:
+    return upload_blob_from_string(
+        bucket_name,
+        base64string,
+        content_type,
+        destination_blob_name
+    )
+
+
 def get_temp_lab_report_url(filename):
     return get_signed_url(
         lab_reports_bucket_name,
@@ -157,13 +166,10 @@ async def serve_file(bucket_name, filename):
             service_account_file)
         bucket = storage_client.get_bucket(bucket_name)
         blob = bucket.blob(filename)
-        # image_bytes = blob.download_as_bytes()
-        # base64EncodedStr = base64.b64encode(image_bytes.encode('utf-8'))
         if blob.exists():
             return blob
         else:
-            blob = bucket.blob('card.png')
-            return blob
+            return None
     except Exception as err:
         log_generic(
             type=ERROR,

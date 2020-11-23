@@ -1,3 +1,6 @@
+import json
+
+import requests
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -15,11 +18,14 @@ from ggt.lib.constants import (
     BACKGROUND_TASK_INITIATE_MESSAGE,
     AUTH_FAILED_MESSAGE
 )
+from ggt.tasks.archive_notifications import archive_processed_notifications
+from ggt.tasks.mass_sms_notifications import notify_patients
 from ggt.tasks.reminder_sms import (
     task_process_daily_sms_reminders
 )
 from ggt.lib.utils import is_admin
-from ggt.models.data_models.data_types import PermissionsEnum as p
+from ggt.models.data_models.data_types import PermissionsEnum as p, PatientRelocateNotificationRequest, \
+    PatientRescheduleNotificationRequest
 from ggt.tasks.call_queue_processor import task_process_voice_queue
 from ggt.tasks.email_queue_processor import task_process_email_queue
 from ggt.tasks.inbound_lab_reports import task_process_inbound_lab_reports
@@ -54,6 +60,16 @@ async def api_process_outbound_lab_orders(background_tasks: BackgroundTasks):
     }
 
 
+@router.post("/archive_processed_notifications", dependencies=[Security(authorize_user,
+                                                                        scopes=[p.ARCHIVE_PROCESSED_NOTIFICATIONS])])
+async def api_archive_processed_notifications(background_tasks: BackgroundTasks):
+    background_tasks.add_task(archive_processed_notifications)
+    return {
+        STATUS: SUCCESS,
+        DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
+    }
+
+
 @router.post("/schedule_result_notifications_and_followups", dependencies=[Security(authorize_user, scopes=[p.SCHEDULE_RESULT_NOTIFICATIONS_AND_FOLLOWUPS])])
 async def api_schedule_result_notifications_and_followups(background_tasks: BackgroundTasks):
     background_tasks.add_task(task_schedule_result_notifications_and_followups)
@@ -78,6 +94,24 @@ async def api_process_email_queue():
     return {STATUS: SUCCESS}
 
 
+@router.post("/notify_patients_relocate", dependencies=[Security(authorize_user, scopes=[p.NOTIFY_PATIENTS])])
+async def api_notify_patients(request: PatientRelocateNotificationRequest, background_tasks: BackgroundTasks):
+    background_tasks.add_task(notify_patients, request)
+    return {
+        STATUS: SUCCESS,
+        DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
+    }
+
+
+@router.post("/notify_patients_reschedule", dependencies=[Security(authorize_user, scopes=[p.NOTIFY_PATIENTS])])
+async def api_notify_patients(request: PatientRescheduleNotificationRequest, background_tasks: BackgroundTasks):
+    background_tasks.add_task(notify_patients, request)
+    return {
+        STATUS: SUCCESS,
+        DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
+    }
+
+
 @router.post("/process_sms_queue", dependencies=[Security(authorize_user, scopes=[p.PROCESS_SMS_QUEUE])])
 async def api_process_sms_queue():
     task_process_sms_queue()
@@ -97,7 +131,7 @@ async def api_process_sms_queue(request: Request):
 
 
 @router.post("/misc_processor", dependencies=[Security(authorize_user, scopes=[p.MISC_PROCESSOR])])
-async def api_process_outbound_lab_orders(background_tasks: BackgroundTasks):
+async def api_misc_processor(background_tasks: BackgroundTasks):
     background_tasks.add_task(task_process_misc)
     return {
         STATUS: SUCCESS,
@@ -109,3 +143,10 @@ async def api_process_outbound_lab_orders(background_tasks: BackgroundTasks):
 async def reminder_sms():
     task_process_daily_sms_reminders()
     return {STATUS: SUCCESS}
+
+
+@router.post("/get_my_ip", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_get_my_ip():
+    r = requests.get('http://curlmyip.org/')
+    return {"my_ip": r.text}
+

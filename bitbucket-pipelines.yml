@@ -16,7 +16,8 @@ pipelines:
             - gcloud auth activate-service-account --key-file app/ggt/configs/gcp-service-account.json
             - gcloud config set project ggt-pfe-prod
             - gcloud builds submit --tag gcr.io/ggt-pfe-prod/ggt-ops-services
-            - gcloud run deploy --image gcr.io/ggt-pfe-prod/ggt-ops-services --platform managed  --allow-unauthenticated --region us-central1 ggt-ops-services
+#            - gcloud run deploy --image gcr.io/ggt-pfe-prod/ggt-ops-services --platform managed  --allow-unauthenticated --region us-central1 ggt-ops-services
+            - gcloud beta run deploy ggt-ops-services --image=gcr.io/ggt-pfe-prod/ggt-ops-services --vpc-connector=vpc-connector-prod  --vpc-egress=all --platform=managed  --allow-unauthenticated --region=us-central1
             - gcloud run services update-traffic ggt-ops-services --platform managed --region us-central1 --to-latest
     production-portal:
       - step:
@@ -32,7 +33,8 @@ pipelines:
             - gcloud auth activate-service-account --key-file app/ggt/configs/gcp-service-account.json
             - gcloud config set project ggt-pfe-prod
             - gcloud builds submit --tag gcr.io/ggt-pfe-prod/ggt-portal-services
-            - gcloud run deploy --image gcr.io/ggt-pfe-prod/ggt-portal-services --platform managed  --allow-unauthenticated --region us-central1 ggt-portal-services
+#            - gcloud run deploy --image gcr.io/ggt-pfe-prod/ggt-portal-services --platform managed  --allow-unauthenticated --region us-central1 ggt-portal-services
+            - gcloud beta run deploy ggt-portal-services --image=gcr.io/ggt-pfe-prod/ggt-portal-services --vpc-connector=vpc-connector-prod  --vpc-egress=all --platform=managed  --allow-unauthenticated --region=us-central1
             - gcloud run services update-traffic ggt-portal-services --platform managed --region us-central1 --to-latest
     production-patient:
       - step:
@@ -48,7 +50,8 @@ pipelines:
             - gcloud auth activate-service-account --key-file app/ggt/configs/gcp-service-account.json
             - gcloud config set project ggt-pfe-prod
             - gcloud builds submit --tag gcr.io/ggt-pfe-prod/ggt-pfe-services
-            - gcloud run deploy --image gcr.io/ggt-pfe-prod/ggt-pfe-services --platform managed  --allow-unauthenticated --region us-central1 ggt-pfe-services
+#            - gcloud run deploy --image gcr.io/ggt-pfe-prod/ggt-pfe-services --platform managed  --allow-unauthenticated --region us-central1 ggt-pfe-services
+            - gcloud beta run deploy ggt-pfe-services --image=gcr.io/ggt-pfe-prod/ggt-pfe-services --vpc-connector=vpc-connector-prod  --vpc-egress=all --platform=managed  --allow-unauthenticated --region=us-central1
             - gcloud run services update-traffic ggt-pfe-services --platform managed --region us-central1 --to-latest
     dev:
       - step:
@@ -64,7 +67,8 @@ pipelines:
             - gcloud auth activate-service-account --key-file app/ggt/configs/gcp-service-account.json
             - gcloud config set project ggt-pfe-dev
             - gcloud builds submit --tag gcr.io/ggt-pfe-dev/ggt-pfe-services
-            - gcloud run deploy --image gcr.io/ggt-pfe-dev/ggt-pfe-services --platform managed  --allow-unauthenticated --region us-central1 ggt-pfe-services
+            - gcloud beta run deploy ggt-pfe-services --image=gcr.io/ggt-pfe-dev/ggt-pfe-services --vpc-connector=vpc-connector-dev --vpc-egress=all --platform=managed  --allow-unauthenticated --region=us-central1
+
     qa:
       - step:
           name: QA Deployment
@@ -79,7 +83,9 @@ pipelines:
             - gcloud auth activate-service-account --key-file app/ggt/configs/gcp-service-account.json
             - gcloud config set project ggt-pfe-qa
             - gcloud builds submit --tag gcr.io/ggt-pfe-qa/ggt-pfe-services
-            - gcloud run deploy --image gcr.io/ggt-pfe-qa/ggt-pfe-services --platform managed  --allow-unauthenticated --region us-central1 ggt-pfe-services
+            - gcloud beta run deploy ggt-pfe-services --image=gcr.io/ggt-pfe-qa/ggt-pfe-services --vpc-connector=vpc-connector-qa --vpc-egress=all --platform=managed  --allow-unauthenticated --region=us-central1
+
+
     dev2:
       - step:
           name: DEV2 Deployment
@@ -94,6 +100,7 @@ pipelines:
             - gcloud auth activate-service-account --key-file app/ggt/configs/gcp-service-account.json
             - gcloud config set project ggt-pfe-dev2
             - gcloud builds submit --tag gcr.io/ggt-pfe-dev2/ggt-pfe-services
-            - gcloud run deploy --image gcr.io/ggt-pfe-dev2/ggt-pfe-services --platform managed  --allow-unauthenticated --region us-central1 ggt-pfe-services
+            - gcloud beta run deploy ggt-pfe-services --image=gcr.io/ggt-pfe-dev2/ggt-pfe-services --vpc-connector=vpc-connector-dev2 --vpc-egress=all --platform=managed  --allow-unauthenticated --region=us-central1
+
 options:
   docker: true
