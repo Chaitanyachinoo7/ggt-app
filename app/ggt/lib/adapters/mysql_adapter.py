@@ -148,7 +148,7 @@ def exec_update(sql, val=()):
             __cnx.close()
 
 
-def exec_delete(sql, val):
+def exec_delete(sql, val=()):
     try:
         __cnx = mysql.connector.connect(**connection_config_dict)
         __cursor = __cnx.cursor(dictionary=True, buffered=True)

@@ -86,7 +86,7 @@ def task_process_inbound_lab_reports():
     #load_data_from_remote_db_to_cache() 
 
     ####clean_downloads_folder()
-    #download_ftp_files()
+    download_ftp_files()
     parse_csv_files()
         
     add_to_healthtrackrx_inbound_data_table()

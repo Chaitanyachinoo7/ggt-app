@@ -223,6 +223,14 @@
       {
          "value":"delete_insurance_record",
          "description":"Roles with delete_insurance_record permission will allow to access API end point which contains delete_insurance_record in scopes."
+      },
+      {
+         "value":"archive_processed_notifications",
+         "description":"Roles with archive_processed_notifications permission will allow to access API end point which contains archive_processed_notifications in scopes."
+      },
+       {
+         "value":"notify_patients",
+         "description":"Roles with notify_patients permission will allow to access API end point which contains notify_patients in scopes."
       }
 
    ]
