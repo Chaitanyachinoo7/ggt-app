@@ -104,15 +104,19 @@ async def upload_insurance_files_from_gstore(orders):
         file_buffer = []
         for order in orders:
             if order['bill'] == 'Insurance Attached':
-                file_path_png = "{}/{}_001.png".format(local_insurance_card_file_path, order['id'])
-                filename = "{}_001.pdf".format(order['id'])
-                file_path_pdf = "{}/{}".format(local_insurance_card_file_path, filename)
-                appointment_id = order['id']
-                blob = await serve_file('ggt-insurance-cards-prod', '{}.png'.format(appointment_id))
-                if blob:
-                    blob.download_to_filename(file_path_png)
-                    Image.open(file_path_png).convert('RGB').save(file_path_pdf)
-                    file_buffer.append((filename, file_path_pdf))
+                try:
+                    file_path_png = "{}/{}_001.png".format(local_insurance_card_file_path, order['id'])
+                    filename = "{}_001.pdf".format(order['id'])
+                    file_path_pdf = "{}/{}".format(local_insurance_card_file_path, filename)
+                    appointment_id = order['id']
+                    blob = await serve_file('ggt-insurance-cards-prod', '{}.png'.format(appointment_id))
+                    if blob:
+                        blob.download_to_filename(file_path_png)
+                        Image.open(file_path_png).convert('RGB').save(file_path_pdf)
+                        file_buffer.append((filename, file_path_pdf))
+
+                except Exception as err:
+                    print(err)    
         
         print('uploading insurance files to FTP')
         upload_file_list_to_ftp(file_buffer)
@@ -238,7 +242,7 @@ def __get_formatted_row(order):
 
 def get_orders_ready_to_transmit():
     sql = """
-         SELECT 
+        SELECT 
             t.id AS id,
             t.patient_id AS patient_id,
             REPLACE(p.first_name, ',', '') AS first_name,
@@ -250,12 +254,10 @@ def get_orders_ready_to_transmit():
                 ELSE 'Unknown'
             END) AS gender,
             (CASE
-                WHEN
-                    ISNULL(t.sample_collection_start_dt)
-                THEN
-                    DATE_FORMAT(CONVERT_TZ(NOW(), '+00:00', '-06:00'),
-                            '%m/%d/%y')
-                ELSE DATE_FORMAT(t.sample_collection_start_dt,
+                WHEN (t.sample_collection_start_dt IS NOT NULL) THEN DATE_FORMAT(t.sample_collection_start_dt, '%m/%d/%y')
+                WHEN (t.sample_collection_end_dt IS NOT NULL) THEN DATE_FORMAT(t.sample_collection_end_dt, '%m/%d/%y')
+                WHEN (t.pre_ship_label_scan_dt IS NOT NULL) THEN DATE_FORMAT(t.pre_ship_label_scan_dt, '%m/%d/%y')
+                ELSE DATE_FORMAT(CONVERT_TZ(NOW(), '+00:00', '-06:00'),
                         '%m/%d/%y')
             END) AS date_of_collection,
             (CASE
@@ -293,15 +295,14 @@ def get_orders_ready_to_transmit():
             (CASE
                 WHEN
                     ((l.billing_type = 'insurance')
-                        AND (q.insurance_photo = 1))
+                        AND (q.has_insurance_photo = 1))
                 THEN
                     'Insurance Attached'
                 WHEN
                     ((l.billing_type = 'insurance')
-                        AND (LENGTH(q.insurance_photo) > 100))
+                        AND (q.has_insurance_photo <> 1))
                 THEN
-                    'Insurance Attached'
-                WHEN (l.billing_type = 'insurance') THEN 'Self-Pay'
+                    'Self-Pay'
                 ELSE 'Client Bill'
             END) AS bill,
             t.id AS client_order_number,
