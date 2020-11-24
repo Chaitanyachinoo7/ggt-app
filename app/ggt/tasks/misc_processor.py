@@ -42,7 +42,7 @@ from ggt.lib.constants import (
 session_id = generate_session_id()
 
 
-def task_process_misc():
+async def task_process_misc():
     print('\n\n************************************************\n\n')
     log_generic(
         type=INFO,
@@ -55,12 +55,17 @@ def task_process_misc():
     # upload_insurance_images_to_gcp_with_small_table()
     # process_email_notifications()
 
+    #await upload_insurance_files_from_gstore()
+    process_sms_notifications()
+    process_email_notifications()
+
     log_generic(
         type=INFO,
         function=whoami(),
         task_session_id=session_id,
         info='End Processing Misc Task')
     print('\n\n************************************************\n\n')
+
 
 
 def process_sms_notifications():
@@ -150,10 +155,12 @@ def get_appointments():
             p.first_name, p.phone_number, p.email
         FROM
             appointments a
-            JOIN patients p ON a.patient_id = p.id 
+                JOIN
+            patients p ON a.patient_id = p.id
         WHERE
-            location_id IN (152 , 72, 98, 110, 20, 166, 174, 140)
+            location_id IN (94)
                 AND scheduled_dt > '2020-11-23'
+                AND scheduled_dt < '2020-11-24'
                 AND status = 'scheduled'
         """
         return read_rows(sql)
