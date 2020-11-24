@@ -6,3 +6,5 @@ RUN pipenv lock --requirements > requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 COPY ./app /app
 
+ENV TIMEOUT=600
+ENV LOG_LEVEL=debug
