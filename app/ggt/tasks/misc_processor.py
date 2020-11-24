@@ -49,10 +49,6 @@ local_outbound_file_path = get_config_val('vendors.healthtrackrx.local_outbound_
 outbound_file_prefix = get_config_val('vendors.healthtrackrx.outbound_file_prefix')
 local_insurance_card_file_path = get_config_val('vendors.healthtrackrx.local_insurance_card_file_path')
 
-<<<<<<< HEAD
-
-=======
->>>>>>> bugfix/GGT-163-ait-insurance-pull-misc
 async def task_process_misc():
     print('\n\n************************************************\n\n')
     log_generic(
@@ -80,8 +76,6 @@ async def task_process_misc():
 
 
 
-<<<<<<< HEAD
-=======
 async def upload_insurance_files_from_gstore():
     try:
         print('converting insurance image files to PDF')
@@ -144,7 +138,6 @@ def upload_file_list_to_ftp(file_list):
         ftp_client.close()
 
 
->>>>>>> bugfix/GGT-163-ait-insurance-pull-misc
 def process_sms_notifications():
     rows = get_appointments()
     data = []
