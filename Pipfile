@@ -35,6 +35,7 @@ pillow = "*"
 python-barcode = "*"
 aiofiles = "*"
 python-jose = "*"
+gevent = "*"
 
 [requires]
 python_version = "3.7"
