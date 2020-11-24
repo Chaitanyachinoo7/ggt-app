@@ -27,11 +27,13 @@ async def api_provider_lookup_appointment(provider_lookup_appointment_request: P
 @router.post("/update_appointment", dependencies=[Security(authorize_user, scopes=[p.UPDATE_APPOINTMENT])])
 async def api_provider_update_appointment(provider_update_appointment_request: ProviderUpdateAppointmentRequest):
     return provider_update_appointment(
-        provider_update_appointment_request.appointment_id,
-        provider_update_appointment_request.action,
-        provider_update_appointment_request.workstation_id)
+            provider_update_appointment_request.appointment_id,
+            provider_update_appointment_request.action,
+            provider_update_appointment_request.workstation_id)
 
 
 @router.post("/scan_label", dependencies=[Security(authorize_user, scopes=[p.SCAN_LABEL])])
 async def api_scan_label(scan_label_request: ScanLabelRequest):
     return scan_label(scan_label_request.appointment_id)
+
+
