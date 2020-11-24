@@ -336,7 +336,7 @@ def bp_has_appointments(phone_number: str, dob: str) -> bool:
             error=err
         )
 
-    return False
+    return True
 
 
 ########################################################################################################
