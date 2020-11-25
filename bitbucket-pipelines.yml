@@ -54,7 +54,7 @@ pipelines:
             - docker build -t ggt-api .
             - docker tag ggt-api:latest 135292740376.dkr.ecr.us-east-1.amazonaws.com/ggt-api:latest
             - docker push 135292740376.dkr.ecr.us-east-1.amazonaws.com/ggt-api:latest
-            - aws ecs update-service --cluster ggt-api --service ggt-api --force-new-deployment
+            - aws ecs update-service --region us-east-1 --cluster ggt-api --service ggt-api --force-new-deployment
       - step:
           name: Patient Production Deployemrnt
           image: google/cloud-sdk:latest
