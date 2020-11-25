@@ -241,6 +241,51 @@ def __get_formatted_row(order):
 
 
 def get_orders_ready_to_transmit():
+    '''
+    call sync_test_completed_status_where_timestamps_exist;	
+    call create_test_samples_records_for_completed_appointments;
+
+    sql = """
+        UPDATE ggt_prod.appointments 
+        SET 
+            status = 'test_completed'
+        WHERE
+            status <> 'test_completed'
+                AND test_start_dt IS NOT NULL
+                AND id <> 0;
+        END
+    """
+
+
+    sql = """
+        INSERT ignore INTO test_samples
+        (
+            id,
+            appointment_id,
+            group_code,
+            patient_id,
+            patient_questionnaire_id,
+            sample_collection_location_id,
+            sample_collection_start_dt,
+            sample_collection_end_dt,
+            status
+        )
+        SELECT 
+            id,
+            id,
+            group_code,
+            patient_id,
+            patient_questionnaire_id,
+            location_id,
+            test_start_dt,
+            test_end_dt,
+            'ready_to_tx' AS status
+        FROM
+            appointments
+        WHERE
+            status = 'test_completed';
+    """
+    '''
     sql = """
         SELECT 
             t.id AS id,
