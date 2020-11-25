@@ -23,5 +23,5 @@ cp app/ggt/configs/buildconfigs/cloudbuild-${ENV}.yml app/ggt/configs/buildconfi
 #TO build docker image locally and push
 #docker build -t gcr.io/${PROJECT_ID}/${SERVICE_NAME}:${TAG} -t gcr.io/${PROJECT_ID}/${SERVICE_NAME}:latest .
 docker build -t suresh/${PROJECT_ID}/${SERVICE_NAME}:latest .
-docker tag ${SERVICE_NAME} gcr.io/${PROJECT_ID}/${SERVICE_NAME}:latest
+docker tag ${SERVICE_NAME} suresh/${PROJECT_ID}/${SERVICE_NAME}:latest
 #docker push gcr.io/${PROJECT_ID}/${SERVICE_NAME}:latest
