@@ -131,8 +131,6 @@ async def api_verify_existing_patient(req: VerifyExistingPatientRequest):
 
 @router.get("/lookup_patient/{phone_number}")
 async def api_verify_existing_patient(phone_number: str):
-    #temp fix
-    return False
     return verify_existing_patient(
         phone_number,
         None
