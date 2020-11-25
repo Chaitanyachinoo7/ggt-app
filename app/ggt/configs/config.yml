@@ -1,7 +1,7 @@
 app_name: COVID-19 Testing
 log_level: INFO
 base_url: https://start.GoGetTested.com
-env: PROD
+env: DEV
 
 aws:
   region: us-east-1
@@ -11,7 +11,6 @@ aws:
 
 gcp:
   service_account_file: gcp-service-account-prod.json
-  service_account_file_prod: gcp-service-account-prod.json
   default_link_expiration_time_limit: 300
   all_inbound_files_bucket_name: ggt-all-inbound-files-prod
   lab_reports_bucket_name: ggt-lab-reports-prod
@@ -36,8 +35,7 @@ notifications:
   reschedule_subject: COVID-19 Testing Appointment is Re-Scheduled
   result_template: GGT-5-RESULT-AVAILABLE-EMAIL.html
   relocate_template: GGT-7-APPOINTMENT-RESCHEDULE-EMAIL.html
-  reschedule_template: GGT-8-APPOINTMENT-RESCHEDULE-2-EMAIL.html
-
+  reschedule_template: GGT-8-APPOINTMENT-RESCHEDULE-2-EMAIL.html  
 
 twilio:
   account_sid: AC9cef9b4155030ee2683281ccc72d4001
