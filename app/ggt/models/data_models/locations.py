@@ -18,8 +18,8 @@ from ggt.lib.adapters.mysql_adapter import (
     exec_update,
     exec_delete,
     read_row,
-    read_rows
-)
+    read_rows,
+    exec_batch_execute)
 
 from ggt.models.data_models.data_types import (
     GgtLocation,
@@ -320,6 +320,28 @@ def assign_group(req):
         return None
 
 
+def assign_all_groups(vals):
+    try:
+        sql = """
+               INSERT INTO group_codes_to_locations_mapping
+               (
+                  group_id, 
+                  location_id
+               )
+               values (%s, %s)
+               """
+        map_id = exec_batch_execute(sql, vals)
+        return map_id
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 def assign_service(req):
     try:
         sql = """
@@ -335,6 +357,28 @@ def assign_service(req):
             req.service_id
         )
         map_id = exec_insert(sql, vals)
+        return map_id
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def assign_all_services(vals):
+    try:
+        sql = """
+               INSERT INTO services_to_locations_mapping
+               (
+                  location_id, 
+                  service_id
+               )
+               values (%s, %s)
+               """
+        map_id = exec_batch_execute(sql, vals)
         return map_id
 
     except Exception as err:
@@ -367,6 +411,26 @@ def remove_group(req):
         return None
 
 
+def remove_all_group(location_id):
+    try:
+        sql = """
+               DELETE FROM group_codes_to_locations_mapping WHERE location_id = %s
+               """
+        vals = (
+            location_id,
+        )
+        deleted = exec_delete(sql, vals)
+        return deleted
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 def remove_service(req):
     try:
         sql = """
@@ -375,6 +439,26 @@ def remove_service(req):
         vals = (
             req.service_id,
             req.location_id
+        )
+        deleted = exec_delete(sql, vals)
+        return deleted
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def remove_all_service(location_id):
+    try:
+        sql = """
+               DELETE FROM services_to_locations_mapping WHERE location_id = %s
+               """
+        vals = (
+            location_id,
         )
         deleted = exec_delete(sql, vals)
         return deleted
