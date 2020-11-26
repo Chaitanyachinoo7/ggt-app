@@ -31,7 +31,7 @@ from ggt.models.data_models.generic_search_result import (
 from ggt.models.data_models.locations import (
     search_locations,
     create_location, update_location, assign_group, remove_group, assign_service, remove_service,
-    get_all_locations_without_thumbnail)
+    get_all_locations_without_thumbnail, assign_all_groups, assign_all_services, remove_all_group, remove_all_service)
 
 from ggt.lib.constants import (
     STATUS,
@@ -120,7 +120,28 @@ def bp_update_group(group):
 
 def bp_create_location(location):
     try:
-        return create_location(location)
+        location_id = create_location(location)
+        if location_id is None:
+            return None
+        group_ids = location.group_ids
+        service_ids = location.service_ids
+        location_groups = []
+        location_services = []
+
+        for gid in group_ids:
+            location_groups.append((gid, location_id))
+        for sid in service_ids:
+            location_services.append((location_id, sid))
+
+        if len(location_groups) > 0:
+            g_success = assign_all_groups(tuple(location_groups))
+            if g_success is None or not g_success:
+                return None
+        if len(location_services) > 0:
+            s_success = assign_all_services(tuple(location_services))
+            if s_success is None or not s_success:
+                return None
+        return location_id
     except Exception as err:
         log_generic(
             type=ERROR,
@@ -186,7 +207,29 @@ def bp_remove_service(req):
 
 def bp_update_location(location):
     try:
-        return update_location(location)
+        location_id = location.id
+        update_location(location)
+        remove_all_group(location_id)
+        remove_all_service(location_id)
+        group_ids = location.group_ids
+        service_ids = location.service_ids
+        location_groups = []
+        location_services = []
+
+        for gid in group_ids:
+            location_groups.append((gid, location_id))
+        for sid in service_ids:
+            location_services.append((location_id, sid))
+
+        if len(location_groups) > 0:
+            g_success = assign_all_groups(tuple(location_groups))
+            if g_success is None or not g_success:
+                return None
+        if len(location_services) > 0:
+            s_success = assign_all_services(tuple(location_services))
+            if s_success is None or not s_success:
+                return None
+        return True
     except Exception as err:
         log_generic(
             type=ERROR,
