@@ -1,7 +1,33 @@
 app_name: COVID-19 Testing
-log_level: INFO
+app_version: 1.0
+log_level: DEBUG
 base_url: https://start.GoGetTested.com
 env: DEV
+
+server:
+  host: 0.0.0.0
+  port: 8888
+
+origins: 
+  - https://gogettested.com
+  - https://schedule.gogettested.com
+  - https://start.gogettested.com
+  - https://start-dev.gogettested.com
+  - https://start-qa.gogettested.com
+  - https://portal.gogettested.com
+  - https://portal-dev.gogettested.com
+  - https://portal-qa.gogettested.com
+  - https://ops.gogettested.com
+  - https://ops-dev.gogettested.com
+  - https://ops-qa.gogettested.com
+  - http://localhost
+  - http://localhost:3000
+  - http://localhost:5000
+  - http://localhost:8000
+
+docs:
+  swagger_url: /docs
+  redoc_url: /redoc
 
 aws:
   region: us-east-1
@@ -10,12 +36,16 @@ aws:
   sqs_print_queue_base_url: https://sqs.us-east-1.amazonaws.com/135292740376/ggt-print-queue
 
 gcp:
+  project_id: ggt-pfe-prod
   service_account_file: gcp-service-account.json
   default_link_expiration_time_limit: 300
   all_inbound_files_bucket_name: ggt-all-inbound-files-prod
   lab_reports_bucket_name: ggt-lab-reports-prod
   insurance_cards_bucket_name: ggt-insurance-cards-prod
   notification_archive_bucket_name: ggt-notification-archive-prod
+  enable_cloud_profiler: true
+  enable_cloud_logger: true
+  cloud_logger_log_level: 3 # 0-error, 1-warning, 2-info, 3-debug. 
 
 databases:
   mysql:
@@ -36,7 +66,6 @@ notifications:
   result_template: GGT-5-RESULT-AVAILABLE-EMAIL.html
   relocate_template: GGT-7-APPOINTMENT-RESCHEDULE-EMAIL.html
   reschedule_template: GGT-8-APPOINTMENT-RESCHEDULE-2-EMAIL.html
-
 
 twilio:
   account_sid: AC9cef9b4155030ee2683281ccc72d4001

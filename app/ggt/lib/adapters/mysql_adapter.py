@@ -1,6 +1,5 @@
 import mysql.connector
 from mysql.connector import Error
-import logging
 
 from ggt.lib.utils import (
     get_config_val,
@@ -8,13 +7,8 @@ from ggt.lib.utils import (
     whoami
 )
 
-from ggt.lib.constants import (
-    STATUS,
-    SUCCESS,
-    FAILED,
-    INFO,
-    ERROR
-)
+import ggt.lib.constants as c
+
 
 connection_config_dict = {
     'user': get_config_val('databases.mysql.username'),
@@ -30,7 +24,6 @@ connection_config_dict = {
 
 
 def __append_to_sql_log(log_type, sql_type, statement, details=""):
-    logging.info(log_type, sql_type, statement, details)
     return
     # TODO: temporarily bypassing
     if statement is None:
@@ -58,7 +51,7 @@ def __append_to_sql_log(log_type, sql_type, statement, details=""):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             sql=sql,
             vals=vals,
             function=whoami(),
@@ -81,12 +74,12 @@ def exec_insert(sql, val):
         __cnx.commit()
 
         __append_to_sql_log(
-            INFO, 'INSERT', __cursor.statement, __cursor.lastrowid)
+            c.INFO, 'INSERT', __cursor.statement, __cursor.lastrowid)
         return __cursor.lastrowid
 
     except Error as err:
         __append_to_sql_log(
-            ERROR,
+            c.ERROR,
             'INSERT',
             "{} / {}".format(sql, val),
             err
@@ -111,12 +104,12 @@ def exec_batch_execute(sql, data):
 
     except Error as err:
         __append_to_sql_log(
-            ERROR,
+            c.ERROR,
             'EXECUTE MANY',
             "{}".format(sql),
             err
         )
-        print(ERROR, 'EXECUTE MANY', "{}".format(sql), err)
+        print(c.ERROR, 'EXECUTE MANY', "{}".format(sql), err)
         return False
 
     finally:
@@ -132,12 +125,12 @@ def exec_update(sql, val=()):
 
         __cursor.execute(sql, val)
         __cnx.commit()
-        #__append_to_sql_log(INFO, 'UPDATE', __cursor.statement, __cursor.rowcount)
+        #__append_to_sql_log(c.INFO, 'UPDATE', __cursor.statement, __cursor.rowcount)
         return True if __cursor.rowcount > 0 else False
 
     except mysql.connector.Error as err:
         __append_to_sql_log(
-            ERROR,
+            c.ERROR,
             'UPDATE',
             __cursor._executed,
             err
@@ -158,7 +151,7 @@ def exec_delete(sql, val=()):
         __cursor.execute(sql, val)
         __cnx.commit()
         __append_to_sql_log(
-            INFO,
+            c.INFO,
             'DELETE',
             __cursor.statement,
             __cursor.rowcount
@@ -167,7 +160,7 @@ def exec_delete(sql, val=()):
 
     except mysql.connector.Error as err:
         __append_to_sql_log(
-            ERROR,
+            c.ERROR,
             'DELETE',
             __cursor._executed,
             err
@@ -187,7 +180,7 @@ def read_row(sql, val):
 
         __cursor.execute(sql, val)
         __append_to_sql_log(
-            INFO,
+            c.INFO,
             'SELECT',
             __cursor.statement,
             __cursor.rowcount
@@ -196,7 +189,7 @@ def read_row(sql, val):
 
     except mysql.connector.Error as err:
         __append_to_sql_log(
-            ERROR,
+            c.ERROR,
             'SELECT',
             __cursor._executed,
             err
@@ -221,10 +214,13 @@ def read_rows(sql, vals=None):
         return __cursor.fetchall()
 
     except mysql.connector.Error as err:
-        __append_to_sql_log(
-            ERROR,
-            'SELECT',
-            __cursor._executed, err
+        log_generic(
+            type=c.ERROR,
+            sql=sql,
+            vals=vals,
+            function=whoami(),
+            error=err,
+            executed=__cursor._executed
         )
         return None
 
@@ -232,3 +228,15 @@ def read_rows(sql, vals=None):
         if (__cnx.is_connected()):
             __cursor.close()
             __cnx.close()
+
+
+
+'''
+except mysql.connector.Error as err:
+    __append_to_sql_log(
+        c.ERROR,
+        'SELECT',
+        __cursor._executed, err
+    )
+    return None
+'''

@@ -1,7 +1,33 @@
-app_name: COVID-19 Testing
+app_name: ggt-api
+app_version: 1.0
 log_level: DEBUG
 base_url: https://start-dev.GoGetTested.com
 env: DEV
+
+server:
+  host: 0.0.0.0
+  port: 8888
+
+origins: 
+  - https://gogettested.com
+  - https://schedule.gogettested.com
+  - https://start.gogettested.com
+  - https://start-dev.gogettested.com
+  - https://start-qa.gogettested.com
+  - https://portal.gogettested.com
+  - https://portal-dev.gogettested.com
+  - https://portal-qa.gogettested.com
+  - https://ops.gogettested.com
+  - https://ops-dev.gogettested.com
+  - https://ops-qa.gogettested.com
+  - http://localhost
+  - http://localhost:3000
+  - http://localhost:5000
+  - http://localhost:8000
+
+docs:
+  swagger_url: /docs
+  redoc_url: /redoc
 
 aws:
   region: us-east-1
@@ -10,12 +36,16 @@ aws:
   sqs_print_queue_base_url: https://sqs.us-east-1.amazonaws.com/135292740376/ggt-print-queue
 
 gcp:
+  project_id: ggt-pfe-dev
   service_account_file: gcp-service-account.json
   default_link_expiration_time_limit: 300
   all_inbound_files_bucket_name: ggt-all-inbound-files-dev
   lab_reports_bucket_name: ggt-lab-reports-dev
   insurance_cards_bucket_name: ggt-insurance-cards-dev
   notification_archive_bucket_name: ggt-notification-archive-dev
+  enable_cloud_profiler: true
+  enable_cloud_logger: true
+  cloud_logger_log_level: 3 # 0-error, 1-warning, 2-info, 3-debug. 
 
 databases:
   mysql:

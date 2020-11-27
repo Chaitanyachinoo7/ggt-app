@@ -89,7 +89,7 @@ def add_service_to_appointment(appointment_id: int, service_code: str) -> bool:
             copay_amount,
             insurance_amount
         FROM
-            ggt_prod.services_catalog
+            services_catalog
         WHERE
             service_code = %s
             

@@ -246,7 +246,7 @@ def get_orders_ready_to_transmit():
     call create_test_samples_records_for_completed_appointments;
 
     sql = """
-        UPDATE ggt_prod.appointments 
+        UPDATE appointments 
         SET 
             status = 'test_completed'
         WHERE
