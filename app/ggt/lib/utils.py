@@ -98,6 +98,23 @@ def log_generic(**kwargs):
     # pprint(kwargs)
 
 
+def init_cloud_logger():
+    '''
+    This will override default behavior of the python logger and stream logs to GCP
+    '''
+    import google.cloud.logging
+    from pathlib import Path
+
+    curr_file = Path(__file__)
+    service_account_file = get_config_val('gcp.service_account_file')
+    service_account_file = curr_file.parent.parent.parent.joinpath('ggt/configs/{}'.format(service_account_file))
+    client = google.cloud.logging.Client.from_service_account_json(service_account_file)
+
+    client.get_default_handler()
+    client.setup_logging()
+
+
+
 def x_response(res, allow=True):
     try:
         if allow and res:

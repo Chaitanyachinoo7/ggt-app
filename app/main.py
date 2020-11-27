@@ -18,7 +18,8 @@ from ggt.lib.constants import (
 )
 
 from ggt.lib.utils import (
-    get_config_val
+    get_config_val,
+    init_cloud_logger
 )
 # local
 from ggt.routers import (
@@ -33,6 +34,7 @@ from ggt.routers import (
     rt_billing
 )
 
+init_cloud_logger()
 
 docs_url = None if (get_config_val('env') == 'PROD') else '/docs'
 redoc_url = None if (get_config_val('env') == 'PROD') else '/redoc'
