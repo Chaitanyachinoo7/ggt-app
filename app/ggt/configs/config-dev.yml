@@ -10,12 +10,11 @@ aws:
   sqs_print_queue_base_url: https://sqs.us-east-1.amazonaws.com/135292740376/ggt-print-queue
 
 gcp:
-  service_account_file: gcp-service-account-prod.json
-  service_account_file_prod: gcp-service-account-prod.json
+  service_account_file: gcp-service-account.json
   default_link_expiration_time_limit: 300
-  all_inbound_files_bucket_name: ggt-all-inbound-files-prod
-  lab_reports_bucket_name: ggt-lab-reports-prod
-  insurance_cards_bucket_name: ggt-insurance-cards-prod
+  all_inbound_files_bucket_name: ggt-all-inbound-files-dev
+  lab_reports_bucket_name: ggt-lab-reports-dev
+  insurance_cards_bucket_name: ggt-insurance-cards-dev
   notification_archive_bucket_name: ggt-notification-archive-dev
 
 databases:
@@ -38,7 +37,6 @@ notifications:
   relocate_template: GGT-7-APPOINTMENT-RESCHEDULE-EMAIL.html
   reschedule_template: GGT-8-APPOINTMENT-RESCHEDULE-2-EMAIL.html
 
-
 twilio:
   account_sid: AC9cef9b4155030ee2683281ccc72d4001
   auth_token: 62ee76165984c54f91ee80aac9cb3f0e
@@ -56,7 +54,7 @@ google:
     thumbnail_size: 110x110
     markers_color: red
     markers_size: tiny
-    
+
 email:
   template_folder: /templates/email/
 
@@ -72,7 +70,7 @@ vendors:
   auth0:
     auth0_domain: gogettested.us.auth0.com
     api_audience: https://role-base-auth.test/api
-    algorithms: ["RS256"]
+    algorithms: ['RS256']
     roles: http://roles.ggt/roles
 
   healthtrackrx:
@@ -95,6 +93,19 @@ vendors:
     endpoint: https://api-staging.getwellpay.com/api/public/v1
     auth_user: suresh@wellpay.com
     auth_password: 8,tp{Na{76<~@.>(
+
+  kdhe:
+    hostname: sl64.endpoint.com
+    username: sftpwellhealth
+    password: s4Ezq$oNf3PV*pVL
+    port: 22
+    path: /SFTP_CSV/WellHealth_Input_Folder_Prod
+
+  slack:
+    slack_token: xoxb-my-bot-token
+    slack_channel: '#my-channel'
+    slack_icon_url: https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTuGqps7ZafuzUsViFGIremEL2a3NR0KO0s0RTCMXmzmREJd5m4MA&s
+    slack_user_name: Double Images Monitor
 
 pfe:
   signup:
