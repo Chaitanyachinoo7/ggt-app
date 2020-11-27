@@ -1,5 +1,6 @@
 import base64
 import requests
+import logging
 
 from ggt.lib.utils import (
     get_config_val,
@@ -91,6 +92,7 @@ def task_populate_gps_coordinates():
         lat = '' OR 
         lng = ''
     """
+    
     rows = read_rows(sql)
     for row in rows:
         location_id = row['id']
