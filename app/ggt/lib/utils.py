@@ -10,7 +10,7 @@ import phonenumbers
 import pyotp
 
 import google.cloud.logging
-import googlecloudprofiler
+#import googlecloudprofiler
 
 from ggt.configs.config_loader import cfg
 import ggt.lib.constants as c
