@@ -66,8 +66,7 @@ def task_process_daily_sms_reminders():
             data.append(
                 (phone_number, prepare_appointment_details(row))
             )
-
-        batch_enqueue_sms_notifications(data)
+        batch_enqueue_sms_notifications(tuple(data))
         log_generic(
             type="info",
             function='task_process_inbound_lab_reports',
@@ -113,9 +112,8 @@ def get_appointments_for_today():
 
 
 def prepare_sms_text(appointment):
-    base_url = get_config_val('base_url')
     return "Hi {}, this is a reminder for your COVID-19 testing appointment scheduled today at {} at {}. Click the link for appointment details: {}/appointment/{}/{}".format(
-        appointment["first_name"], str(appointment["scheduled_dt"].strftime('%I:%M%p')), str(appointment["addr1"]) + " " + appointment["addr2"] + ", " + str(appointment["city"]) + ", " + str(appointment["st"]) + " " + str(appointment["zip"]), base_url, appointment["id"], str(appointment["dob"]).replace('-', '')),
+        appointment["first_name"], str(appointment["scheduled_dt"].strftime('%I:%M%p')), str(appointment["addr1"]) + " " + str(appointment["addr2"]) + ", " + str(appointment["city"]) + ", " + str(appointment["st"]) + " " + str(appointment["zip"]), get_config_val('base_url'), str(appointment["id"]).rjust(6, '0'), str(appointment["dob"]).replace('-', ''))
 
 
 def prepare_appointment_details(appointment):
