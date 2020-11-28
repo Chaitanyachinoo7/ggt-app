@@ -127,6 +127,7 @@ def init_cloud_logger():
 
 
 def init_cloud_profiler():
+    # TODO: Untested/Doesn't work
     # Profiler initialization. It starts a daemon thread which continuously
     # collects and uploads profiles. Best done as early as possible.
     try:

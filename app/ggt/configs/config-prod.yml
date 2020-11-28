@@ -43,7 +43,7 @@ gcp:
   lab_reports_bucket_name: ggt-lab-reports-prod
   insurance_cards_bucket_name: ggt-insurance-cards-prod
   notification_archive_bucket_name: ggt-notification-archive-prod
-  enable_cloud_profiler: true
+  enable_cloud_profiler: false
   enable_cloud_logger: true
   cloud_logger_log_level: 3 # 0-error, 1-warning, 2-info, 3-debug. 
 

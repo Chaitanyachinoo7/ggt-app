@@ -1,8 +1,8 @@
-app_name: COVID-19 Testing
+app_name: ggt-api
 app_version: 1.0
-log_level: DEBUG
+log_level: INFO
 base_url: https://start.GoGetTested.com
-env: DEV
+env: PROD
 
 server:
   host: 0.0.0.0
@@ -43,7 +43,7 @@ gcp:
   lab_reports_bucket_name: ggt-lab-reports-prod
   insurance_cards_bucket_name: ggt-insurance-cards-prod
   notification_archive_bucket_name: ggt-notification-archive-prod
-  enable_cloud_profiler: true
+  enable_cloud_profiler: false
   enable_cloud_logger: true
   cloud_logger_log_level: 3 # 0-error, 1-warning, 2-info, 3-debug. 
 
