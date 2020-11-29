@@ -175,7 +175,7 @@ def formatted_email_message(row):
 def batch_enqueue_email_notifications(data):
     try:
         sql = """
-            INSERT INTO email_notification_queue_test_sam
+            INSERT INTO email_notification_queue
                 (from_email, from_name, to_email, subject, html_content)
             VALUES
                 (%s, %s, %s, %s, %s);
