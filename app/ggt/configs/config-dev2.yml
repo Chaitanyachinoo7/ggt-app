@@ -60,7 +60,7 @@ databases:
 notifications:
   from_email: support@gogettested.com
   from_name: Go Get Tested
-  confirmation_subject: COVID-19 Testing Appointment is Confirmed
+  confirmation_subject: '{{first_name}}, Your Covid-19 Testing Appointment is Confirmed'
   result_subject: COVID-19 Testing Result Available
   relocate_subject: COVID-19 Testing Appointment has Changed
   reschedule_subject: COVID-19 Testing Appointment is Re-Scheduled
