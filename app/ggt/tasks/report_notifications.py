@@ -5,7 +5,7 @@ from ggt.lib.utils import (
     whoami
 )
 
-from ggt.lib.adapters.mysql_adapter import (
+from ggt.lib.db import (
     exec_insert,
     exec_batch_execute,
     exec_update,
@@ -14,13 +14,7 @@ from ggt.lib.adapters.mysql_adapter import (
 
 from ggt.lib.email import render_template
 
-from ggt.lib.constants import (
-    STATUS,
-    SUCCESS,
-    FAILED,
-    INFO,
-    ERROR
-)
+import ggt.lib.constants as c
 
 session_id = generate_session_id()
 
@@ -73,7 +67,7 @@ def create_result_notification_campaign():
     vals = ()
 
     log_generic(
-        type=INFO,
+        type=c.INFO,
         function=whoami(),
         task_session_id=session_id,
         info='BEGIN - Creating result notification campaign')
@@ -81,7 +75,7 @@ def create_result_notification_campaign():
     exec_insert(sql, vals)
 
     log_generic(
-        type=INFO,
+        type=c.INFO,
         function=whoami(),
         task_session_id=session_id,
         info='COMPLETED - Creating result notification campaign')
@@ -119,7 +113,7 @@ def schedule_positive_followups():
     vals = ()
 
     log_generic(
-        type=INFO,
+        type=c.INFO,
         function=whoami(),
         task_session_id=session_id,
         info='BEGIN - Scheduling Positive Report Followup sessions')
@@ -127,7 +121,7 @@ def schedule_positive_followups():
     exec_insert(sql, vals)
 
     log_generic(
-        type=INFO,
+        type=c.INFO,
         function=whoami(),
         task_session_id=session_id,
         info='COMPLETED - Scheduling Positive Report Followup sessions')
@@ -254,7 +248,7 @@ def add_to_sms_queue(phone_number, message):
     vals = (phone_number, message)
     exec_insert(sql, vals)
     log_generic(
-        type=INFO,
+        type=c.INFO,
         function=whoami(),
         task_session_id=session_id,
         phone_number=phone_number,

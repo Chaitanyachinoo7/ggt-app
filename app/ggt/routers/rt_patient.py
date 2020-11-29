@@ -30,7 +30,7 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
     get_all_available_locations_and_times
 )
 
-###TODO: Temp
+###TODO: [GGT-193] Move this to a dedicated API
 from ggt.models.workflow_models.test_site_admin_flow import (
     site_admin_general_search
 )
@@ -67,13 +67,12 @@ async def api_get_available_locations(group_code: str, date: str):
     return get_schedule_locations_available(date, group_code)
 
 
-# TODO: Radial Search
 @router.get("/get_locations_near_me/{lat}/{lng}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 @router.get("/get_locations_near_me/{lat}/{lng}/{radius}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 @router.get("/get_locations_near_me/{group_code}/{lat}/{lng}/{radius}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 @router.get("/get_locations_near_me/{group_code}/{date}/{lat}/{lng}/{radius}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_get_available_locations(lat: float, lng: float, radius: int = None, group_code: str = None, date: str = None):
-    radius = 100000 #temp fix until map zoom levels are in place
+    radius = 100000 #TODO: [GGT-194] temp fix until map zoom levels are in place
     return get_schedule_locations_available_near_lat_lng(date, group_code, lat, lng, radius)
 
 
@@ -98,7 +97,7 @@ async def api_get_all_available_locations_and_times(group_code: str = None):
 
 @router.post("/finalize_registration", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_finalize_registration(finalize_registration_request: FinalizeRegistrationRequest):
-    return finalize_registration(finalize_registration_request)
+    return await finalize_registration(finalize_registration_request)
 
 
 @router.post("/finalize_payment", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])

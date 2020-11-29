@@ -9,7 +9,9 @@ from ggt.lib.adapters.google_adapter import (
     get_temp_lab_report_url as __get_temp_lab_report_url,
     get_temp_insurance_card_url as __get_temp_insurance_card_url,
     get_list_of_all_uploaded_lab_reports as __get_list_of_all_uploaded_lab_reports,
-    get_list_of_all_uploaded_inbound_files as __get_list_of_all_uploaded_inbound_files
+    get_list_of_all_uploaded_inbound_files as __get_list_of_all_uploaded_inbound_files,
+    get_file_blob as __get_file_blob,
+    upload_archived_notification_from_base64_string as __upload_archived_notification_from_base64_string
 )
 
 
@@ -55,3 +57,10 @@ def get_list_of_all_uploaded_lab_reports():
 
 def get_list_of_all_uploaded_inbound_files():
     return __get_list_of_all_uploaded_inbound_files
+
+
+def get_file_blob(bucket_name, filename):
+    return __get_file_blob(bucket_name, filename)
+
+def upload_archived_notification_from_base64_string(bucket_name: str, base64string: str, content_type: str, destination_blob_name: str) -> bool:
+    return __upload_archived_notification_from_base64_string(bucket_name, base64string, content_type, destination_blob_name)

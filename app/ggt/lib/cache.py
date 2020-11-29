@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import functools
-import logging
+#import logging
 
 
 def timed_lru_cache(**timedelta_kwargs):
@@ -16,9 +16,9 @@ def timed_lru_cache(**timedelta_kwargs):
             if now >= next_update:
                 f.cache_clear()
                 next_update = now + update_delta
-                logging.info('⏳ cache miss')
+                print('⏳ cache miss')
             else:
-                logging.info('✅ cache hit!')
+                print('✅ cache hit!')
 
             return f(*args, **kwargs)
 

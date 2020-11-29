@@ -15,7 +15,7 @@ from ggt.lib.constants import (
     ERROR
 )
 
-from ggt.lib.adapters.mysql_adapter import (
+from ggt.lib.db import (
     exec_insert,
     exec_update,
     exec_delete,
@@ -978,7 +978,7 @@ def __get_available_locations_for_current_day_near_lat_lng(lat, lng, radius, gro
         return None
 
 
-# TODO-HIGH add available catalog
+# TODO: [GGT-195]-HIGH add available catalog
 def __get_all_available_dtl(group_code):
     try:
         sql1 = """
@@ -1035,7 +1035,7 @@ def __get_all_available_dtl(group_code):
                     groups g ON (g.id = m.group_id)
                 WHERE
                     g.group_code = %s)
-        GROUP BY c.id, nd.location_id , pt.average_processing_time
+        GROUP BY c.id, nd.location_id, pt.average_processing_time
         ORDER BY l.st, l.city
         """
 
@@ -1073,8 +1073,6 @@ def __get_all_available_dtl(group_code):
                 LEFT JOIN
             schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
                 LEFT JOIN
-            average_processing_times_for_last_5_days pt ON (pt.location_id = s.location_id)
-                LEFT JOIN
             services_to_locations_mapping m ON (m.location_id = s.location_id)
                 LEFT JOIN
             services_catalog c ON (c.id = m.service_id)
@@ -1090,7 +1088,7 @@ def __get_all_available_dtl(group_code):
                     groups g ON (g.id = m.group_id)
                 WHERE
                     g.group_code = %s)
-        GROUP BY c.id, nd.location_id , pt.average_processing_time
+        GROUP BY c.id, nd.location_id
         ORDER BY l.st, l.city
         """
         vals = (group_code,)
@@ -1102,7 +1100,7 @@ def __get_all_available_dtl(group_code):
             info='looking_up_all_available_locations_date_and_time')
 
         try:
-            return __map_rows_to_dtl_list(read_rows(sql1, vals))
+            return __map_rows_to_dtl_list(read_rows(sql2, vals))
         except Exception as err:
             print('Query1 Failed. Using Query2')
             log_generic(
@@ -1124,19 +1122,32 @@ def __get_all_available_dtl(group_code):
 
 
 def __map_rows_to_dtl_list(rows):
-    _temp: Dict[int, GgtDateTimeLocation] = dict()
-    for row in rows:
-        dtl, svc = __map_row_to_dtl(row)
-
-        if dtl.location.id not in _temp:
-            _temp[dtl.location.id] = dtl
-
-        _temp[dtl.location.id].location.services_available.append(svc)
-
     dtl_list: List[GgtDateTimeLocation] = list()
-    for key in _temp:
-        dtl_list.append(
-            _temp[key]
+
+    if rows is None:
+        return dtl_list
+
+    try:
+        _temp: Dict[int, GgtDateTimeLocation] = dict()
+        for row in rows:
+            dtl, svc = __map_row_to_dtl(row)
+
+            if dtl.location.id not in _temp:
+                _temp[dtl.location.id] = dtl
+
+            _temp[dtl.location.id].location.services_available.append(svc)
+
+        for key in _temp:
+            dtl_list.append(
+                _temp[key]
+            )
+    
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            rows=rows,
+            error=err
         )
 
     return dtl_list
@@ -1145,6 +1156,10 @@ def __map_rows_to_dtl_list(rows):
 def __map_row_to_dtl(row):
     dtl = None
     svc = None
+
+    if row is None:
+        return dtl, svc
+
     try:
         dtl = GgtDateTimeLocation()
         dtl.location.id = row['location_id']

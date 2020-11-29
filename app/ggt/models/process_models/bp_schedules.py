@@ -6,14 +6,7 @@ from ggt.lib.utils import (
     whoami
 )
 
-from ggt.lib.constants import (
-    STATUS,
-    SUCCESS,
-    FAILED,
-    INFO,
-    ERROR,
-    DEFAULT_GROUP_CODE
-)
+import ggt.lib.constants as c
 
 from ggt.models.data_models.schedules import (
     get_available_dates,
@@ -62,7 +55,7 @@ def bp_get_schedule_dates_available(group_code):
             )
 
             log_generic(
-                type=INFO,
+                type=c.INFO,
                 available_dates=available_dates,
                 function=whoami()
             )
@@ -72,7 +65,7 @@ def bp_get_schedule_dates_available(group_code):
         }
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             group_code=group_code,
             rows=rows,
             function=whoami(),
@@ -85,7 +78,7 @@ def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: float, rad
         radius = 100
 
     if not group_code:
-        group_code = DEFAULT_GROUP_CODE
+        group_code = c.DEFAULT_GROUP_CODE
 
     if not date_str:
         date_str = date.today().strftime("%Y-%m-%d")
@@ -140,7 +133,7 @@ def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: float, rad
             )
 
         log_generic(
-            type=INFO,
+            type=c.INFO,
             date_str=date_str,
             group_code=group_code,
             available_locations=available_locations,
@@ -149,7 +142,7 @@ def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: float, rad
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             group_code=group_code,
             date_str=date_str,
             dtl_list=dtl_list,
@@ -162,7 +155,7 @@ def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: float, rad
     }
 
 
-def bp_get_schedule_locations_available(date, group_code=DEFAULT_GROUP_CODE):
+def bp_get_schedule_locations_available(date, group_code=c.DEFAULT_GROUP_CODE):
     group_code = normalize_group_code(group_code)
     dtl_list = get_available_locations(date, group_code)
     available_locations = []
@@ -211,7 +204,7 @@ def bp_get_schedule_locations_available(date, group_code=DEFAULT_GROUP_CODE):
             )
 
         log_generic(
-            type=INFO,
+            type=c.INFO,
             date=date,
             group_code=group_code,
             available_locations=available_locations,
@@ -220,7 +213,7 @@ def bp_get_schedule_locations_available(date, group_code=DEFAULT_GROUP_CODE):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             group_code=group_code,
             date=date,
             dtl_list=dtl_list,
@@ -233,13 +226,25 @@ def bp_get_schedule_locations_available(date, group_code=DEFAULT_GROUP_CODE):
     }
 
 
-def bp_get_all_available_locations_and_times(group_code=DEFAULT_GROUP_CODE):
+def bp_get_all_available_locations_and_times(group_code=c.DEFAULT_GROUP_CODE):
     if not group_code:
-        group_code = DEFAULT_GROUP_CODE
+        group_code = c.DEFAULT_GROUP_CODE
     group_code = normalize_group_code(group_code)
 
     dtl_list = get_all_available_dtl(group_code)
+    available_locations = __map_dtl_list_to_available_locations(dtl_list)
+
+    return {
+        "available_location": available_locations
+    }
+
+
+def __map_dtl_list_to_available_locations(dtl_list):
     available_locations = []
+
+    if dtl_list is None:
+        return available_locations
+
     try:
         for dtl in dtl_list:
             if dtl.location.addr2:
@@ -285,24 +290,20 @@ def bp_get_all_available_locations_and_times(group_code=DEFAULT_GROUP_CODE):
             )
 
         log_generic(
-            type=INFO,
-            group_code=group_code,
+            type=c.INFO,
             available_locations=available_locations,
             function=whoami()
         )
 
     except Exception as err:
         log_generic(
-            type=ERROR,
-            group_code=group_code,
+            type=c.ERROR,
             dtl_list=dtl_list,
             function=whoami(),
             error=err
         )
 
-    return {
-        "available_location": available_locations
-    }
+    return available_locations
 
 
 def bp_get_schedule_times_available(location_id, date):
@@ -321,7 +322,7 @@ def bp_get_schedule_times_available(location_id, date):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             location_id=location_id,
             date=date,
             rows=rows,
@@ -344,7 +345,7 @@ def bp_generate_all_schedules():
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
@@ -358,7 +359,7 @@ def bp_delete_schedule(location_id):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             location_id=location_id,
             function=whoami(),
             error=err
@@ -373,7 +374,7 @@ def bp_delete_schedule_for_date(location_id, date_str):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             location_id=location_id,
             date_str=date_str,
             function=whoami(),
@@ -386,14 +387,15 @@ def bp_delete_schedule_for_date(location_id, date_str):
 def bp_generate_full_schedule(location_id):
     try:
         print('START schedule generation / location id: {} / at: {}'.format(
-                location_id, datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            )
+            location_id, datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        )
         )
         latest_schedule_dt = datetime.today() - timedelta(days=1)
         latest_schedule_dt = latest_schedule_dt.replace(
-           hour=0, minute=0, second=0, microsecond=0)
+            hour=0, minute=0, second=0, microsecond=0)
         delete_schedule_entries_by_location_id(location_id)
-        update_schedule_generation_rules_start_dt(location_id, latest_schedule_dt)
+        update_schedule_generation_rules_start_dt(
+            location_id, latest_schedule_dt)
         rules = get_schedule_generation_rules_by_location_id(location_id)
 
         for rule in rules:
@@ -407,7 +409,7 @@ def bp_generate_full_schedule(location_id):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             location_id=location_id,
             function=whoami(),
             error=err
@@ -430,7 +432,7 @@ def bp_add_schedule_generation_rule(data):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             data=data,
             function=whoami(),
             error=err
@@ -453,7 +455,7 @@ def bp_update_schedule_generation_rule(data):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             data=data,
             function=whoami(),
             error=err
@@ -468,7 +470,7 @@ def bp_delete_schedule_generation_rule(id):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             id=id,
             function=whoami(),
             error=err
@@ -483,7 +485,7 @@ def bp_get_schedule_generation_rules(location_id):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             location_id=location_id,
             function=whoami(),
             error=err
@@ -547,7 +549,7 @@ def __process_schedule_rule(rule):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             rule=rule,
             function=whoami(),
             error=err
@@ -568,28 +570,28 @@ def __get_valid_days(row):
 
 def __remove_reserved_slots(rows, location_id):
     try:
-        generated_dt_counts = {} #counts map
-        generated_dt_list = [] #flat list
+        generated_dt_counts = {}  # counts map
+        generated_dt_list = []  # flat list
         for row in rows:
             dtkey = row[1]
-            if dtkey in generated_dt_list: 
+            if dtkey in generated_dt_list:
                 generated_dt_counts[dtkey] = generated_dt_counts[dtkey] + 1
             else:
                 generated_dt_counts[dtkey] = 1
                 generated_dt_list.append(dtkey)
-        
-        reserved_slots = get_slots_matching_dt_list(generated_dt_list, location_id)
+
+        reserved_slots = get_slots_matching_dt_list(
+            generated_dt_list, location_id)
 
         for slot in reserved_slots:
             slot_start_dt_str = slot.start_dt.strftime('%Y-%m-%d %H:%M:%S')
-            if slot_start_dt_str in generated_dt_counts: 
+            if slot_start_dt_str in generated_dt_counts:
                 val = generated_dt_counts[slot_start_dt_str]
                 if val <= 1:
                     generated_dt_counts.pop(slot_start_dt_str)
                 else:
                     generated_dt_counts[slot_start_dt_str] = val - 1
 
-        
         for row in rows:
             dtkey = row[1]
             if dtkey in generated_dt_counts:
@@ -603,14 +605,14 @@ def __remove_reserved_slots(rows, location_id):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             location_id=location_id,
             function=whoami(),
             error=err
         )
 
     return rows
-    
+
 
 def normalize_group_code(group_code):
     whitelist = set('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_')

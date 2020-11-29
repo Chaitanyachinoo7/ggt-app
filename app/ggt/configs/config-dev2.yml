@@ -1,7 +1,33 @@
-app_name: COVID-19 Testing
+app_name: ggt-api
+app_version: 1.0
 log_level: DEBUG
 base_url: https://start-dev.GoGetTested.com
 env: DEV
+
+server:
+  host: 0.0.0.0
+  port: 8888
+
+origins: 
+  - https://gogettested.com
+  - https://schedule.gogettested.com
+  - https://start.gogettested.com
+  - https://start-dev.gogettested.com
+  - https://start-qa.gogettested.com
+  - https://portal.gogettested.com
+  - https://portal-dev.gogettested.com
+  - https://portal-qa.gogettested.com
+  - https://ops.gogettested.com
+  - https://ops-dev.gogettested.com
+  - https://ops-qa.gogettested.com
+  - http://localhost
+  - http://localhost:3000
+  - http://localhost:5000
+  - http://localhost:8000
+
+docs:
+  swagger_url: /docs
+  redoc_url: /redoc
 
 aws:
   region: us-east-1
@@ -10,12 +36,16 @@ aws:
   sqs_print_queue_base_url: https://sqs.us-east-1.amazonaws.com/135292740376/ggt-print-queue
 
 gcp:
+  project_id: ggt-pfe-dev2
   service_account_file: gcp-service-account.json
   default_link_expiration_time_limit: 300
   all_inbound_files_bucket_name: ggt-all-inbound-files-dev2
   lab_reports_bucket_name: ggt-lab-reports-dev2
   insurance_cards_bucket_name: ggt-insurance-cards-dev2
   notification_archive_bucket_name: ggt-notification-archive-dev2
+  enable_cloud_profiler: false
+  enable_cloud_logger: true
+  cloud_logger_log_level: 3 # 0-error, 1-warning, 2-info, 3-debug. 
 
 databases:
   mysql:
@@ -30,10 +60,14 @@ databases:
 notifications:
   from_email: support@gogettested.com
   from_name: Go Get Tested
+  confirmation_subject: '{{first_name}}, Your Covid-19 Testing Appointment is Confirmed'
   result_subject: COVID-19 Testing Result Available
-  relocate_subject: COVID-19 Testing Appointment is Re-Located
+  appointment_reminder_sublect: GoGetTested COVID-19 Testing Appointment Reminder
+  relocate_subject: COVID-19 Testing Appointment has Changed
   reschedule_subject: COVID-19 Testing Appointment is Re-Scheduled
+  confirmation_template: GGT-1-APPOINTMENT-CONFIRMATION-EMAIL
   result_template: GGT-5-RESULT-AVAILABLE-EMAIL.html
+  appointment_reminder_template: GGT-2-APPOINTMENT-REMINDER.html
   relocate_template: GGT-7-APPOINTMENT-RESCHEDULE-EMAIL.html
   reschedule_template: GGT-8-APPOINTMENT-RESCHEDULE-2-EMAIL.html
 

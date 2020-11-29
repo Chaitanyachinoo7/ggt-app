@@ -3,7 +3,7 @@ from ggt.lib.utils import (
     log_generic
 )
 
-from ggt.lib.adapters.mysql_adapter import (
+from ggt.lib.db import (
     exec_insert,
     exec_update,
     exec_delete,

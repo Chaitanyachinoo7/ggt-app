@@ -13,13 +13,14 @@ from ggt.lib.constants import (
     ERROR
 )
 
-from ggt.lib.adapters.mysql_adapter import (
+from ggt.lib.db import (
     exec_insert,
     exec_update,
     exec_delete,
     read_row,
     read_rows,
-    exec_batch_execute)
+    exec_batch_execute
+)
 
 from ggt.models.data_models.data_types import (
     GgtLocation,
@@ -111,34 +112,53 @@ def get_services_available_for_location(location_id):
 
 def get_all_locations_without_thumbnail():
     try:
-        sql = """SELECT id,
-                    site_code,
-                    group_code,
-                    account,
-                    name,
-                    addr1,
-                    addr2,
-                    addr3,
-                    city,
-                    st,
-                    zip,
-                    lat,
-                    lng,
-                    time_zone,
-                    time_zone_offset,
-                    test_type_offered,
-                    status,
-                    type,
-                    billing_type,
-                    collect_insurance_info,
-                    allow_insurance_skip,
-                    collect_upfront_payment,
-                    test_covid19,
-                    test_flu,
-                    test_consult,
-                    create_dt,
-                    update_dt
-                FROM locations"""
+        sql = """SELECT 
+    l.id,
+    l.site_code,
+    l.group_code,
+    l.account,
+    l.name,
+    l.addr1,
+    l.addr2,
+    l.addr3,
+    l.city,
+    l.st,
+    l.zip,
+    l.lat,
+    l.lng,
+    l.time_zone,
+    l.time_zone_offset,
+    l.test_type_offered,
+    l.status,
+    l.type,
+    l.billing_type,
+    l.collect_insurance_info,
+    l.allow_insurance_skip,
+    l.collect_upfront_payment,
+    l.test_covid19,
+    l.test_flu,
+    l.test_consult,
+    l.create_dt,
+    l.update_dt,
+    s.service_names,
+    gp.grpup_names
+FROM
+    locations l
+        LEFT JOIN
+    (SELECT 
+        sm.location_id,
+            GROUP_CONCAT(DISTINCT sc.service_name) AS service_names
+    FROM
+        services_to_locations_mapping sm
+    LEFT JOIN services_catalog sc ON sm.service_id = sc.id
+    GROUP BY sm.location_id) s ON l.id = s.location_id
+    LEFT JOIN (SELECT 
+    gm.location_id, GROUP_CONCAT(DISTINCT g.account) as grpup_names
+FROM
+    group_codes_to_locations_mapping gm
+        LEFT JOIN
+    groups g ON gm.group_id = g.id
+    group by gm.location_id) gp on l.id = gp.location_id"""
         return read_rows(sql)
 
     except Exception as err:

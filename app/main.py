@@ -1,27 +1,16 @@
 # system
 import uvicorn
+
 # third party
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from ggt.lib.constants import (
-    DESCRIPTION,
-    NOT_FOUND,
-    CLINICAL_PROVIDER_RT_TAG,
-    PATIENT_RT_TAG,
-    BACKGROUND_TASK_RT_TAG,
-    ADMIN_PORTAL_RT_TAG,
-    CONTACT_CENTER_RT_TAG,
-    PRINTER_HUB_RT_TAG,
-    CARE_PROVIDER_RT_TAG,
-    BILLER_APP_TAG
-)
-
-from ggt.lib.utils import (
-    get_config_val,
-    init_cloud_logger
-)
 # local
+import ggt.lib.constants as c
+from ggt.lib.utils import (
+    get_config_val as cfg,
+    app_init
+)
 from ggt.routers import (
     rt_redirect,
     rt_clinical_provider,
@@ -34,35 +23,15 @@ from ggt.routers import (
     rt_billing
 )
 
-init_cloud_logger()
-
-docs_url = None if (get_config_val('env') == 'PROD') else '/docs'
-redoc_url = None if (get_config_val('env') == 'PROD') else '/redoc'
-
-app = FastAPI(docs_url=docs_url, redoc_url=redoc_url)
-
-
-origins = [
-    "https://gogettested.com",
-    "https://schedule.gogettested.com",
-    "https://start.gogettested.com",
-    "https://start-dev.gogettested.com",
-    "https://start-qa.gogettested.com",
-    "https://portal.gogettested.com",
-    "https://portal-dev.gogettested.com",
-    "https://portal-qa.gogettested.com",
-    "https://ops.gogettested.com",
-    "https://ops-dev.gogettested.com",
-    "https://ops-qa.gogettested.com",
-    "http://localhost",
-    "http://localhost:3000",
-    "http://localhost:5000",
-    "http://localhost:8000"
-]
+app_init()
+app = FastAPI(
+    docs_url=cfg('docs.swagger_url'),
+    redoc_url=cfg('docs.redoc_url')
+)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=cfg('origins'),
     allow_origin_regex='https?://.*',
     allow_credentials=True,
     allow_methods=["*"],
@@ -71,7 +40,7 @@ app.add_middleware(
 
 app.include_router(
     rt_redirect.router,
-    tags=["Page Redirects"],
+    tags=[c.PAGE_REDIRECTS_RT_TAG],
 )
 
 ############################################################
@@ -79,9 +48,9 @@ app.include_router(
 ############################################################
 app.include_router(
     rt_clinical_provider.router,
-    prefix="/api/provider",
-    tags=[CLINICAL_PROVIDER_RT_TAG],
-    responses={404: {DESCRIPTION: NOT_FOUND}},
+    prefix=c.CLINICAL_PROVIDER_PATH_PREFIX,
+    tags=[c.CLINICAL_PROVIDER_RT_TAG],
+    responses={404: {c.DESCRIPTION: c.NOT_FOUND}},
 )
 
 ############################################################
@@ -89,9 +58,9 @@ app.include_router(
 ############################################################
 app.include_router(
     rt_care_provider.router,
-    prefix="/api/care_provider",
-    tags=[CARE_PROVIDER_RT_TAG],
-    responses={404: {"description": NOT_FOUND}},
+    prefix=c.CARE_PROVIDER_PATH_PREFIX,
+    tags=[c.CARE_PROVIDER_RT_TAG],
+    responses={404: {c.DESCRIPTION: c.NOT_FOUND}},
 )
 
 ############################################################
@@ -99,9 +68,9 @@ app.include_router(
 ############################################################
 app.include_router(
     rt_billing.router,
-    prefix="/api/billing",
-    tags=[BILLER_APP_TAG],
-    responses={404: {"description": NOT_FOUND}},
+    prefix=c.BILLING_PATH_PREFIX,
+    tags=[c.BILLING_RT_TAG],
+    responses={404: {c.DESCRIPTION: c.NOT_FOUND}},
 )
 
 ############################################################
@@ -109,9 +78,9 @@ app.include_router(
 ############################################################
 app.include_router(
     rt_patient.router,
-    prefix="/api",
-    tags=[PATIENT_RT_TAG],
-    responses={404: {DESCRIPTION: NOT_FOUND}},
+    prefix=c.PATIENT_PATH_PREFIX,
+    tags=[c.PATIENT_RT_TAG],
+    responses={404: {c.DESCRIPTION: c.NOT_FOUND}},
 )
 
 ############################################################
@@ -119,9 +88,9 @@ app.include_router(
 ############################################################
 app.include_router(
     rt_task.router,
-    prefix="/api/task",
-    tags=[BACKGROUND_TASK_RT_TAG],
-    responses={404: {DESCRIPTION: NOT_FOUND}},
+    prefix=c.BACKGROUND_TASK_PATH_PREFIX,
+    tags=[c.BACKGROUND_TASK_RT_TAG],
+    responses={404: {c.DESCRIPTION: c.NOT_FOUND}},
 )
 
 ############################################################
@@ -129,9 +98,9 @@ app.include_router(
 ############################################################
 app.include_router(
     rt_portal.router,
-    prefix="/api/portal",
-    tags=[ADMIN_PORTAL_RT_TAG],
-    responses={404: {DESCRIPTION: NOT_FOUND}},
+    prefix=c.ADMIN_PORTAL_PATH_PREFIX,
+    tags=[c.ADMIN_PORTAL_RT_TAG],
+    responses={404: {c.DESCRIPTION: c.NOT_FOUND}},
 )
 
 #############################################################
@@ -139,9 +108,9 @@ app.include_router(
 #############################################################
 app.include_router(
     rt_contact_center.router,
-    prefix="/api/cc",
-    tags=[CONTACT_CENTER_RT_TAG],
-    responses={404: {DESCRIPTION: NOT_FOUND}},
+    prefix=c.CONTACT_CENTER_PATH_PREFIX,
+    tags=[c.CONTACT_CENTER_RT_TAG],
+    responses={404: {c.DESCRIPTION: c.NOT_FOUND}},
 )
 
 #############################################################
@@ -149,11 +118,14 @@ app.include_router(
 #############################################################
 app.include_router(
     rt_printer_hub.router,
-    prefix="/api/print",
-    tags=[PRINTER_HUB_RT_TAG],
-    responses={404: {DESCRIPTION: NOT_FOUND}},
+    prefix=c.PRINTER_HUB_PATH_PREFIX,
+    tags=[c.PRINTER_HUB_RT_TAG],
+    responses={404: {c.DESCRIPTION: c.NOT_FOUND}},
 )
 
 if __name__ == '__main__':
-    uvicorn.run(app, host='0.0.0.0', port=8888)
-    #uvicorn.run(app, host='0.0.0.0', port=8000)
+    uvicorn.run(
+        app,
+        host=cfg('server.host'),
+        port=cfg('server.port')
+    )

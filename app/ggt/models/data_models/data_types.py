@@ -858,3 +858,4 @@ class InsuranceUpdateRecord(BaseModel):
 
 class InsuranceIDRecord(BaseModel):
     id: str
+    
