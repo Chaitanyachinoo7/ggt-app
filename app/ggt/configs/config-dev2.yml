@@ -61,7 +61,7 @@ notifications:
   from_email: support@gogettested.com
   from_name: Go Get Tested
   result_subject: COVID-19 Testing Result Available
-  appointment_reminder_sublect: Go Get Tested Appointment scheduled today
+  appointment_reminder_sublect: GoGetTested COVID-19 Testing Appointment Reminder
   relocate_subject: COVID-19 Testing Appointment is Re-Located
   reschedule_subject: COVID-19 Testing Appointment is Re-Scheduled
   result_template: GGT-5-RESULT-AVAILABLE-EMAIL.html
