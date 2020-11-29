@@ -13,15 +13,15 @@ from ggt.lib.utils import (
     whoami
 )
 
-from ggt.lib.adapters.mysql_adapter import (
+from ggt.lib.db import (
     exec_insert,
     exec_update,
     read_row,
     read_rows
 )
 
-from ggt.lib.adapters.google_adapter import (
-    serve_file
+from ggt.lib.storage import (
+    get_file_blob
 )
 
 from ggt.lib.constants import (
@@ -109,7 +109,7 @@ async def upload_insurance_files_from_gstore(orders):
                     filename = "{}_001.pdf".format(order['id'])
                     file_path_pdf = "{}/{}".format(local_insurance_card_file_path, filename)
                     appointment_id = order['id']
-                    blob = await serve_file('ggt-insurance-cards-prod', '{}.png'.format(appointment_id))
+                    blob = await get_file_blob('ggt-insurance-cards-prod', '{}.png'.format(appointment_id))
                     if blob:
                         blob.download_to_filename(file_path_png)
                         Image.open(file_path_png).convert('RGB').save(file_path_pdf)

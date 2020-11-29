@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 import ggt.lib.constants as c
-from ggt.lib.adapters.mysql_adapter import (
+from ggt.lib.db import (
     read_rows,
     exec_batch_execute)
 from ggt.lib.email import render_template

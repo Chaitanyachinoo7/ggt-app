@@ -13,13 +13,14 @@ from ggt.lib.constants import (
     ERROR
 )
 
-from ggt.lib.adapters.mysql_adapter import (
+from ggt.lib.db import (
     exec_insert,
     exec_update,
     exec_delete,
     read_row,
     read_rows,
-    exec_batch_execute)
+    exec_batch_execute
+)
 
 from ggt.models.data_models.data_types import (
     GgtLocation,

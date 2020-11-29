@@ -11,7 +11,7 @@ from ggt.lib.constants import (
     ERROR
 )
 
-from ggt.lib.adapters.mysql_adapter import (exec_insert)
+from ggt.lib.db import (exec_insert)
 
 ########################################################################################################
 # [Public] functions

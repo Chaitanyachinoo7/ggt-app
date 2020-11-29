@@ -97,7 +97,7 @@ async def api_get_all_available_locations_and_times(group_code: str = None):
 
 @router.post("/finalize_registration", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_finalize_registration(finalize_registration_request: FinalizeRegistrationRequest):
-    return finalize_registration(finalize_registration_request)
+    return await finalize_registration(finalize_registration_request)
 
 
 @router.post("/finalize_payment", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])

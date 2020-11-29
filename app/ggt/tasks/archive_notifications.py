@@ -1,9 +1,11 @@
 import base64
 import json
 
-from ggt.lib.adapters.google_adapter import (
-    upload_archived_notification_from_base64_string)
-from ggt.lib.adapters.mysql_adapter import (
+from ggt.lib.storage import (
+    upload_archived_notification_from_base64_string
+)
+
+from ggt.lib.db import (
     read_rows,
     exec_delete,
     exec_batch_execute)
