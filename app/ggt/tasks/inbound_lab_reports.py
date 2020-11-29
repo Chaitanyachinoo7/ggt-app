@@ -18,7 +18,7 @@ from ggt.lib.utils import (
     whoami
 )
 
-from ggt.lib.adapters.mysql_adapter import (
+from ggt.lib.db import (
     exec_insert,
     exec_batch_execute,
     exec_update,

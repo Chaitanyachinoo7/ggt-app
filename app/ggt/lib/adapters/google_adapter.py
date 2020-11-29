@@ -16,13 +16,7 @@ from ggt.lib.utils import (
     whoami
 )
 
-from ggt.lib.constants import (
-    STATUS,
-    SUCCESS,
-    FAILED,
-    INFO,
-    ERROR
-)
+import ggt.lib.constants as c
 
 
 curr_file = Path(__file__)
@@ -120,7 +114,7 @@ def get_bucket_list():
         return buckets
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
@@ -137,7 +131,7 @@ def get_file_list_in_bucket(bucket_name, prefix=''):
         return file_list
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
@@ -152,7 +146,7 @@ def blob_exists(bucket_name, filename):
         return blob.exists()
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             bucket_name=bucket_name,
             filename=filename,
             function=whoami(),
@@ -160,7 +154,7 @@ def blob_exists(bucket_name, filename):
         )
 
 
-async def serve_file(bucket_name, filename):
+async def get_file_blob(bucket_name, filename):
     try:
         storage_client = storage.Client.from_service_account_json(
             service_account_file)
@@ -172,7 +166,7 @@ async def serve_file(bucket_name, filename):
             return None
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             bucket_name=bucket_name,
             filename=filename,
             function=whoami(),
@@ -275,7 +269,7 @@ def get_signed_url(bucket_name,
                 scheme_and_host, canonical_uri, canonical_query_string, signature)
 
             log_generic(
-                type=INFO,
+                type=c.INFO,
                 bucket_name=bucket_name,
                 object_name=object_name,
                 signed_url=signed_url,
@@ -286,7 +280,7 @@ def get_signed_url(bucket_name,
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             bucket_name=bucket_name,
             object_name=object_name,
             expiration=expiration,
@@ -309,7 +303,7 @@ def upload_blob(bucket_name, source_filename, destination_blob_name):
         blob.upload_from_filename(source_filename)
 
         log_generic(
-            type=INFO,
+            type=c.INFO,
             bucket_name=bucket_name,
             source_filename=source_filename,
             destination_blob_name=destination_blob_name,
@@ -323,7 +317,7 @@ def upload_blob(bucket_name, source_filename, destination_blob_name):
             pass
         else:
             log_generic(
-                type=ERROR,
+                type=c.ERROR,
                 bucket_name=bucket_name,
                 source_filename=source_filename,
                 destination_blob_name=destination_blob_name,
@@ -348,7 +342,7 @@ def upload_blob_from_string(bucket_name: str, base64string: str, content_type: s
         )
 
         log_generic(
-            type=INFO,
+            type=c.INFO,
             bucket_name=bucket_name,
             destination_blob_name=destination_blob_name,
             function=whoami()
@@ -357,7 +351,7 @@ def upload_blob_from_string(bucket_name: str, base64string: str, content_type: s
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             bucket_name=bucket_name,
             base64string=base64string,
             destination_blob_name=destination_blob_name,

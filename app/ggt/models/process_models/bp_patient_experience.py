@@ -4,7 +4,7 @@ from requests.auth import HTTPBasicAuth
 import ggt.lib.constants as c
 
 from ggt.lib.utils import (
-    get_config_val,
+    get_config_val as cfg,
     generate_otp,
     generate_token,
     validate_phone_number_format,
@@ -13,6 +13,12 @@ from ggt.lib.utils import (
 )
 
 from ggt.lib.sms import (send_sms)
+
+from ggt.lib.email import (
+    render_template,
+    render_from_string,
+    send_email
+)
 
 from ggt.models.data_models.signups import (
     get_group_info,
@@ -127,7 +133,7 @@ def bp_initiate_verification_flow(phone_number: str, with_otp: bool = True):
 
         else:
             activation_url = "{}/{}/{}".format(
-                get_config_val('base_url'), phone_number, token)
+                cfg('base_url'), phone_number, token)
 
             if with_otp:
                 message = "Enter Code: {}\nOr click {} \nReply STOP to cancel msgs".format(
@@ -166,7 +172,7 @@ def bp_initiate_verification_flow(phone_number: str, with_otp: bool = True):
 def bp_validate_phone_number(phone_number: str, otp: str):
     try:
         # Override OTP under special circumstances
-        override_otp_code = get_config_val('pfe.signup.override_otp_code')
+        override_otp_code = cfg('pfe.signup.override_otp_code')
         if otp == override_otp_code:
             token = "NOVERIFY{}".format(generate_token()[8:])
         else:
@@ -199,7 +205,7 @@ def bp_validate_phone_number(phone_number: str, otp: str):
     return False
 
 
-def bp_finalize_booking(booking_req: GgtBooking):
+async def bp_finalize_booking(booking_req: GgtBooking):
     appointment: GgtAppointment = None
     status_message = None
     try:
@@ -239,7 +245,8 @@ def bp_finalize_booking(booking_req: GgtBooking):
         else:
             # payment not required, confirm the appointment and notify
             update_appointment_with_confirmed_scheduled(appointment.id)
-            __send_qrcode_sms(appointment)
+            await __send_qrcode_sms(appointment)
+            await __send_qrcode_email(appointment)
 
     except Exception as err:
         status_message = str(err)
@@ -251,7 +258,6 @@ def bp_finalize_booking(booking_req: GgtBooking):
         )
 
     return appointment, status_message
-
 
 
 def bp_finalize_payment(appointment_id: int, wp_receipt_token: str):
@@ -417,20 +423,21 @@ def __create_pending_entry(phone_number: str):
         return None, None
 
 
-def __send_qrcode_sms(appointment: GgtAppointment):
+async def __send_qrcode_sms(appointment: GgtAppointment):
     try:
         message = "" \
             "Hi {}, thank you for completing your registration at GoGetTested.com " \
             "Your appointment is confirmed for {} at {}. Details at {}/appointment/{}/{} " \
             "\nReply STOP to cancel msgs".format(
-            appointment.patient.first_name,
-            appointment.date_text,
-            appointment.location_text,
-            get_config_val('base_url'),
-            appointment.id,
-            appointment.patient.dob.strftime('%Y%m%d')
-        )
-        result_1 = send_sms(appointment.patient.phone_number, message.replace('\t', ''))
+                appointment.patient.first_name,
+                appointment.date_text,
+                appointment.location_text,
+                cfg('base_url'),
+                appointment.id,
+                appointment.patient.dob.strftime('%Y%m%d')
+            )
+        result_1 = send_sms(appointment.patient.phone_number,
+                            message.replace('\t', ''))
 
         followup_message = "" \
             "Please bring this QR code, and an Acceptable ID when you arrive at the test. " \
@@ -458,6 +465,52 @@ def __send_qrcode_sms(appointment: GgtAppointment):
     return None
 
 
+async def __send_qrcode_email(appointment: GgtAppointment):
+    try:
+        from_email = cfg('notifications.from_email')
+        from_name = cfg('notifications.from_name')
+
+        template_vars = {
+            "first_name": appointment.patient.first_name,
+            "date_text": appointment.date_text,
+            "location_text": appointment.location_text,
+            "base_url": cfg('base_url'),
+            "appointment_id": appointment.id,
+            "dob": appointment.patient.dob.strftime('%Y%m%d')
+        }
+
+        subject = render_from_string(
+            cfg('notifications.confirmation_subject'), 
+            **template_vars
+        )
+        
+        template_name = cfg('notifications.confirmation_template')
+        html_content = render_template(
+            template_name, 
+            **template_vars
+        )
+
+        send_email(
+            from_email,
+            from_name,
+            appointment.patient.email,
+            subject,
+            html_content
+        )
+
+        return True
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            appointment=appointment,
+            function=whoami(),
+            error=err
+        )
+
+    return False
+
+
 def __send_otp_sms(phone_number: str, message: str) -> bool:
     try:
         log_generic(
@@ -482,9 +535,9 @@ def __send_otp_sms(phone_number: str, message: str) -> bool:
 
 def __override_random_otp(phone_number: str):
     try:
-        p1 = get_config_val('pfe.signup.special_phone_1')
-        p2 = get_config_val('pfe.signup.special_phone_2')
-        override_otp_code = get_config_val('pfe.signup.override_otp_code')
+        p1 = cfg('pfe.signup.special_phone_1')
+        p2 = cfg('pfe.signup.special_phone_2')
+        override_otp_code = cfg('pfe.signup.override_otp_code')
 
         if phone_number == p1 or phone_number == p2:
             return True, override_otp_code
@@ -559,9 +612,9 @@ def __extract_patient_from_booking_req(booking_req: GgtBooking) -> GgtPatient:
 
 
 def __get_wp_api_tokens():
-    base_url = get_config_val('vendors.wellpay.endpoint')
-    auth_user = get_config_val('vendors.wellpay.auth_user')
-    auth_password = get_config_val('vendors.wellpay.auth_password')
+    base_url = cfg('vendors.wellpay.endpoint')
+    auth_user = cfg('vendors.wellpay.auth_user')
+    auth_password = cfg('vendors.wellpay.auth_password')
 
     wp_api_key = None
     wp_refresh_token = None
@@ -591,7 +644,6 @@ class UpfrontPaymemtResponse():
     is_payment_required: bool = None
     total_cost: int = None
     billed_amount: int = None
-
 
 
 def __save_insurance_image(appointment_id: int, insurance_image: str) -> bool:
@@ -675,7 +727,7 @@ def __create_wp_bill(appointment: GgtAppointment):
     try:
         wp_api_key, wp_refresh_token = __get_wp_api_tokens()
 
-        base_url = get_config_val('vendors.wellpay.endpoint')
+        base_url = cfg('vendors.wellpay.endpoint')
         url = "{}/bill/submit".format(base_url)
         headers = {
             'Authorization': 'Bearer {}'.format(wp_api_key),
@@ -699,8 +751,8 @@ def __create_wp_bill(appointment: GgtAppointment):
             "billed_amount": int(appointment.billed_amount*100),
             "service_date": appointment.scheduled_dt.strftime('%Y-%m-%d'),
 
-            "onSuccess": "{}/appointment/{}/pay/success".format(get_config_val('base_url'), appointment.id),
-            "onFailure": "{}/appointment/{}/pay/error".format(get_config_val('base_url'), appointment.id)
+            "onSuccess": "{}/appointment/{}/pay/success".format(cfg('base_url'), appointment.id),
+            "onFailure": "{}/appointment/{}/pay/error".format(cfg('base_url'), appointment.id)
         }
 
         r = requests.post(url, headers=headers, json=payload)

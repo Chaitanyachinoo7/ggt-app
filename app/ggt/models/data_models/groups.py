@@ -1,4 +1,4 @@
-from ggt.lib.adapters.mysql_adapter import (
+from ggt.lib.db import (
     read_rows,
     exec_insert, exec_update)
 from ggt.lib.constants import (

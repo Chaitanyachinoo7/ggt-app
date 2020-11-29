@@ -4,15 +4,9 @@ from ggt.lib.utils import (
     whoami
 )
 
-from ggt.lib.constants import (
-    STATUS,
-    SUCCESS,
-    FAILED,
-    INFO,
-    ERROR
-)
+import ggt.lib.constants as c
 
-from ggt.lib.adapters.mysql_adapter import (
+from ggt.lib.db import (
     exec_insert,
     exec_update,
     exec_delete,
@@ -20,11 +14,15 @@ from ggt.lib.adapters.mysql_adapter import (
     read_rows
 )
 
+from ggt.models.data_models.data_types import (
+    ConsultationNotesEnum, 
+    PositiveCall, 
+    ConsultationStatusEnum
+)
+
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-from ggt.models.data_models.data_types import ConsultationNotesEnum, PositiveCall, ConsultationStatusEnum
-
 
 def get_provider_processing_list(offset, consultation_status, consultation_notes, positive_call, limit=20):
     try:
@@ -182,7 +180,7 @@ def get_provider_processing_list(offset, consultation_status, consultation_notes
         return process_consultations(rows)
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
@@ -210,7 +208,7 @@ def provider_lock_task(test_id):
         return updated
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
@@ -239,7 +237,7 @@ def create_patient_test_consultation(appointment_id, user_id):
             return None
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
@@ -270,7 +268,7 @@ def update_consultation_note(consultation_id, notes, consultation_type_code, res
         return updated
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
@@ -296,7 +294,7 @@ def provider_complete_task(test_id):
         return updated
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
@@ -320,7 +318,7 @@ def provider_rollback_to_pending_task(test_id):
         return updated
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
