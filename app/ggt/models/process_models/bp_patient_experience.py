@@ -402,7 +402,8 @@ async def __create_pending_entry(phone_number: str):
             otp_code=otp_code,
             token=token,
             function=whoami())
-        record_id = create_pending_signup_record(
+
+        record_id = await create_pending_signup_record(
             phone_number,
             otp_code,
             token
@@ -435,13 +436,13 @@ async def __send_qrcode_sms(appointment: GgtAppointment):
                 appointment.id,
                 appointment.patient.dob.strftime('%Y%m%d')
             )
-        result_1 = send_sms(appointment.patient.phone_number,
+        result_1 = await send_sms(appointment.patient.phone_number,
                             message.replace('\t', ''))
 
         followup_message = "" \
             "Please bring this QR code, and an Acceptable ID when you arrive at the test. " \
             "We will scan the QR code to check you in for testing. Please, no eating or drinking at least 15 minutes prior to testing as this may impact your test results."
-        result_2 = send_sms(appointment.patient.phone_number, followup_message)
+        result_2 = await send_sms(appointment.patient.phone_number, followup_message)
 
         log_generic(
             type=c.INFO,
@@ -475,7 +476,12 @@ async def __send_qrcode_email(appointment: GgtAppointment):
             "location_text": appointment.location_text,
             "base_url": cfg('base_url'),
             "appointment_id": appointment.id,
-            "dob": appointment.patient.dob.strftime('%Y%m%d')
+            "dob": appointment.patient.dob.strftime('%Y%m%d'),
+            "appointment_url": '{}/appointment/{}/{}'.format(
+                cfg('base_url'), 
+                appointment.id, 
+                appointment.patient.dob.strftime('%Y%m%d')
+            )
         }
 
         subject = render_from_string(
@@ -484,12 +490,12 @@ async def __send_qrcode_email(appointment: GgtAppointment):
         )
         
         template_name = cfg('notifications.confirmation_template')
-        html_content = render_template(
+        html_content = await render_template(
             template_name, 
             **template_vars
         )
 
-        send_email(
+        await send_email(
             from_email,
             from_name,
             appointment.patient.email,

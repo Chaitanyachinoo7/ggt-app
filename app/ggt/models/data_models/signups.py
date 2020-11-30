@@ -4,13 +4,7 @@ from ggt.lib.utils import (
     whoami
 )
 
-from ggt.lib.constants import (
-    STATUS,
-    SUCCESS,
-    FAILED,
-    INFO,
-    ERROR
-)
+import ggt.lib.constants as c
 
 from ggt.lib.db import (
     exec_insert,
@@ -55,7 +49,7 @@ async def create_pending_signup_record(phone_number, otp, token=None, ip=None, d
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             phone_number=phone_number,
             otp=otp,
             token=token,
@@ -82,7 +76,7 @@ async def get_signup_record(id):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             id=id,
             function=whoami(),
             error=err
@@ -108,7 +102,7 @@ async def get_signup_record_by_phone_otp(phone_number, otp):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             phone_number=phone_number,
             otp=otp,
             function=whoami(),
@@ -131,7 +125,7 @@ async def get_signup_record_by_token(token):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             token=token,
             function=whoami(),
             error=err
@@ -154,7 +148,7 @@ async def update_signup_record(id):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             id=id,
             function=whoami(),
             error=err
@@ -175,12 +169,12 @@ async def get_group_info(group_code: str) -> GgtThirdPartyGroup:
         """
         vals = (group_code,)
         group_info = __map_row_to_group(
-            read_row(sql, vals)
+            await read_row(sql, vals)
         )
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             group_code=group_code,
             function=whoami(),
             error=err
@@ -227,7 +221,7 @@ def __map_row_to_group(row) -> GgtThirdPartyGroup:
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             row=row,
             function=whoami(),
             error=err

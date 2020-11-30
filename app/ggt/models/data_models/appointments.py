@@ -53,8 +53,8 @@ async def create_appointment(appointment_req: GgtBooking):
             appointment_req.billed_amount/100  # cents --> decimal
         )
         appointment_id = await exec_insert(sql, vals)
-        __add_services_to_appointment(appointment_id, appointment_req)
-        return get_appointment(appointment_id)
+        await __add_services_to_appointment(appointment_id, appointment_req)
+        return await get_appointment(appointment_id)
 
     except Exception as err:
         log_generic(

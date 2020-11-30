@@ -53,6 +53,25 @@
             <tr>
               <td style="line-height: 1px; font-size: 1px;" height="30">&nbsp;</td>
             </tr>
+
+
+            <tr>
+              <td class="pc-sm-fs-18 pc-xs-fs-16 pc-fb-font"
+                style="font-family: 'Open Sans', Helvetica, Arial, sans-serif; font-size: 20px; line-height: 30px; letter-spacing: -0.2px; color: #8b0000; padding: 0 20px"
+                valign="top">Please, no eating or drinking 15 minutes prior to your appointment as this may impact your test results</td>
+            </tr>
+            <tr>
+              <td style="line-height: 1px; font-size: 1px;" height="30">&nbsp;</td>
+            </tr>
+
+            <tr>
+              <td class="pc-sm-fs-18 pc-xs-fs-16 pc-fb-font"
+              style="font-family: 'Open Sans', Helvetica, Arial, sans-serif; font-size: 20px; line-height: 30px; letter-spacing: -0.2px; color: #3f3f3f; padding: 0 20px"
+                valign="top">Even if you are feeling better, it's important to get tested to help us stop COVID-19 from spreading.</td>
+            </tr>
+            <tr>
+              <td style="line-height: 1px; font-size: 1px;" height="30">&nbsp;</td>
+            </tr>
           </tbody>
           <tbody>
             <tr>
@@ -80,7 +99,7 @@
                                 <td class="pc-fb-font"
                                   style="letter-spacing: -0.2px; line-height: 26px; font-family: 'Open Sans', Helvetica, Arial, sans-serif; font-size: 16px; color: #151515"
                                   valign="top">
-                                  {{test_location_line1}} <br>{{test_location_line2}} <br>{{test_location_line3}}
+                                  {{location_text}}
                                 </td>
                               </tr>
                             </tbody>
@@ -112,7 +131,7 @@
                               <tr>
                                 <td class="pc-fb-font"
                                   style="letter-spacing: -0.2px; line-height: 26px; font-family: 'Open Sans', Helvetica, Arial, sans-serif; font-size: 16px; color: #151515"
-                                  valign="top">{{test_date}}<br>{{test_time}}</td>
+                                  valign="top">{{date_text}}</td>
                               </tr>
                             </tbody>
                           </table>
@@ -140,7 +159,7 @@
                             <tr>
                               <td style="border-radius: 8px; padding: 14px 19px; background-color: #1595E7;"
                                 bgcolor="#1595E7" valign="top" align="center">
-                                <a class="pc-fb-font" href="{{appointment_link}}"
+                                <a class="pc-fb-font" href="{{appointment_url}}"
                                   style="text-decoration: none; word-break: break-word; line-height: 24px; letter-spacing: -0.2px; font-family: 'Open Sans', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 500; color: #ffffff; display: block">View
                                   My Appointment</a>
                               </td>

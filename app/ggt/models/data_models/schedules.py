@@ -559,7 +559,7 @@ async def __get_available_locations_beyond_current_day(date_str, group_code):
     try:
         sql1 = """
             SELECT 
-                s.location_id,
+                nd.location_id,
                 l.account AS account,
                 l.name AS name,
                 l.addr1 AS addr1,
@@ -570,7 +570,18 @@ async def __get_available_locations_beyond_current_day(date_str, group_code):
                 l.lat AS lat,
                 l.lng AS lng,
                 l.image_thumbnail,
-                MIN(s.start_dt) AS first_date_time_available,
+                l.billing_type,
+                l.collect_insurance_info,
+                l.allow_insurance_skip,
+                l.collect_upfront_payment,
+                c.id AS service_id,
+                c.service_code,
+                c.service_name,
+                c.price,
+                c.selfpay_amount,
+                c.copay_amount,
+                c.insurance_amount,
+                nd.first_date_available AS first_date_time_available,
                 (CASE
                     WHEN (pt.average_processing_time IS NULL) THEN 48
                     ELSE pt.average_processing_time
@@ -581,7 +592,13 @@ async def __get_available_locations_beyond_current_day(date_str, group_code):
                     JOIN
                 locations l ON s.location_id = l.id
                     LEFT JOIN
+                schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
+                    LEFT JOIN
                 average_processing_times_for_last_5_days pt ON (pt.location_id = s.location_id)
+                    LEFT JOIN
+                services_to_locations_mapping m ON (m.location_id = s.location_id)
+                    LEFT JOIN
+                services_catalog c ON (c.id = m.service_id)
             WHERE
                 1 AND DATE(s.start_dt) = %s
                     AND s.status = 'available'
@@ -594,12 +611,12 @@ async def __get_available_locations_beyond_current_day(date_str, group_code):
                             groups g ON (g.id = m.group_id)
                         WHERE
                             g.group_code = %s)
-            GROUP BY s.location_id, pt.average_processing_time
-            ORDER BY l.city
+            GROUP BY c.id, nd.location_id , pt.average_processing_time
+            ORDER BY l.st, l.city
         """
         sql2 = """
             SELECT 
-                s.location_id,
+                nd.location_id,
                 l.account AS account,
                 l.name AS name,
                 l.addr1 AS addr1,
@@ -610,13 +627,35 @@ async def __get_available_locations_beyond_current_day(date_str, group_code):
                 l.lat AS lat,
                 l.lng AS lng,
                 l.image_thumbnail,
-                MIN(s.start_dt) AS first_date_time_available,
-                '48' AS average_processing_time,
+                l.billing_type,
+                l.collect_insurance_info,
+                l.allow_insurance_skip,
+                l.collect_upfront_payment,
+                c.id AS service_id,
+                c.service_code,
+                c.service_name,
+                c.price,
+                c.selfpay_amount,
+                c.copay_amount,
+                c.insurance_amount,
+                nd.first_date_available AS first_date_time_available,
+                (CASE
+                    WHEN (pt.average_processing_time IS NULL) THEN 48
+                    ELSE pt.average_processing_time
+                END) AS average_processing_time,
                 COUNT(DISTINCT (s.start_dt)) AS slot_count
             FROM
                 schedules s
                     JOIN
                 locations l ON s.location_id = l.id
+                    LEFT JOIN
+                schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
+                    LEFT JOIN
+                average_processing_times_for_last_5_days pt ON (pt.location_id = s.location_id)
+                    LEFT JOIN
+                services_to_locations_mapping m ON (m.location_id = s.location_id)
+                    LEFT JOIN
+                services_catalog c ON (c.id = m.service_id)
             WHERE
                 1 AND DATE(s.start_dt) = %s
                     AND s.status = 'available'
@@ -629,8 +668,8 @@ async def __get_available_locations_beyond_current_day(date_str, group_code):
                             groups g ON (g.id = m.group_id)
                         WHERE
                             g.group_code = %s)
-            GROUP BY s.location_id
-            ORDER BY l.city
+            GROUP BY c.id, nd.location_id , pt.average_processing_time
+            ORDER BY l.st, l.city
         """
         vals = (date_str, group_code)
 
@@ -643,7 +682,9 @@ async def __get_available_locations_beyond_current_day(date_str, group_code):
         )
 
         try:
-            return __map_rows_to_dtl_list(read_rows(sql1, vals))
+            return __map_rows_to_dtl_list(
+                await read_rows(sql1, vals)
+            )
         except Exception as err:
             print('Query1 Failed. Using Query2')
             log_generic(
@@ -653,7 +694,9 @@ async def __get_available_locations_beyond_current_day(date_str, group_code):
                 date=date_str,
                 error=err
             )
-            return __map_rows_to_dtl_list(read_rows(sql2, vals))
+            return __map_rows_to_dtl_list(
+                await read_rows(sql2, vals)
+            )
 
     except Exception as err:
         log_generic(
@@ -789,7 +832,9 @@ async def __get_available_locations_for_current_day(group_code):
         )
 
         try:
-            return __map_rows_to_dtl_list(read_rows(sql1, vals))
+            return __map_rows_to_dtl_list(
+                await read_rows(sql1, vals)
+            )
         except Exception as err:
             print('Query1 Failed. Using Query2')
             log_generic(
@@ -798,7 +843,9 @@ async def __get_available_locations_for_current_day(group_code):
                 group_code=group_code,
                 error=err
             )
-            return __map_rows_to_dtl_list(read_rows(sql2, vals))
+            return __map_rows_to_dtl_list(
+                await read_rows(sql2, vals)
+            )
 
     except Exception as err:
         log_generic(
@@ -879,7 +926,9 @@ async def __get_available_locations_beyond_current_day_near_lat_lng(lat, lng, ra
             date=date_str
         )
 
-        return __map_rows_to_dtl_list(read_rows(sql, vals))
+        return __map_rows_to_dtl_list(
+            await read_rows(sql, vals)
+        )
 
     except Exception as err:
         log_generic(
@@ -960,7 +1009,9 @@ async def __get_available_locations_for_current_day_near_lat_lng(lat, lng, radiu
             group_code=group_code
         )
 
-        return __map_rows_to_dtl_list(read_rows(sql, vals))
+        return __map_rows_to_dtl_list(
+            await read_rows(sql, vals)
+        )
 
     except Exception as err:
         log_generic(
@@ -1094,7 +1145,9 @@ async def __get_all_available_dtl(group_code):
             info='looking_up_all_available_locations_date_and_time')
 
         try:
-            return __map_rows_to_dtl_list(read_rows(sql2, vals))
+            return __map_rows_to_dtl_list(
+                await read_rows(sql2, vals)
+            )
         except Exception as err:
             print('Query1 Failed. Using Query2')
             log_generic(
@@ -1103,7 +1156,9 @@ async def __get_all_available_dtl(group_code):
                 group_code=group_code,
                 error=err
             )
-            return __map_rows_to_dtl_list(read_rows(sql2, vals))
+            return __map_rows_to_dtl_list(
+                await read_rows(sql2, vals)
+            )
 
     except Exception as err:
         log_generic(

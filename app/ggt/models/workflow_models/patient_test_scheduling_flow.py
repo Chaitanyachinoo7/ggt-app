@@ -32,14 +32,7 @@ from ggt.models.data_models.data_types import (
     GgtBooking
 )
 
-from ggt.lib.constants import (
-    STATUS,
-    SUCCESS,
-    FAILED,
-    INFO,
-    ERROR,
-    DEFAULT_GROUP_CODE
-)
+import ggt.lib.constants as c
 
 from ggt.lib.cache import (
     timed_lru_cache
@@ -49,7 +42,7 @@ from ggt.lib.cache import (
 # [Public] functions
 ########################################################################################################
 
-@timed_lru_cache(seconds=600)
+#@timed_lru_cache(seconds=600)
 async def get_screen_flow_seq(group_code):
     return x_response(
         await bp_get_screen_flow_seq(group_code)
@@ -74,7 +67,7 @@ async def validate_phone_number(phone_number, otp):
     )
 
 #@timed_lru_cache(seconds=60)
-async def get_schedule_dates_available(group_code=DEFAULT_GROUP_CODE):
+async def get_schedule_dates_available(group_code=c.DEFAULT_GROUP_CODE):
     return x_response(
         await bp_get_schedule_dates_available(
             group_code
@@ -144,9 +137,9 @@ async def finalize_payment(finalize_payment_request):
     wp_receipt_token = finalize_payment_request.receipt_token
 
     if await bp_finalize_payment(appointment_id, wp_receipt_token):
-        return {STATUS: SUCCESS}
+        return {c.STATUS: c.SUCCESS}
     else:
-        return {STATUS: FAILED}
+        return {c.STATUS: c.FAILED}
 
 
 async def finalize_registration(finalize_registration_request):
@@ -161,12 +154,12 @@ async def finalize_registration(finalize_registration_request):
             'total_balance': int(appointment.billed_amount*100),
             'total_cost': int(appointment.total_cost*100),
             'payment_url': appointment.payment_url,
-            STATUS: SUCCESS
+            c.STATUS: c.SUCCESS
         }
     else:
         return {
-            STATUS: FAILED,
-            ERROR: status_message
+            c.STATUS: c.FAILED,
+            c.ERROR: status_message
         }
 
 
@@ -254,7 +247,7 @@ def __map_to_booking_req(finalize_registration_request):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             finalize_registration_request=finalize_registration_request,
             error=err
