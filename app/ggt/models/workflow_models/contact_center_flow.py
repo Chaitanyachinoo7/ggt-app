@@ -13,13 +13,7 @@ from ggt.models.process_models.bp_contact_center import(
     bp_cc_update_outbound_call_status
 )
 
-from ggt.lib.constants import (
-    STATUS,
-    SUCCESS,
-    FAILED,
-    INFO,
-    ERROR
-)
+import ggt.lib.constants as c
 
 from ggt.lib.cache import (
     timed_lru_cache
@@ -28,22 +22,22 @@ from ggt.lib.cache import (
 # [Public] functions
 ########################################################################################################
 
-def cc_view_test_details(auth_token, test_id):
+async def cc_view_test_details(auth_token, test_id):
     return x_response(
-        bp_cc_view_test_details(
+        await bp_cc_view_test_details(
             test_id
         )
     )
 
-def cc_search_details_by_name_and_dob(last_name, dob):
+async def cc_search_details_by_name_and_dob(last_name, dob):
     return y_response(
-        bp_cc_search_details_by_name_and_dob(
+        await bp_cc_search_details_by_name_and_dob(
             last_name, dob
         )
     )
 
 
-def cc_update_outbound_call_status(test_id,
+async def cc_update_outbound_call_status(test_id,
                                    first_name,
                                    test_date,
                                    dob,
@@ -52,7 +46,7 @@ def cc_update_outbound_call_status(test_id,
                                    to_number,
                                    test_result,
                                    call_status):
-    bp_cc_update_outbound_call_status(
+    await bp_cc_update_outbound_call_status(
         test_id,
         first_name,
         test_date,

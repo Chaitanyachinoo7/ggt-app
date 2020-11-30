@@ -6,13 +6,7 @@ from ggt.lib.utils import (
     whoami
 )
 
-from ggt.lib.constants import (
-    STATUS,
-    SUCCESS,
-    FAILED,
-    INFO,
-    ERROR
-)
+import ggt.lib.constants as c
 
 from ggt.lib.db import (
     exec_insert,
@@ -23,7 +17,7 @@ from ggt.lib.db import (
 )
 
 
-def add_outbound_call_status(test_id: int,
+async def add_outbound_call_status(test_id: int,
                              first_name: str,
                              test_date: str,
                              dob: str,
@@ -69,7 +63,7 @@ def add_outbound_call_status(test_id: int,
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             data=(
                 test_id,
                 first_name,
@@ -89,7 +83,7 @@ def add_outbound_call_status(test_id: int,
         return None
 
 # Todo clean up
-def update_outbound_call_status(test_id, call_status, datetime_field, date_time):
+async def update_outbound_call_status(test_id, call_status, datetime_field, date_time):
     try:
         sql = "UPDATE outbound_results_logs SET " + datetime_field + " = '" + \
             str(date_time)+"', call_status = '" + \
@@ -98,7 +92,7 @@ def update_outbound_call_status(test_id, call_status, datetime_field, date_time)
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             data=(
                 test_id,
                 datetime_field,
@@ -111,7 +105,7 @@ def update_outbound_call_status(test_id, call_status, datetime_field, date_time)
     return None
 
 
-def __delete_earlier_status(test_id: int):
+async def __delete_earlier_status(test_id: int):
     try:
         sql = """
             DELETE FROM 
@@ -124,7 +118,7 @@ def __delete_earlier_status(test_id: int):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             test_id=test_id,
             function=whoami(),
             error=err

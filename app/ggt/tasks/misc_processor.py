@@ -8,7 +8,7 @@ import random
 from PIL import Image
 
 from ggt.lib.utils import (
-    get_config_val,
+    get_config_val as cfg,
     log_generic,
     generate_session_id,
     whoami
@@ -36,23 +36,17 @@ from ggt.lib.storage import (
     get_file_blob
 )
 
-from ggt.lib.constants import (
-    STATUS,
-    SUCCESS,
-    FAILED,
-    INFO,
-    ERROR
-)
+import ggt.lib.constants as c
 
 session_id = generate_session_id()
-local_outbound_file_path = get_config_val('vendors.healthtrackrx.local_outbound_file_path')
-outbound_file_prefix = get_config_val('vendors.healthtrackrx.outbound_file_prefix')
-local_insurance_card_file_path = get_config_val('vendors.healthtrackrx.local_insurance_card_file_path')
+local_outbound_file_path = cfg('vendors.healthtrackrx.local_outbound_file_path')
+outbound_file_prefix = cfg('vendors.healthtrackrx.outbound_file_prefix')
+local_insurance_card_file_path = cfg('vendors.healthtrackrx.local_insurance_card_file_path')
 
 async def task_process_misc():
     print('\n\n************************************************\n\n')
     log_generic(
-        type=INFO,
+        type=c.INFO,
         function=whoami(),
         task_session_id=session_id,
         info='Begin Processing Misc Task')
@@ -64,11 +58,11 @@ async def task_process_misc():
     #await upload_insurance_files_from_gstore()
 
     #await upload_insurance_files_from_gstore()
-    process_sms_notifications()
-    process_email_notifications()
+    await process_sms_notifications()
+    await process_email_notifications()
 
     log_generic(
-        type=INFO,
+        type=c.INFO,
         function=whoami(),
         task_session_id=session_id,
         info='End Processing Misc Task')
@@ -104,10 +98,10 @@ async def upload_insurance_files_from_gstore():
 
 def upload_file_list_to_ftp(file_list):
     try:
-        hostname = get_config_val('vendors.healthtrackrx.hostname')
-        username = get_config_val('vendors.healthtrackrx.username')
-        password = get_config_val('vendors.healthtrackrx.password')
-        port = get_config_val('vendors.healthtrackrx.port')
+        hostname = cfg('vendors.healthtrackrx.hostname')
+        username = cfg('vendors.healthtrackrx.username')
+        password = cfg('vendors.healthtrackrx.password')
+        port = cfg('vendors.healthtrackrx.port')
 
         ssh_client = paramiko.SSHClient()
         ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -129,7 +123,7 @@ def upload_file_list_to_ftp(file_list):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             task_session_id=session_id,
             error=err
@@ -138,8 +132,8 @@ def upload_file_list_to_ftp(file_list):
         ftp_client.close()
 
 
-def process_sms_notifications():
-    rows = get_appointments()
+async def process_sms_notifications():
+    rows = await get_appointments()
     data = []
     for row in rows:
         phone_number = row['phone_number']
@@ -147,10 +141,10 @@ def process_sms_notifications():
             (phone_number, prepare_sms_text(row))
         )
 
-    batch_enqueue_sms_notifications(data)
+    await batch_enqueue_sms_notifications(data)
 
 
-def process_email_notifications():
+async def process_email_notifications():
     rows = get_appointments()
     data = []
 
@@ -162,12 +156,12 @@ def process_email_notifications():
              email['to_email'], email['subject'], email['html_content'])
         )
 
-    batch_enqueue_email_notifications(data)
+    await batch_enqueue_email_notifications(data)
 
 
-def formatted_email_message(row):
-    from_email = get_config_val('notifications.from_email')
-    from_name = get_config_val('notifications.from_name')
+async def formatted_email_message(row):
+    from_email = cfg('notifications.from_email')
+    from_name = cfg('notifications.from_name')
     subject = "{}, Your Appointment has changed".format(row['first_name'])
 
     template_vars = {
@@ -175,7 +169,7 @@ def formatted_email_message(row):
     }
 
     template_name = 'GGT-4-APPOINTMENT-RESCHEDULE-EMAIL.html'
-    html_content = render_template(template_name, **template_vars)
+    html_content = await render_template(template_name, **template_vars)
 
     email_message = {
         'from_email': from_email,
@@ -188,7 +182,7 @@ def formatted_email_message(row):
     return email_message
 
 
-def batch_enqueue_email_notifications(data):
+async def batch_enqueue_email_notifications(data):
     try:
         sql = """
             INSERT INTO email_notification_queue
@@ -196,7 +190,7 @@ def batch_enqueue_email_notifications(data):
             VALUES
                 (%s, %s, %s, %s, %s);
         """
-        exec_batch_execute(sql, data)
+        await exec_batch_execute(sql, data)
         return True
 
     except Exception as err:
@@ -204,7 +198,7 @@ def batch_enqueue_email_notifications(data):
         return False
 
 
-def batch_enqueue_sms_notifications(data):
+async def batch_enqueue_sms_notifications(data):
     try:
         sql = """
             INSERT INTO sms_notification_queue
@@ -212,13 +206,13 @@ def batch_enqueue_sms_notifications(data):
             VALUES
                 (%s, %s);
         """
-        exec_batch_execute(sql, data)
+        await exec_batch_execute(sql, data)
 
     except Exception as err:
         print("err:", err)
 
 
-def get_appointments():
+async def get_appointments():
     try:
         sql = """
         SELECT 
@@ -239,7 +233,7 @@ def get_appointments():
         print(err)
 
 
-def prepare_sms_text(appointment):
+async def prepare_sms_text(appointment):
     return """Hi {}, we’ve had to close the testing location where you have registered for your COVID-19 test. We apologize for the inconvenience. 
 
 Please visit GoGetTested.com and register for another appointment at a convenient location. Thank you for choosing GoGetTested.
@@ -248,7 +242,7 @@ Reply STOP to cancel msgs
     """.format(appointment["first_name"])
 
 
-def sync_appointments_with_schedule_slots():
+async def sync_appointments_with_schedule_slots():
     sql = """
         SELECT 
             id, scheduled_dt, location_id
@@ -291,13 +285,13 @@ def sync_appointments_with_schedule_slots():
 
         except Exception as err:
             log_generic(
-                type=c.ERROR,
+                type=c.c.ERROR,
                 function=whoami(),
                 error=err
             )
 
 
-def upload_insurance_images_to_gcp():
+async def upload_insurance_images_to_gcp():
     limit = 500000
     increment = 1000
     start = random.randint(0, 100000)
@@ -342,7 +336,7 @@ def upload_insurance_images_to_gcp():
         print(err)
 
 
-def upload_insurance_images_to_gcp_with_small_table():
+async def upload_insurance_images_to_gcp_with_small_table():
     print('starting...')
     try:
         sql = """
@@ -370,11 +364,11 @@ def upload_insurance_images_to_gcp_with_small_table():
                         base64string = insurance_photo.split(",")[1]
 
                     dest_file_name = '{}.png'.format(appointment_id)
-                    upload_insurance_card_from_base64_string(
+                    await upload_insurance_card_from_base64_string(
                         base64string, 'image/png', dest_file_name)
 
                     print('uploaded image: {}'.format(dest_file_name))
-                    remove_image_from_questionnnaires_table(qid)
+                    await remove_image_from_questionnnaires_table(qid)
 
             except Exception as err:
                 print(err)
@@ -383,7 +377,7 @@ def upload_insurance_images_to_gcp_with_small_table():
         print(err)
 
 
-def remove_image_from_questionnnaires_table(id):
+async def remove_image_from_questionnnaires_table(id):
     try:
         sql = """
         UPDATE patient_questionnaires 

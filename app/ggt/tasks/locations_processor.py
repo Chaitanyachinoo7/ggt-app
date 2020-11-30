@@ -15,17 +15,11 @@ from ggt.lib.db import (
     read_rows
 )
 
-from ggt.lib.constants import (
-    STATUS,
-    SUCCESS,
-    FAILED,
-    INFO,
-    ERROR
-)
+import ggt.lib.constants as c
 
 #TODO: read the params from Config files
 
-def task_populate_location_thumbnails():
+async def task_populate_location_thumbnails():
     print('\n\n********************task_populate_location_thumbnails****************************\n\n')
 
     sql = """
@@ -58,12 +52,12 @@ def task_populate_location_thumbnails():
 
         map_thumbnail_url = 'https://maps.googleapis.com/maps/api/staticmap?center={}&zoom=10&size=110x110&markers=color:red|size:tiny|{}&maptype=roadmap&key=AIzaSyBJmU3ueSBRmXz4mU1MRgdOxAWcfImbQNQ'.format(location_text, location_text)
         encoded_image = base64.b64encode(requests.get(map_thumbnail_url).content)
-        update_location_thumbnails(location_id, encoded_image)
+        await update_location_thumbnails(location_id, encoded_image)
 
     print('\n\n************************************************\n\n')
 
 
-def update_location_thumbnails(location_id, encoded_image):
+async def update_location_thumbnails(location_id, encoded_image):
     sql = """
         UPDATE 
             locations
@@ -74,11 +68,11 @@ def update_location_thumbnails(location_id, encoded_image):
             id = %s
     """
     vals = (encoded_image, location_id)
-    exec_update(sql, vals)    
+    await exec_update(sql, vals)    
 
 
 
-def task_populate_gps_coordinates():
+async def task_populate_gps_coordinates():
     print('\n\n********************task_populate_gps_coordinates****************************\n\n')
 
     sql = """
@@ -123,7 +117,7 @@ def task_populate_gps_coordinates():
             lat = response['results'][0]['geometry']['location']['lat']
             lng = response['results'][0]['geometry']['location']['lng']
 
-            update_gps_coordinates(location_id, lat, lng)
+            await update_gps_coordinates(location_id, lat, lng)
 
         except Exception as err:
             print(err)
@@ -136,7 +130,7 @@ def task_populate_gps_coordinates():
 
 
 
-def update_gps_coordinates(location_id, lat, lng):
+async def update_gps_coordinates(location_id, lat, lng):
     sql = """
         UPDATE 
             locations
@@ -148,7 +142,7 @@ def update_gps_coordinates(location_id, lat, lng):
             id = %s
     """
     vals = (lat, lng, location_id)
-    exec_update(sql, vals)    
+    await exec_update(sql, vals)    
 
 
 
