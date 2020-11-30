@@ -11,7 +11,7 @@ from google.cloud import storage
 from google.oauth2 import service_account
 
 from ggt.lib.utils import (
-    get_config_val,
+    get_config_val as cfg,
     log_generic,
     whoami
 )
@@ -21,19 +21,19 @@ import ggt.lib.constants as c
 
 curr_file = Path(__file__)
 
-service_account_file = get_config_val('gcp.service_account_file')
+service_account_file = cfg('gcp.service_account_file')
 service_account_file = curr_file.parent.parent.parent.joinpath(
     'configs/{}'.format(service_account_file))
 
-default_link_expiration_time_limit = get_config_val(
+default_link_expiration_time_limit = cfg(
     'gcp.default_link_expiration_time_limit')
-lab_reports_bucket_name = get_config_val('gcp.lab_reports_bucket_name')
-insurance_cards_bucket_name = get_config_val('gcp.insurance_cards_bucket_name')
-all_inbound_files_bucket_name = get_config_val(
+lab_reports_bucket_name = cfg('gcp.lab_reports_bucket_name')
+insurance_cards_bucket_name = cfg('gcp.insurance_cards_bucket_name')
+all_inbound_files_bucket_name = cfg(
     'gcp.all_inbound_files_bucket_name')
 
 
-def upload_lab_report(local_file_path, destination_filename):
+async def upload_lab_report(local_file_path, destination_filename):
     return upload_blob(
         lab_reports_bucket_name,
         local_file_path,
@@ -41,15 +41,15 @@ def upload_lab_report(local_file_path, destination_filename):
     )
 
 
-def get_list_of_all_uploaded_lab_reports():
+async def get_list_of_all_uploaded_lab_reports():
     return get_file_list_in_bucket(lab_reports_bucket_name)
 
 
-def get_list_of_all_uploaded_inbound_files():
+async def get_list_of_all_uploaded_inbound_files():
     return get_file_list_in_bucket(all_inbound_files_bucket_name)
 
 
-def upload_insurance_card(local_file_path, destination_filename):
+async def upload_insurance_card(local_file_path, destination_filename):
     return upload_blob(
         insurance_cards_bucket_name,
         local_file_path,
@@ -57,7 +57,7 @@ def upload_insurance_card(local_file_path, destination_filename):
     )
 
 
-def upload_insurance_card_from_base64_string(base64string: str, content_type: str, destination_blob_name: str) -> bool:
+async def upload_insurance_card_from_base64_string(base64string: str, content_type: str, destination_blob_name: str) -> bool:
     return upload_blob_from_string(
         insurance_cards_bucket_name,
         base64string,
@@ -66,7 +66,7 @@ def upload_insurance_card_from_base64_string(base64string: str, content_type: st
     )
 
 
-def upload_archived_notification_from_base64_string(bucket_name: str, base64string: str, content_type: str, destination_blob_name: str) -> bool:
+async def upload_archived_notification_from_base64_string(bucket_name: str, base64string: str, content_type: str, destination_blob_name: str) -> bool:
     return upload_blob_from_string(
         bucket_name,
         base64string,
@@ -75,38 +75,38 @@ def upload_archived_notification_from_base64_string(bucket_name: str, base64stri
     )
 
 
-def get_temp_lab_report_url(filename):
+async def get_temp_lab_report_url(filename):
     return get_signed_url(
         lab_reports_bucket_name,
         filename)
 
 
-def get_temp_insurance_card_url(filename):
+async def get_temp_insurance_card_url(filename):
     return get_signed_url(
         insurance_cards_bucket_name,
         filename)
 
 
-def upload_to_all_inbound_files(local_file_path, destination_filename):
+async def upload_to_all_inbound_files(local_file_path, destination_filename):
     return upload_blob(
         all_inbound_files_bucket_name,
         local_file_path,
         destination_filename)
 
 
-def file_exists_in_all_inbound_files(filename):
+async def file_exists_in_all_inbound_files(filename):
     return blob_exists(all_inbound_files_bucket_name, filename)
 
 
-def file_exists_in_lab_reports(filename):
+async def file_exists_in_lab_reports(filename):
     return blob_exists(lab_reports_bucket_name, filename)
 
 
-def file_exists_in_insurance_cards(filename):
+async def file_exists_in_insurance_cards(filename):
     return blob_exists(insurance_cards_bucket_name, filename)
 
 
-def get_bucket_list():
+async def get_bucket_list():
     try:
         storage_client = storage.Client.from_service_account_json(
             service_account_file)
@@ -120,7 +120,7 @@ def get_bucket_list():
         )
 
 
-def get_file_list_in_bucket(bucket_name, prefix=''):
+async def get_file_list_in_bucket(bucket_name, prefix=''):
     try:
         storage_client = storage.Client.from_service_account_json(
             service_account_file)
@@ -137,7 +137,7 @@ def get_file_list_in_bucket(bucket_name, prefix=''):
         )
 
 
-def blob_exists(bucket_name, filename):
+async def blob_exists(bucket_name, filename):
     try:
         storage_client = storage.Client.from_service_account_json(
             service_account_file)
@@ -174,13 +174,13 @@ async def get_file_blob(bucket_name, filename):
         )
 
 
-def get_signed_url(bucket_name,
-                   object_name,
-                   subresource=None,
-                   expiration=None,
-                   http_method='GET',
-                   query_parameters=None,
-                   headers=None):
+async def get_signed_url(bucket_name,
+                        object_name,
+                        subresource=None,
+                        expiration=None,
+                        http_method='GET',
+                        query_parameters=None,
+                        headers=None):
     try:
         if expiration is None:
             expiration = default_link_expiration_time_limit
@@ -290,7 +290,7 @@ def get_signed_url(bucket_name,
         return None
 
 
-def upload_blob(bucket_name, source_filename, destination_blob_name):
+async def upload_blob(bucket_name, source_filename, destination_blob_name):
     if blob_exists(bucket_name, destination_blob_name):
         #print('file_exists -- skipping')
         return False
@@ -327,7 +327,7 @@ def upload_blob(bucket_name, source_filename, destination_blob_name):
         return None
 
 
-def upload_blob_from_string(bucket_name: str, base64string: str, content_type: str, destination_blob_name: str) -> bool:
+async def upload_blob_from_string(bucket_name: str, base64string: str, content_type: str, destination_blob_name: str) -> bool:
     if blob_exists(bucket_name, destination_blob_name):
         #print('file_exists -- skipping')
         return False

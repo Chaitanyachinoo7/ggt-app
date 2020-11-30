@@ -14,8 +14,8 @@ from ggt.models.data_models.providers import get_provider_processing_list, provi
 # [Public] functions
 ########################################################################################################
 
-@timed_lru_cache(seconds=30)
-def bp_get_provider_processing_list(offset, consultation_status, consultation_notes, positive_call, limit):
+#@timed_lru_cache(seconds=30)
+async def bp_get_provider_processing_list(offset, consultation_status, consultation_notes, positive_call, limit):
     try:
         if not offset:
             offset = 0
@@ -29,27 +29,27 @@ def bp_get_provider_processing_list(offset, consultation_status, consultation_no
         )
 
 
-def bp_update_consultation_note(consultation_id, note, consultation_type_code, resolution_code):
+async def bp_update_consultation_note(consultation_id, note, consultation_type_code, resolution_code):
     return update_consultation_note(consultation_id, note, consultation_type_code, resolution_code)
 
 
-def bp_call_patient(patient_number, provider_number):
+async def bp_call_patient(patient_number, provider_number):
     return "To be implemented, {} should call {}".format(provider_number, patient_number)
 
 
-def bp_provider_complete_task(test_id):
+async def bp_provider_complete_task(test_id):
     return provider_complete_task(test_id)
 
 
-def bp_provider_rollback_to_pending_task(test_id):
+async def bp_provider_rollback_to_pending_task(test_id):
     return provider_rollback_to_pending_task(test_id)
 
 
-def bp_lock_provider_task(test_id):
+async def bp_lock_provider_task(test_id):
     return provider_lock_task(test_id)
 
 
-def bp_create_patient_test_consultation(appointment_id, user_id):
+async def bp_create_patient_test_consultation(appointment_id, user_id):
     return create_patient_test_consultation(appointment_id, user_id)
 
 

@@ -29,7 +29,7 @@ from ggt.models.data_models.data_types import (
 ########################################################################################################
 
 
-def create_pending_signup_record(phone_number, otp, token=None, ip=None, device_data=None, status='pending'):
+async def create_pending_signup_record(phone_number, otp, token=None, ip=None, device_data=None, status='pending'):
     try:
         sql = """
         INSERT INTO signups 
@@ -51,7 +51,7 @@ def create_pending_signup_record(phone_number, otp, token=None, ip=None, device_
             status,
             token
         )
-        return exec_insert(sql, vals)
+        return await exec_insert(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -68,7 +68,7 @@ def create_pending_signup_record(phone_number, otp, token=None, ip=None, device_
         return None
 
 
-def get_signup_record(id):
+async def get_signup_record(id):
     try:
         sql = """
         SELECT * 
@@ -78,7 +78,7 @@ def get_signup_record(id):
             id = %s
         """
         vals = (id,)
-        return read_row(sql, vals)
+        return await read_row(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -90,7 +90,7 @@ def get_signup_record(id):
         return None
 
 
-def get_signup_record_by_phone_otp(phone_number, otp):
+async def get_signup_record_by_phone_otp(phone_number, otp):
     try:
         sql = """
         SELECT token 
@@ -101,7 +101,7 @@ def get_signup_record_by_phone_otp(phone_number, otp):
             AND otp = %s
         """
         vals = (phone_number, otp)
-        row = read_row(sql, vals)
+        row = await read_row(sql, vals)
         if row:
             return row['token']
         return None
@@ -117,7 +117,7 @@ def get_signup_record_by_phone_otp(phone_number, otp):
         return None
 
 
-def get_signup_record_by_token(token):
+async def get_signup_record_by_token(token):
     try:
         sql = """
         SELECT * 
@@ -127,7 +127,7 @@ def get_signup_record_by_token(token):
             token = %s
         """
         vals = (token,)
-        return read_row(sql, vals)
+        return await read_row(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -139,7 +139,7 @@ def get_signup_record_by_token(token):
         return None
 
 
-def update_signup_record(id):
+async def update_signup_record(id):
     try:
         sql = """
         UPDATE signups 
@@ -150,7 +150,7 @@ def update_signup_record(id):
             id = %s
         """
         vals = (id,)
-        return exec_update(sql, vals)
+        return await exec_update(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -162,7 +162,7 @@ def update_signup_record(id):
         return None
 
 
-def get_group_info(group_code: str) -> GgtThirdPartyGroup:
+async def get_group_info(group_code: str) -> GgtThirdPartyGroup:
     group_info: GgtThirdPartyGroup = None
     try:
         sql = """

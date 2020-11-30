@@ -28,7 +28,7 @@ from ggt.models.data_models.data_types import (
 ########################################################################################################
 
 
-def create_appointment(appointment_req: GgtBooking):
+async def create_appointment(appointment_req: GgtBooking):
     try:
         sql = """
         INSERT INTO appointments
@@ -52,7 +52,7 @@ def create_appointment(appointment_req: GgtBooking):
             appointment_req.total_cost/100,  # cents --> decimal
             appointment_req.billed_amount/100  # cents --> decimal
         )
-        appointment_id = exec_insert(sql, vals)
+        appointment_id = await exec_insert(sql, vals)
         __add_services_to_appointment(appointment_id, appointment_req)
         return get_appointment(appointment_id)
 
@@ -67,7 +67,7 @@ def create_appointment(appointment_req: GgtBooking):
     return None
 
 
-def add_service_to_appointment(appointment_id: int, service_code: str) -> bool:
+async def add_service_to_appointment(appointment_id: int, service_code: str) -> bool:
     try:
         sql = """
         INSERT INTO appointment_services
@@ -110,7 +110,7 @@ def add_service_to_appointment(appointment_id: int, service_code: str) -> bool:
     return False
 
 
-def get_appointment(appointment_id: int):
+async def get_appointment(appointment_id: int):
     try:
         sql = """
         SELECT 
@@ -152,7 +152,7 @@ def get_appointment(appointment_id: int):
         """
 
         vals = (appointment_id,)
-        row = read_row(sql, vals)
+        row = await read_row(sql, vals)
 
         if not row:
             raise ValueError('No Appointment info')
@@ -170,7 +170,7 @@ def get_appointment(appointment_id: int):
     return None
 
 
-def get_monthy_calendar(from_date: str, to_date: str, location_id: int):
+async def get_monthy_calendar(from_date: str, to_date: str, location_id: int):
     try:
         sql = """
             SELECT * 
@@ -182,7 +182,7 @@ def get_monthy_calendar(from_date: str, to_date: str, location_id: int):
             """
 
         vals = (from_date, to_date, location_id)
-        return read_rows(sql, vals)
+        return await read_rows(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -197,7 +197,7 @@ def get_monthy_calendar(from_date: str, to_date: str, location_id: int):
     return None
 
 
-def positive_result_followup():
+async def positive_result_followup():
     try:
         sql = """
             SELECT
@@ -236,7 +236,7 @@ def positive_result_followup():
         """
 
         vals = ("scheduled",)
-        return read_row(sql, vals)
+        return await read_row(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -248,7 +248,7 @@ def positive_result_followup():
     return None
 
 
-def update_appointment_with_receipt_token(appointment: GgtAppointment):
+async def update_appointment_with_receipt_token(appointment: GgtAppointment):
     try:
         sql = """
             UPDATE appointments
@@ -258,7 +258,7 @@ def update_appointment_with_receipt_token(appointment: GgtAppointment):
                 id = %s
         """
         vals = (appointment.wp_receipt_token, appointment.id)
-        return exec_update(sql, vals)
+        return await exec_update(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -271,7 +271,7 @@ def update_appointment_with_receipt_token(appointment: GgtAppointment):
     return None
     
 
-def update_positive_result_followup(id: int, date_time: datetime):
+async def update_positive_result_followup(id: int, date_time: datetime):
     try:
         sql = """
             UPDATE positive_result_followup_queue
@@ -282,7 +282,7 @@ def update_positive_result_followup(id: int, date_time: datetime):
             """
 
         vals = ("pending", date_time, id)
-        return exec_update(sql, vals)
+        return await exec_update(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -296,7 +296,7 @@ def update_positive_result_followup(id: int, date_time: datetime):
     return None
 
 
-def update_appointment_with_checkin(appointment_id: int):
+async def update_appointment_with_checkin(appointment_id: int):
     try:
         sql = """
             UPDATE appointments
@@ -307,7 +307,7 @@ def update_appointment_with_checkin(appointment_id: int):
                 id = %s
         """
         vals = (appointment_id,)
-        return exec_update(sql, vals)
+        return await exec_update(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -320,7 +320,7 @@ def update_appointment_with_checkin(appointment_id: int):
     return None
 
 
-def update_appointment_with_test_start(appointment_id: int):
+async def update_appointment_with_test_start(appointment_id: int):
     try:
         sql = """
             UPDATE appointments
@@ -331,7 +331,7 @@ def update_appointment_with_test_start(appointment_id: int):
                 id = %s
         """
         vals = (appointment_id,)
-        return exec_update(sql, vals)
+        return await exec_update(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -344,7 +344,7 @@ def update_appointment_with_test_start(appointment_id: int):
     return None
 
 
-def update_appointment_with_scan_vial(appointment_id: int):
+async def update_appointment_with_scan_vial(appointment_id: int):
     try:
         sql = """
             UPDATE appointments
@@ -355,7 +355,7 @@ def update_appointment_with_scan_vial(appointment_id: int):
                 id = %s
         """
         vals = (appointment_id,)
-        return exec_update(sql, vals)
+        return await exec_update(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -368,7 +368,7 @@ def update_appointment_with_scan_vial(appointment_id: int):
     return None
 
 
-def update_appointment_with_test_completed(appointment_id: int):
+async def update_appointment_with_test_completed(appointment_id: int):
     try:
         sql = """
             UPDATE appointments
@@ -379,7 +379,7 @@ def update_appointment_with_test_completed(appointment_id: int):
                 id = %s
             """
         vals = (appointment_id,)
-        return exec_update(sql, vals)
+        return await exec_update(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -392,7 +392,7 @@ def update_appointment_with_test_completed(appointment_id: int):
     return None
 
 
-def get_appointment_count_by_phone_dob(phone_number, dob):
+async def get_appointment_count_by_phone_dob(phone_number, dob):
     try:
         if dob:
             sql = """
@@ -421,7 +421,7 @@ def get_appointment_count_by_phone_dob(phone_number, dob):
             """
             vals = (phone_number,)
 
-        row = read_row(sql, vals)
+        row = await read_row(sql, vals)
         if row:
             return row['count']
 
@@ -437,31 +437,31 @@ def get_appointment_count_by_phone_dob(phone_number, dob):
     return 0
 
 
-def update_appointment_with_confirmed_scheduled(appointment_id: int):
-    return __update_appointment_status(appointment_id, c.APPOINTMENT_STATUS_SCHEDULED)
+async def update_appointment_with_confirmed_scheduled(appointment_id: int):
+    return await __update_appointment_status(appointment_id, c.APPOINTMENT_STATUS_SCHEDULED)
 
 
-def update_appointment_with_checkin(appointment_id: int):
-    return __update_appointment_status(appointment_id, c.APPOINTMENT_STATUS_CHECKED_IN)
+async def update_appointment_with_checkin(appointment_id: int):
+    return await __update_appointment_status(appointment_id, c.APPOINTMENT_STATUS_CHECKED_IN)
 
 
-def update_appointment_with_test_start(appointment_id: int):
-    return __update_appointment_status(appointment_id, c.APPOINTMENT_STATUS_TEST_IN_PROGRESS)
+async def update_appointment_with_test_start(appointment_id: int):
+    return await __update_appointment_status(appointment_id, c.APPOINTMENT_STATUS_TEST_IN_PROGRESS)
 
 
-def update_appointment_with_scan_vial(appointment_id: int):
-    return __update_appointment_status(appointment_id, c.APPOINTMENT_STATUS_VIAL_SCANNED)
+async def update_appointment_with_scan_vial(appointment_id: int):
+    return await __update_appointment_status(appointment_id, c.APPOINTMENT_STATUS_VIAL_SCANNED)
 
 
-def update_appointment_with_test_completed(appointment_id: int):
-    return __update_appointment_status(appointment_id, c.APPOINTMENT_STATUS_TEST_COMPLETED)
+async def update_appointment_with_test_completed(appointment_id: int):
+    return await __update_appointment_status(appointment_id, c.APPOINTMENT_STATUS_TEST_COMPLETED)
 
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
 
 
-def __update_appointment_status(appointment_id: int, status: str):
+async def __update_appointment_status(appointment_id: int, status: str):
     try:
         sql = """
             UPDATE appointments
@@ -472,7 +472,7 @@ def __update_appointment_status(appointment_id: int, status: str):
                 id = %s
             """
         vals = (status, appointment_id)
-        return exec_update(sql, vals)
+        return await exec_update(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -560,16 +560,16 @@ def __map_row_to_appointment(row: dict):
     return a
 
 
-def __add_services_to_appointment(appointment_id: int, appointment_req: GgtBooking) -> bool:
+async def __add_services_to_appointment(appointment_id: int, appointment_req: GgtBooking) -> bool:
     try:
         if appointment_req.service_covid19_test:
-            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST)
+            await add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST)
 
         if appointment_req.service_flu_shot:
-            add_service_to_appointment(appointment_id, c.SERVICE_CODE_FLU_SHOT)
+            await add_service_to_appointment(appointment_id, c.SERVICE_CODE_FLU_SHOT)
 
         if appointment_req.service_consult:
-            add_service_to_appointment(appointment_id, c.SERVICE_CODE_CONSULT)
+            await add_service_to_appointment(appointment_id, c.SERVICE_CODE_CONSULT)
 
         return True
 

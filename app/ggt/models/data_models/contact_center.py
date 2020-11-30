@@ -65,7 +65,7 @@ def add_outbound_call_status(test_id: int,
             call_status,
             call_initiated_dt
         )
-        return exec_insert(sql, val)
+        return await exec_insert(sql, val)
 
     except Exception as err:
         log_generic(
@@ -94,7 +94,7 @@ def update_outbound_call_status(test_id, call_status, datetime_field, date_time)
         sql = "UPDATE outbound_results_logs SET " + datetime_field + " = '" + \
             str(date_time)+"', call_status = '" + \
             call_status+"' WHERE test_id = "+test_id
-        return exec_update(sql, )
+        return await exec_update(sql, )
 
     except Exception as err:
         log_generic(
@@ -120,7 +120,7 @@ def __delete_earlier_status(test_id: int):
                 test_id = %s
             """
         vals = (test_id,)
-        return exec_delete(sql, vals)
+        return await exec_delete(sql, vals)
 
     except Exception as err:
         log_generic(

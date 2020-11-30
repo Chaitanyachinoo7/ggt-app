@@ -7,13 +7,7 @@ from ggt.lib.utils import (
     whoami
 )
 
-from ggt.lib.constants import (
-    STATUS,
-    SUCCESS,
-    FAILED,
-    INFO,
-    ERROR
-)
+import ggt.lib.constants as c
 
 from ggt.lib.db import (
     exec_insert,
@@ -34,7 +28,7 @@ from ggt.models.data_models.data_types import (
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-def create_schedule_entry(location_id, start_dt, end_dt, duration, status):
+async def create_schedule_entry(location_id, start_dt, end_dt, duration, status):
     try:
         sql = """
             INSERT INTO schedules 
@@ -43,11 +37,11 @@ def create_schedule_entry(location_id, start_dt, end_dt, duration, status):
                 (%s, %s, %s, %s, %s)
         """
         vals = (location_id, start_dt, end_dt, duration, status)
-        return exec_insert(sql, vals)
+        return await exec_insert(sql, vals)
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             location_id=location_id,
             start_dt=start_dt,
@@ -59,7 +53,7 @@ def create_schedule_entry(location_id, start_dt, end_dt, duration, status):
         return None
 
 
-def get_schedule_generation_rules_by_location_id(location_id):
+async def get_schedule_generation_rules_by_location_id(location_id):
     try:
         sql = """
             SELECT 
@@ -92,11 +86,11 @@ def get_schedule_generation_rules_by_location_id(location_id):
 
         """
         vals = (location_id,)
-        return read_rows(sql, vals)
+        return await read_rows(sql, vals)
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             location_id=location_id,
             error=err
@@ -104,7 +98,7 @@ def get_schedule_generation_rules_by_location_id(location_id):
         return None
 
 
-def add_schedule_generation_rule(data):
+async def add_schedule_generation_rule(data):
     try:
         sql = """
         INSERT INTO schedule_generation_rules
@@ -152,14 +146,14 @@ def add_schedule_generation_rule(data):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
         return None
 
 
-def update_schedule_generation_rule(data):
+async def update_schedule_generation_rule(data):
     try:
         sql = """
         UPDATE schedule_generation_rules
@@ -202,18 +196,18 @@ def update_schedule_generation_rule(data):
             data.id
         )
 
-        return exec_update(sql, vals)
+        return await exec_update(sql, vals)
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
         return None
 
 
-def delete_schedule_entries_by_location_id(location_id):
+async def delete_schedule_entries_by_location_id(location_id):
     try:
         sql = """
         DELETE FROM 
@@ -224,11 +218,11 @@ def delete_schedule_entries_by_location_id(location_id):
             AND id <> 0
         """
         vals = (location_id,)
-        return exec_delete(sql, vals)
+        return await exec_delete(sql, vals)
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             location_id=location_id,
             function=whoami(),
             error=err
@@ -236,7 +230,7 @@ def delete_schedule_entries_by_location_id(location_id):
         return None
 
 
-def update_schedule_generation_rules_start_dt(location_id, new_dt):
+async def update_schedule_generation_rules_start_dt(location_id, new_dt):
     try:
         sql = """
         UPDATE schedule_generation_rules
@@ -247,11 +241,11 @@ def update_schedule_generation_rules_start_dt(location_id, new_dt):
             AND id <> 0 AND DATEDIFF(%s , active_local_start_dt) > 2
         """
         vals = (new_dt, location_id, new_dt)
-        return exec_update(sql, vals)
+        return await exec_update(sql, vals)
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             location_id=location_id,
             function=whoami(),
             error=err
@@ -259,7 +253,7 @@ def update_schedule_generation_rules_start_dt(location_id, new_dt):
         return None
 
 
-def delete_schedule_entries_by_location_id_for_date(location_id, date_str):
+async def delete_schedule_entries_by_location_id_for_date(location_id, date_str):
     try:
         sql = """
         DELETE FROM schedules 
@@ -269,11 +263,11 @@ def delete_schedule_entries_by_location_id_for_date(location_id, date_str):
             AND id <> 0
         """
         vals = (location_id, date_str)
-        return exec_delete(sql, vals)
+        return await exec_delete(sql, vals)
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             location_id=location_id,
             date_str=date_str,
             function=whoami(),
@@ -282,7 +276,7 @@ def delete_schedule_entries_by_location_id_for_date(location_id, date_str):
         return None
 
 
-def delete_schedule_generation_rule(id):
+async def delete_schedule_generation_rule(id):
     try:
         sql = """
         DELETE FROM 
@@ -291,18 +285,18 @@ def delete_schedule_generation_rule(id):
             id = %s
         """
         vals = (id,)
-        return exec_delete(sql, vals)
+        return await exec_delete(sql, vals)
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
         return None
 
 
-def get_available_dates(group_code):
+async def get_available_dates(group_code):
     try:
         sql = """
         SELECT DISTINCT
@@ -323,38 +317,38 @@ def get_available_dates(group_code):
         ORDER BY DATE(start_dt)
         """
         vals = (group_code,)
-        return read_rows(sql, vals)
+        return await read_rows(sql, vals)
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
         return None
 
 
-def get_all_available_dtl(group_code):
-    return __get_all_available_dtl(group_code)
+async def get_all_available_dtl(group_code):
+    return await __get_all_available_dtl(group_code)
 
 
-def get_available_locations(date_str, group_code):
+async def get_available_locations(date_str, group_code):
     today = date.today().strftime("%Y-%m-%d")
     if date_str == today:
-        return __get_available_locations_for_current_day(group_code)
+        return await __get_available_locations_for_current_day(group_code)
     else:
-        return __get_available_locations_beyond_current_day(date_str, group_code)
+        return await __get_available_locations_beyond_current_day(date_str, group_code)
 
 
-def get_available_locations_near_lat_lng(lat, lng, radius, date_str, group_code):
+async def get_available_locations_near_lat_lng(lat, lng, radius, date_str, group_code):
     today = date.today().strftime("%Y-%m-%d")
     if date_str == today:
-        return __get_available_locations_for_current_day_near_lat_lng(lat, lng, radius, group_code)
+        return await __get_available_locations_for_current_day_near_lat_lng(lat, lng, radius, group_code)
     else:
-        return __get_available_locations_beyond_current_day_near_lat_lng(lat, lng, radius, date_str, group_code)
+        return await __get_available_locations_beyond_current_day_near_lat_lng(lat, lng, radius, date_str, group_code)
 
 
-def get_processing_averages_by_location():
+async def get_processing_averages_by_location():
     try:
         sql = """
             SELECT 
@@ -371,18 +365,18 @@ def get_processing_averages_by_location():
             GROUP BY dtrwl.location_id
         """
         # ORDER BY l.city
-        return read_rows(sql)
+        return await read_rows(sql)
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
         return None
 
 
-def get_available_times(location_id, date):
+async def get_available_times(location_id, date):
     try:
         sql = """
             SELECT DISTINCT 
@@ -402,24 +396,24 @@ def get_available_times(location_id, date):
         """
         vals = (location_id, date)
         log_generic(
-            type=INFO,
+            type=c.INFO,
             function=whoami(),
             location_id=location_id,
             date=date,
             info='looking_up_available_times'
         )
-        return read_rows(sql, vals)
+        return await read_rows(sql, vals)
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
         return None
 
 
-def get_slot_information(slot_id):
+async def get_slot_information(slot_id):
     try:
         sql = """
             SELECT 
@@ -437,7 +431,7 @@ def get_slot_information(slot_id):
         """
         vals = (slot_id,)
 
-        row = read_row(sql, vals)
+        row = await read_row(sql, vals)
         slot = GgtScheduleSlot()
         slot.id = row['id']
         slot.location_id = row['location_id']
@@ -448,7 +442,7 @@ def get_slot_information(slot_id):
         slot.appointment_id = row['appointment_id']
 
         log_generic(
-            type=INFO,
+            type=c.INFO,
             function=whoami(),
             slot_id=slot_id,
             data=slot,
@@ -459,14 +453,14 @@ def get_slot_information(slot_id):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
         return None
 
 
-def update_slot_information(slot_id, appointment_id):
+async def update_slot_information(slot_id, appointment_id):
     try:
         sql = """
             UPDATE 
@@ -478,11 +472,11 @@ def update_slot_information(slot_id, appointment_id):
                 id = %s
         """
         vals = (appointment_id, slot_id)
-        return exec_update(sql, vals)
+        return await exec_update(sql, vals)
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             slot_id=slot_id,
             appointment_id=appointment_id,
             function=whoami(),
@@ -491,7 +485,7 @@ def update_slot_information(slot_id, appointment_id):
         return None
 
 
-def add_schedule_entries(rows):
+async def add_schedule_entries(rows):
     try:
         sql = """
             INSERT INTO 
@@ -506,13 +500,13 @@ def add_schedule_entries(rows):
                 )
             VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
-        return exec_batch_execute(sql, rows)
+        return await exec_batch_execute(sql, rows)
 
     except Exception as err:
-        print(ERROR, err)
+        print(c.ERROR, err)
 
 
-def get_slots_matching_dt_list(dt_list, location_id):
+async def get_slots_matching_dt_list(dt_list, location_id):
     slot_list = []
     try:
         format_strings = ','.join(['%s'] * len(dt_list))
@@ -535,7 +529,7 @@ def get_slots_matching_dt_list(dt_list, location_id):
 
         vals = tuple(dt_list)
 
-        rows = read_rows(sql, vals)
+        rows = await read_rows(sql, vals)
         if rows:
             for row in rows:
                 slot = GgtScheduleSlot()
@@ -550,7 +544,7 @@ def get_slots_matching_dt_list(dt_list, location_id):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
@@ -561,7 +555,7 @@ def get_slots_matching_dt_list(dt_list, location_id):
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
-def __get_available_locations_beyond_current_day(date_str, group_code):
+async def __get_available_locations_beyond_current_day(date_str, group_code):
     try:
         sql1 = """
             SELECT 
@@ -641,7 +635,7 @@ def __get_available_locations_beyond_current_day(date_str, group_code):
         vals = (date_str, group_code)
 
         log_generic(
-            type=INFO,
+            type=c.INFO,
             function=whoami(),
             group_code=group_code,
             date=date_str,
@@ -653,7 +647,7 @@ def __get_available_locations_beyond_current_day(date_str, group_code):
         except Exception as err:
             print('Query1 Failed. Using Query2')
             log_generic(
-                type=ERROR,
+                type=c.ERROR,
                 function=whoami(),
                 group_code=group_code,
                 date=date_str,
@@ -663,7 +657,7 @@ def __get_available_locations_beyond_current_day(date_str, group_code):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             group_code=group_code,
             date=date_str,
@@ -672,7 +666,7 @@ def __get_available_locations_beyond_current_day(date_str, group_code):
         return None
 
 
-def __get_available_locations_for_current_day(group_code):
+async def __get_available_locations_for_current_day(group_code):
     try:
         sql1 = """
         SELECT 
@@ -788,7 +782,7 @@ def __get_available_locations_for_current_day(group_code):
         vals = (group_code,)
 
         log_generic(
-            type=INFO,
+            type=c.INFO,
             function=whoami(),
             group_code=group_code,
             info='looking_up_available_locations_for_current_day'
@@ -799,7 +793,7 @@ def __get_available_locations_for_current_day(group_code):
         except Exception as err:
             print('Query1 Failed. Using Query2')
             log_generic(
-                type=ERROR,
+                type=c.ERROR,
                 function=whoami(),
                 group_code=group_code,
                 error=err
@@ -808,7 +802,7 @@ def __get_available_locations_for_current_day(group_code):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             group_code=group_code,
             error=err
@@ -816,7 +810,7 @@ def __get_available_locations_for_current_day(group_code):
         return None
 
 
-def __get_available_locations_beyond_current_day_near_lat_lng(lat, lng, radius, date_str, group_code):
+async def __get_available_locations_beyond_current_day_near_lat_lng(lat, lng, radius, date_str, group_code):
     try:
         sql = """
             SELECT 
@@ -879,7 +873,7 @@ def __get_available_locations_beyond_current_day_near_lat_lng(lat, lng, radius, 
         vals = (lat, lng, lat, lat, lng, lat, radius, date_str, group_code)
 
         log_generic(
-            type=INFO,
+            type=c.INFO,
             function=whoami(),
             group_code=group_code,
             date=date_str
@@ -889,7 +883,7 @@ def __get_available_locations_beyond_current_day_near_lat_lng(lat, lng, radius, 
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             group_code=group_code,
             date=date_str,
@@ -898,7 +892,7 @@ def __get_available_locations_beyond_current_day_near_lat_lng(lat, lng, radius, 
         return None
 
 
-def __get_available_locations_for_current_day_near_lat_lng(lat, lng, radius, group_code):
+async def __get_available_locations_for_current_day_near_lat_lng(lat, lng, radius, group_code):
     try:
         sql = """
             SELECT 
@@ -961,7 +955,7 @@ def __get_available_locations_for_current_day_near_lat_lng(lat, lng, radius, gro
         vals = (lat, lng, lat, lat, lng, lat, radius, group_code)
 
         log_generic(
-            type=INFO,
+            type=c.INFO,
             function=whoami(),
             group_code=group_code
         )
@@ -970,7 +964,7 @@ def __get_available_locations_for_current_day_near_lat_lng(lat, lng, radius, gro
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             group_code=group_code,
             error=err
@@ -979,7 +973,7 @@ def __get_available_locations_for_current_day_near_lat_lng(lat, lng, radius, gro
 
 
 # TODO: [GGT-195]-HIGH add available catalog
-def __get_all_available_dtl(group_code):
+async def __get_all_available_dtl(group_code):
     try:
         sql1 = """
         SELECT 
@@ -1094,7 +1088,7 @@ def __get_all_available_dtl(group_code):
         vals = (group_code,)
 
         log_generic(
-            type=INFO,
+            type=c.INFO,
             function=whoami(),
             group_code=group_code,
             info='looking_up_all_available_locations_date_and_time')
@@ -1104,7 +1098,7 @@ def __get_all_available_dtl(group_code):
         except Exception as err:
             print('Query1 Failed. Using Query2')
             log_generic(
-                type=ERROR,
+                type=c.ERROR,
                 function=whoami(),
                 group_code=group_code,
                 error=err
@@ -1113,7 +1107,7 @@ def __get_all_available_dtl(group_code):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             group_code=group_code,
             error=err
@@ -1144,7 +1138,7 @@ def __map_rows_to_dtl_list(rows):
     
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             rows=rows,
             error=err
@@ -1205,7 +1199,7 @@ def __map_row_to_dtl(row):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             row=row,
             error=err

@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 import functools
-#import logging
 
 
 def timed_lru_cache(**timedelta_kwargs):

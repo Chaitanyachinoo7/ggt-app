@@ -35,7 +35,7 @@ def task_process_sms_queue():
     sql = """
     SELECT * FROM sms_notification_queue where status IN ('pending','retry') 
     """
-    rows = read_rows(sql)
+    rows = await read_rows(sql)
     for row in rows:
         _id = row['id']
         status = row['status']

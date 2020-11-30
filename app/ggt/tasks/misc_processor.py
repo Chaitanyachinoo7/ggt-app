@@ -233,7 +233,7 @@ def get_appointments():
                 AND scheduled_dt < '2020-11-24'
                 AND status = 'scheduled'
         """
-        return read_rows(sql)
+        return await read_rows(sql)
 
     except Exception as err:
         print(err)
@@ -266,7 +266,7 @@ def sync_appointments_with_schedule_slots():
                         appointment_id IS NOT NULL
                 )
     """
-    rows = read_rows(sql)
+    rows = await read_rows(sql)
     print('Appointments loaded. Count: {}'.format(len(rows)))
 
     for row in rows:
@@ -314,7 +314,7 @@ def upload_insurance_images_to_gcp():
                 appointments a ON (a.patient_id = q.patient_id)
             LIMIT {},{}
             """.format(i, increment)
-            rows = read_rows(sql)
+            rows = await read_rows(sql)
 
             for row in rows:
                 try:
@@ -355,7 +355,7 @@ def upload_insurance_images_to_gcp_with_small_table():
         WHERE length(q.insurance_photo)>10
         LIMIT 100
         """
-        rows = read_rows(sql)
+        rows = await read_rows(sql)
 
         for row in rows:
             try:
@@ -393,7 +393,7 @@ def remove_image_from_questionnnaires_table(id):
             id = %s
         """
         val = (id,)
-        result = exec_update(sql, val)
+        result = await exec_update(sql, val)
         pass
 
     except Exception as err:

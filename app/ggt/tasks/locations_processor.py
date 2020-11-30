@@ -36,7 +36,7 @@ def task_populate_location_thumbnails():
     WHERE
         image_thumbnail IS NULL
     """
-    rows = read_rows(sql)
+    rows = await read_rows(sql)
     for row in rows:
         location_id = row['id']
 
@@ -93,7 +93,7 @@ def task_populate_gps_coordinates():
         lng = ''
     """
     
-    rows = read_rows(sql)
+    rows = await read_rows(sql)
     for row in rows:
         location_id = row['id']
 

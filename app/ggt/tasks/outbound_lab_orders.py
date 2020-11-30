@@ -138,7 +138,7 @@ def get_insurance_photo_base64(appointment_id):
     LIMIT 1
     """
     vals = (appointment_id,)
-    row = read_row(sql, vals)
+    row = await read_row(sql, vals)
     return row['insurance_photo']
 
 
@@ -378,7 +378,7 @@ def get_orders_ready_to_transmit():
         WHERE
             (t.status = 'ready_to_tx')
             """
-    return read_rows(sql,)
+    return await read_rows(sql,)
 
 
 def upload_file_list_to_ftp(file_list):

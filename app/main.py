@@ -127,5 +127,6 @@ if __name__ == '__main__':
     uvicorn.run(
         app,
         host=cfg('server.host'),
-        port=cfg('server.port')
+        port=cfg('server.port'),
+        debug=cfg('log_level')
     )
