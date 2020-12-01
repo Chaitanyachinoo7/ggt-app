@@ -95,7 +95,7 @@ async def add_service_to_appointment(appointment_id: int, service_code: str) -> 
             
         """.format(appointment_id)
         vals = (service_code, )
-        if exec_insert(sql, vals):
+        if await exec_insert(sql, vals):
             return True
 
     except Exception as err:
