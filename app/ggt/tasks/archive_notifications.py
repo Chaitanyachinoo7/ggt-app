@@ -1,5 +1,5 @@
 import base64
-import json
+import ujson
 
 from ggt.lib.storage import (
     upload_archived_notification_from_base64_string

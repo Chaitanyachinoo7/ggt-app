@@ -1,4 +1,4 @@
-import json
+import ujson
 import logging
 import sys
 import uuid

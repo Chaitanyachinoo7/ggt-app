@@ -285,7 +285,8 @@ async def bp_get_test_result(token: str, dob: str):
         lab_result = await get_test_result_by_token(token)
 
         if lab_result:
-            patient_dob = lab_result['dob'].strftime("%m%d%Y")
+            patient_dob_us = lab_result['dob'].strftime("%m%d%Y")
+            patient_dob_iso = lab_result['dob'].strftime("%Y%m%d")
             test_result = lab_result['test_result']
             test_id = lab_result['test_id']
 
@@ -304,7 +305,7 @@ async def bp_get_test_result(token: str, dob: str):
             if url is None:
                 url = ''
 
-            if dob == patient_dob:
+            if dob == patient_dob_us or dob == patient_dob_iso:
                 return {
                     "result": result,
                     "lab_report_url": url

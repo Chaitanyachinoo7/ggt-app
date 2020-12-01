@@ -1,5 +1,5 @@
 import requests
-import json
+import ujson
 import sys
 
 role_url = "https://gogettested.us.auth0.com/api/v2/roles"

@@ -1,6 +1,6 @@
 import sqlite3
 from sqlite3 import Error
-import json
+import ujson
 
 from ggt.lib.utils import (
     get_config_val,

@@ -1,5 +1,5 @@
 import requests
-import json
+import ujson
 import sys
 
 auth_url = "https://gogettested.us.auth0.com/oauth/token"

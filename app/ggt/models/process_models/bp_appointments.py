@@ -1,6 +1,6 @@
 import datetime
 
-import json
+import ujson
 import boto3
 
 

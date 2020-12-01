@@ -2,7 +2,7 @@
 import sys
 import os
 import requests
-import json
+import ujson
 from datetime import datetime
 import dateutil.parser
 import logging

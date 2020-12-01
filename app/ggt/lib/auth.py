@@ -1,4 +1,4 @@
-import json
+import ujson
 import os
 import urllib.request as urllib2
 
