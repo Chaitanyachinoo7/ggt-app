@@ -180,6 +180,7 @@ async def get_provider_processing_list(offset, consultation_status, consultation
 """.format(where_conditions, limit, offset)
         rows = await read_rows(sql)
         return process_consultations(rows)
+
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -208,6 +209,7 @@ async def provider_lock_task(test_id):
         )
         updated = await exec_update(sql, vals)
         return updated
+
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -237,6 +239,7 @@ async def create_patient_test_consultation(appointment_id, user_id):
             return {"consultation_id": id}
         else:
             return None
+
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -268,6 +271,7 @@ async def update_consultation_note(consultation_id, notes, consultation_type_cod
         )
         updated = await exec_update(sql, vals)
         return updated
+
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -294,6 +298,7 @@ async def provider_complete_task(test_id):
         )
         updated = await exec_update(sql, vals)
         return updated
+
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -318,6 +323,7 @@ async def provider_rollback_to_pending_task(test_id):
         )
         updated = await exec_update(sql, vals)
         return updated
+
     except Exception as err:
         log_generic(
             type=c.ERROR,

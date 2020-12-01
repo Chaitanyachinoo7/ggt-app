@@ -164,6 +164,7 @@ async def get_all_test_results():
                     ON pat.id = ts.patient_id
             """
         return await read_rows(sql, )
+
     except Exception as err:
         log_generic(
             type=ERROR,

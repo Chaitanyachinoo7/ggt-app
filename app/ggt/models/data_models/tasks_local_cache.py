@@ -51,6 +51,7 @@ async def init_local_cache():
                         has_csv         INTEGER);
                     ''')
         conn.commit()
+
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -84,6 +85,7 @@ async def add_to_lab_test_records_cache(rec):
         cur.execute(sql)
         conn.commit()
         result = True
+
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -302,6 +304,7 @@ async def add_to_all_inbound_files_cache(filename):
             filename
         ))
         conn.commit()
+
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -363,6 +366,7 @@ async def add_to_files_in_remote_storage_cache(filename):
         ))
         conn.commit()
         result = True
+
     except Exception as err:
         log_generic(
             type=c.ERROR,

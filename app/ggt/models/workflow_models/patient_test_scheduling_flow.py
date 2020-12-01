@@ -1,6 +1,8 @@
 from datetime import date
 from contextlib import suppress
 
+from aiocache import cached
+
 from ggt.lib.utils import (
     log_generic,
     x_response,
@@ -34,15 +36,13 @@ from ggt.models.data_models.data_types import (
 
 import ggt.lib.constants as c
 
-from ggt.lib.cache import (
-    timed_lru_cache
-)
+
 
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
 
-#@timed_lru_cache(seconds=600)
+@cached(ttl=600)
 async def get_screen_flow_seq(group_code):
     return x_response(
         await bp_get_screen_flow_seq(group_code)
@@ -66,7 +66,7 @@ async def validate_phone_number(phone_number, otp):
         )
     )
 
-#@timed_lru_cache(seconds=60)
+@cached(ttl=60)
 async def get_schedule_dates_available(group_code=c.DEFAULT_GROUP_CODE):
     return x_response(
         await bp_get_schedule_dates_available(
@@ -74,7 +74,7 @@ async def get_schedule_dates_available(group_code=c.DEFAULT_GROUP_CODE):
         )
     )
 
-#@timed_lru_cache(seconds=60)
+@cached(ttl=60)
 async def get_schedule_locations_available(group_code, date):
     return x_response(
         await bp_get_schedule_locations_available(
@@ -83,7 +83,7 @@ async def get_schedule_locations_available(group_code, date):
         )
     )
 
-#@timed_lru_cache(seconds=60)
+@cached(ttl=60)
 async def get_schedule_locations_available_near_lat_lng(date, group_code, lat, lng, radius):
     return x_response(
         await bp_get_schedule_locations_available_near_lat_lng(
@@ -95,13 +95,13 @@ async def get_schedule_locations_available_near_lat_lng(date, group_code, lat, l
         )
     )
 
-#@timed_lru_cache(seconds=60)
+@cached(ttl=60)
 async def get_all_available_locations_and_times(group_code):
     return x_response(
         await bp_get_all_available_locations_and_times(group_code)
     )
 
-#@timed_lru_cache(seconds=60)
+@cached(ttl=60)
 async def get_schedule_times_available(
         location_id, 
         date=date.today().strftime("%Y-%m-%d")

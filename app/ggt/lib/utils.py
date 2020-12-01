@@ -70,6 +70,7 @@ def validate_phone_number_format(phone_number):
         formatted_number = phonenumbers.format_number(
             parsed, phonenumbers.PhoneNumberFormat.E164)
         return formatted_number
+
     except phonenumbers.NumberParseException as e:
         print(e)
         return ""
@@ -146,6 +147,7 @@ def init_cloud_profiler():
             # project_id must be set if not running on GCP.
             project_id=get_config_val('gcp.project_id'),
         )
+
     except (ValueError, NotImplementedError) as exc:
         logging.error(exc)
 

@@ -78,6 +78,7 @@ async def task_process_daily_sms_reminders():
         return {
             "success": True
         }
+
     except Exception as err:
         print(err)
 
@@ -171,6 +172,7 @@ async def formatted_email_message(row):
         }
 
         return email_message
+
     except Exception as err:
         print(err)
 
@@ -202,6 +204,7 @@ async def get_appointments_for_today():
         """
         vals = (datetime.today().strftime('%Y-%m-%d')+'%',)
         return await read_rows(sql, vals)
+
     except Exception as err:
         print(err)
 

@@ -124,6 +124,7 @@ def test_email2():
         subject = "COVID-19 Testing Result Available"
 
         send_email(from_email, from_name, to_email, subject, html_content)
+
     except Exception as err:
         print(err)
 '''

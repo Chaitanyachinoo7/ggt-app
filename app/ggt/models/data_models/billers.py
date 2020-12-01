@@ -269,6 +269,7 @@ async def update_billing_status(appointment_id):
         updated = await exec_update(sql, vals)
         return updated
         
+
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -321,6 +322,7 @@ async def update_insurance_record(insurance_record):
             insurance_record.id)
         res = await exec_update(sql, vals)
         return res
+
     except Exception as err:
         log_generic(
             type=c.ERROR,

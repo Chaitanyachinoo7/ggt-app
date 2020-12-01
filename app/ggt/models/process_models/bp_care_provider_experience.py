@@ -1,4 +1,4 @@
-from ggt.lib.cache import timed_lru_cache
+from aiocache import cached
 from ggt.lib.constants import (
     ERROR
 )
@@ -14,13 +14,14 @@ from ggt.models.data_models.providers import get_provider_processing_list, provi
 # [Public] functions
 ########################################################################################################
 
-#@timed_lru_cache(seconds=30)
+@cached(ttl=30)
 async def bp_get_provider_processing_list(offset, consultation_status, consultation_notes, positive_call, limit):
     try:
         if not offset:
             offset = 0
 
         return get_provider_processing_list(offset, consultation_status, consultation_notes, positive_call, limit)
+
     except Exception as err:
         log_generic(
             type=ERROR,

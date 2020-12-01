@@ -62,6 +62,7 @@ async def get_location_by_id(location_id):
         row = await read_row(sql, vals)
         return __map_row_to_location(row)
         
+
     except Exception as err:
         log_generic(
             type=c.ERROR, 
@@ -94,6 +95,7 @@ async def get_services_available_for_location(location_id):
         rows = await read_rows(sql, vals)
         return __map_rows_to_services_list(rows)
         
+
     except Exception as err:
         log_generic(
             type=c.ERROR, 
@@ -550,6 +552,7 @@ def __map_row_to_location(row):
         loc.collect_upfront_payment = row['collect_upfront_payment']
         loc.image_thumbnail = row['image_thumbnail']
         
+
     except Exception as err:
         log_generic(
             type=c.ERROR, 

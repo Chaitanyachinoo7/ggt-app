@@ -1,3 +1,5 @@
+from aiocache import cached
+
 from ggt.lib.utils import (
     log_generic,
     x_response,
@@ -24,18 +26,15 @@ from ggt.models.process_models.bp_schedules import (
 
 import ggt.lib.constants as c
 
-from ggt.lib.cache import (
-    timed_lru_cache
-)
 
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
 
 
-#@timed_lru_cache(seconds=60)
+@cached(ttl=60)
 async def site_admin_general_search(first_name, middle_name, last_name, dob, phone_number, email, appointment_id,
-                              group_code, appointment_date, location_id):
+                                    group_code, appointment_date, location_id):
     return y_response(
         await bp_get_general_search_results(
             first_name,
@@ -52,7 +51,7 @@ async def site_admin_general_search(first_name, middle_name, last_name, dob, pho
     )
 
 
-#@timed_lru_cache(seconds=60)
+@cached(ttl=60)
 async def site_admin_location_search(account, group_code, site_code):
     return y_response(
         await bp_get_location_search_results(
@@ -97,7 +96,7 @@ async def remove_group(req):
     )
 
 
-#@timed_lru_cache(seconds=60)
+@cached(ttl=60)
 async def get_locations():
     return y_response(
         await bp_get_locations()
@@ -116,14 +115,14 @@ async def update_location(location):
     )
 
 
-#@timed_lru_cache(seconds=60)
+@cached(ttl=60)
 async def get_all_groups():
     return y_response(
         await bp_get_all_groups()
     )
 
 
-#@timed_lru_cache(seconds=3600)
+@cached(ttl=3600)
 async def get_all_services():
     return y_response(
         await bp_get_all_services()

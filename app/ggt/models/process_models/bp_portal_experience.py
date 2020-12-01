@@ -33,13 +33,7 @@ from ggt.models.data_models.locations import (
     create_location, update_location, assign_group, remove_group, assign_service, remove_service,
     get_all_locations_without_thumbnail, assign_all_groups, assign_all_services, remove_all_group, remove_all_service)
 
-from ggt.lib.constants import (
-    STATUS,
-    SUCCESS,
-    FAILED,
-    INFO,
-    ERROR
-)
+import ggt.lib.constants as c
 
 
 ########################################################################################################
@@ -58,9 +52,10 @@ async def bp_get_user_role(email):
         user = get_user_by_email(email)
         return user['role']
 
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             email=email,
             function=whoami(),
             error=err
@@ -70,9 +65,10 @@ async def bp_get_user_role(email):
 async def bp_get_all_test_results():
     try:
         return await get_all_test_results()
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             email="",
             function=whoami(),
             error=err
@@ -81,16 +77,17 @@ async def bp_get_all_test_results():
 
 
 async def bp_get_general_search_results(first_name, middle_name, last_name, dob, phone_number, email, appointment_id,
-                                  group_code, appointment_date, location_id):
+                                        group_code, appointment_date, location_id):
     try:
         if appointment_date != '':
             appointment_date = datetime.strptime(appointment_date, "%m%d%Y")
 
-        return  await find_patients(first_name, middle_name, last_name, dob, phone_number,
-                             email, appointment_id, group_code, appointment_date, location_id)
+        return await find_patients(first_name, middle_name, last_name, dob, phone_number,
+                                   email, appointment_id, group_code, appointment_date, location_id)
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
@@ -99,9 +96,11 @@ async def bp_get_general_search_results(first_name, middle_name, last_name, dob,
 async def bp_create_group(group):
     try:
         return await create_group(group)
+
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
@@ -110,9 +109,11 @@ async def bp_create_group(group):
 async def bp_update_group(group):
     try:
         return await update_group(group)
+        
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
@@ -142,9 +143,10 @@ async def bp_create_location(location):
             if s_success is None or not s_success:
                 return None
         return location_id
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
@@ -153,9 +155,10 @@ async def bp_create_location(location):
 async def bp_assign_group(req):
     try:
         return await assign_group(req)
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
@@ -164,9 +167,10 @@ async def bp_assign_group(req):
 async def bp_assign_service(req):
     try:
         return await assign_service(req)
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
@@ -175,9 +179,11 @@ async def bp_assign_service(req):
 async def bp_remove_group(req):
     try:
         return await remove_group(req)
+
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
@@ -186,9 +192,11 @@ async def bp_remove_group(req):
 async def bp_get_locations():
     try:
         return await get_all_locations_without_thumbnail()
+
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
@@ -197,9 +205,10 @@ async def bp_get_locations():
 async def bp_remove_service(req):
     try:
         return await remove_service(req)
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
@@ -230,9 +239,10 @@ async def bp_update_location(location):
             if s_success is None or not s_success:
                 return None
         return True
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
@@ -241,9 +251,10 @@ async def bp_update_location(location):
 async def bp_get_all_groups():
     try:
         return await get_all_groups()
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
@@ -252,9 +263,10 @@ async def bp_get_all_groups():
 async def bp_get_all_services():
     try:
         return await get_all_services()
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
@@ -263,9 +275,10 @@ async def bp_get_all_services():
 async def bp_get_location_search_results(account, group_code, site_code):
     try:
         return await search_locations(account, group_code, site_code)
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
@@ -274,9 +287,10 @@ async def bp_get_location_search_results(account, group_code, site_code):
 async def bp_create_test_sample_from_appointment(appointment_id):
     try:
         return await create_test_sample_from_appointment(appointment_id)
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
@@ -285,9 +299,10 @@ async def bp_create_test_sample_from_appointment(appointment_id):
 async def bp_record_label_scan(appointment_id):
     try:
         return await record_label_scan(appointment_id)
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )

@@ -1,3 +1,5 @@
+from aiocache import cached
+
 from ggt.lib.utils import (
     log_generic,
     x_response,
@@ -15,9 +17,7 @@ from ggt.models.process_models.bp_contact_center import(
 
 import ggt.lib.constants as c
 
-from ggt.lib.cache import (
-    timed_lru_cache
-)
+
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
@@ -29,6 +29,7 @@ async def cc_view_test_details(auth_token, test_id):
         )
     )
 
+
 async def cc_search_details_by_name_and_dob(last_name, dob):
     return y_response(
         await bp_cc_search_details_by_name_and_dob(
@@ -38,14 +39,14 @@ async def cc_search_details_by_name_and_dob(last_name, dob):
 
 
 async def cc_update_outbound_call_status(test_id,
-                                   first_name,
-                                   test_date,
-                                   dob,
-                                   token,
-                                   to_email,
-                                   to_number,
-                                   test_result,
-                                   call_status):
+                                         first_name,
+                                         test_date,
+                                         dob,
+                                         token,
+                                         to_email,
+                                         to_number,
+                                         test_result,
+                                         call_status):
     await bp_cc_update_outbound_call_status(
         test_id,
         first_name,

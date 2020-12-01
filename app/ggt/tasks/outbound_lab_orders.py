@@ -228,6 +228,7 @@ def __get_formatted_row(order):
         order['is_congregate_resident'],
         order['is_pregnant']
     ]
+
     except Exception as err:
         print(err)
 

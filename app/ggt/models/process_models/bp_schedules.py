@@ -63,6 +63,7 @@ async def bp_get_schedule_dates_available(group_code):
         return {
             "available_dates": available_dates
         }
+
     except Exception as err:
         log_generic(
             type=c.ERROR,

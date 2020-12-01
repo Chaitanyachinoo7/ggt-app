@@ -1,3 +1,5 @@
+from aiocache import cached
+
 from ggt.lib.utils import (
     x_response
 )
@@ -12,9 +14,6 @@ from ggt.models.process_models.bp_printers import (
     bp_provider_get_workstations
 )
 
-from ggt.lib.cache import (
-    timed_lru_cache
-)
 
 '''
 bp_get_monthly_calendar,
@@ -46,7 +45,7 @@ def printer_queue_check(printer_id, printer_token):
 '''
 
 
-#@timed_lru_cache(seconds=3600)
+@cached(ttl=3600)
 async def provider_get_workstations():
     return x_response(
         await bp_provider_get_workstations()

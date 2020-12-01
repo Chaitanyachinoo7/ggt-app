@@ -1191,6 +1191,7 @@ def __map_rows_to_dtl_list(rows):
                 _temp[key]
             )
     
+
     except Exception as err:
         log_generic(
             type=c.ERROR,

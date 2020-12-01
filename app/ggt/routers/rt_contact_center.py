@@ -97,6 +97,7 @@ async def api_cc_send_email(CCSendEmailRequest: CCSendEmailRequest):
         await send_email(email["from_email"], email["from_name"],
                    email["to_email"], email["subject"], email["html_content"])
         return {STATUS: SUCCESS}
+
     except Exception as err:
         print(err)
 
@@ -131,5 +132,6 @@ async def outbound_result_status(CCOutboundResultStatusRequest: CCOutboundResult
             CCOutboundResultStatusRequest.test_result,
             CCOutboundResultStatusRequest.call_status
         )
+
     except Exception as err:
         print(err)

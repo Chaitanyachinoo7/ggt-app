@@ -299,6 +299,7 @@ async def ftp_move_file(ftp_client, old_path, new_path):
 
     try:
         ftp_client.chdir(dir_path)
+
     except IOError:
         ftp_create_dir_path(ftp_client, dir_path)
 
@@ -332,6 +333,7 @@ async def get_remote_directories_and_files(ftp_client, remote_folder):
                 dir_list.append(resource)
             else:
                 file_list.append(resource)
+
     except Exception as err:
         log_generic(
             type=c.ERROR,

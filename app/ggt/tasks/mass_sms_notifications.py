@@ -59,6 +59,7 @@ async def notify_patients(req):
         batch_enqueue_email_notifications(tuple(email_list))
         batch_enqueue_sms_notifications(tuple(sms_list))
         update_appointments(reschedule_list)
+
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -112,6 +113,7 @@ async def get_reschedule_sms_body(data):
             'message': message
         }
         return formatted
+
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -152,6 +154,7 @@ async def get_relocate_sms_body(data):
         }
         return formatted
         
+
     except Exception as err:
         log_generic(
             type=c.ERROR,
