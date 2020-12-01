@@ -323,7 +323,7 @@ async def upload_insurance_images_to_gcp():
                             base64string = insurance_photo.split(",")[1]
 
                         dest_file_name = '{}.png'.format(appointment_id)
-                        upload_insurance_card_from_base64_string(
+                        await upload_insurance_card_from_base64_string(
                             base64string, 'image/png', dest_file_name)
 
                         print('uploaded image: {}'.format(dest_file_name))

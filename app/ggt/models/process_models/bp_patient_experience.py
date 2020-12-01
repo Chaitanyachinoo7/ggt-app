@@ -659,7 +659,7 @@ async def __save_insurance_image(appointment_id: int, insurance_image: str) -> b
                 base64string = insurance_image.split(",")[1]
 
             dest_file_name = '{}.png'.format(appointment_id)
-            if upload_insurance_card_from_base64_string(base64string, 'image/png', dest_file_name):
+            if await upload_insurance_card_from_base64_string(base64string, 'image/png', dest_file_name):
                 print('uploaded image: {}'.format(dest_file_name))
                 return True
 
