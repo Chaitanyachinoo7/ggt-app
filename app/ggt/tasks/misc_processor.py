@@ -277,7 +277,7 @@ async def sync_appointments_with_schedule_slots():
                 LIMIT 1
             """
             vals = (row['id'], row['scheduled_dt'], row['location_id'])
-            # if exec_update(sql, vals):
+            # if await exec_update(sql, vals):
             #    print(row['id'], row['scheduled_dt'])
 
             print("""UPDATE schedules SET status = 'booked', appointment_id = {} WHERE start_dt = '{}' AND location_id = {} AND status = 'available' LIMIT 1""".format(

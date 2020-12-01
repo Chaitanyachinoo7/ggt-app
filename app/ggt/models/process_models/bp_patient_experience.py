@@ -261,7 +261,7 @@ async def bp_finalize_booking(booking_req: GgtBooking):
 
 async def bp_finalize_payment(appointment_id: int, wp_receipt_token: str):
     try:
-        appointment = get_appointment(appointment_id)
+        appointment = await get_appointment(appointment_id)
         if appointment.wp_receipt_token == wp_receipt_token:
             await update_appointment_with_confirmed_scheduled(appointment_id)
             result = await __send_qrcode_sms(appointment)
@@ -364,7 +364,7 @@ async def __generate_appointment(booking_req: GgtBooking):
         appointment = await create_appointment(booking_req)
 
         if appointment:
-            update_slot_information(booking_req.timeslot_id, appointment.id)
+            await update_slot_information(booking_req.timeslot_id, appointment.id)
 
             log_generic(
                 type=c.INFO,

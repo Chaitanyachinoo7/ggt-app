@@ -139,7 +139,7 @@ async def add_schedule_generation_rule(data):
             data.active_local_start_dt,
             data.active_local_end_dt)
 
-        if exec_insert(sql, vals):
+        if await exec_insert(sql, vals):
             return True
         else:
             return False
