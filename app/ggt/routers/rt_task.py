@@ -1,4 +1,4 @@
-import json
+import ujson
 
 import requests
 from fastapi import (

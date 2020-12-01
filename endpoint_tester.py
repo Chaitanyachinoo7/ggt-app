@@ -2,7 +2,7 @@
 import sys
 import os
 import requests
-import json
+import ujson
 from datetime import datetime
 import dateutil.parser
 import logging
@@ -89,6 +89,7 @@ def is_valid_status_code(response, expected_code):
         if response.status_code == expected_code:
             print_ok2('OK - {}'.format(response.status_code))
             return True
+
     except Exception:
         pass
 
@@ -107,6 +108,7 @@ def is_json_deserializable(response):
     try:
         responses = response.json()
         return True
+
     except ValueError:
         return False
 
@@ -121,6 +123,7 @@ def is_not_empty_response():
 def is_valid_structure():
     try:
         data = responses[some_key][some_index][...][...]
+
     except (IndexError, KeyError, TypeError):
         # data does not have the inner structure you expect
 

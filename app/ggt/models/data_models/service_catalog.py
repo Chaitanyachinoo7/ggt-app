@@ -33,10 +33,10 @@ from ggt.models.data_models.data_types import (
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-def get_all_services():
+async def get_all_services():
     try:
         sql = "SELECT * FROM services_catalog"
-        return read_rows(sql)
+        return await read_rows(sql)
 
     except Exception as err:
         log_generic(

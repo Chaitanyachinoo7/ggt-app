@@ -13,10 +13,10 @@ from ggt.lib.utils import (
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-def get_all_groups():
+async def get_all_groups():
     try:
         sql = "SELECT * FROM groups"
-        return read_rows(sql)
+        return await read_rows(sql)
 
     except Exception as err:
         log_generic(
@@ -27,7 +27,7 @@ def get_all_groups():
         return None
 
 
-def create_group(group):
+async def create_group(group):
     try:
         sql = """INSERT INTO groups
                 (
@@ -68,7 +68,7 @@ def create_group(group):
             group.logo_2,
             group.optional_screens
         )
-        group_id = exec_insert(sql, vals)
+        group_id = await exec_insert(sql, vals)
         return group_id
 
     except Exception as err:
@@ -80,7 +80,7 @@ def create_group(group):
         return None
 
 
-def update_group(group):
+async def update_group(group):
     try:
         sql = """
                UPDATE groups SET
@@ -121,7 +121,7 @@ def update_group(group):
             group.optional_screens,
             group.id
         )
-        updated = exec_update(sql, vals)
+        updated = await exec_update(sql, vals)
         return updated
 
     except Exception as err:

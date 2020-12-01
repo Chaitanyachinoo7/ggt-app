@@ -21,7 +21,7 @@ relocate_template = get_config_val('notifications.relocate_template')
 reschedule_template = get_config_val('notifications.reschedule_template')
 
 
-def notify_patients(req):
+async def notify_patients(req):
     location_id = req.location_id
     req_type = req.type
     start_dt = req.start_dt
@@ -31,14 +31,14 @@ def notify_patients(req):
     if req_type == NotificationEnum.relocate:
         next_location_id = req.next_location_id
 
-    patients = get_notify_patients(location_id, next_location_id, start_dt, end_dt)
+    patients = await get_notify_patients(location_id, next_location_id, start_dt, end_dt)
     reschedule_list = []
     email_list = []
     sms_list = []
     try:
         for p in patients:
-            email = get_email_body(p, req_type)
-            sms = get_sms_body(p, req_type)
+            email = await get_email_body(p, req_type)
+            sms = await get_sms_body(p, req_type)
 
             if email is not None:
                 email_list.append((
@@ -59,6 +59,7 @@ def notify_patients(req):
         batch_enqueue_email_notifications(tuple(email_list))
         batch_enqueue_sms_notifications(tuple(sms_list))
         update_appointments(reschedule_list)
+
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -67,7 +68,7 @@ def notify_patients(req):
         )
 
 
-def get_email_body(data, req_type):
+async def get_email_body(data, req_type):
     if req_type == NotificationEnum.relocate:
         return get_relocate_email_body(data)
     if req_type == NotificationEnum.reschedule:
@@ -75,7 +76,7 @@ def get_email_body(data, req_type):
     return None
 
 
-def get_sms_body(data, req_type):
+async def get_sms_body(data, req_type):
     if req_type == NotificationEnum.relocate:
         return get_relocate_sms_body(data)
     if req_type == NotificationEnum.reschedule:
@@ -83,7 +84,7 @@ def get_sms_body(data, req_type):
     return None
 
 
-def get_reschedule_sms_body(data):
+async def get_reschedule_sms_body(data):
     try:
 
         scheduled_dt = str(data['scheduled_dt'])
@@ -91,7 +92,6 @@ def get_reschedule_sms_body(data):
         test_time = datetime.strptime(str(scheduled_dt[11: len(scheduled_dt)]), "%H:%M:%S").strftime("%I:%M %p")
         template_vars = {
             "first_name": data['first_name'],
-            "test_number": data['appointment_id'],
             "test_number": data['appointment_id'],
             "test_location_line1": data['new_addr1'] if data['new_addr1'] else '',
             "test_location_line2": data['new_addr2'] if data['new_addr2'] else '',
@@ -113,6 +113,7 @@ def get_reschedule_sms_body(data):
             'message': message
         }
         return formatted
+
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -122,7 +123,7 @@ def get_reschedule_sms_body(data):
         return None
 
 
-def get_relocate_sms_body(data):
+async def get_relocate_sms_body(data):
     try:
 
         scheduled_dt = str(data['scheduled_dt'])
@@ -130,7 +131,6 @@ def get_relocate_sms_body(data):
         test_time = datetime.strptime(str(scheduled_dt[11: len(scheduled_dt)]), "%H:%M:%S").strftime("%I:%M %p")
         template_vars = {
             "first_name": data['first_name'],
-            "test_number": data['appointment_id'],
             "test_number": data['appointment_id'],
             "test_location_line1": data['new_addr1'] if data['new_addr1'] else '',
             "test_location_line2": data['new_addr2'] if data['new_addr2'] else '',
@@ -153,6 +153,8 @@ def get_relocate_sms_body(data):
             'message': message
         }
         return formatted
+        
+
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -162,7 +164,7 @@ def get_relocate_sms_body(data):
         return None
 
 
-def get_reschedule_email_body(data):
+async def get_reschedule_email_body(data):
     try:
 
         scheduled_dt = str(data['scheduled_dt'])
@@ -180,7 +182,7 @@ def get_reschedule_email_body(data):
                                                           data['new_addr2'] if data['new_addr2'] else '',
                                                           data['new_addr3'] if data['new_addr3'] else '')
         }
-        html_content = render_template(reschedule_template, **template_vars)
+        html_content = await render_template(reschedule_template, **template_vars)
         email_message = {
             'from_email': from_email,
             'from_name': from_name,
@@ -189,6 +191,7 @@ def get_reschedule_email_body(data):
             'html_content': html_content
         }
         return email_message
+
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -198,7 +201,7 @@ def get_reschedule_email_body(data):
         return None
 
 
-def get_relocate_email_body(data):
+async def get_relocate_email_body(data):
     try:
 
         scheduled_dt = str(data['scheduled_dt'])
@@ -216,7 +219,7 @@ def get_relocate_email_body(data):
                                                           data['new_addr2'] if data['new_addr2'] else '',
                                                           data['new_addr3'] if data['new_addr3'] else '')
         }
-        html_content = render_template(relocate_template, **template_vars)
+        html_content = await render_template(relocate_template, **template_vars)
         email_message = {
             'from_email': from_email,
             'from_name': from_name,
@@ -225,6 +228,7 @@ def get_relocate_email_body(data):
             'html_content': html_content
         }
         return email_message
+
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -234,16 +238,16 @@ def get_relocate_email_body(data):
         return None
 
 
-def update_appointments(data):
+async def update_appointments(data):
     sql = """UPDATE appointments 
              SET 
                 status = %s
              WHERE
                 id = %s;"""
-    return exec_batch_execute(sql, data)
+    return await exec_batch_execute(sql, data)
 
 
-def get_notify_patients(location_id, next_location_id, start_dt, end_dt):
+async def get_notify_patients(location_id, next_location_id, start_dt, end_dt):
     sql = """SELECT 
     p.phone_number,
     p.email,
@@ -261,5 +265,5 @@ FROM
     locations l
             WHERE a.scheduled_dt >= '{}' AND a.scheduled_dt <= '{}' AND a.location_id = {} 
             AND l.id = {};""".format(start_dt, end_dt, location_id, next_location_id)
-    return read_rows(sql)
+    return await read_rows(sql)
 

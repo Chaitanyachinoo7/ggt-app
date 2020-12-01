@@ -76,9 +76,15 @@ def formatted_email_message(first_name, token, to_email):
 @router.post("/sendsms", dependencies=[Security(authorize_user, scopes=[p.SENDSMS])])
 async def api_cc_send_sms(CCSendSMSRequest: CCSendSMSRequest):
     try:
-        send_sms(CCSendSMSRequest.to_number, formatted_sms_message(
-            CCSendSMSRequest.first_name, CCSendSMSRequest.token))
+        await send_sms(
+                CCSendSMSRequest.to_number, 
+                formatted_sms_message(
+                    CCSendSMSRequest.first_name, 
+                    CCSendSMSRequest.token
+                )
+            )
         return {STATUS: SUCCESS}
+
     except Exception as err:
         print(err)
 
@@ -88,9 +94,10 @@ async def api_cc_send_email(CCSendEmailRequest: CCSendEmailRequest):
     try:
         email = formatted_email_message(
             CCSendEmailRequest.first_name, CCSendEmailRequest.token, CCSendEmailRequest.to_email)
-        send_email(email["from_email"], email["from_name"],
+        await send_email(email["from_email"], email["from_name"],
                    email["to_email"], email["subject"], email["html_content"])
         return {STATUS: SUCCESS}
+
     except Exception as err:
         print(err)
 
@@ -101,9 +108,9 @@ async def api_cc_send_sms_email(CCSendNotiRequest: CCSendNotiRequest):
 
         email = formatted_email_message(
             CCSendNotiRequest.first_name, CCSendNotiRequest.token, CCSendNotiRequest.to_email)
-        send_email(email["from_email"], email["from_name"],
+        await send_email(email["from_email"], email["from_name"],
                    email["to_email"], email["subject"], email["html_content"])
-        send_sms(CCSendNotiRequest.to_number, formatted_sms_message(
+        await send_sms(CCSendNotiRequest.to_number, formatted_sms_message(
             CCSendNotiRequest.first_name, CCSendNotiRequest.token))
         return {STATUS: SUCCESS}
 
@@ -112,9 +119,9 @@ async def api_cc_send_sms_email(CCSendNotiRequest: CCSendNotiRequest):
 
 
 @router.post("/outbound_result_status", dependencies=[Security(authorize_user, scopes=[p.OUTBOUND_RESULT_STATUS])])
-def outbound_result_status(CCOutboundResultStatusRequest: CCOutboundResultStatusRequest):
+async def outbound_result_status(CCOutboundResultStatusRequest: CCOutboundResultStatusRequest):
     try:
-        cc_update_outbound_call_status(
+        await cc_update_outbound_call_status(
             CCOutboundResultStatusRequest.test_id,
             CCOutboundResultStatusRequest.first_name,
             CCOutboundResultStatusRequest.test_date,
@@ -125,5 +132,6 @@ def outbound_result_status(CCOutboundResultStatusRequest: CCOutboundResultStatus
             CCOutboundResultStatusRequest.test_result,
             CCOutboundResultStatusRequest.call_status
         )
+
     except Exception as err:
         print(err)

@@ -20,11 +20,11 @@ from ggt.lib.adapters.sendgrid_adapter import (
 #    from ggt.lib.adapters.test_email_adapter import send_email as __send_email
 
 
-def send_email(from_email, from_name, to_email, subject, html_content, text_content=""):
+async def send_email(from_email, from_name, to_email, subject, html_content, text_content=""):
     return __send_email(from_email, from_name, to_email, subject, html_content, text_content)
 
 
-def render_template(template, **kwargs):
+async def render_template(template, **kwargs):
     ''' renders a Jinja template into HTML from a file'''
     curr_file = Path(__file__)
     template_path = curr_file.parent.parent.joinpath('templates/email/')

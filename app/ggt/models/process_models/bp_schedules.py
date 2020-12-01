@@ -39,10 +39,10 @@ from ggt.lib.maps import (
 ########################################################################################################
 
 
-def bp_get_schedule_dates_available(group_code):
+async def bp_get_schedule_dates_available(group_code):
     try:
         group_code = normalize_group_code(group_code)
-        rows = get_available_dates(group_code)
+        rows = await get_available_dates(group_code)
         available_dates = []
         for row in rows:
             date_str = row['available_date']
@@ -63,6 +63,7 @@ def bp_get_schedule_dates_available(group_code):
         return {
             "available_dates": available_dates
         }
+
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -73,7 +74,7 @@ def bp_get_schedule_dates_available(group_code):
         )
 
 
-def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: float, radius: int = None, date_str: str = None, group_code: str = None):
+async def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: float, radius: int = None, date_str: str = None, group_code: str = None):
     if not radius:
         radius = 100
 
@@ -84,7 +85,7 @@ def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: float, rad
         date_str = date.today().strftime("%Y-%m-%d")
 
     group_code = normalize_group_code(group_code)
-    dtl_list = get_available_locations_near_lat_lng(
+    dtl_list = await get_available_locations_near_lat_lng(
         lat, lng, radius, date_str, group_code)
     available_locations = []
     try:
@@ -155,9 +156,9 @@ def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: float, rad
     }
 
 
-def bp_get_schedule_locations_available(date, group_code=c.DEFAULT_GROUP_CODE):
+async def bp_get_schedule_locations_available(date, group_code=c.DEFAULT_GROUP_CODE):
     group_code = normalize_group_code(group_code)
-    dtl_list = get_available_locations(date, group_code)
+    dtl_list = await get_available_locations(date, group_code)
     available_locations = []
     try:
         for dtl in dtl_list:
@@ -226,12 +227,12 @@ def bp_get_schedule_locations_available(date, group_code=c.DEFAULT_GROUP_CODE):
     }
 
 
-def bp_get_all_available_locations_and_times(group_code=c.DEFAULT_GROUP_CODE):
+async def bp_get_all_available_locations_and_times(group_code=c.DEFAULT_GROUP_CODE):
     if not group_code:
         group_code = c.DEFAULT_GROUP_CODE
     group_code = normalize_group_code(group_code)
 
-    dtl_list = get_all_available_dtl(group_code)
+    dtl_list = await get_all_available_dtl(group_code)
     available_locations = __map_dtl_list_to_available_locations(dtl_list)
 
     return {
@@ -239,75 +240,8 @@ def bp_get_all_available_locations_and_times(group_code=c.DEFAULT_GROUP_CODE):
     }
 
 
-def __map_dtl_list_to_available_locations(dtl_list):
-    available_locations = []
-
-    if dtl_list is None:
-        return available_locations
-
-    try:
-        for dtl in dtl_list:
-            if dtl.location.addr2:
-                addr2 = dtl.location.addr2
-            else:
-                addr2 = ''
-
-            location_text = "{} {}, {}, {}  {}".format(
-                dtl.location.addr1,
-                addr2,
-                dtl.location.city,
-                dtl.location.st,
-                dtl.location.zip
-            )
-
-            if dtl.location.image_thumbnail:
-                map_thumbnail = 'data:image/jpeg;base64,{}'.format(
-                    dtl.location.image_thumbnail)
-            else:
-                map_thumbnail = get_map_thumbnail_url(location_text)
-
-            available_locations.append(
-                {
-                    'id': dtl.location.id,
-                    'name': dtl.location.name,
-                    'address': location_text,
-                    'lat': dtl.location.lat,
-                    'lng': dtl.location.lng,
-                    'billing_type': dtl.location.billing_type,
-                    'collect_insurance_info': dtl.location.collect_insurance_info,
-                    'allow_insurance_skip': dtl.location.allow_insurance_skip,
-                    'collect_upfront_payment': dtl.location.collect_upfront_payment,
-                    'next_test_date': dtl.first_date_time_available.strftime("%a, %-d %b %Y @ %-I:%M %p"),
-                    'wait_time_mins': '< 30m',
-                    'result_time_hours': '{}h'.format(dtl.average_processing_time),
-                    'slots_available': dtl.slot_count*8,
-                    'type': 'public',
-                    'map_thumbnail': map_thumbnail,
-                    'services_available': dtl.location.services_available,
-                    "label": location_text,
-                    "value": dtl.location.id
-                }
-            )
-
-        log_generic(
-            type=c.INFO,
-            available_locations=available_locations,
-            function=whoami()
-        )
-
-    except Exception as err:
-        log_generic(
-            type=c.ERROR,
-            dtl_list=dtl_list,
-            function=whoami(),
-            error=err
-        )
-
-    return available_locations
-
-
-def bp_get_schedule_times_available(location_id, date):
-    rows = get_available_times(location_id, date)
+async def bp_get_schedule_times_available(location_id, date):
+    rows = await get_available_times(location_id, date)
     available_times = []
     try:
         for row in rows:
@@ -335,11 +269,11 @@ def bp_get_schedule_times_available(location_id, date):
     }
 
 
-def bp_generate_all_schedules():
+async def bp_generate_all_schedules():
     try:
-        locations = get_all_locations()
+        locations = await get_all_locations()
         for location in locations:
-            bp_generate_full_schedule(location['id'])
+            await bp_generate_full_schedule(location['id'])
 
         return True
 
@@ -353,9 +287,9 @@ def bp_generate_all_schedules():
     return False
 
 
-def bp_delete_schedule(location_id):
+async def bp_delete_schedule(location_id):
     try:
-        return delete_schedule_entries_by_location_id(location_id)
+        return await delete_schedule_entries_by_location_id(location_id)
 
     except Exception as err:
         log_generic(
@@ -368,9 +302,9 @@ def bp_delete_schedule(location_id):
     return False
 
 
-def bp_delete_schedule_for_date(location_id, date_str):
+async def bp_delete_schedule_for_date(location_id, date_str):
     try:
-        return delete_schedule_entries_by_location_id_for_date(location_id, date_str)
+        return await delete_schedule_entries_by_location_id_for_date(location_id, date_str)
 
     except Exception as err:
         log_generic(
@@ -384,7 +318,7 @@ def bp_delete_schedule_for_date(location_id, date_str):
     return False
 
 
-def bp_generate_full_schedule(location_id):
+async def bp_generate_full_schedule(location_id):
     try:
         print('START schedule generation / location id: {} / at: {}'.format(
             location_id, datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -393,10 +327,10 @@ def bp_generate_full_schedule(location_id):
         latest_schedule_dt = datetime.today() - timedelta(days=1)
         latest_schedule_dt = latest_schedule_dt.replace(
             hour=0, minute=0, second=0, microsecond=0)
-        delete_schedule_entries_by_location_id(location_id)
-        update_schedule_generation_rules_start_dt(
-            location_id, latest_schedule_dt)
-        rules = get_schedule_generation_rules_by_location_id(location_id)
+
+        await delete_schedule_entries_by_location_id(location_id)
+        await update_schedule_generation_rules_start_dt(location_id, latest_schedule_dt)
+        rules = await get_schedule_generation_rules_by_location_id(location_id)
 
         for rule in rules:
             __process_schedule_rule(rule)
@@ -418,7 +352,7 @@ def bp_generate_full_schedule(location_id):
     return False
 
 
-def bp_add_schedule_generation_rule(data):
+async def bp_add_schedule_generation_rule(data):
     try:
         # Zero out the seconds and hours for dt fields
         data.local_start_time = data.local_start_time.replace(second=0)
@@ -428,7 +362,7 @@ def bp_add_schedule_generation_rule(data):
         data.active_local_end_dt = data.active_local_end_dt.replace(
             hour=0, minute=0, second=0)
 
-        return add_schedule_generation_rule(data)
+        return await add_schedule_generation_rule(data)
 
     except Exception as err:
         log_generic(
@@ -441,7 +375,7 @@ def bp_add_schedule_generation_rule(data):
     return False
 
 
-def bp_update_schedule_generation_rule(data):
+async def bp_update_schedule_generation_rule(data):
     try:
         # Zero out the seconds and hours for dt fields
         data.local_start_time = data.local_start_time.replace(second=0)
@@ -451,7 +385,7 @@ def bp_update_schedule_generation_rule(data):
         data.active_local_end_dt = data.active_local_end_dt.replace(
             hour=0, minute=0, second=0)
 
-        return update_schedule_generation_rule(data)
+        return await update_schedule_generation_rule(data)
 
     except Exception as err:
         log_generic(
@@ -464,9 +398,9 @@ def bp_update_schedule_generation_rule(data):
     return False
 
 
-def bp_delete_schedule_generation_rule(id):
+async def bp_delete_schedule_generation_rule(id):
     try:
-        return delete_schedule_generation_rule(id)
+        return await delete_schedule_generation_rule(id)
 
     except Exception as err:
         log_generic(
@@ -479,9 +413,9 @@ def bp_delete_schedule_generation_rule(id):
     return False
 
 
-def bp_get_schedule_generation_rules(location_id):
+async def bp_get_schedule_generation_rules(location_id):
     try:
-        return get_schedule_generation_rules_by_location_id(location_id)
+        return await get_schedule_generation_rules_by_location_id(location_id)
 
     except Exception as err:
         log_generic(
@@ -498,7 +432,7 @@ def bp_get_schedule_generation_rules(location_id):
 ########################################################################################################
 
 
-def __process_schedule_rule(rule):
+async def __process_schedule_rule(rule):
     try:
         location_id = rule['location_id']
         rule_type = rule['rule_type']
@@ -511,7 +445,7 @@ def __process_schedule_rule(rule):
         current_dt = datetime.today()
 
         if rule_type == 'exception':
-            bp_delete_schedule_for_date(location_id, start_date_str)
+            await bp_delete_schedule_for_date(location_id, start_date_str)
 
         rows = []
         valid_days = __get_valid_days(rule)
@@ -612,6 +546,73 @@ def __remove_reserved_slots(rows, location_id):
         )
 
     return rows
+
+
+def __map_dtl_list_to_available_locations(dtl_list):
+    available_locations = []
+
+    if dtl_list is None:
+        return available_locations
+
+    try:
+        for dtl in dtl_list:
+            if dtl.location.addr2:
+                addr2 = dtl.location.addr2
+            else:
+                addr2 = ''
+
+            location_text = "{} {}, {}, {}  {}".format(
+                dtl.location.addr1,
+                addr2,
+                dtl.location.city,
+                dtl.location.st,
+                dtl.location.zip
+            )
+
+            if dtl.location.image_thumbnail:
+                map_thumbnail = 'data:image/jpeg;base64,{}'.format(
+                    dtl.location.image_thumbnail)
+            else:
+                map_thumbnail = get_map_thumbnail_url(location_text)
+
+            available_locations.append(
+                {
+                    'id': dtl.location.id,
+                    'name': dtl.location.name,
+                    'address': location_text,
+                    'lat': dtl.location.lat,
+                    'lng': dtl.location.lng,
+                    'billing_type': dtl.location.billing_type,
+                    'collect_insurance_info': dtl.location.collect_insurance_info,
+                    'allow_insurance_skip': dtl.location.allow_insurance_skip,
+                    'collect_upfront_payment': dtl.location.collect_upfront_payment,
+                    'next_test_date': dtl.first_date_time_available.strftime("%a, %-d %b %Y @ %-I:%M %p"),
+                    'wait_time_mins': '< 30m',
+                    'result_time_hours': '{}h'.format(dtl.average_processing_time),
+                    'slots_available': dtl.slot_count*8,
+                    'type': 'public',
+                    'map_thumbnail': map_thumbnail,
+                    'services_available': dtl.location.services_available,
+                    "label": location_text,
+                    "value": dtl.location.id
+                }
+            )
+
+        log_generic(
+            type=c.INFO,
+            available_locations=available_locations,
+            function=whoami()
+        )
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            dtl_list=dtl_list,
+            function=whoami(),
+            error=err
+        )
+
+    return available_locations
 
 
 def normalize_group_code(group_code):

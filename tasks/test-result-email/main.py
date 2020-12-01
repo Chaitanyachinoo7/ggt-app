@@ -20,6 +20,7 @@ def send_sendgrid_email(from_email, to_email, subject, html_content, text_conten
         print(response.status_code)
         print(response.body)
         print(response.headers)
+
     except Exception as err:
         print(e.message)
         print("sending-email-failed: {}".format(err))

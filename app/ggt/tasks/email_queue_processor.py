@@ -1,5 +1,5 @@
 from ggt.lib.utils import (
-    get_config_val,
+    get_config_val as cfg,
     log_generic,
     generate_session_id,
     whoami
@@ -13,22 +13,16 @@ from ggt.lib.db import (
 
 from ggt.lib.email import send_email, render_template
 
-from ggt.lib.constants import (
-    STATUS,
-    SUCCESS,
-    FAILED,
-    INFO,
-    ERROR
-)
+import ggt.lib.constants as c
 
 
-def task_process_email_queue():
+async def task_process_email_queue():
     print('\n\n********************task_process_email_queue****************************\n\n')
 
     sql = """
     SELECT * FROM email_notification_queue where status IN ('pending','retry')
     """
-    rows = read_rows(sql)
+    rows = await read_rows(sql)
     for row in rows:
         _id = row['id']
         status = row['status']
@@ -37,23 +31,22 @@ def task_process_email_queue():
         to_email = row['to_email']
         subject = row['subject']
         html_content = row['html_content']
-        
+
         if status == 'retry':
             if send_email(from_email, from_name, to_email, subject, html_content):
-                update_email_status_to_processed(_id)
+                await update_email_status_to_processed(_id)
             else:
-                update_email_status_to_error(_id)
+                await update_email_status_to_error(_id)
         else:
             if send_email(from_email, from_name, to_email, subject, html_content):
-                update_email_status_to_processed(_id)
+                await update_email_status_to_processed(_id)
             else:
-                update_email_status_to_retry(_id)
-            
+                await update_email_status_to_retry(_id)
 
     print('\n\n************************************************\n\n')
 
 
-def update_email_status_to_processed(id):
+async def update_email_status_to_processed(id):
     sql = """
         UPDATE email_notification_queue
         SET
@@ -62,10 +55,10 @@ def update_email_status_to_processed(id):
         WHERE `id` = %s
     """
     vals = (id,)
-    exec_update(sql, vals)   
+    await exec_update(sql, vals)
 
 
-def update_email_status_to_retry(id):
+async def update_email_status_to_retry(id):
     sql = """
         UPDATE email_notification_queue
         SET
@@ -74,10 +67,10 @@ def update_email_status_to_retry(id):
         WHERE `id` = %s
     """
     vals = (id,)
-    exec_update(sql, vals)    
+    await exec_update(sql, vals)
 
 
-def update_email_status_to_error(id):
+async def update_email_status_to_error(id):
     sql = """
         UPDATE email_notification_queue
         SET
@@ -86,7 +79,7 @@ def update_email_status_to_error(id):
         WHERE `id` = %s
     """
     vals = (id,)
-    exec_update(sql, vals)    
+    await exec_update(sql, vals)
 
 
 '''
@@ -131,6 +124,7 @@ def test_email2():
         subject = "COVID-19 Testing Result Available"
 
         send_email(from_email, from_name, to_email, subject, html_content)
+
     except Exception as err:
         print(err)
 '''

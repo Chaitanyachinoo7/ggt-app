@@ -1,5 +1,5 @@
 import requests
-import json
+import ujson
 
 print("\n\n########################### STARTED CREATING ROLES #########################################\n")
 

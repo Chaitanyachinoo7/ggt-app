@@ -7,7 +7,7 @@ import base64
 from PIL import Image
 
 from ggt.lib.utils import (
-    get_config_val,
+    get_config_val as cfg,
     log_generic,
     generate_session_id,
     whoami
@@ -24,55 +24,49 @@ from ggt.lib.storage import (
     get_file_blob
 )
 
-from ggt.lib.constants import (
-    STATUS,
-    SUCCESS,
-    FAILED,
-    INFO,
-    ERROR
-)
+import ggt.lib.constants as c
 
 session_id = generate_session_id()
-local_outbound_file_path = get_config_val('vendors.healthtrackrx.local_outbound_file_path')
-outbound_file_prefix = get_config_val('vendors.healthtrackrx.outbound_file_prefix')
-local_insurance_card_file_path = get_config_val('vendors.healthtrackrx.local_insurance_card_file_path')
+local_outbound_file_path = cfg('vendors.healthtrackrx.local_outbound_file_path')
+outbound_file_prefix = cfg('vendors.healthtrackrx.outbound_file_prefix')
+local_insurance_card_file_path = cfg('vendors.healthtrackrx.local_insurance_card_file_path')
 
 async def task_process_outbound_lab_orders():
     print('\n\n************************************************\n\n')
     log_generic(
-        type=INFO,
+        type=c.INFO,
         function=whoami(),
         task_session_id=session_id,
         info='Begin Processing outbound Lab Reports')
 
     print('looking up ready to transmit orders')
-    orders = get_orders_ready_to_transmit()
+    orders = await get_orders_ready_to_transmit()
 
     #upload_insurance_files_from_db(orders)
     await upload_insurance_files_from_gstore(orders)
 
     if len(orders)>0:
         print('generating outbound file')
-        filename, local_file_path = create_outbound_file(orders)
+        filename, local_file_path = await create_outbound_file(orders)
 
         print('uploading file to FTP server')
-        upload_file_to_ftp(filename, local_file_path)
+        await upload_file_to_ftp(filename, local_file_path)
 
         print('marking records to "with_lab" status')
-        update_to_with_lab_status(orders)
+        await update_to_with_lab_status(orders)
     else:
         print('no orders to process')
 
 
     log_generic(
-        type=INFO,
+        type=c.INFO,
         function=whoami(),
         task_session_id=session_id,
         info='End Processing outbound Lab Reports')
     print('\n\n************************************************\n\n')
 
 
-def upload_insurance_files_from_db(orders):
+async def upload_insurance_files_from_db(orders):
     try:
         print('converting insurance image files to PDF')
         file_buffer = []
@@ -82,7 +76,7 @@ def upload_insurance_files_from_db(orders):
                 filename = "{}_001.pdf".format(order['id'])
                 file_path_pdf = "{}/{}".format(local_insurance_card_file_path, filename)
 
-                insurance_photo_str = get_insurance_photo_base64(order['id'])
+                insurance_photo_str = await get_insurance_photo_base64(order['id'])
                 base64string = insurance_photo_str.split(",")[1]
 
                 with open(file_path_png, "wb") as fh:
@@ -92,7 +86,7 @@ def upload_insurance_files_from_db(orders):
                 file_buffer.append((filename, file_path_pdf))
         
         print('uploading insurance files to FTP')
-        upload_file_list_to_ftp(file_buffer)
+        await upload_file_list_to_ftp(file_buffer)
 
     except Exception as err:
         print(err)
@@ -119,13 +113,13 @@ async def upload_insurance_files_from_gstore(orders):
                     print(err)    
         
         print('uploading insurance files to FTP')
-        upload_file_list_to_ftp(file_buffer)
+        await upload_file_list_to_ftp(file_buffer)
 
     except Exception as err:
         print(err)
 
 
-def get_insurance_photo_base64(appointment_id):
+async def get_insurance_photo_base64(appointment_id):
     sql = """
     SELECT 
         q.insurance_photo
@@ -138,11 +132,11 @@ def get_insurance_photo_base64(appointment_id):
     LIMIT 1
     """
     vals = (appointment_id,)
-    row = read_row(sql, vals)
+    row = await read_row(sql, vals)
     return row['insurance_photo']
 
 
-def create_outbound_file(orders):
+async def create_outbound_file(orders):
     filename = "{}-{}.csv".format(
         outbound_file_prefix,
         datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S")
@@ -234,13 +228,14 @@ def __get_formatted_row(order):
         order['is_congregate_resident'],
         order['is_pregnant']
     ]
+
     except Exception as err:
         print(err)
 
     return formatted_row
 
 
-def get_orders_ready_to_transmit():
+async def get_orders_ready_to_transmit():
     '''
     call sync_test_completed_status_where_timestamps_exist;	
     call create_test_samples_records_for_completed_appointments;
@@ -378,15 +373,15 @@ def get_orders_ready_to_transmit():
         WHERE
             (t.status = 'ready_to_tx')
             """
-    return read_rows(sql,)
+    return await read_rows(sql,)
 
 
-def upload_file_list_to_ftp(file_list):
+async def upload_file_list_to_ftp(file_list):
     try:
-        hostname = get_config_val('vendors.healthtrackrx.hostname')
-        username = get_config_val('vendors.healthtrackrx.username')
-        password = get_config_val('vendors.healthtrackrx.password')
-        port = get_config_val('vendors.healthtrackrx.port')
+        hostname = cfg('vendors.healthtrackrx.hostname')
+        username = cfg('vendors.healthtrackrx.username')
+        password = cfg('vendors.healthtrackrx.password')
+        port = cfg('vendors.healthtrackrx.port')
 
         ssh_client = paramiko.SSHClient()
         ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -408,7 +403,7 @@ def upload_file_list_to_ftp(file_list):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             task_session_id=session_id,
             error=err
@@ -418,12 +413,12 @@ def upload_file_list_to_ftp(file_list):
 
 
 
-def upload_file_to_ftp(filename, local_file_path):
+async def upload_file_to_ftp(filename, local_file_path):
     try:
-        hostname = get_config_val('vendors.healthtrackrx.hostname')
-        username = get_config_val('vendors.healthtrackrx.username')
-        password = get_config_val('vendors.healthtrackrx.password')
-        port = get_config_val('vendors.healthtrackrx.port')
+        hostname = cfg('vendors.healthtrackrx.hostname')
+        username = cfg('vendors.healthtrackrx.username')
+        password = cfg('vendors.healthtrackrx.password')
+        port = cfg('vendors.healthtrackrx.port')
 
         ssh_client = paramiko.SSHClient()
         ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -441,7 +436,7 @@ def upload_file_to_ftp(filename, local_file_path):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             task_session_id=session_id,
             error=err
@@ -450,7 +445,7 @@ def upload_file_to_ftp(filename, local_file_path):
         ftp_client.close()
 
 
-def update_to_with_lab_status(orders):
+async def update_to_with_lab_status(orders):
     list_of_ids = []
     for order in orders:
         list_of_ids.append(order['client_order_number'])
@@ -466,4 +461,4 @@ def update_to_with_lab_status(orders):
             id IN (%s)
         """ % format_strings
         
-    exec_update(sql, tuple(list_of_ids))
+    await exec_update(sql, tuple(list_of_ids))

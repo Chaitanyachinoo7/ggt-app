@@ -4,13 +4,7 @@ from ggt.lib.utils import (
     whoami
 )
 
-from ggt.lib.constants import (
-    STATUS,
-    SUCCESS,
-    FAILED,
-    INFO,
-    ERROR
-)
+import ggt.lib.constants as c
 
 from ggt.lib.db import (
     exec_insert,
@@ -29,7 +23,7 @@ from ggt.models.data_models.data_types import (
 ########################################################################################################
 
 
-def create_pending_signup_record(phone_number, otp, token=None, ip=None, device_data=None, status='pending'):
+async def create_pending_signup_record(phone_number, otp, token=None, ip=None, device_data=None, status='pending'):
     try:
         sql = """
         INSERT INTO signups 
@@ -51,11 +45,11 @@ def create_pending_signup_record(phone_number, otp, token=None, ip=None, device_
             status,
             token
         )
-        return exec_insert(sql, vals)
+        return await exec_insert(sql, vals)
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             phone_number=phone_number,
             otp=otp,
             token=token,
@@ -68,7 +62,7 @@ def create_pending_signup_record(phone_number, otp, token=None, ip=None, device_
         return None
 
 
-def get_signup_record(id):
+async def get_signup_record(id):
     try:
         sql = """
         SELECT * 
@@ -78,11 +72,11 @@ def get_signup_record(id):
             id = %s
         """
         vals = (id,)
-        return read_row(sql, vals)
+        return await read_row(sql, vals)
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             id=id,
             function=whoami(),
             error=err
@@ -90,7 +84,7 @@ def get_signup_record(id):
         return None
 
 
-def get_signup_record_by_phone_otp(phone_number, otp):
+async def get_signup_record_by_phone_otp(phone_number, otp):
     try:
         sql = """
         SELECT token 
@@ -101,14 +95,14 @@ def get_signup_record_by_phone_otp(phone_number, otp):
             AND otp = %s
         """
         vals = (phone_number, otp)
-        row = read_row(sql, vals)
+        row = await read_row(sql, vals)
         if row:
             return row['token']
         return None
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             phone_number=phone_number,
             otp=otp,
             function=whoami(),
@@ -117,7 +111,7 @@ def get_signup_record_by_phone_otp(phone_number, otp):
         return None
 
 
-def get_signup_record_by_token(token):
+async def get_signup_record_by_token(token):
     try:
         sql = """
         SELECT * 
@@ -127,11 +121,11 @@ def get_signup_record_by_token(token):
             token = %s
         """
         vals = (token,)
-        return read_row(sql, vals)
+        return await read_row(sql, vals)
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             token=token,
             function=whoami(),
             error=err
@@ -139,7 +133,7 @@ def get_signup_record_by_token(token):
         return None
 
 
-def update_signup_record(id):
+async def update_signup_record(id):
     try:
         sql = """
         UPDATE signups 
@@ -150,11 +144,11 @@ def update_signup_record(id):
             id = %s
         """
         vals = (id,)
-        return exec_update(sql, vals)
+        return await exec_update(sql, vals)
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             id=id,
             function=whoami(),
             error=err
@@ -162,7 +156,7 @@ def update_signup_record(id):
         return None
 
 
-def get_group_info(group_code: str) -> GgtThirdPartyGroup:
+async def get_group_info(group_code: str) -> GgtThirdPartyGroup:
     group_info: GgtThirdPartyGroup = None
     try:
         sql = """
@@ -175,12 +169,12 @@ def get_group_info(group_code: str) -> GgtThirdPartyGroup:
         """
         vals = (group_code,)
         group_info = __map_row_to_group(
-            read_row(sql, vals)
+            await read_row(sql, vals)
         )
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             group_code=group_code,
             function=whoami(),
             error=err
@@ -227,7 +221,7 @@ def __map_row_to_group(row) -> GgtThirdPartyGroup:
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             row=row,
             function=whoami(),
             error=err

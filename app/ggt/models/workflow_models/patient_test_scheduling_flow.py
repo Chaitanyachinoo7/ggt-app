@@ -1,6 +1,8 @@
 from datetime import date
 from contextlib import suppress
 
+from aiocache import cached
+
 from ggt.lib.utils import (
     log_generic,
     x_response,
@@ -32,68 +34,59 @@ from ggt.models.data_models.data_types import (
     GgtBooking
 )
 
-from ggt.lib.constants import (
-    STATUS,
-    SUCCESS,
-    FAILED,
-    INFO,
-    ERROR,
-    DEFAULT_GROUP_CODE
-)
+import ggt.lib.constants as c
 
-from ggt.lib.cache import (
-    timed_lru_cache
-)
+
 
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
 
-@timed_lru_cache(seconds=600)
-def get_screen_flow_seq(group_code):
+@cached(ttl=600)
+async def get_screen_flow_seq(group_code):
     return x_response(
-        bp_get_screen_flow_seq(group_code)
+        await bp_get_screen_flow_seq(group_code)
     )
 
 
-def initiate_verification_flow(phone_number, with_otp=True):
+async def initiate_verification_flow(phone_number, with_otp=True):
     return x_response(
-        bp_initiate_verification_flow(
+        await bp_initiate_verification_flow(
             phone_number,
             with_otp
         )
     )
 
 
-def validate_phone_number(phone_number, otp):
+async def validate_phone_number(phone_number, otp):
     return x_response(
-        bp_validate_phone_number(
+        await bp_validate_phone_number(
             phone_number,
             otp
         )
     )
 
-@timed_lru_cache(seconds=60)
-def get_schedule_dates_available(group_code=DEFAULT_GROUP_CODE):
+@cached(ttl=60)
+async def get_schedule_dates_available(group_code=c.DEFAULT_GROUP_CODE):
     return x_response(
-        bp_get_schedule_dates_available(
+        await bp_get_schedule_dates_available(
             group_code
         )
     )
 
-@timed_lru_cache(seconds=60)
-def get_schedule_locations_available(group_code, date):
+@cached(ttl=60)
+async def get_schedule_locations_available(group_code, date):
     return x_response(
-        bp_get_schedule_locations_available(
+        await bp_get_schedule_locations_available(
             group_code,
             date
         )
     )
 
-@timed_lru_cache(seconds=60)
-def get_schedule_locations_available_near_lat_lng(date, group_code, lat, lng, radius):
+@cached(ttl=60)
+async def get_schedule_locations_available_near_lat_lng(date, group_code, lat, lng, radius):
     return x_response(
-        bp_get_schedule_locations_available_near_lat_lng(
+        await bp_get_schedule_locations_available_near_lat_lng(
             lat,
             lng,
             radius,
@@ -102,51 +95,51 @@ def get_schedule_locations_available_near_lat_lng(date, group_code, lat, lng, ra
         )
     )
 
-@timed_lru_cache(seconds=60)
-def get_all_available_locations_and_times(group_code):
+@cached(ttl=60)
+async def get_all_available_locations_and_times(group_code):
     return x_response(
-        bp_get_all_available_locations_and_times(group_code)
+        await bp_get_all_available_locations_and_times(group_code)
     )
 
-@timed_lru_cache(seconds=60)
-def get_schedule_times_available(
+@cached(ttl=60)
+async def get_schedule_times_available(
         location_id, 
         date=date.today().strftime("%Y-%m-%d")
     ):
     return x_response(
-        bp_get_schedule_times_available(
+        await bp_get_schedule_times_available(
             location_id,
             date
         )
     )
 
 
-def lookup_appointment(appointment_id, dob):
+async def lookup_appointment(appointment_id, dob):
     return x_response(
-        bp_get_appointment_info(
+        await bp_get_appointment_info(
             appointment_id, 
             dob
         )
     )
 
 
-def lookup_test_result(token, dob):
+async def lookup_test_result(token, dob):
     return x_response(
-        bp_get_test_result(
+        await bp_get_test_result(
             token,
             dob
         )
     )
 
 
-def finalize_payment(finalize_payment_request):
+async def finalize_payment(finalize_payment_request):
     appointment_id = finalize_payment_request.appointment_id
     wp_receipt_token = finalize_payment_request.receipt_token
 
-    if bp_finalize_payment(appointment_id, wp_receipt_token):
-        return {STATUS: SUCCESS}
+    if await bp_finalize_payment(appointment_id, wp_receipt_token):
+        return {c.STATUS: c.SUCCESS}
     else:
-        return {STATUS: FAILED}
+        return {c.STATUS: c.FAILED}
 
 
 async def finalize_registration(finalize_registration_request):
@@ -161,12 +154,12 @@ async def finalize_registration(finalize_registration_request):
             'total_balance': int(appointment.billed_amount*100),
             'total_cost': int(appointment.total_cost*100),
             'payment_url': appointment.payment_url,
-            STATUS: SUCCESS
+            c.STATUS: c.SUCCESS
         }
     else:
         return {
-            STATUS: FAILED,
-            ERROR: status_message
+            c.STATUS: c.FAILED,
+            c.ERROR: status_message
         }
 
 
@@ -254,7 +247,7 @@ def __map_to_booking_req(finalize_registration_request):
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             finalize_registration_request=finalize_registration_request,
             error=err
