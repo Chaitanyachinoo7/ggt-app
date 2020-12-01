@@ -1,8 +1,8 @@
 app_name: ggt-api
 app_version: 1.0
 log_level: INFO
-base_url: https://start.GoGetTested.com
-env: PROD
+base_url: https://start-qa.GoGetTested.com
+env: QA
 
 server:
   host: 0.0.0.0
@@ -36,13 +36,13 @@ aws:
   sqs_print_queue_base_url: https://sqs.us-east-1.amazonaws.com/135292740376/ggt-print-queue
 
 gcp:
-  project_id: ggt-pfe-prod
+  project_id: ggt-pfe-qa
   service_account_file: gcp-service-account.json
   default_link_expiration_time_limit: 300
-  all_inbound_files_bucket_name: ggt-all-inbound-files-prod
-  lab_reports_bucket_name: ggt-lab-reports-prod
-  insurance_cards_bucket_name: ggt-insurance-cards-prod
-  notification_archive_bucket_name: ggt-notification-archive-prod
+  all_inbound_files_bucket_name: ggt-all-inbound-files-qa
+  lab_reports_bucket_name: ggt-lab-reports-qa
+  insurance_cards_bucket_name: ggt-insurance-cards-qa
+  notification_archive_bucket_name: ggt-notification-archive-qa
   enable_cloud_profiler: false
   enable_cloud_logger: true
   cloud_logger_log_level: 3 # 0-error, 1-warning, 2-info, 3-debug. 
