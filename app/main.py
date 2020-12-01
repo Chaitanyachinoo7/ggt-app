@@ -4,6 +4,7 @@ import uvicorn
 # third party
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 
 # local
 import ggt.lib.constants as c
@@ -36,6 +37,11 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+app.add_middleware(
+    GZipMiddleware, 
+    minimum_size=512
 )
 
 app.include_router(
