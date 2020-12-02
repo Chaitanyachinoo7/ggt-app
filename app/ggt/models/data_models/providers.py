@@ -345,6 +345,8 @@ def process_consultations(tasks):
         task.pop('consultation_start_dt', None)
         consultation_end_dt = task['consultation_end_dt']
         task.pop('consultation_end_dt', None)
+        register_dt = task['register_dt']
+        # task.pop('register_dt', None)
         provider_name = task['provider_name']
         task.pop('provider_name', None)
         provider_given_name = task['provider_given_name']
@@ -379,8 +381,8 @@ def process_consultations(tasks):
             "provider_email_verified": provider_email_verified,
             "provider_image_url": provider_image_url,
             "consultation_type_code": consultation_type_code,
-            "resolution_code": resolution_code
-
+            "resolution_code": resolution_code,
+            "register_dt": register_dt
         }
 
         if appointment_id in list(response.keys()):
@@ -402,11 +404,11 @@ def process_consultations(tasks):
 def __sort_consultations(tasks):
     for task in tasks:
         consultations = task['consultations']
-        task['consultations'] = __sort_by_time(consultations)
+        task['consultations'] = __sort_by_field(consultations)
     return tasks
 
 
-def __sort_by_time(consultations):
+def __sort_by_field(consultations):
     new_list = sorted(
-        consultations, key=lambda x: x['consultation_start_dt'], reverse=False)
+        consultations, key=lambda x: x['register_dt'], reverse=True)
     return new_list

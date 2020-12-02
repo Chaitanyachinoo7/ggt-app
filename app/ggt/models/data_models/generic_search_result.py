@@ -154,7 +154,7 @@ class GenericSearchResults(BaseModel):
 
 
 async def find_patients(first_name='', middle_name='', last_name='', dob='', phone_number='',
-                  email='', appointment_id='', group_code='', appointment_date='', location_id=''):
+                        email='', appointment_id='', group_code='', appointment_date='', location_id='', sort_field="register_dt", sort_type="desc"):
     try:
         where_conditions = ''
         if first_name != '':
@@ -324,8 +324,9 @@ async def find_patients(first_name='', middle_name='', last_name='', dob='', pho
             insurance_info i ON p.id = i.patient_id
         WHERE 1=1
             {}
+        order by {} {}
         LIMIT {}
-        """.format(where_conditions, limit)
+        """.format(where_conditions, sort_field, sort_type, limit)
         rows = await read_rows(sql)
         return process_consultations(rows)
 
@@ -336,4 +337,3 @@ async def find_patients(first_name='', middle_name='', last_name='', dob='', pho
             error=err
         )
         return None
-

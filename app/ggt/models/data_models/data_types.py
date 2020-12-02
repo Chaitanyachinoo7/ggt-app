@@ -387,6 +387,8 @@ class PortalGeneralSearchRequest(BaseModel):
     group_code: str = None
     appointment_date: str = None
     location_id: str = None
+    sort_field: str = "register_dt"
+    sort_type: str = "desc"
 
 
 class PortalLocationSearchRequest(BaseModel):
@@ -796,7 +798,7 @@ class GgtThirdPartyGroup(BaseModel):
 class VerifyExistingPatientRequest(BaseModel):
     phone_number: str = None
     dob: str = None
-    #optional_screens: List[str] = None  # Redundant, remove
+    # optional_screens: List[str] = None  # Redundant, remove
     #screen_seq: List[str] = None
 
 
@@ -859,4 +861,3 @@ class InsuranceUpdateRecord(BaseModel):
 
 class InsuranceIDRecord(BaseModel):
     id: str
-    

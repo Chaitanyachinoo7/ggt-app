@@ -34,7 +34,7 @@ import ggt.lib.constants as c
 
 @cached(ttl=60)
 async def site_admin_general_search(first_name, middle_name, last_name, dob, phone_number, email, appointment_id,
-                                    group_code, appointment_date, location_id):
+                                    group_code, appointment_date, location_id, sort_field, sort_type):
     return y_response(
         await bp_get_general_search_results(
             first_name,
@@ -46,7 +46,9 @@ async def site_admin_general_search(first_name, middle_name, last_name, dob, pho
             appointment_id,
             group_code,
             appointment_date,
-            location_id
+            location_id,
+            sort_field,
+            sort_type
         )
     )
 
@@ -138,8 +140,12 @@ async def generate_all_schedules():
 
 
 async def delete_schedule_generation_rule(id):
+    status = False
+    if await bp_delete_schedule_generation_rule(id):
+        status = await bp_generate_full_schedule(data.location_id)
+
     return x_response(
-        await bp_delete_schedule_generation_rule(id)
+        status
     )
 
 
@@ -151,23 +157,19 @@ async def delete_schedule(location_id):
 
 async def add_schedule_generation_rule(data):
     status = False
-    if bp_add_schedule_generation_rule(data):
-        await bp_generate_full_schedule(data.location_id)
-        status = True
-    return x_response(
-        status
-    )
+    if await bp_add_schedule_generation_rule(data):
+        status = await bp_generate_full_schedule(data.location_id)
 
     return x_response(
-        await bp_add_schedule_generation_rule(data)
+        status
     )
 
 
 async def update_schedule_generation_rule(data):
     status = False
-    if bp_update_schedule_generation_rule(data):
-        await bp_generate_full_schedule(data.location_id)
-        status = True
+    if await bp_update_schedule_generation_rule(data):
+        status = await bp_generate_full_schedule(data.location_id)
+
     return x_response(
         status
     )
