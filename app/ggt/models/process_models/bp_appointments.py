@@ -69,20 +69,20 @@ async def bp_appointment_update(appointment_id: int, action: str, workstation_id
         appointment = await get_appointment(appointment_id)
 
         if action == c.APPOINTMENT_ACTION_CHECK_IN:
-            update_appointment_with_checkin(appointment_id)
+            await update_appointment_with_checkin(appointment_id)
 
         elif action == c.APPOINTMENT_ACTION_START_TEST:
-            __appointment_begin_test(appointment_id, workstation_id)
+            await __appointment_begin_test(appointment_id, workstation_id)
 
         elif action == c.APPOINTMENT_ACTION_SCAN_VIAL:
-            update_appointment_with_scan_vial(appointment_id)
+            await update_appointment_with_scan_vial(appointment_id)
 
         elif action == c.APPOINTMENT_ACTION_END_TEST:
-            update_appointment_with_test_completed(appointment_id)
-            __send_test_complete_sms(appointment)
+            await update_appointment_with_test_completed(appointment_id)
+            await __send_test_complete_sms(appointment)
 
         elif action == c.APPOINTMENT_ACTION_REPRINT:
-            __appointment_reprint_label(appointment_id, workstation_id)
+            await __appointment_reprint_label(appointment_id, workstation_id)
 
         # TODO: This allows the start_test to be invoked twice (print the label twice). And every other action only to be invoked once.
         # essentially works by waiting to catch the appointment status update in the next round
@@ -181,7 +181,7 @@ async def __send_test_complete_sms(appointment):
 
 
 async def __appointment_begin_test(appointment_id, workstation_id=1):
-    update_appointment_with_test_start(appointment_id)
+    await update_appointment_with_test_start(appointment_id)
 
     if __is_pre_labeled(workstation_id):
         return True
@@ -196,7 +196,7 @@ async def __appointment_reprint_label(appointment_id, workstation_id=1):
 # TODO: [GGT-86] Refactor, decouple integration code
 async def __send_label_to_printer(appointment_id, queue_id):
     try:
-        appointment = get_appointment(appointment_id)
+        appointment = await get_appointment(appointment_id)
         date_text = appointment.scheduled_dt.strftime(
             "%a, %-d %b %Y @ %-I:%M %p")
         patient_name = "{}, {} {}".format(appointment.patient.last_name,
@@ -238,5 +238,5 @@ async def __send_label_to_printer(appointment_id, queue_id):
             function=whoami(),
             error=err
         )
-        write_syslog("print", c.ERROR, appointment_id)
+        await write_syslog("print", c.ERROR, appointment_id)
         return False
