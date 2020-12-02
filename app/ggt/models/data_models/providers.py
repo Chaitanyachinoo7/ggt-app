@@ -4,15 +4,9 @@ from ggt.lib.utils import (
     whoami
 )
 
-from ggt.lib.constants import (
-    STATUS,
-    SUCCESS,
-    FAILED,
-    INFO,
-    ERROR
-)
+import ggt.lib.constants as c
 
-from ggt.lib.adapters.mysql_adapter import (
+from ggt.lib.db import (
     exec_insert,
     exec_update,
     exec_delete,
@@ -20,13 +14,18 @@ from ggt.lib.adapters.mysql_adapter import (
     read_rows
 )
 
+from ggt.models.data_models.data_types import (
+    ConsultationNotesEnum,
+    PositiveCall,
+    ConsultationStatusEnum
+)
+
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-from ggt.models.data_models.data_types import ConsultationNotesEnum, PositiveCall, ConsultationStatusEnum
 
 
-def get_provider_processing_list(offset, consultation_status, consultation_notes, positive_call, limit=20):
+async def get_provider_processing_list(offset, consultation_status, consultation_notes, positive_call, limit=20):
     try:
         where_conditions = '1=1'
         # where_conditions = '(TO_DAYS(NOW()) - TO_DAYS(t.create_dt)) <= 25'
@@ -46,7 +45,8 @@ def get_provider_processing_list(offset, consultation_status, consultation_notes
         if positive_call == PositiveCall.must_call:
             where_conditions = "{} AND t.test_result = 'pos' AND (t.consultation_status is null OR " \
                                "t.consultation_status = " \
-                               "'{}')".format(where_conditions, ConsultationStatusEnum.pending)
+                               "'{}')".format(where_conditions,
+                                              ConsultationStatusEnum.pending)
         if positive_call == PositiveCall.already_called:
             where_conditions = "{} AND t.test_result ='pos' AND t.consultation_status = '{}'".format(
                 where_conditions, ConsultationStatusEnum.completed)
@@ -178,18 +178,19 @@ def get_provider_processing_list(offset, consultation_status, consultation_notes
     ORDER BY t.create_dt ASC 
     LIMIT {} OFFSET {};
 """.format(where_conditions, limit, offset)
-        rows = read_rows(sql)
+        rows = await read_rows(sql)
         return process_consultations(rows)
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
         return None
 
 
-def provider_lock_task(test_id):
+async def provider_lock_task(test_id):
     """
     Update the test sample table 1st, if updated then update patient consultation table
     """
@@ -206,18 +207,19 @@ def provider_lock_task(test_id):
             test_id,
             in_progress
         )
-        updated = exec_update(sql, vals)
+        updated = await exec_update(sql, vals)
         return updated
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
         return None
 
 
-def create_patient_test_consultation(appointment_id, user_id):
+async def create_patient_test_consultation(appointment_id, user_id):
     try:
         sql = """INSERT INTO `patient_consultations`
                         (
@@ -231,22 +233,23 @@ def create_patient_test_consultation(appointment_id, user_id):
             user_id,
             appointment_id,
         )
-        id = exec_insert(sql, vals)
+        id = await exec_insert(sql, vals)
 
         if id:
             return {"consultation_id": id}
         else:
             return None
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
         return None
 
 
-def update_consultation_note(consultation_id, notes, consultation_type_code, resolution_code):
+async def update_consultation_note(consultation_id, notes, consultation_type_code, resolution_code):
     """
     Update the test sample table 1st, if updated then update patient consultation table
     """
@@ -266,18 +269,19 @@ def update_consultation_note(consultation_id, notes, consultation_type_code, res
             resolution_code,
             consultation_id
         )
-        updated = exec_update(sql, vals)
+        updated = await exec_update(sql, vals)
         return updated
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
         return None
 
 
-def provider_complete_task(test_id):
+async def provider_complete_task(test_id):
     try:
         sql = """UPDATE test_samples
                      SET
@@ -292,18 +296,19 @@ def provider_complete_task(test_id):
             test_id,
             in_progress
         )
-        updated = exec_update(sql, vals)
+        updated = await exec_update(sql, vals)
         return updated
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
         return None
 
 
-def provider_rollback_to_pending_task(test_id):
+async def provider_rollback_to_pending_task(test_id):
     try:
         sql = """UPDATE test_samples
                      SET
@@ -316,20 +321,17 @@ def provider_rollback_to_pending_task(test_id):
             pending,
             test_id
         )
-        updated = exec_update(sql, vals)
+        updated = await exec_update(sql, vals)
         return updated
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
         return None
 
-
-########################################################################################################
-# [Protected] functions
-########################################################################################################
 
 def process_consultations(tasks):
     response = {}
@@ -361,8 +363,10 @@ def process_consultations(tasks):
         task.pop('consultation_type_code', None)
 
         appointment_id = task['appointment_id']
-        task['insurance_card_url'] = '/billing/image/{}.png'.format(appointment_id)
-        task['test_report_url'] = 'x/billing/report/{}.pdf'.format(appointment_id)
+        task['insurance_card_url'] = '/billing/image/{}.png'.format(
+            appointment_id)
+        task['test_report_url'] = 'x/billing/report/{}.pdf'.format(
+            appointment_id)
         consultation = {
             "consultation_id": consultation_id,
             "consultation_notes": consultation_notes,
@@ -390,6 +394,11 @@ def process_consultations(tasks):
     return __sort_consultations(list(response.values()))
 
 
+########################################################################################################
+# [Protected] functions
+########################################################################################################
+
+
 def __sort_consultations(tasks):
     for task in tasks:
         consultations = task['consultations']
@@ -398,5 +407,6 @@ def __sort_consultations(tasks):
 
 
 def __sort_by_time(consultations):
-    new_list = sorted(consultations, key=lambda x: x['consultation_start_dt'], reverse=False)
+    new_list = sorted(
+        consultations, key=lambda x: x['consultation_start_dt'], reverse=False)
     return new_list

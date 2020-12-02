@@ -1,5 +1,7 @@
 from starlette.responses import StreamingResponse
 
+from aiocache import cached
+
 from ggt.lib.utils import (
     x_response,
     y_response
@@ -12,9 +14,6 @@ from ggt.models.process_models.bp_care_provider_experience import (
     bp_get_provider_processing_list, bp_lock_provider_task, bp_create_patient_test_consultation,
     bp_update_consultation_note, bp_provider_complete_task, bp_provider_rollback_to_pending_task)
 
-from ggt.lib.cache import (
-    timed_lru_cache
-)
 
 ########################################################################################################
 # [Public] functions

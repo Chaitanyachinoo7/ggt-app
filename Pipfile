@@ -36,6 +36,9 @@ python-barcode = "*"
 aiofiles = "*"
 python-jose = "*"
 gevent = "*"
+aiocache = "*"
+ujson = "*"
+msgpack = "*"
 
 [requires]
 python_version = "3.7"

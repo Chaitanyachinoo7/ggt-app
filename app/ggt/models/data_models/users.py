@@ -12,7 +12,7 @@ from ggt.lib.constants import (
     ERROR
 )
 
-from ggt.lib.adapters.mysql_adapter import (
+from ggt.lib.db import (
     exec_insert,
     exec_update,
     exec_delete,
@@ -24,7 +24,7 @@ from ggt.lib.adapters.mysql_adapter import (
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-def get_user_by_email(email):
+async def get_user_by_email(email):
     try:
         sql = """
             SELECT * 
@@ -35,7 +35,7 @@ def get_user_by_email(email):
             LIMIT 1
             """
         vals = (email,)
-        return read_row(sql, vals)
+        return await read_row(sql, vals)
 
     except Exception as err:
         log_generic(
