@@ -225,7 +225,7 @@ async def __send_label_to_printer(appointment_id, queue_id):
         response = sqs.send_message(
             QueueUrl=queue_url,
             DelaySeconds=10,
-            MessageBody=(json.dumps(payload))
+            MessageBody=(ujson.dumps(payload))
         )
         print(response['MessageId'])
 
