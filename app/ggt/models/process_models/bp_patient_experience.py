@@ -366,6 +366,7 @@ async def __generate_appointment(booking_req: GgtBooking):
         if appointment:
             await update_slot_information(booking_req.timeslot_id, appointment.id)
 
+            '''
             log_generic(
                 type=c.INFO,
                 booking_req=booking_req,
@@ -373,6 +374,7 @@ async def __generate_appointment(booking_req: GgtBooking):
                 function=whoami(),
                 info='appointment_created'
             )
+            '''
 
         else:
             raise ValueError('error_creating_appointment')
