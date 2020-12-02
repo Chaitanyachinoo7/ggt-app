@@ -33,7 +33,7 @@ async def task_process_sms_queue():
     print('\n\n************************************************\n\n')
 
     sql = """
-    SELECT * FROM sms_notification_queue where status IN ('pending','retry') 
+    SELECT * FROM sms_notification_queue where status IN ('pending','retry') ORDER BY ID DESC
     """
     rows = await read_rows(sql)
     for row in rows:
@@ -43,12 +43,12 @@ async def task_process_sms_queue():
         message = row['message']
 
         if status == 'retry':
-            if send_sms(to_number, message):
+            if await send_sms(to_number, message):
                 await update_sms_status_to_processed(_id)
             else:
                 await update_sms_status_to_error(_id)
         else:
-            if send_sms(to_number, message):
+            if await send_sms(to_number, message):
                 await update_sms_status_to_processed(_id)
             else:
                 await update_sms_status_to_retry(_id)
