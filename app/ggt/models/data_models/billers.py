@@ -1,9 +1,7 @@
-from ggt.lib.adapters.mysql_adapter import (
+from ggt.lib.db import (
     read_rows,
     exec_update, exec_insert)
-from ggt.lib.constants import (
-    ERROR
-)
+import ggt.lib.constants as c
 from ggt.lib.utils import (
     log_generic,
     whoami
@@ -17,7 +15,7 @@ from ggt.models.data_models.data_types import BillingStatusEnum, TestResultsEnum
 from ggt.models.data_models.providers import process_consultations
 
 
-def get_billing_list(offset, status, from_dt, to_dt, limit=20, sort='DESC', pre_consulted='any', provider_reviewed='any'):
+async def get_billing_list(offset, status, from_dt, to_dt, limit=20, sort='DESC', pre_consulted='any', provider_reviewed='any'):
     try:
 
         where_conditions = ''
@@ -39,7 +37,8 @@ def get_billing_list(offset, status, from_dt, to_dt, limit=20, sort='DESC', pre_
                     where_conditions, 1)
         if pre_consulted != PreConsultationEnum.any:
             where_conditions = "{} AND (select (CASE WHEN c.consultation_type_codes LIKE '%pre%' THEN 1 ELSE 0 END) " \
-                               "AS pre_consulted) = {}".format(where_conditions, pre_consulted)
+                               "AS pre_consulted) = {}".format(
+                                   where_conditions, pre_consulted)
         if provider_reviewed != ProviderReviewedEnum.any:
             if provider_reviewed == ProviderReviewedEnum.provider_reviewed:
                 where_conditions = "{} AND t.consultation_status = '{}'".format(
@@ -240,19 +239,19 @@ FROM
         ORDER BY register_dt {}
         LIMIT {}  offset {};
         """.format(where_conditions, sort, limit, offset)
-        rows = read_rows(sql)
+        rows = await read_rows(sql)
         return __process_billing_response(rows)
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
         return None
 
 
-def update_billing_status(appointment_id):
+async def update_billing_status(appointment_id):
     try:
         sql = """UPDATE appointments
                   SET
@@ -267,18 +266,20 @@ def update_billing_status(appointment_id):
             appointment_id,
             pending
         )
-        updated = exec_update(sql, vals)
+        updated = await exec_update(sql, vals)
         return updated
+        
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
         return None
 
 
-def create_insurance_record(insurance_record):
+async def create_insurance_record(insurance_record):
     try:
         sql = """INSERT INTO `insurance_info`
             (
@@ -294,16 +295,17 @@ def create_insurance_record(insurance_record):
                 insurance_record.group_number,
                 insurance_record.member_number,
                 insurance_record.validated)
-        res = exec_insert(sql, vals)
+        res = await exec_insert(sql, vals)
         return res
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err)
 
 
-def update_insurance_record(insurance_record):
+async def update_insurance_record(insurance_record):
     try:
         sql = """UPDATE `insurance_info` 
                     SET
@@ -318,51 +320,58 @@ def update_insurance_record(insurance_record):
             insurance_record.member_number,
             insurance_record.validated,
             insurance_record.id)
-        res = exec_update(sql, vals)
+        res = await exec_update(sql, vals)
         return res
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err)
 
 
-def validate_insurance_record(insurance_record):
+async def validate_insurance_record(insurance_record):
     try:
         sql = """UPDATE `insurance_info` 
                 SET
                     `validated` = 1
                  WHERE `id` = %s"""
         vals = (insurance_record.id,)
-        res = exec_update(sql, vals)
+        res = await exec_update(sql, vals)
         return res
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err)
 
 
-def delete_insurance_record(insurance_record):
+async def delete_insurance_record(insurance_record):
     try:
         sql = """DELETE FROM `insurance_info` 
                  WHERE `id` = %s"""
         vals = (insurance_record.id,)
-        res = exec_update(sql, vals)
+        res = await exec_update(sql, vals)
         return res
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err)
 
 
-def __process_billing_response(tasks):
+async def __process_billing_response(tasks):
     for task in tasks:
         appointment_id = task['appointment_id']
-        task['billing_codes'] = task['billing_codes'].split(',') if task['billing_codes'] else []
-        task['insurance_card_url'] = '/api/billing/image/{}.png'.format(appointment_id)
-        task['test_report_url'] = '/api/billing/report/{}.pdf'.format(appointment_id)
+        task['billing_codes'] = task['billing_codes'].split(
+            ',') if task['billing_codes'] else []
+        task['insurance_card_url'] = '/api/billing/image/{}.png'.format(
+            appointment_id)
+        task['test_report_url'] = '/api/billing/report/{}.pdf'.format(
+            appointment_id)
         if len(task['billing_codes']) < 3:
             task['billing_codes'] = []
+
     return {"list": tasks}

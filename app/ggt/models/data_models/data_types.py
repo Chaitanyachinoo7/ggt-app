@@ -596,6 +596,8 @@ class GgtDbLocation(BaseModel):
     allow_insurance_skip: bool = 1
     collect_upfront_payment: bool = 0
     image_thumbnail: Optional[str] = None
+    group_ids: List[int] = []
+    service_ids: List[int] = []
 
 
 class GgtUpdateLocation(BaseModel):
@@ -607,6 +609,8 @@ class GgtUpdateLocation(BaseModel):
     collect_insurance_info: str = None
     allow_insurance_skip: str = None
     collect_upfront_payment: str = None
+    group_ids: List[int] = []
+    service_ids: List[int] = []
 
 
 class GgtDateTimeLocation(BaseModel):
@@ -854,3 +858,4 @@ class InsuranceUpdateRecord(BaseModel):
 
 class InsuranceIDRecord(BaseModel):
     id: str
+    

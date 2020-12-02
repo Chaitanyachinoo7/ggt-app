@@ -2,7 +2,7 @@
 import hmac
 import hashlib
 import base64
-import json
+import ujson
 
 nonce = 1
 

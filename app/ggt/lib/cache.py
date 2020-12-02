@@ -15,9 +15,9 @@ def timed_lru_cache(**timedelta_kwargs):
             if now >= next_update:
                 f.cache_clear()
                 next_update = now + update_delta
-                print('cache miss')
+                print('⏳ cache miss')
             else:
-                print('cache hit')
+                print('✅ cache hit!')
 
             return f(*args, **kwargs)
 

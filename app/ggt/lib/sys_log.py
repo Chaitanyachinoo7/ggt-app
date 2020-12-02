@@ -3,22 +3,16 @@ from ggt.lib.utils import (
     whoami
 )
 
-from ggt.lib.constants import (
-    STATUS,
-    SUCCESS,
-    FAILED,
-    INFO,
-    ERROR
-)
+import ggt.lib.constants as c
 
-from ggt.lib.adapters.mysql_adapter import (exec_insert)
+from ggt.lib.db import (exec_insert)
 
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
 
 
-def write_syslog(event, log_type, payload):
+async def write_syslog(event, log_type, payload):
     return __insert_record_syslog(event, log_type, payload)
 
 ########################################################################################################
@@ -26,15 +20,15 @@ def write_syslog(event, log_type, payload):
 ########################################################################################################
 
 
-def __insert_record_syslog(event, log_type, payload):
+async def __insert_record_syslog(event, log_type, payload):
     try:
         sql = "INSERT INTO system_log (event, type, payload) VALUES (%s, %s, %s)"
         val = (event, log_type, payload)
-        return exec_insert(sql, val)
+        return await exec_insert(sql, val)
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             event=event,
             log_type=log_type,
             payload=payload,

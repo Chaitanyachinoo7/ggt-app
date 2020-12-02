@@ -1,4 +1,4 @@
-from ggt.lib.adapters.google_adapter import blob_exists, serve_file
+from ggt.lib.storage import get_file_blob
 from ggt.lib.constants import (
     ERROR
 )
@@ -43,17 +43,17 @@ def bp_delete_insurance_record(record):
 
 async def bp_image_from_bucket(image_id):
     insurance_cards_bucket_name = get_config_val('gcp.insurance_cards_bucket_name')
-    blob = await serve_file(insurance_cards_bucket_name, image_id)
+    blob = await get_file_blob(insurance_cards_bucket_name, image_id)
     if blob:
         yield blob.download_as_bytes()
     else:
-        blob = await serve_file(insurance_cards_bucket_name, 'card.png')
+        blob = await get_file_blob(insurance_cards_bucket_name, 'card.png')
         yield blob.download_as_bytes()
 
 
 async def bp_report_from_bucket(image_id):
     lab_reports_bucket_name = get_config_val('gcp.lab_reports_bucket_name')
-    blob = await serve_file(lab_reports_bucket_name, image_id)
+    blob = await get_file_blob(lab_reports_bucket_name, image_id)
     if blob:
         yield blob.download_as_bytes()
     else:

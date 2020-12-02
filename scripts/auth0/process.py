@@ -1,4 +1,4 @@
-import json
+import ujson
 
 with open("permissions_list.json") as f:
     data = json.load(f)
