@@ -140,8 +140,12 @@ async def generate_all_schedules():
 
 
 async def delete_schedule_generation_rule(id):
+    status = False
+    if await bp_delete_schedule_generation_rule(id):
+        status = await bp_generate_full_schedule(data.location_id)
+
     return x_response(
-        await bp_delete_schedule_generation_rule(id)
+        status
     )
 
 
@@ -153,23 +157,19 @@ async def delete_schedule(location_id):
 
 async def add_schedule_generation_rule(data):
     status = False
-    if bp_add_schedule_generation_rule(data):
-        await bp_generate_full_schedule(data.location_id)
-        status = True
-    return x_response(
-        status
-    )
+    if await bp_add_schedule_generation_rule(data):
+        status = await bp_generate_full_schedule(data.location_id)
 
     return x_response(
-        await bp_add_schedule_generation_rule(data)
+        status
     )
 
 
 async def update_schedule_generation_rule(data):
     status = False
-    if bp_update_schedule_generation_rule(data):
-        await bp_generate_full_schedule(data.location_id)
-        status = True
+    if await bp_update_schedule_generation_rule(data):
+        status = await bp_generate_full_schedule(data.location_id)
+
     return x_response(
         status
     )
