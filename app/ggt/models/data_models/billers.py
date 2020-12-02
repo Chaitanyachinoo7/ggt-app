@@ -362,7 +362,7 @@ async def delete_insurance_record(insurance_record):
             error=err)
 
 
-async def __process_billing_response(tasks):
+def __process_billing_response(tasks):
     for task in tasks:
         appointment_id = task['appointment_id']
         task['billing_codes'] = task['billing_codes'].split(
