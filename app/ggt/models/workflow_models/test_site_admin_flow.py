@@ -34,7 +34,7 @@ import ggt.lib.constants as c
 
 @cached(ttl=60)
 async def site_admin_general_search(first_name, middle_name, last_name, dob, phone_number, email, appointment_id,
-                                    group_code, appointment_date, location_id, sort_field, sort_type):
+                                    group_code, appointment_date, location_id, sort_field="register_dt", sort_type="desc"):
     return y_response(
         await bp_get_general_search_results(
             first_name,
