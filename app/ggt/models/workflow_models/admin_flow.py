@@ -1,3 +1,5 @@
+from aiocache import cached
+
 from ggt.lib.utils import (
     log_generic,
     x_response,
@@ -10,32 +12,21 @@ from ggt.models.process_models.bp_portal_experience import (
     bp_get_general_search_results
 )
 
-from ggt.lib.constants import (
-    STATUS,
-    SUCCESS,
-    FAILED,
-    INFO,
-    ERROR
-)
-
-from ggt.lib.cache import (
-    timed_lru_cache
-)
 
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
 
 
-def admin_get_all_test_results():
+async def admin_get_all_test_results():
     return y_response(
-        bp_get_all_test_results()
+        awaitbp_get_all_test_results()
     )
 
 
-def admin_generic_search(search_arr):
+async def admin_generic_search(search_arr):
     return y_response(
-        bp_get_general_search_results(search_arr)
+        await bp_get_general_search_results(search_arr)
     )
 
 ########################################################################################################

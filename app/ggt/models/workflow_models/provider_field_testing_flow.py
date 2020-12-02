@@ -1,3 +1,5 @@
+from aiocache import cached
+
 from ggt.lib.utils import (
     x_response
 )
@@ -12,9 +14,6 @@ from ggt.models.process_models.bp_printers import (
     bp_provider_get_workstations
 )
 
-from ggt.lib.cache import (
-    timed_lru_cache
-)
 
 '''
 bp_get_monthly_calendar,
@@ -46,23 +45,31 @@ def printer_queue_check(printer_id, printer_token):
 '''
 
 
-@timed_lru_cache(seconds=3600)
-def provider_get_workstations():
-    return x_response(bp_provider_get_workstations())
+@cached(ttl=3600)
+async def provider_get_workstations():
+    return x_response(
+        await bp_provider_get_workstations()
+    )
 
 
-def provider_lookup_appointment(appointment_id):
-    return x_response(bp_get_appointment_info(appointment_id, 'allowdoboverride'))
+async def provider_lookup_appointment(appointment_id):
+    return x_response(
+        await bp_get_appointment_info(appointment_id, 'allowdoboverride')
+    )
 
 
-def provider_update_appointment(appointment_id, action, workstation_id):
-    return x_response(bp_appointment_update(appointment_id, action, workstation_id))
+async def provider_update_appointment(appointment_id, action, workstation_id):
+    return x_response(
+        await bp_appointment_update(appointment_id, action, workstation_id)
+    )
 
 
-def scan_label(appointment_id):
+async def scan_label(appointment_id):
     # TODO add to sys log, multiple scans can happen, keeps only latest scan
     bp_create_test_sample_from_appointment(appointment_id)
-    return x_response(bp_record_label_scan(appointment_id))
+    return x_response(
+        await bp_record_label_scan(appointment_id)
+    )
 
 
 ########################################################################################################

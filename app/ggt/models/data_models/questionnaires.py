@@ -3,7 +3,7 @@ from ggt.lib.utils import (
     log_generic
 )
 
-from ggt.lib.adapters.mysql_adapter import (
+from ggt.lib.db import (
     exec_insert,
     exec_update,
     exec_delete,
@@ -29,7 +29,7 @@ from ggt.lib.constants import (
 ########################################################################################################
 
 # TODO: isPatient?
-def create_patient_questionnaire(booking_req):
+async def create_patient_questionnaire(booking_req):
     try:
         sql = """
         INSERT INTO 
@@ -122,7 +122,7 @@ def create_patient_questionnaire(booking_req):
             booking_req.flu_screen_egg_allergy
         )
 
-        questionnaire_id = exec_insert(sql, vals)
+        questionnaire_id = await exec_insert(sql, vals)
         return questionnaire_id 
 
     except Exception as err:

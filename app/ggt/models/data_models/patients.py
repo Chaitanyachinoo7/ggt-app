@@ -12,7 +12,7 @@ from ggt.lib.constants import (
     ERROR
 )
 
-from ggt.lib.adapters.mysql_adapter import (
+from ggt.lib.db import (
     exec_insert,
     exec_update,
     exec_delete,
@@ -28,7 +28,7 @@ from ggt.models.data_models.data_types import (
 ########################################################################################################
 
 
-def create_patient_record(patient):
+async def create_patient_record(patient):
     try:
         sql = """
             INSERT INTO 
@@ -75,7 +75,7 @@ def create_patient_record(patient):
             patient.token
         )
 
-        return exec_insert(sql, vals)
+        return await exec_insert(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -88,7 +88,7 @@ def create_patient_record(patient):
         return None
 
 
-def get_patient(patient_id):
+async def get_patient(patient_id):
     try:
         sql = """
             SELECT 
@@ -105,7 +105,7 @@ def get_patient(patient_id):
             LIMIT 1
         """
         vals = (patient_id,)
-        row = read_row(sql, vals)
+        row = await read_row(sql, vals)
 
         patient = GgtPatient()
         patient.id = row['id']
@@ -134,7 +134,7 @@ def get_patient(patient_id):
         return None
 
 
-def get_patient_by_token(token, expect_no_match=False):
+async def get_patient_by_token(token, expect_no_match=False):
     try:
         sql = """
             SELECT 
@@ -151,7 +151,7 @@ def get_patient_by_token(token, expect_no_match=False):
             LIMIT 1
         """
         vals = (token,)
-        row = read_row(sql, vals)
+        row = await read_row(sql, vals)
 
         #When checking Table for duplicates, Null is the expected result
         if expect_no_match and row is None:

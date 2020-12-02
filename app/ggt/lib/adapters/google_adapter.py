@@ -11,122 +11,238 @@ from google.cloud import storage
 from google.oauth2 import service_account
 
 from ggt.lib.utils import (
-    get_config_val,
+    get_config_val as cfg,
     log_generic,
     whoami
 )
 
-from ggt.lib.constants import (
-    STATUS,
-    SUCCESS,
-    FAILED,
-    INFO,
-    ERROR
-)
+import ggt.lib.constants as c
 
 
 curr_file = Path(__file__)
 
-service_account_file = get_config_val('gcp.service_account_file')
+service_account_file = cfg('gcp.service_account_file')
 service_account_file = curr_file.parent.parent.parent.joinpath(
     'configs/{}'.format(service_account_file))
 
-default_link_expiration_time_limit = get_config_val(
+default_link_expiration_time_limit = cfg(
     'gcp.default_link_expiration_time_limit')
-lab_reports_bucket_name = get_config_val('gcp.lab_reports_bucket_name')
-insurance_cards_bucket_name = get_config_val('gcp.insurance_cards_bucket_name')
-all_inbound_files_bucket_name = get_config_val(
+lab_reports_bucket_name = cfg('gcp.lab_reports_bucket_name')
+insurance_cards_bucket_name = cfg('gcp.insurance_cards_bucket_name')
+all_inbound_files_bucket_name = cfg(
     'gcp.all_inbound_files_bucket_name')
 
 
-def upload_lab_report(local_file_path, destination_filename):
-    return upload_blob(
-        lab_reports_bucket_name,
-        local_file_path,
-        destination_filename
-    )
+async def upload_lab_report(local_file_path: str, destination_filename: str) -> bool:
+    try:
+        return await upload_blob(
+            lab_reports_bucket_name,
+            local_file_path,
+            destination_filename
+        )
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return False
 
 
-def get_list_of_all_uploaded_lab_reports():
-    return get_file_list_in_bucket(lab_reports_bucket_name)
+async def get_list_of_all_uploaded_lab_reports():
+    try:
+        return await get_file_list_in_bucket(lab_reports_bucket_name)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
 
 
-def get_list_of_all_uploaded_inbound_files():
-    return get_file_list_in_bucket(all_inbound_files_bucket_name)
+async def get_list_of_all_uploaded_inbound_files():
+    try:
+        return await get_file_list_in_bucket(all_inbound_files_bucket_name)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
 
 
-def upload_insurance_card(local_file_path, destination_filename):
-    return upload_blob(
-        insurance_cards_bucket_name,
-        local_file_path,
-        destination_filename
-    )
+async def upload_insurance_card(local_file_path: str, destination_filename: str) -> bool:
+    try:
+        return await upload_blob(
+            insurance_cards_bucket_name,
+            local_file_path,
+            destination_filename
+        )
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return False
 
 
-def upload_insurance_card_from_base64_string(base64string: str, content_type: str, destination_blob_name: str) -> bool:
-    return upload_blob_from_string(
-        insurance_cards_bucket_name,
-        base64string,
-        content_type,
-        destination_blob_name
-    )
+async def upload_insurance_card_from_base64_string(base64string: str, content_type: str, destination_blob_name: str) -> bool:
+    try:
+        return await upload_blob_from_string(
+            insurance_cards_bucket_name,
+            base64string,
+            content_type,
+            destination_blob_name
+        )
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return False
 
 
-def upload_archived_notification_from_base64_string(bucket_name: str, base64string: str, content_type: str, destination_blob_name: str) -> bool:
-    return upload_blob_from_string(
-        bucket_name,
-        base64string,
-        content_type,
-        destination_blob_name
-    )
+async def upload_archived_notification_from_base64_string(bucket_name: str, base64string: str, content_type: str, destination_blob_name: str) -> bool:
+    try:
+        return await upload_blob_from_string(
+            bucket_name,
+            base64string,
+            content_type,
+            destination_blob_name
+        )
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return False
 
 
-def get_temp_lab_report_url(filename):
-    return get_signed_url(
-        lab_reports_bucket_name,
-        filename)
+async def get_temp_lab_report_url(filename: str):
+    try:
+        return await get_signed_url(
+            lab_reports_bucket_name,
+            filename
+        )
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
 
 
-def get_temp_insurance_card_url(filename):
-    return get_signed_url(
-        insurance_cards_bucket_name,
-        filename)
+async def get_temp_insurance_card_url(filename: str):
+    try:
+        return await get_signed_url(
+            insurance_cards_bucket_name,
+            filename
+        )
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
 
 
-def upload_to_all_inbound_files(local_file_path, destination_filename):
-    return upload_blob(
-        all_inbound_files_bucket_name,
-        local_file_path,
-        destination_filename)
+async def upload_to_all_inbound_files(local_file_path: str, destination_filename) -> bool:
+    try:
+        return await upload_blob(
+            all_inbound_files_bucket_name,
+            local_file_path,
+            destination_filename
+        )
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return False
 
 
-def file_exists_in_all_inbound_files(filename):
-    return blob_exists(all_inbound_files_bucket_name, filename)
+async def file_exists_in_all_inbound_files(filename: str) -> bool:
+    try:
+        return await blob_exists(
+            all_inbound_files_bucket_name,
+            filename
+        )
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return False
 
 
-def file_exists_in_lab_reports(filename):
-    return blob_exists(lab_reports_bucket_name, filename)
+async def file_exists_in_lab_reports(filename: str) -> bool:
+    try:
+        return await blob_exists(
+            lab_reports_bucket_name,
+            filename
+        )
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return False
 
 
-def file_exists_in_insurance_cards(filename):
-    return blob_exists(insurance_cards_bucket_name, filename)
+async def file_exists_in_insurance_cards(filename: str) -> bool:
+    try:
+        return await blob_exists(
+            insurance_cards_bucket_name,
+            filename
+        )
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return False
 
 
-def get_bucket_list():
+async def get_bucket_list():
     try:
         storage_client = storage.Client.from_service_account_json(
             service_account_file)
         buckets = list(storage_client.list_buckets())
         return buckets
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
+        return None
 
 
-def get_file_list_in_bucket(bucket_name, prefix=''):
+async def get_file_list_in_bucket(bucket_name: str, prefix: str=''):
     try:
         storage_client = storage.Client.from_service_account_json(
             service_account_file)
@@ -135,32 +251,36 @@ def get_file_list_in_bucket(bucket_name, prefix=''):
             file_list.append(str(blob))
 
         return file_list
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
+        return None
 
 
-def blob_exists(bucket_name, filename):
+async def blob_exists(bucket_name: str, filename: str) -> bool:
     try:
         storage_client = storage.Client.from_service_account_json(
             service_account_file)
         bucket = storage_client.get_bucket(bucket_name)
         blob = bucket.blob(filename)
         return blob.exists()
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             bucket_name=bucket_name,
             filename=filename,
             function=whoami(),
             error=err
         )
+        return False
 
 
-async def serve_file(bucket_name, filename):
+async def get_file_blob(bucket_name: str, filename: str):
     try:
         storage_client = storage.Client.from_service_account_json(
             service_account_file)
@@ -168,25 +288,25 @@ async def serve_file(bucket_name, filename):
         blob = bucket.blob(filename)
         if blob.exists():
             return blob
-        else:
-            return None
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             bucket_name=bucket_name,
             filename=filename,
             function=whoami(),
             error=err
         )
+        return None
 
 
-def get_signed_url(bucket_name,
-                   object_name,
-                   subresource=None,
-                   expiration=None,
-                   http_method='GET',
-                   query_parameters=None,
-                   headers=None):
+async def get_signed_url(bucket_name,
+                         object_name,
+                         subresource=None,
+                         expiration=None,
+                         http_method='GET',
+                         query_parameters=None,
+                         headers=None):
     try:
         if expiration is None:
             expiration = default_link_expiration_time_limit
@@ -195,7 +315,7 @@ def get_signed_url(bucket_name,
         if expiration > 604800:
             return False
 
-        if blob_exists(bucket_name, object_name):
+        if await blob_exists(bucket_name, object_name):
             escaped_object_name = quote(
                 six.ensure_binary(object_name), safe=b'/~')
             canonical_uri = '/{}'.format(escaped_object_name)
@@ -275,7 +395,7 @@ def get_signed_url(bucket_name,
                 scheme_and_host, canonical_uri, canonical_query_string, signature)
 
             log_generic(
-                type=INFO,
+                type=c.INFO,
                 bucket_name=bucket_name,
                 object_name=object_name,
                 signed_url=signed_url,
@@ -286,7 +406,7 @@ def get_signed_url(bucket_name,
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             bucket_name=bucket_name,
             object_name=object_name,
             expiration=expiration,
@@ -296,8 +416,8 @@ def get_signed_url(bucket_name,
         return None
 
 
-def upload_blob(bucket_name, source_filename, destination_blob_name):
-    if blob_exists(bucket_name, destination_blob_name):
+async def upload_blob(bucket_name: str, source_filename: str, destination_blob_name: str) -> bool:
+    if await blob_exists(bucket_name, destination_blob_name):
         #print('file_exists -- skipping')
         return False
     try:
@@ -309,7 +429,7 @@ def upload_blob(bucket_name, source_filename, destination_blob_name):
         blob.upload_from_filename(source_filename)
 
         log_generic(
-            type=INFO,
+            type=c.INFO,
             bucket_name=bucket_name,
             source_filename=source_filename,
             destination_blob_name=destination_blob_name,
@@ -323,18 +443,18 @@ def upload_blob(bucket_name, source_filename, destination_blob_name):
             pass
         else:
             log_generic(
-                type=ERROR,
+                type=c.ERROR,
                 bucket_name=bucket_name,
                 source_filename=source_filename,
                 destination_blob_name=destination_blob_name,
                 function=whoami(),
                 error=err
             )
-        return None
+        return False
 
 
-def upload_blob_from_string(bucket_name: str, base64string: str, content_type: str, destination_blob_name: str) -> bool:
-    if blob_exists(bucket_name, destination_blob_name):
+async def upload_blob_from_string(bucket_name: str, base64string: str, content_type: str, destination_blob_name: str) -> bool:
+    if await blob_exists(bucket_name, destination_blob_name):
         #print('file_exists -- skipping')
         return False
     try:
@@ -348,7 +468,7 @@ def upload_blob_from_string(bucket_name: str, base64string: str, content_type: s
         )
 
         log_generic(
-            type=INFO,
+            type=c.INFO,
             bucket_name=bucket_name,
             destination_blob_name=destination_blob_name,
             function=whoami()
@@ -357,13 +477,11 @@ def upload_blob_from_string(bucket_name: str, base64string: str, content_type: s
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             bucket_name=bucket_name,
             base64string=base64string,
             destination_blob_name=destination_blob_name,
             function=whoami(),
             error=err
         )
-
-    return False
-
+        return False

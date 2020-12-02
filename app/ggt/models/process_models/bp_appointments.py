@@ -1,5 +1,9 @@
 import datetime
 
+import ujson
+import boto3
+
+
 import ggt.lib.constants as c
 
 from ggt.lib.utils import (
@@ -27,9 +31,9 @@ from ggt.lib.sys_log import (write_syslog)
 ########################################################################################################
 
 
-def bp_get_appointment_info(appointment_id, dob):
+async def bp_get_appointment_info(appointment_id, dob):
     try:
-        appointment = get_appointment(appointment_id)
+        appointment = await get_appointment(appointment_id)
         if dob != 'allowdoboverride' and appointment.patient.dob.strftime("%Y%m%d") != dob:
             raise ValueError('Invalid Appointment and DOB')
 
@@ -60,31 +64,31 @@ def bp_get_appointment_info(appointment_id, dob):
     return False
 
 
-def bp_appointment_update(appointment_id: int, action: str, workstation_id: int):
+async def bp_appointment_update(appointment_id: int, action: str, workstation_id: int):
     try:
-        appointment = get_appointment(appointment_id)
-            
+        appointment = await get_appointment(appointment_id)
+
         if action == c.APPOINTMENT_ACTION_CHECK_IN:
-            update_appointment_with_checkin(appointment_id)
+            await update_appointment_with_checkin(appointment_id)
 
         elif action == c.APPOINTMENT_ACTION_START_TEST:
-            __appointment_begin_test(appointment_id, workstation_id)
+            await __appointment_begin_test(appointment_id, workstation_id)
 
         elif action == c.APPOINTMENT_ACTION_SCAN_VIAL:
-            update_appointment_with_scan_vial(appointment_id)
-            
-        elif action == c.APPOINTMENT_ACTION_END_TEST:
-            update_appointment_with_test_completed(appointment_id)
-            __send_test_complete_sms(appointment)
-            
-        elif action == c.APPOINTMENT_ACTION_REPRINT:
-            __appointment_reprint_label(appointment_id, workstation_id)
+            await update_appointment_with_scan_vial(appointment_id)
 
-        #TODO: This allows the start_test to be invoked twice (print the label twice). And every other action only to be invoked once.
+        elif action == c.APPOINTMENT_ACTION_END_TEST:
+            await update_appointment_with_test_completed(appointment_id)
+            await __send_test_complete_sms(appointment)
+
+        elif action == c.APPOINTMENT_ACTION_REPRINT:
+            await __appointment_reprint_label(appointment_id, workstation_id)
+
+        # TODO: This allows the start_test to be invoked twice (print the label twice). And every other action only to be invoked once.
         # essentially works by waiting to catch the appointment status update in the next round
         # Ideally, this should be handled at the printer label processor
         if action != c.APPOINTMENT_ACTION_START_TEST:
-            appointment = get_appointment(appointment_id)
+            appointment = await get_appointment(appointment_id)
 
         return {
             'appointment_id': appointment.id,
@@ -104,8 +108,11 @@ def bp_appointment_update(appointment_id: int, action: str, workstation_id: int)
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
+
+
 def __is_pre_labeled(workstation_id: int) -> bool:
-    return False if workstation_id<100000 else True
+    return False if workstation_id < 100000 else True
+
 
 def __formatted_date_text(appointment):
     return appointment.scheduled_dt.strftime("%a, %-d %b %Y @ %-I:%M %p")
@@ -146,7 +153,7 @@ def __next_action(appointment, pre_labeled=False):
         c.APPOINTMENT_STATUS_TEST_COMPLETED: c.APPOINTMENT_ACTION_NONE
     }
 
-    if not pre_labeled: #vial scanning not required
+    if not pre_labeled:  # vial scanning not required
         switcher = {
             c.APPOINTMENT_STATUS_SCHEDULED: c.APPOINTMENT_ACTION_CHECK_IN,
             c.APPOINTMENT_STATUS_CHECKED_IN: c.APPOINTMENT_ACTION_START_TEST,
@@ -157,11 +164,12 @@ def __next_action(appointment, pre_labeled=False):
     return switcher.get(appointment.status, c.APPOINTMENT_ACTION_NONE)
 
 
-#TODO: [GGT-80] Move copy to CMS
-def __send_test_complete_sms(appointment):
+# TODO: [GGT-80] Move copy to CMS
+async def __send_test_complete_sms(appointment):
     message = "" \
         "Hi {}, thank you for getting tested with GoGetTested.com. Your COVID-19 test results will be available in 48-96hours. " \
-        "If you have any questions, please visit GoGetTested.com Reply STOP to cancel msgs".format(appointment.patient.first_name)
+        "If you have any questions, please visit GoGetTested.com Reply STOP to cancel msgs".format(
+            appointment.patient.first_name)
 
     log_generic(
         type="info",
@@ -169,28 +177,26 @@ def __send_test_complete_sms(appointment):
         message=message,
         function='__send_test_complete_sms'
     )
-    return send_sms(appointment.patient.phone_number, message)
+    return await send_sms(appointment.patient.phone_number, message)
 
 
-def __appointment_begin_test(appointment_id, workstation_id=1):
-    update_appointment_with_test_start(appointment_id)
+async def __appointment_begin_test(appointment_id, workstation_id=1):
+    await update_appointment_with_test_start(appointment_id)
 
     if __is_pre_labeled(workstation_id):
         return True
-    
-    return __send_label_to_printer(appointment_id, workstation_id)
 
-def __appointment_reprint_label(appointment_id, workstation_id=1):
-    return __send_label_to_printer(appointment_id, workstation_id)
+    return await __send_label_to_printer(appointment_id, workstation_id)
 
 
-#TODO: [GGT-86] Refactor, decouple integration code
-def __send_label_to_printer(appointment_id, queue_id):
-    import json
-    import boto3
+async def __appointment_reprint_label(appointment_id, workstation_id=1):
+    return await __send_label_to_printer(appointment_id, workstation_id)
 
+
+# TODO: [GGT-86] Refactor, decouple integration code
+async def __send_label_to_printer(appointment_id, queue_id):
     try:
-        appointment = get_appointment(appointment_id)
+        appointment = await get_appointment(appointment_id)
         date_text = appointment.scheduled_dt.strftime(
             "%a, %-d %b %Y @ %-I:%M %p")
         patient_name = "{}, {} {}".format(appointment.patient.last_name,
@@ -219,7 +225,7 @@ def __send_label_to_printer(appointment_id, queue_id):
         response = sqs.send_message(
             QueueUrl=queue_url,
             DelaySeconds=10,
-            MessageBody=(json.dumps(payload))
+            MessageBody=(ujson.dumps(payload))
         )
         print(response['MessageId'])
 
@@ -232,5 +238,5 @@ def __send_label_to_printer(appointment_id, queue_id):
             function=whoami(),
             error=err
         )
-        write_syslog("print", c.ERROR, appointment_id)
+        await write_syslog("print", c.ERROR, appointment_id)
         return False
