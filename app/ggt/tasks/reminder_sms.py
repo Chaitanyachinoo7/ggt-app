@@ -61,10 +61,10 @@ async def task_process_daily_sms_reminders():
         for row in rows:
             phone_number = row['phone_number']
             data.append(
-                (phone_number, prepare_sms_text(row))
+                (phone_number, prepare_sms_text(row), 9)
             )
             data.append(
-                (phone_number, prepare_appointment_details(row))
+                (phone_number, prepare_appointment_details(row), 9)
             )
         await batch_enqueue_sms_notifications(tuple(data))
         log_generic(
@@ -87,9 +87,9 @@ async def batch_enqueue_sms_notifications(data):
     try:
         sql = """
             INSERT INTO sms_notification_queue
-                (to_number,message)
+                (to_number,message, priority)
             VALUES
-                (%s, %s);
+                (%s, %s, %s);
         """
         await exec_batch_execute(sql, data)
 
@@ -114,11 +114,11 @@ async def task_process_daily_email_reminders():
             email = formatted_email_message(row)
             data.append(
                 (email['from_email'], email['from_name'],
-                 email['to_email'], email['subject'], email['html_content'])
+                 email['to_email'], email['subject'], email['html_content'],9)
             )
         data1 = list(chunks(data, 100))
         for d in data1:
-            batch_enqueue_email_notifications(d)
+            await batch_enqueue_email_notifications(d)
 
         log_generic(
             type="info",
@@ -181,9 +181,9 @@ async def batch_enqueue_email_notifications(data):
     try:
         sql = """
             INSERT INTO email_notification_queue
-                (from_email, from_name, to_email, subject, html_content)
+                (from_email, from_name, to_email, subject, html_content, priority)
             VALUES
-                (%s, %s, %s, %s, %s);
+                (%s, %s, %s, %s, %s, %s);
         """
         await exec_batch_execute(sql, data)
         return True
