@@ -321,8 +321,7 @@ async def bp_delete_schedule_for_date(location_id, date_str):
 async def bp_generate_full_schedule(location_id):
     try:
         print('START schedule generation / location id: {} / at: {}'.format(
-            location_id, datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        )
+            location_id, datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         )
         latest_schedule_dt = datetime.today() - timedelta(days=1)
         latest_schedule_dt = latest_schedule_dt.replace(
@@ -333,7 +332,7 @@ async def bp_generate_full_schedule(location_id):
         rules = await get_schedule_generation_rules_by_location_id(location_id)
 
         for rule in rules:
-            __process_schedule_rule(rule)
+            await __process_schedule_rule(rule)
 
         print('END schedule generation / location id: {} / at: {}'.format(
             location_id,
@@ -477,8 +476,8 @@ async def __process_schedule_rule(rule):
 
             schedule_date = schedule_date + timedelta(days=1)
 
-        rows = __remove_reserved_slots(rows, location_id)
-        add_schedule_entries(rows)
+        rows = await __remove_reserved_slots(rows, location_id)
+        await add_schedule_entries(rows)
         return True
 
     except Exception as err:
@@ -502,7 +501,7 @@ def __get_valid_days(row):
     }
 
 
-def __remove_reserved_slots(rows, location_id):
+async def __remove_reserved_slots(rows, location_id):
     try:
         generated_dt_counts = {}  # counts map
         generated_dt_list = []  # flat list
@@ -514,7 +513,7 @@ def __remove_reserved_slots(rows, location_id):
                 generated_dt_counts[dtkey] = 1
                 generated_dt_list.append(dtkey)
 
-        reserved_slots = get_slots_matching_dt_list(
+        reserved_slots = await get_slots_matching_dt_list(
             generated_dt_list, location_id)
 
         for slot in reserved_slots:
