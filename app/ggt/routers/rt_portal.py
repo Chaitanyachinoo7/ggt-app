@@ -144,7 +144,9 @@ async def api_site_admin_general_search(portal_general_search_request: PortalGen
         portal_general_search_request.appointment_id,
         portal_general_search_request.group_code,
         portal_general_search_request.appointment_date,
-        portal_general_search_request.location_id
+        portal_general_search_request.location_id,
+        portal_general_search_request.sort_field,
+        portal_general_search_request.sort_type
     )
 
 
