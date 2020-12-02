@@ -18,4 +18,15 @@ git pull
 git merge dev
 git push -u origin qa
 
+git checkout master
+git pull 
+git merge qa
+git push -u origin master
+
+git checkout production-patient
+git pull 
+git merge master
+git push -u origin production-patient
+
+
 git checkout dev2

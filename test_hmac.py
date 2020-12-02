@@ -34,7 +34,7 @@ payload = {
     ]
 }
 
-payload_string = json.dumps(payload).encode('utf-8')
+payload_string = ujson.dumps(payload).encode('utf-8')
 
 encoded_secret_key = secret_key.encode('utf-8')
 b_secret_key = bytearray(encoded_secret_key)

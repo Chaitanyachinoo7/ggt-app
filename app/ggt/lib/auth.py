@@ -63,7 +63,7 @@ def get_value(user, key):
 
 async def get_rsa_key(token):
     if 'RSA_KEY' in os.environ:
-        return json.loads(os.environ.get('RSA_KEY'))
+        return ujson.loads(os.environ.get('RSA_KEY'))
 
     else:
         rsa_key = await get_rsa_key_auth0(token)
@@ -75,7 +75,7 @@ async def get_rsa_key(token):
 async def get_rsa_key_auth0(token):
     jsonurl = urllib2.urlopen(
         "https://" + get_config_val('vendors.auth0.auth0_domain') + "/.well-known/jwks.json")
-    jwks = json.loads(jsonurl.read())
+    jwks = ujson.loads(jsonurl.read())
 
     try:
         unverified_header = jwt.get_unverified_header(token)
@@ -89,7 +89,7 @@ async def get_rsa_key_auth0(token):
                     "n": key["n"],
                     "e": key["e"]
                 }
-                _rsa_key = json.dumps(rsa_key)
+                _rsa_key = ujson.dumps(rsa_key)
                 os.environ['RSA_KEY'] = _rsa_key
 
         return rsa_key

@@ -11,20 +11,20 @@ development_api = "https://role-base-auth.test/api"
 
 print("\n\n########################### STARTED MAPPING PERMISSIONS TO ROLES ###########################\n")
 with open("get_auth.json") as f:
-    auth_file = json.load(f)
+    auth_file = ujson.load(f)
 
 auth_response = requests.post(auth_url, data=auth_file['body'])
 auth = "Bearer {}".format(auth_response.json()['access_token'])
 headers = {'content-type': 'application/json', 'Accept-Charset': 'UTF-8', 'Authorization': auth}
 
 with open("permission_to_roles_map.json") as f:
-    p_to_r_map = json.load(f)
+    p_to_r_map = ujson.load(f)
 
 with open("permissions.json") as f:
-    p_dict = json.load(f)
+    p_dict = ujson.load(f)
 
 with open("role_id_map.json") as f:
-    r_id_map = json.load(f)
+    r_id_map = ujson.load(f)
 
 roles = p_to_r_map.keys()
 
@@ -80,8 +80,8 @@ for role in roles:
     if temp.lower() == "y":
         body['permissions'] = permissions
         old_body['permissions'] = _current_permissions
-        body = json.dumps(body)
-        old_body = json.dumps(old_body)
+        body = ujson.dumps(body)
+        old_body = ujson.dumps(old_body)
         if len(current_permissions) > 0:
             r = requests.delete(url, data=old_body, headers=headers)
             print(old_body)

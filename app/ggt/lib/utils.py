@@ -206,21 +206,21 @@ def failure_response(kv=None):
 
 
 def is_admin(user: User):
-    return (user and user.roles) and (get_config_val('app.roles.admin') in json.loads(user.roles))
+    return (user and user.roles) and (get_config_val('app.roles.admin') in ujson.loads(user.roles))
 
 
 def is_care_provider(user: User):
-    return (user and user.roles) and (get_config_val('app.roles.care_provider') in json.loads(user.roles))
+    return (user and user.roles) and (get_config_val('app.roles.care_provider') in ujson.loads(user.roles))
 
 
 def is_clinical_provider(user: User):
-    return (user and user.roles) and (get_config_val('app.roles.clinical_provider') in json.loads(user.roles))
+    return (user and user.roles) and (get_config_val('app.roles.clinical_provider') in ujson.loads(user.roles))
 
 
 def is_site_admin(user: User):
-    return (user and user.roles) and (get_config_val('app.roles.site_admin') in json.loads(user.roles))
+    return (user and user.roles) and (get_config_val('app.roles.site_admin') in ujson.loads(user.roles))
 
 
 def is_contact_center(user: User):
-    return (user and user.roles) and (get_config_val('app.roles.contact_center') in json.loads(user.roles))
+    return (user and user.roles) and (get_config_val('app.roles.contact_center') in ujson.loads(user.roles))
 

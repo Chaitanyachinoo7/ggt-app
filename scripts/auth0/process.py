@@ -1,7 +1,7 @@
 import ujson
 
 with open("permissions_list.json") as f:
-    data = json.load(f)
+    data = ujson.load(f)
 
 permissions = data['permissions']
 roles = data['roles']
@@ -18,7 +18,7 @@ body = {
     "permissions": _permissions
 }
 with open('temp.permissions.json', 'w') as outfile:
-    json.dump(body, outfile)
+    ujson.dump(body, outfile)
 
 st = ''
 
