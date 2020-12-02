@@ -20,7 +20,7 @@ async def task_process_email_queue():
     print('\n\n********************task_process_email_queue****************************\n\n')
 
     sql = """
-    SELECT * FROM email_notification_queue where status IN ('pending','retry')
+    SELECT * FROM email_notification_queue where status IN ('pending','retry') ORDER BY ID DESC
     """
     rows = await read_rows(sql)
     for row in rows:
@@ -33,12 +33,12 @@ async def task_process_email_queue():
         html_content = row['html_content']
 
         if status == 'retry':
-            if send_email(from_email, from_name, to_email, subject, html_content):
+            if await send_email(from_email, from_name, to_email, subject, html_content):
                 await update_email_status_to_processed(_id)
             else:
                 await update_email_status_to_error(_id)
         else:
-            if send_email(from_email, from_name, to_email, subject, html_content):
+            if await send_email(from_email, from_name, to_email, subject, html_content):
                 await update_email_status_to_processed(_id)
             else:
                 await update_email_status_to_retry(_id)

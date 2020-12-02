@@ -13,41 +13,41 @@ router = APIRouter()
 
 @router.post("/get_billing_list", dependencies=[Security(authorize_user, scopes=[p.GET_BILLING_LIST])])
 async def api_get_billing_list(bill_req: GetBillingListReq):
-    return get_billing_list(bill_req)
+    return await get_billing_list(bill_req)
 
 
 @router.post("/update_billing_status", dependencies=[Security(authorize_user, scopes=[p.UPDATE_BILLING_STATUS])])
 async def api_update_billing_status(bill_req: UpdateBilligStatus):
-    return update_billing_status(bill_req)
+    return await update_billing_status(bill_req)
 
 
 @router.get("/image/{image_id}", dependencies=[Security(authorize_user, scopes=[p.VIEW_INSURANCE_CARD])])
 async def api_get_image_from_bucket(image_id: str):
-    return get_image_from_bucket(image_id)
+    return await get_image_from_bucket(image_id)
 
 
 @router.get("/report/{report_id}", dependencies=[Security(authorize_user, scopes=[p.VIEW_TEST_REPORT])])
 async def api_get_report_from_bucket(report_id: str):
-    return get_report_from_bucket(report_id)
+    return await get_report_from_bucket(report_id)
 
 
 @router.post("/create_insurance_record", dependencies=[Security(authorize_user, scopes=[p.CREATE_INSURANCE_RECORD])])
 async def api_create_insurance_record(record: InsuranceRecord):
-    return create_insurance_record(record)
+    return await create_insurance_record(record)
 
 
 @router.post("/update_insurance_record", dependencies=[Security(authorize_user, scopes=[p.UPDATE_INSURANCE_RECORD])])
 async def api_update_insurance_record(record: InsuranceUpdateRecord):
-    return update_insurance_record(record)
+    return await update_insurance_record(record)
 
 
 @router.post("/validate_insurance_record", dependencies=[Security(authorize_user, scopes=[p.VALIDATE_INSURANCE_RECORD])])
 async def api_validate_insurance_record(record: InsuranceIDRecord):
-    return validate_insurance_record(record)
+    return await validate_insurance_record(record)
 
 
 @router.post("/delete_insurance_record", dependencies=[Security(authorize_user, scopes=[p.DELETE_INSURANCE_RECORD])])
 async def api_delete_insurance_record(record: InsuranceIDRecord):
-    return delete_insurance_record(record)
+    return await delete_insurance_record(record)
 
 

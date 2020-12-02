@@ -19,9 +19,9 @@ from ggt.models.process_models.bp_care_provider_experience import (
 # [Public] functions
 ########################################################################################################
 
-def get_billing_list(billing_request):
+async def get_billing_list(billing_request):
     return y_response(
-        bp_get_billing_list(billing_request.offset,
+        await bp_get_billing_list(billing_request.offset,
                             billing_request.status,
                             billing_request.from_dt,
                             billing_request.to_dt,
@@ -33,39 +33,39 @@ def get_billing_list(billing_request):
     )
 
 
-def update_billing_status(billing_request):
+async def update_billing_status(billing_request):
     return x_response(
-        bp_update_billing_status(billing_request.appointment_id)
+        await bp_update_billing_status(billing_request.appointment_id)
     )
 
 
-def create_insurance_record(record):
+async def create_insurance_record(record):
     return y_response(
-        bp_create_insurance_record(record)
+        await bp_create_insurance_record(record)
     )
 
 
-def update_insurance_record(record):
+async def update_insurance_record(record):
     return y_response(
-        bp_update_insurance_record(record)
+        await bp_update_insurance_record(record)
     )
 
 
-def validate_insurance_record(record):
+async def validate_insurance_record(record):
     return y_response(
-        bp_validate_insurance_record(record)
+        await bp_validate_insurance_record(record)
     )
 
 
-def delete_insurance_record(record):
+async def delete_insurance_record(record):
     return y_response(
-        bp_delete_insurance_record(record)
+        await bp_delete_insurance_record(record)
     )
 
 
-def get_image_from_bucket(image_id):
+async def get_image_from_bucket(image_id):
     return StreamingResponse(
-        bp_image_from_bucket(image_id),
+        await bp_image_from_bucket(image_id),
         media_type="image/png",
         headers={
             'Content-Disposition': 'inline; filename="insurance_card.png"'
@@ -73,9 +73,9 @@ def get_image_from_bucket(image_id):
     )
 
 
-def get_report_from_bucket(report_id):
+async def get_report_from_bucket(report_id):
     return StreamingResponse(
-        bp_report_from_bucket(report_id),
+        await bp_report_from_bucket(report_id),
         media_type="application/pdf",
         headers={
             'Content-Disposition': 'filename="report.pdf"'

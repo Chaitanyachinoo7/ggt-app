@@ -138,18 +138,18 @@ async def process_sms_notifications():
     for row in rows:
         phone_number = row['phone_number']
         data.append(
-            (phone_number, prepare_sms_text(row))
+            (phone_number, await prepare_sms_text(row))
         )
 
     await batch_enqueue_sms_notifications(data)
 
 
 async def process_email_notifications():
-    rows = get_appointments()
+    rows = await get_appointments()
     data = []
 
     for row in rows:
-        email = formatted_email_message(row)
+        email = await formatted_email_message(row)
 
         data.append(
             (email['from_email'], email['from_name'],
@@ -222,9 +222,9 @@ async def get_appointments():
                 JOIN
             patients p ON a.patient_id = p.id
         WHERE
-            location_id IN (94)
-                AND scheduled_dt > '2020-11-23'
-                AND scheduled_dt < '2020-11-24'
+            location_id IN (242)
+                AND scheduled_dt > '2020-12-02'
+                AND scheduled_dt < '2020-12-03'
                 AND status = 'scheduled'
         """
         return await read_rows(sql)
