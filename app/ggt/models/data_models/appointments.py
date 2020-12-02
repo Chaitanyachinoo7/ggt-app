@@ -295,7 +295,7 @@ async def update_positive_result_followup(id: int, date_time: datetime):
 
     return None
 
-
+'''
 async def update_appointment_with_checkin(appointment_id: int):
     try:
         sql = """
@@ -390,7 +390,7 @@ async def update_appointment_with_test_completed(appointment_id: int):
         )
 
     return None
-
+'''
 
 async def get_appointment_count_by_phone_dob(phone_number, dob):
     try:
@@ -464,7 +464,7 @@ async def update_appointment_with_test_completed(appointment_id: int):
 async def __update_appointment_status(appointment_id: int, status: str):
 
     switcher = {
-        c.APPOINTMENT_STATUS_SCHEDULED: '',  # TODO:
+        c.APPOINTMENT_STATUS_SCHEDULED: 'update_dt',
         c.APPOINTMENT_STATUS_CHECKED_IN: 'check_in_dt',
         c.APPOINTMENT_STATUS_TEST_IN_PROGRESS: 'test_start_dt',
         c.APPOINTMENT_STATUS_VIAL_SCANNED: 'test_start_dt',
