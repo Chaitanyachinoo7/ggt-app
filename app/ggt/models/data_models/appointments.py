@@ -269,7 +269,7 @@ async def update_appointment_with_receipt_token(appointment: GgtAppointment):
         )
 
     return None
-    
+
 
 async def update_positive_result_followup(id: int, date_time: datetime):
     try:
@@ -462,15 +462,26 @@ async def update_appointment_with_test_completed(appointment_id: int):
 
 
 async def __update_appointment_status(appointment_id: int, status: str):
+
+    switcher = {
+        c.APPOINTMENT_STATUS_SCHEDULED: '',  # TODO:
+        c.APPOINTMENT_STATUS_CHECKED_IN: 'check_in_dt',
+        c.APPOINTMENT_STATUS_TEST_IN_PROGRESS: 'test_start_dt',
+        c.APPOINTMENT_STATUS_VIAL_SCANNED: 'test_start_dt',
+        c.APPOINTMENT_STATUS_TEST_COMPLETED: 'test_end_dt'
+    }
+
     try:
         sql = """
             UPDATE appointments
             SET
-                test_end_dt = NOW(),
+                {} = NOW(),
+                update_dt = NOW(),
                 status = %s
             WHERE
                 id = %s
-            """
+            """.format(switcher.get(status, None))
+
         vals = (status, appointment_id)
         return await exec_update(sql, vals)
 
