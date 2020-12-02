@@ -209,7 +209,7 @@ async def archive_email_notifications(records):
 async def upload_archived_notification(notification, destination_blob_name):
     content_type = 'application/json'
     notification = {"notification": notification}
-    notification = json.dumps(notification)
+    notification = ujson.dumps(notification)
     notification = base64.b64encode(notification.encode('utf-8'))
     return upload_archived_notification_from_base64_string(
         bucket_name, 

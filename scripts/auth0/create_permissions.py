@@ -10,14 +10,14 @@ create_permission_url = "https://gogettested.us.auth0.com/api/v2/resource-server
 print("\n\n########################### STARTED ADDING PERMISSIONS #####################################\n")
 
 with open("get_auth.json") as f:
-    auth_file = json.load(f)
+    auth_file = ujson.load(f)
 
 auth_response = requests.post(auth_url, data=auth_file['body'])
 auth = "Bearer {}".format(auth_response.json()['access_token'])
 headers = {'content-type': 'application/json', 'Accept-Charset': 'UTF-8', 'Authorization': auth}
 
 with open("permissions.json") as f:
-    payload = json.load(f)
+    payload = ujson.load(f)
 
 permissions = payload['permissions']
 
@@ -27,7 +27,7 @@ prod_url = create_permission_url.format(production_api_id)
 environments = (dev_url, prod_url)
 
 body = {'scopes': permissions}
-body = json.dumps(body)
+body = ujson.dumps(body)
 
 
 for idx, url in enumerate(environments):

@@ -138,7 +138,7 @@ def is_valid_data():
 
 def test_get_locations_1():
     res = invoke_get('/get_locations')
-    print(json.dumps (res.json(), indent = 3)) 
+    print(ujson.dumps (res.json(), indent = 3)) 
     if res:
         is_valid_status_code(res, 200)
 
