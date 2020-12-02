@@ -15,7 +15,7 @@ from ggt.lib.constants import (
     ERROR
 )
 
-from ggt.lib.adapters.mysql_adapter import (
+from ggt.lib.db import (
     exec_insert,
     exec_update,
     exec_delete,
@@ -153,8 +153,8 @@ class GenericSearchResults(BaseModel):
     search_results: Optional[GenericSearchResult] = None
 
 
-def find_patients(first_name='', middle_name='', last_name='', dob='', phone_number='',
-                  email='', appointment_id='', group_code='', appointment_date='', location_id=''):
+async def find_patients(first_name='', middle_name='', last_name='', dob='', phone_number='',
+                        email='', appointment_id='', group_code='', appointment_date='', location_id='', sort_field="register_dt", sort_type="desc"):
     try:
         where_conditions = ''
         if first_name != '':
@@ -324,9 +324,10 @@ def find_patients(first_name='', middle_name='', last_name='', dob='', phone_num
             insurance_info i ON p.id = i.patient_id
         WHERE 1=1
             {}
+        order by {} {}
         LIMIT {}
-        """.format(where_conditions, limit)
-        rows = read_rows(sql)
+        """.format(where_conditions, sort_field, sort_type, limit)
+        rows = await read_rows(sql)
         return process_consultations(rows)
 
     except Exception as err:
@@ -336,4 +337,3 @@ def find_patients(first_name='', middle_name='', last_name='', dob='', phone_num
             error=err
         )
         return None
-

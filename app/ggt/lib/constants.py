@@ -3,6 +3,7 @@ STATUS = 'status'
 SUCCESS = 'success'
 FAILED = 'failed'
 INFO = 'info'
+WARNING = 'warning'
 ERROR = 'error'
 NOT_FOUND = 'Not Found'
 DESCRIPTION = 'description'
@@ -11,30 +12,39 @@ BACKGROUND_TASK_INITIATE_MESSAGE = 'Background Task Initiated'
 
 DEFAULT_GROUP_CODE = '_DEFAULT_'
 
+Environment_DEV_2 = 'dev2'
+Environment_DEV = 'dev'
+Environment_QA = 'qa'
+Environment_PROD = 'prod'
+
 #Service Catalog
 SERVICE_CODE_COVID19_TEST = 'COVID_19_TEST'
 SERVICE_CODE_FLU_SHOT = 'FLU_SHOT'
 SERVICE_CODE_CONSULT = 'CONSULT'
+
+#Route Tags
+PAGE_REDIRECTS_RT_TAG = 'Page Redirects'
 CLINICAL_PROVIDER_RT_TAG = 'Clinical Provider App'
 PATIENT_RT_TAG = 'Patient Front End'
 BACKGROUND_TASK_RT_TAG = 'Background Tasks'
 ADMIN_PORTAL_RT_TAG = 'Admin Portal'
 CONTACT_CENTER_RT_TAG = 'Contact Center App'
 PRINTER_HUB_RT_TAG = 'Printer Hub'
-AUTH_FAILED_MESSAGE = 'Not Authorized'
 CARE_PROVIDER_RT_TAG = 'Care Provider'
-BILLER_APP_TAG = 'Biller App'
+BILLING_RT_TAG = 'Biller App'
+
+#API Prefixes
+CLINICAL_PROVIDER_PATH_PREFIX = '/api/provider'
+PATIENT_PATH_PREFIX = '/api'
+BACKGROUND_TASK_PATH_PREFIX = '/api/task'
+ADMIN_PORTAL_PATH_PREFIX = '/api/portal'
+CONTACT_CENTER_PATH_PREFIX = '/api/cc'
+PRINTER_HUB_PATH_PREFIX = '/api/print'
+CARE_PROVIDER_PATH_PREFIX = '/api/care_provider'
+BILLING_PATH_PREFIX = '/api/billing'
 
 #Auth
-AUTH_FAILED_MESSAGE = "Not Authorized"
-CLINICAL_PROVIDER_RT_TAG = "Clinical Provider App"
-PATIENT_RT_TAG = "Patient Front End"
-BACKGROUND_TASK_RT_TAG = "Background Tasks"
-ADMIN_PORTAL_RT_TAG = "Admin Portal"
-CONTACT_CENTER_RT_TAG = "Contact Center App"
-PRINTER_HUB_RT_TAG = "Printer Hub"
-CARE_PROVIDER_RT_TAG = "Care Provider"
-BILLER_APP_TAG = "Biller App"
+AUTH_FAILED_MESSAGE = 'Not Authorized'
 
 #Appointment
 APPOINTMENT_STATUS_SCHEDULED = 'scheduled'

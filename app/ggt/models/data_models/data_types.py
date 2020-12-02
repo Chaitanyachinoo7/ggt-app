@@ -139,6 +139,7 @@ class ProviderProcessListRequest(BaseModel):
 
 class VerifyPhoneRequest(BaseModel):
     phone_number: str = None
+    has_sms: bool = True
 
 
 class ValidateOtpRequest(BaseModel):
@@ -386,6 +387,8 @@ class PortalGeneralSearchRequest(BaseModel):
     group_code: str = None
     appointment_date: str = None
     location_id: str = None
+    sort_field: str = "register_dt"
+    sort_type: str = "desc"
 
 
 class PortalLocationSearchRequest(BaseModel):
@@ -596,6 +599,8 @@ class GgtDbLocation(BaseModel):
     allow_insurance_skip: bool = 1
     collect_upfront_payment: bool = 0
     image_thumbnail: Optional[str] = None
+    group_ids: List[int] = []
+    service_ids: List[int] = []
 
 
 class GgtUpdateLocation(BaseModel):
@@ -607,6 +612,8 @@ class GgtUpdateLocation(BaseModel):
     collect_insurance_info: str = None
     allow_insurance_skip: str = None
     collect_upfront_payment: str = None
+    group_ids: List[int] = []
+    service_ids: List[int] = []
 
 
 class GgtDateTimeLocation(BaseModel):
@@ -791,7 +798,7 @@ class GgtThirdPartyGroup(BaseModel):
 class VerifyExistingPatientRequest(BaseModel):
     phone_number: str = None
     dob: str = None
-    #optional_screens: List[str] = None  # Redundant, remove
+    # optional_screens: List[str] = None  # Redundant, remove
     #screen_seq: List[str] = None
 
 

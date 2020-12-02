@@ -1,4 +1,4 @@
-import json
+import ujson
 
 import requests
 from fastapi import (
@@ -21,7 +21,8 @@ from ggt.lib.constants import (
 from ggt.tasks.archive_notifications import archive_processed_notifications
 from ggt.tasks.mass_sms_notifications import notify_patients
 from ggt.tasks.reminder_sms import (
-    task_process_daily_sms_reminders
+    task_process_daily_sms_reminders,
+    task_process_daily_email_reminders
 )
 from ggt.lib.utils import is_admin
 from ggt.models.data_models.data_types import PermissionsEnum as p, PatientRelocateNotificationRequest, \
@@ -90,7 +91,7 @@ async def api_process_voice_queue(background_tasks: BackgroundTasks):
 
 @router.post("/process_email_queue", dependencies=[Security(authorize_user, scopes=[p.PROCESS_EMAIL_QUEUE])])
 async def api_process_email_queue():
-    task_process_email_queue()
+    await task_process_email_queue()
     return {STATUS: SUCCESS}
 
 
@@ -114,19 +115,19 @@ async def api_notify_patients(request: PatientRescheduleNotificationRequest, bac
 
 @router.post("/process_sms_queue", dependencies=[Security(authorize_user, scopes=[p.PROCESS_SMS_QUEUE])])
 async def api_process_sms_queue():
-    task_process_sms_queue()
+    await task_process_sms_queue()
     return {STATUS: SUCCESS}
 
 
 @router.post("/populate_location_thumbnails", dependencies=[Security(authorize_user, scopes=[p.POPULATE_LOCATION_THUMBNAILS])])
 async def api_populate_location_thumbnails():
-    task_populate_location_thumbnails()
+    await task_populate_location_thumbnails()
     return {STATUS: SUCCESS}
 
-#TODO: [GGT-127] create security permission
+# TODO: [GGT-127] create security permission
 @router.post("/populate_gps_coordinates")
 async def api_process_sms_queue(request: Request):
-    task_populate_gps_coordinates()
+    await task_populate_gps_coordinates()
     return {STATUS: SUCCESS}
 
 
@@ -141,12 +142,12 @@ async def api_misc_processor(background_tasks: BackgroundTasks):
 
 @router.post("/process_daily_appointment_reminders", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def reminder_sms():
-    task_process_daily_sms_reminders()
+    await task_process_daily_sms_reminders()
+    await task_process_daily_email_reminders()
     return {STATUS: SUCCESS}
 
 
-@router.post("/get_my_ip", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+@router.post("/server_public_ip", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_get_my_ip():
     r = requests.get('http://curlmyip.org/')
     return {"my_ip": r.text}
-

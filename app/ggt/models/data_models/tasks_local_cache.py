@@ -1,6 +1,6 @@
 import sqlite3
 from sqlite3 import Error
-import json
+import ujson
 
 from ggt.lib.utils import (
     get_config_val,
@@ -8,31 +8,25 @@ from ggt.lib.utils import (
     whoami
 )
 
-from ggt.lib.constants import (
-    STATUS,
-    SUCCESS,
-    FAILED,
-    INFO,
-    ERROR
-)
+import ggt.lib.constants as c
 
 sqlite_db = get_config_val('databases.sqlite.tasks_sqlite_db')
 
 
-def init_local_cache():
+async def init_local_cache():
     print('Initializing Local Cache -- {}'.format(sqlite_db))
     try:
         conn = sqlite3.connect(sqlite_db)
-        c = conn.cursor()
-        c.execute('''
+        cur = conn.cursor()
+        cur.execute('''
                     CREATE TABLE IF NOT EXISTS all_inbound_files (
                         filename  VARCHAR UNIQUE);
                     ''')
-        c.execute('''
+        cur.execute('''
                     CREATE TABLE IF NOT EXISTS files_in_remote_storage (
                         filename  VARCHAR UNIQUE);
                     ''')
-        c.execute('''
+        cur.execute('''
                     CREATE TABLE IF NOT EXISTS lab_test_records (
                         requisition_id  INTEGER PRIMARY KEY,
                         order_number    VARCHAR,
@@ -43,7 +37,7 @@ def init_local_cache():
                         status          VARCHAR,
                         result          VARCHAR);
                     ''')
-        c.execute('''
+        cur.execute('''
                     CREATE TABLE IF NOT EXISTS csv_pdf_sync (
                         requisition_id	INTEGER PRIMARY KEY,
                         order_number    VARCHAR,
@@ -57,9 +51,10 @@ def init_local_cache():
                         has_csv         INTEGER);
                     ''')
         conn.commit()
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
@@ -67,11 +62,11 @@ def init_local_cache():
         conn.close()
 
 
-def add_to_lab_test_records_cache(rec):
+async def add_to_lab_test_records_cache(rec):
     result = False
     try:
         conn = sqlite3.connect(sqlite_db)
-        c = conn.cursor()
+        cur = conn.cursor()
         sql = '''
             INSERT OR IGNORE INTO lab_test_records
             (requisition_id, order_number, first_name,
@@ -87,12 +82,13 @@ def add_to_lab_test_records_cache(rec):
             str(rec['status']),
             str(rec['result'])
         )
-        c.execute(sql)
+        cur.execute(sql)
         conn.commit()
         result = True
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             rec=rec,
             function=whoami(),
             error=err
@@ -103,18 +99,18 @@ def add_to_lab_test_records_cache(rec):
     return result
 
 
-def add_to_csv_pdf_sync_cache(rec, source='csv'):
-    if is_present_in_csv_pdf_sync_cache(str(rec['requisition_id'])):
-        update_csv_pdf_sync_cache(rec, source)
+async def add_to_csv_pdf_sync_cache(rec, source='csv'):
+    if await is_present_in_csv_pdf_sync_cache(str(rec['requisition_id'])):
+        await update_csv_pdf_sync_cache(rec, source)
     else:
-        insert_into_csv_pdf_sync_cache(rec, source)
+        await insert_into_csv_pdf_sync_cache(rec, source)
 
 
-def insert_into_csv_pdf_sync_cache(rec, source):
+async def insert_into_csv_pdf_sync_cache(rec, source):
     result = False
     try:
         conn = sqlite3.connect(sqlite_db)
-        c = conn.cursor()
+        cur = conn.cursor()
 
         if source == 'csv':
             sql = '''
@@ -140,13 +136,13 @@ def insert_into_csv_pdf_sync_cache(rec, source):
                 str(rec['requisition_id'])
             )
 
-        c.execute(sql)
+        cur.execute(sql)
         conn.commit()
         result = True
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             rec=rec,
             function=whoami(),
             error=err
@@ -157,11 +153,11 @@ def insert_into_csv_pdf_sync_cache(rec, source):
     return result
 
 
-def update_csv_pdf_sync_cache(rec, source='csv'):
+async def update_csv_pdf_sync_cache(rec, source='csv'):
     result = False
     try:
         conn = sqlite3.connect(sqlite_db)
-        c = conn.cursor()
+        cur = conn.cursor()
 
         if source == 'csv':
             sql = '''
@@ -198,13 +194,13 @@ def update_csv_pdf_sync_cache(rec, source='csv'):
                 str(rec['requisition_id'])
             )
 
-        c.execute(sql)
+        cur.execute(sql)
         conn.commit()
         result = True
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             rec=rec,
             sql=sql,
             function=whoami(),
@@ -216,23 +212,23 @@ def update_csv_pdf_sync_cache(rec, source='csv'):
     return result
 
 
-def is_present_in_csv_pdf_sync_cache(requisition_id):
+async def is_present_in_csv_pdf_sync_cache(requisition_id):
     status = False
     try:
         conn = sqlite3.connect(sqlite_db)
-        c = conn.cursor()
-        c.execute('''
+        cur = conn.cursor()
+        cur.execute('''
                     SELECT COUNT(*)
                     FROM csv_pdf_sync
                     where requisition_id = {}
                 '''.format(requisition_id))
-        row = c.fetchone()
+        row = cur.fetchone()
         if row[0] > 0:
             status = True
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             requisition_id=requisition_id,
             function=whoami(),
             error=err
@@ -243,24 +239,24 @@ def is_present_in_csv_pdf_sync_cache(requisition_id):
     return status
 
 
-def get_order_number_by_requisition_id(requisition_id):
+async def get_order_number_by_requisition_id(requisition_id):
     result = None
     try:
         conn = sqlite3.connect(sqlite_db)
-        c = conn.cursor()
-        c.execute('''
+        cur = conn.cursor()
+        cur.execute('''
                     SELECT order_number
                     FROM lab_test_records
                     where requisition_id = {}
                 '''.format(requisition_id))
-        row = c.fetchone()
+        row = cur.fetchone()
 
         if row:
             result = row[0]
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             requisition_id=requisition_id,
             function=whoami(),
             error=err
@@ -271,22 +267,22 @@ def get_order_number_by_requisition_id(requisition_id):
     return result
 
 
-def get_all_lab_records_from_cache():
+async def get_all_lab_records_from_cache():
     result = False
     try:
         conn = sqlite3.connect(sqlite_db)
-        c = conn.cursor()
-        c.execute('''
+        cur = conn.cursor()
+        cur.execute('''
                     SELECT *
                     FROM lab_test_records
                     WHERE status IN ('Approved', 'Resulted')
                 ''')
-        rows = c.fetchall()
+        rows = cur.fetchall()
         result = rows
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             function=whoami(),
             error=err
         )
@@ -296,11 +292,11 @@ def get_all_lab_records_from_cache():
     return result
 
 
-def add_to_all_inbound_files_cache(filename):
+async def add_to_all_inbound_files_cache(filename):
     try:
         conn = sqlite3.connect(sqlite_db)
-        c = conn.cursor()
-        c.execute('''
+        cur = conn.cursor()
+        cur.execute('''
                     INSERT OR IGNORE INTO all_inbound_files 
                     (filename) 
                     VALUES ('{}')
@@ -308,9 +304,10 @@ def add_to_all_inbound_files_cache(filename):
             filename
         ))
         conn.commit()
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             filename=filename,
             function=whoami(),
             error=err
@@ -321,24 +318,24 @@ def add_to_all_inbound_files_cache(filename):
     return True
 
 
-def file_exists_in_all_inbound_files_cache(filename):
+async def file_exists_in_all_inbound_files_cache(filename):
     row = []
     try:
         conn = sqlite3.connect(sqlite_db)
-        c = conn.cursor()
-        c.execute('''
+        cur = conn.cursor()
+        cur.execute('''
                     SELECT count(*) 
                     FROM all_inbound_files
                     WHERE filename = '{}'
                 '''.format(
             filename
         ))
-        row = c.fetchone()
+        row = cur.fetchone()
         conn.close()
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             filename=filename,
             function=whoami(),
             error=err
@@ -355,12 +352,12 @@ def file_exists_in_all_inbound_files_cache(filename):
 '''adds to cache if remote storage indicated that the file exists there'''
 
 
-def add_to_files_in_remote_storage_cache(filename):
+async def add_to_files_in_remote_storage_cache(filename):
     result = False
     try:
         conn = sqlite3.connect(sqlite_db)
-        c = conn.cursor()
-        c.execute('''
+        cur = conn.cursor()
+        cur.execute('''
                     INSERT OR IGNORE INTO files_in_remote_storage 
                     (filename) 
                     VALUES ('{}')
@@ -369,9 +366,10 @@ def add_to_files_in_remote_storage_cache(filename):
         ))
         conn.commit()
         result = True
+
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             filename=filename,
             function=whoami(),
             error=err
@@ -382,26 +380,26 @@ def add_to_files_in_remote_storage_cache(filename):
     return result
 
 
-def file_exists_in_files_in_remote_storage_cache(filename):
+async def file_exists_in_files_in_remote_storage_cache(filename):
     result = False
     try:
         conn = sqlite3.connect(sqlite_db)
-        c = conn.cursor()
-        c.execute('''
+        cur = conn.cursor()
+        cur.execute('''
                     SELECT count(*) 
                     FROM files_in_remote_storage
                     WHERE filename = '{}'
                 '''.format(
             filename
         ))
-        row = c.fetchone()
+        row = cur.fetchone()
 
         if row and row[0] > 0:
             result = True
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             filename=filename,
             function=whoami(),
             error=err
