@@ -102,6 +102,7 @@ async def get_rsa_key_auth0(token):
 
 
 async def authorize_user(security_scopes: SecurityScopes, token: str = Depends(oauth2_scheme)):
+    print(get_config_val('env'))
     if (get_config_val('env') == 'DEV'):  # Allow auth override for dev
         return True
     try:
