@@ -142,8 +142,8 @@ async def api_misc_processor(background_tasks: BackgroundTasks):
 
 @router.post("/process_daily_appointment_reminders", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def reminder_sms():
-    task_process_daily_sms_reminders()
-    task_process_daily_email_reminders()
+    await task_process_daily_sms_reminders()
+    await task_process_daily_email_reminders()
     return {STATUS: SUCCESS}
 
 
