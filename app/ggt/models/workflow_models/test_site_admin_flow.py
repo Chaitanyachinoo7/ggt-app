@@ -142,7 +142,7 @@ async def generate_all_schedules():
 async def delete_schedule_generation_rule(id):
     status = False
     if await bp_delete_schedule_generation_rule(id):
-        status = await bp_generate_full_schedule(data.location_id)
+        status = await bp_generate_full_schedule(id)
 
     return x_response(
         status
