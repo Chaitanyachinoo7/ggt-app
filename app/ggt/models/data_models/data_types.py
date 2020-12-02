@@ -139,6 +139,7 @@ class ProviderProcessListRequest(BaseModel):
 
 class VerifyPhoneRequest(BaseModel):
     phone_number: str = None
+    has_sms: bool = True
 
 
 class ValidateOtpRequest(BaseModel):

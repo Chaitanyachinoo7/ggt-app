@@ -138,8 +138,7 @@ async def bp_initiate_verification_flow(phone_number: str, with_otp: bool = True
                 message = "Enter Code: {}\nOr click {} \nReply STOP to cancel msgs".format(
                     otp_code, activation_url)
             else:
-                message = "Thank you. You're now ready to schedule your GoGetTested COVID-19 test by clicking on {}. \nReply STOP to cancel msgs".format(
-                    activation_url)
+                return True
 
             # send SMS
             if await __send_otp_sms(phone_number, message):

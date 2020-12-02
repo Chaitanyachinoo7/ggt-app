@@ -9,16 +9,10 @@ from ggt.lib.utils import (
     whoami
 )
 
-from ggt.lib.constants import (
-    STATUS,
-    SUCCESS,
-    FAILED,
-    INFO,
-    ERROR
-)
+import ggt.lib.constants as c
 
 
-def send_email(from_email, from_name, to_email, subject, html_content, text_content=""):
+async def send_email(from_email, from_name, to_email, subject, html_content, text_content=""):
     sendgrid_api_key = get_config_val('sendgrid.sendgrid_api_key')
 
     sg = SendGridAPIClient(sendgrid_api_key)
@@ -32,7 +26,7 @@ def send_email(from_email, from_name, to_email, subject, html_content, text_cont
         # message.from_email = From('help@twilio.com', 'Twilio SendGrid')
         response = sg.send(message)
         log_generic(
-            type=INFO,
+            type=c.INFO,
             from_email=From(from_email, from_name),
             to_email=to_email,
             subject=subject,
@@ -48,7 +42,7 @@ def send_email(from_email, from_name, to_email, subject, html_content, text_cont
 
     except Exception as err:
         log_generic(
-            type=ERROR,
+            type=c.ERROR,
             from_email=from_email,
             to_email=to_email,
             subject=subject,
