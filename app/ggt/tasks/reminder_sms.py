@@ -114,7 +114,7 @@ async def task_process_daily_email_reminders():
             email = formatted_email_message(row)
             data.append(
                 (email['from_email'], email['from_name'],
-                 email['to_email'], email['subject'], email['html_content'])
+                 email['to_email'], email['subject'], email['html_content'],9)
             )
         data1 = list(chunks(data, 100))
         for d in data1:
@@ -181,9 +181,9 @@ async def batch_enqueue_email_notifications(data):
     try:
         sql = """
             INSERT INTO email_notification_queue
-                (from_email, from_name, to_email, subject, html_content)
+                (from_email, from_name, to_email, subject, html_content, priority)
             VALUES
-                (%s, %s, %s, %s, %s);
+                (%s, %s, %s, %s, %s, %s);
         """
         await exec_batch_execute(sql, data)
         return True
