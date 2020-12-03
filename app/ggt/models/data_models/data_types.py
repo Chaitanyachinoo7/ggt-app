@@ -301,6 +301,7 @@ class ProviderUpdateAppointmentRequest(BaseModel):
     appointment_id: str = None
     action: str = None
     workstation_id: int = None
+    vial_id: Optional[str] = None
 
 
 class ProviderLookupAppointmentRequest(BaseModel):

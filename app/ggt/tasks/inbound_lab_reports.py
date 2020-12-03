@@ -83,13 +83,13 @@ async def task_process_inbound_lab_reports():
     # load_data_from_remote_db_to_cache()
 
     # clean_downloads_folder()
-    download_ftp_files()
-    parse_csv_files()
+    await download_ftp_files()
+    await parse_csv_files()
 
-    add_to_healthtrackrx_inbound_data_table()
-    update_test_samples_with_results()
-    upload_pdf_lab_reports()
-    upload_all_inbound_files_to_central_storage()
+    await add_to_healthtrackrx_inbound_data_table()
+    await update_test_samples_with_results()
+    await upload_pdf_lab_reports()
+    await upload_all_inbound_files_to_central_storage()
 
     log_generic(
         type=c.INFO,
@@ -164,10 +164,8 @@ async def download_ftp_files():
         ftp_client.chdir(remote_downloads_folder)
 
         paths = ftp_client.listdir()
-        directory_list = get_remote_directory_list(
-            ftp_client, paths, remote_downloads_folder)
-        copy_files_to_local(ftp_client, directory_list,
-                            remote_downloads_folder)
+        directory_list = await get_remote_directory_list(ftp_client, paths, remote_downloads_folder)
+        await copy_files_to_local(ftp_client, directory_list, remote_downloads_folder)
         ftp_client.close()
 
     except Exception as err:
@@ -190,8 +188,7 @@ async def copy_files_to_local(ftp_client, directory_list, remote_folder):
             cache_misses = 0
             download_errors = 0
             try:
-                dir_list, file_list = get_remote_directories_and_files(
-                    ftp_client, remote_dir_path)
+                dir_list, file_list = await get_remote_directories_and_files(ftp_client, remote_dir_path)
 
                 file_count = len(file_list)
                 i = 0
@@ -200,12 +197,11 @@ async def copy_files_to_local(ftp_client, directory_list, remote_folder):
                 for filename in file_list:
                     i += 1
                     p = i/file_count*100
-                    print_progress_bar_message("{} {} —— {:.1f}%".format(
-                        PROGRESS_LABEL, remote_dir_path, p))
+                    print_progress_bar_message("{} {} —— {:.1f}%".format(PROGRESS_LABEL, remote_dir_path, p))
 
                     total_files += 1
                     try:
-                        cache_hits, cache_misses, download_errors = download_and_cleanup(
+                        cache_hits, cache_misses, download_errors = await download_and_cleanup(
                             ftp_client, filename, remote_dir_path, cache_hits, cache_misses, download_errors)
 
                     except Exception as err:
@@ -377,7 +373,7 @@ async def parse_csv_files():
             i += 1
             p = i/file_count*100
             print_progress_bar_message('Parsing CSV files {:.1f}%'.format(p))
-            parse_csv_file(filename)
+            await parse_csv_file(filename)
 
         print_ok2('{} 100%            '.format(PROGRESS_LABEL))
 
@@ -435,8 +431,8 @@ async def upload_pdf_lab_reports():
                 if os.stat(local_file_path).st_size == 0:
                     raise ValueError('Empty File')
 
-                __requisition_id, __order_number, __destination_filename = generate_destination_filename(local_file_path)
-                add_to_csv_pdf_sync_cache(
+                __requisition_id, __order_number, __destination_filename = await generate_destination_filename(local_file_path)
+                await add_to_csv_pdf_sync_cache(
                     {'requisition_id': __requisition_id}, 
                     'pdf'
                 )
@@ -444,12 +440,12 @@ async def upload_pdf_lab_reports():
                 shutil.copyfile(
                     local_file_path, '{}/{}'.format(local_backups_path, __destination_filename))
                 if __destination_filename:
-                    if file_exists_in_files_in_remote_storage_cache(__destination_filename):
+                    if await file_exists_in_files_in_remote_storage_cache(__destination_filename):
                         #print_ok2('cache hit: {}'.format(__destination_filename))
                         pass
                     else:
                         if __order_number:
-                            upload_status = upload_lab_report(
+                            upload_status = await upload_lab_report(
                                 local_file_path,
                                 __destination_filename
                             )
@@ -462,7 +458,7 @@ async def upload_pdf_lab_reports():
                             else:
                                 print('pdf_lab_report exists at destination... adding to local cache: {} ==> {}'.format(
                                     local_file_path, __destination_filename))
-                                add_to_files_in_remote_storage_cache(
+                                await add_to_files_in_remote_storage_cache(
                                     __destination_filename)
                         else:
                             print_ok2('Lab report upload skipped for rejected lab test')
@@ -490,7 +486,7 @@ async def upload_all_inbound_files_to_central_storage():
             p = i/file_count*100
             print_progress_bar_message('{} {:.1f}%'.format(PROGRESS_LABEL, p))
 
-            filename = await extract_filename(local_file_path)
+            filename = extract_filename(local_file_path)
             try:
                 if os.stat(local_file_path).st_size == 0:
                     raise ValueError('Empty File')

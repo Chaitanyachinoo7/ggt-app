@@ -3,9 +3,9 @@ import os
 import boto3
 from botocore.config import Config
 from fastapi import (
-    APIRouter, 
-    Depends, 
-    HTTPException, 
+    APIRouter,
+    Depends,
+    HTTPException,
     Security
 )
 from ggt.lib.auth import authorize_user
@@ -26,7 +26,7 @@ from ggt.models.data_models.data_types import (
     CCSendNotiRequest,
     CCOutboundResultRequest,
     CCOutboundResultStatusRequest,
-    User, 
+    User,
     PermissionsEnum as p
 )
 from ggt.models.workflow_models.contact_center_flow import (
@@ -46,10 +46,11 @@ router = APIRouter()
 def formatted_sms_message(first_name, token):
     base_url = get_config_val('base_url')
     return "Hi {}, your COVID-19 test results are ready. " \
-           "Follow this link to view {}/r/{} reply STOP to cancel msgs".format(first_name, base_url, token)
+           "Follow this link to view {}/r/{} reply STOP to cancel msgs".format(
+               first_name, base_url, token)
 
 
-def formatted_email_message(first_name, token, to_email):
+async def formatted_email_message(first_name, token, to_email):
     base_url = get_config_val('base_url')
     from_email = get_config_val('notifications.from_email')
     from_name = get_config_val('notifications.from_name')
@@ -61,7 +62,7 @@ def formatted_email_message(first_name, token, to_email):
     }
 
     template_name = get_config_val('notifications.result_template')
-    html_content = render_template(template_name, **template_vars)
+    html_content = await render_template(template_name, **template_vars)
 
     email_message = {
         'from_email': from_email,
@@ -73,16 +74,17 @@ def formatted_email_message(first_name, token, to_email):
 
     return email_message
 
+
 @router.post("/sendsms", dependencies=[Security(authorize_user, scopes=[p.SENDSMS])])
 async def api_cc_send_sms(CCSendSMSRequest: CCSendSMSRequest):
     try:
         await send_sms(
-                CCSendSMSRequest.to_number, 
-                formatted_sms_message(
-                    CCSendSMSRequest.first_name, 
-                    CCSendSMSRequest.token
-                )
+            CCSendSMSRequest.to_number,
+            formatted_sms_message(
+                CCSendSMSRequest.first_name,
+                CCSendSMSRequest.token
             )
+        )
         return {STATUS: SUCCESS}
 
     except Exception as err:
@@ -95,7 +97,7 @@ async def api_cc_send_email(CCSendEmailRequest: CCSendEmailRequest):
         email = formatted_email_message(
             CCSendEmailRequest.first_name, CCSendEmailRequest.token, CCSendEmailRequest.to_email)
         await send_email(email["from_email"], email["from_name"],
-                   email["to_email"], email["subject"], email["html_content"])
+                         email["to_email"], email["subject"], email["html_content"])
         return {STATUS: SUCCESS}
 
     except Exception as err:
@@ -105,11 +107,10 @@ async def api_cc_send_email(CCSendEmailRequest: CCSendEmailRequest):
 @router.post("/sms_email_notify", dependencies=[Security(authorize_user, scopes=[p.SMS_EMAIL_NOTIFY])])
 async def api_cc_send_sms_email(CCSendNotiRequest: CCSendNotiRequest):
     try:
-
-        email = formatted_email_message(
+        email = await formatted_email_message(
             CCSendNotiRequest.first_name, CCSendNotiRequest.token, CCSendNotiRequest.to_email)
         await send_email(email["from_email"], email["from_name"],
-                   email["to_email"], email["subject"], email["html_content"])
+                         email["to_email"], email["subject"], email["html_content"])
         await send_sms(CCSendNotiRequest.to_number, formatted_sms_message(
             CCSendNotiRequest.first_name, CCSendNotiRequest.token))
         return {STATUS: SUCCESS}

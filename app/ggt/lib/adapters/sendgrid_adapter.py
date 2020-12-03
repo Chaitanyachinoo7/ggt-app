@@ -24,7 +24,7 @@ async def send_email(from_email, from_name, to_email, subject, html_content, tex
 
     try:
         # message.from_email = From('help@twilio.com', 'Twilio SendGrid')
-        response = sg.send(message)
+        response = await sg.send(message)
         log_generic(
             type=c.INFO,
             from_email=From(from_email, from_name),
