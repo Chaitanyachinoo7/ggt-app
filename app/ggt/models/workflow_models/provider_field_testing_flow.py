@@ -58,9 +58,9 @@ async def provider_lookup_appointment(appointment_id):
     )
 
 
-async def provider_update_appointment(appointment_id, action, workstation_id):
+async def provider_update_appointment(appointment_id, action, workstation_id, vial_id):
     return x_response(
-        await bp_appointment_update(appointment_id, action, workstation_id)
+        await bp_appointment_update(appointment_id, action, workstation_id, vial_id)
     )
 
 
