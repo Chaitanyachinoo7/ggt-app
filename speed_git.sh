@@ -23,10 +23,19 @@ git pull
 git merge qa
 git push -u origin master
 
+git checkout production-portal
+git pull 
+git merge master
+git push -u origin production-portal
+
+git checkout production-ops
+git pull 
+git merge master
+git push -u origin production-ops
+
 git checkout production-patient
 git pull 
 git merge master
 git push -u origin production-patient
-
 
 git checkout dev2
