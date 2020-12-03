@@ -230,6 +230,29 @@ def read_rows(sql, vals=None):
             __cnx.close()
 
 
+def exec_sp(stored_procedure: str):
+    try:
+        __cnx = mysql.connector.connect(**connection_config_dict)
+        __cursor = __cnx.cursor(dictionary=True, buffered=True)
+
+        __cursor.callproc(stored_procedure)
+
+        return True
+
+    except mysql.connector.Error as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err,
+            executed=__cursor._executed
+        )
+
+    finally:
+        if (__cnx.is_connected()):
+            __cursor.close()
+            __cnx.close()
+    
+    return False
 
 '''
 except mysql.connector.Error as err:

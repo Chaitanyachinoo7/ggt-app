@@ -23,6 +23,10 @@ from ggt.models.data_models.data_types import (
     GgtPatient
 )
 
+from ggt.models.data_models.test_sample import (
+    create_test_sample_from_appointment
+)
+
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
@@ -295,102 +299,6 @@ async def update_positive_result_followup(id: int, date_time: datetime):
 
     return None
 
-'''
-async def update_appointment_with_checkin(appointment_id: int):
-    try:
-        sql = """
-            UPDATE appointments
-            SET
-                check_in_dt = NOW(),
-                status = 'checked_in'
-            WHERE
-                id = %s
-        """
-        vals = (appointment_id,)
-        return await exec_update(sql, vals)
-
-    except Exception as err:
-        log_generic(
-            type=ERROR,
-            appointment_id=appointment_id,
-            function=whoami(),
-            error=err
-        )
-
-    return None
-
-
-async def update_appointment_with_test_start(appointment_id: int):
-    try:
-        sql = """
-            UPDATE appointments
-            SET
-                test_start_dt = NOW(),
-                status = 'test_in_progress'
-            WHERE
-                id = %s
-        """
-        vals = (appointment_id,)
-        return await exec_update(sql, vals)
-
-    except Exception as err:
-        log_generic(
-            type=c.ERROR,
-            appointment_id=appointment_id,
-            function=whoami(),
-            error=err
-        )
-
-    return None
-
-
-async def update_appointment_with_scan_vial(appointment_id: int):
-    try:
-        sql = """
-            UPDATE appointments
-            SET
-                test_start_dt = NOW(),
-                status = 'vial_scanned'
-            WHERE
-                id = %s
-        """
-        vals = (appointment_id,)
-        return await exec_update(sql, vals)
-
-    except Exception as err:
-        log_generic(
-            type=c.ERROR,
-            appointment_id=appointment_id,
-            function=whoami(),
-            error=err
-        )
-
-    return None
-
-
-async def update_appointment_with_test_completed(appointment_id: int):
-    try:
-        sql = """
-            UPDATE appointments
-            SET
-                test_end_dt = NOW(),
-                status = 'test_completed'
-            WHERE
-                id = %s
-            """
-        vals = (appointment_id,)
-        return await exec_update(sql, vals)
-
-    except Exception as err:
-        log_generic(
-            type=c.ERROR,
-            appointment_id=appointment_id,
-            function=whoami(),
-            error=err
-        )
-
-    return None
-'''
 
 async def get_appointment_count_by_phone_dob(phone_number, dob):
     try:
@@ -461,8 +369,7 @@ async def update_appointment_with_test_completed(appointment_id: int):
 ########################################################################################################
 
 
-async def __update_appointment_status(appointment_id: int, status: str, vial_id: str = None):
-
+def __get_mapped_dt_field(status: str) -> str:
     switcher = {
         c.APPOINTMENT_STATUS_SCHEDULED: 'update_dt',
         c.APPOINTMENT_STATUS_CHECKED_IN: 'check_in_dt',
@@ -470,36 +377,35 @@ async def __update_appointment_status(appointment_id: int, status: str, vial_id:
         c.APPOINTMENT_STATUS_VIAL_SCANNED: 'test_start_dt',
         c.APPOINTMENT_STATUS_TEST_COMPLETED: 'test_end_dt'
     }
+    dt_field = switcher.get(status, None)
 
+    if dt_field is None:
+        raise ValueError('Invalid Status: {}'.format(status))
+
+    return dt_field
+
+
+async def __update_appointment_status(appointment_id: int, status: str, vial_id: str = None):
+    vial_id = None if vial_id == '' else vial_id
+    usuccess = False
+    # TODO: check if a timestamp already exists, if so, don't allow update to proceed
     try:
-        if vial_id:
-            sql = """
-                UPDATE appointments
-                SET
-                    {} = NOW(),
-                    update_dt = NOW(),
-                    vial_id = %s,
-                    status = %s
-                WHERE
-                    id = %s
-                """.format(switcher.get(status, None))
+        sql = """
+            UPDATE appointments
+            SET
+                {} = NOW(),
+                update_dt = NOW(),
+                vial_id = %s,
+                status = %s
+            WHERE
+                id = %s
+            """.format(__get_mapped_dt_field(status))
 
-            vals = (vial_id, status, appointment_id)
+        vals = (vial_id, status, appointment_id)
 
-        else:
-            sql = """
-                UPDATE appointments
-                SET
-                    {} = NOW(),
-                    update_dt = NOW(),
-                    status = %s
-                WHERE
-                    id = %s
-                """.format(switcher.get(status, None))
-
-            vals = (status, appointment_id)
-
-        return await exec_update(sql, vals)
+        usuccess = await exec_update(sql, vals)
+        if usuccess and (status == c.APPOINTMENT_STATUS_TEST_COMPLETED or status == c.APPOINTMENT_STATUS_VIAL_SCANNED):
+            return await create_test_sample_from_appointment(appointment_id)
 
     except Exception as err:
         log_generic(
@@ -510,7 +416,7 @@ async def __update_appointment_status(appointment_id: int, status: str, vial_id:
             error=err
         )
 
-    return None
+    return usuccess
 
 
 def __map_row_to_appointment(row: dict):
