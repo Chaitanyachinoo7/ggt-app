@@ -162,7 +162,7 @@ async def schedule_notifications_using_email():
         FROM result_notification_campaigns 
         WHERE overall_status <> 'final_notified' 
             AND email_sent is NULL
-        LIMIT 250
+        LIMIT 500
     """
     rows = await read_rows(sql)
 
@@ -171,7 +171,7 @@ async def schedule_notifications_using_email():
 
     for row in rows:
         test_id = row['test_id']
-        email = formatted_email_message(row)
+        email = await formatted_email_message(row)
 
         data.append(
             (email['from_email'], email['from_name'],
@@ -181,8 +181,8 @@ async def schedule_notifications_using_email():
             test_id
         )
 
-    if batch_enqueue_email_notifications(data):
-        batch_update_notification_queue_status_for_email(
+    if await batch_enqueue_email_notifications(data):
+        await batch_update_notification_queue_status_for_email(
             str(test_id_list).strip('[]')
         )
 
