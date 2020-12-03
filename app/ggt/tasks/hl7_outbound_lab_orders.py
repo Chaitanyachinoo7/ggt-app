@@ -17,8 +17,7 @@ from ggt.lib.db import (
     exec_insert,
     exec_update,
     read_row,
-    read_rows,
-    exec_sp
+    read_rows
 )
 
 from ggt.lib.storage import (
@@ -28,9 +27,12 @@ from ggt.lib.storage import (
 import ggt.lib.constants as c
 
 session_id = generate_session_id()
-local_outbound_file_path = cfg('vendors.healthtrackrx.local_outbound_file_path')
+local_outbound_file_path = cfg(
+    'vendors.healthtrackrx.local_outbound_file_path')
 outbound_file_prefix = cfg('vendors.healthtrackrx.outbound_file_prefix')
-local_insurance_card_file_path = cfg('vendors.healthtrackrx.local_insurance_card_file_path')
+local_insurance_card_file_path = cfg(
+    'vendors.healthtrackrx.local_insurance_card_file_path')
+
 
 async def task_process_outbound_lab_orders():
     print('\n\n************************************************\n\n')
@@ -38,15 +40,14 @@ async def task_process_outbound_lab_orders():
         type=c.INFO,
         function=whoami(),
         task_session_id=session_id,
-        info='Begin Processing outbound Lab Reports')
+        info='Begin Processing outbound HL7 Lab Orders')
 
     print('looking up ready to transmit orders')
     orders = await get_orders_ready_to_transmit()
 
-    #upload_insurance_files_from_db(orders)
     await upload_insurance_files_from_gstore(orders)
 
-    if len(orders)>0:
+    if len(orders) > 0:
         print('generating outbound file')
         filename, local_file_path = await create_outbound_file(orders)
 
@@ -58,39 +59,12 @@ async def task_process_outbound_lab_orders():
     else:
         print('no orders to process')
 
-
     log_generic(
         type=c.INFO,
         function=whoami(),
         task_session_id=session_id,
         info='End Processing outbound Lab Reports')
     print('\n\n************************************************\n\n')
-
-
-async def upload_insurance_files_from_db(orders):
-    try:
-        print('converting insurance image files to PDF')
-        file_buffer = []
-        for order in orders:
-            if order['bill'] == 'Insurance Attached':
-                file_path_png = "{}/{}_001.png".format(local_insurance_card_file_path, order['id'])
-                filename = "{}_001.pdf".format(order['id'])
-                file_path_pdf = "{}/{}".format(local_insurance_card_file_path, filename)
-
-                insurance_photo_str = await get_insurance_photo_base64(order['id'])
-                base64string = insurance_photo_str.split(",")[1]
-
-                with open(file_path_png, "wb") as fh:
-                    fh.write(base64.b64decode(base64string + "=="))
-
-                Image.open(file_path_png).convert('RGB').save(file_path_pdf)
-                file_buffer.append((filename, file_path_pdf))
-        
-        print('uploading insurance files to FTP')
-        await upload_file_list_to_ftp(file_buffer)
-
-    except Exception as err:
-        print(err)
 
 
 async def upload_insurance_files_from_gstore(orders):
@@ -100,19 +74,22 @@ async def upload_insurance_files_from_gstore(orders):
         for order in orders:
             if order['bill'] == 'Insurance Attached':
                 try:
-                    file_path_png = "{}/{}_001.png".format(local_insurance_card_file_path, order['id'])
+                    file_path_png = "{}/{}_001.png".format(
+                        local_insurance_card_file_path, order['id'])
                     filename = "{}_001.pdf".format(order['id'])
-                    file_path_pdf = "{}/{}".format(local_insurance_card_file_path, filename)
+                    file_path_pdf = "{}/{}".format(
+                        local_insurance_card_file_path, filename)
                     appointment_id = order['id']
                     blob = await get_file_blob('ggt-insurance-cards-prod', '{}.png'.format(appointment_id))
                     if blob:
                         blob.download_to_filename(file_path_png)
-                        Image.open(file_path_png).convert('RGB').save(file_path_pdf)
+                        Image.open(file_path_png).convert(
+                            'RGB').save(file_path_pdf)
                         file_buffer.append((filename, file_path_pdf))
 
                 except Exception as err:
-                    print(err)    
-        
+                    print(err)
+
         print('uploading insurance files to FTP')
         await upload_file_list_to_ftp(file_buffer)
 
@@ -147,8 +124,8 @@ async def create_outbound_file(orders):
     with open(local_file_path, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter=',')
         writer.writerow(
-                __get_header_row()
-            )
+            __get_header_row()
+        )
 
         for order in orders:
             writer.writerow(
@@ -197,38 +174,38 @@ def __get_formatted_row(order):
     formatted_row = []
     try:
         formatted_row = [
-        order['patient_id'],
-        order['first_name'],
-        order['last_name'],
-        order['dob'],
-        order['gender'],
-        order['date_of_collection'],
-        order['race'],
-        order['ethnicity'],
-        order['addr1'],
-        order['addr2'],
-        order['city'],
-        order['st'],
-        order['zip'],
-        order['phone_number'],
-        order['client_site_code'],
-        order['physician_npi'],
-        order['bill'],
-        order['client_order_number'],
-        order['sample_code'],
-        order['collected_by'],
-        order['sample_type'],
-        order['sample_source'],
-        order['panel_code'],
-        order['panel_name'],
-        order['is_first_test'],
-        order['is_healthcare_employee'],
-        order['is_cdc_symptomatic'],
-        order['is_hospitalized'],
-        order['is_in_icu'],
-        order['is_congregate_resident'],
-        order['is_pregnant']
-    ]
+            order['patient_id'],
+            order['first_name'],
+            order['last_name'],
+            order['dob'],
+            order['gender'],
+            order['date_of_collection'],
+            order['race'],
+            order['ethnicity'],
+            order['addr1'],
+            order['addr2'],
+            order['city'],
+            order['st'],
+            order['zip'],
+            order['phone_number'],
+            order['client_site_code'],
+            order['physician_npi'],
+            order['bill'],
+            order['client_order_number'],
+            order['sample_code'],
+            order['collected_by'],
+            order['sample_type'],
+            order['sample_source'],
+            order['panel_code'],
+            order['panel_name'],
+            order['is_first_test'],
+            order['is_healthcare_employee'],
+            order['is_cdc_symptomatic'],
+            order['is_hospitalized'],
+            order['is_in_icu'],
+            order['is_congregate_resident'],
+            order['is_pregnant']
+        ]
 
     except Exception as err:
         print(err)
@@ -237,10 +214,6 @@ def __get_formatted_row(order):
 
 
 async def get_orders_ready_to_transmit():
-    #Move completed records from Appointments to Test Samples
-    if not await exec_sp('create_test_samples_records_for_completed_appointments'):
-        raise Exception('Unable to move completed Appointments to Tests')
-    
     sql = """
         SELECT 
             t.id AS id,
@@ -360,7 +333,6 @@ async def upload_file_list_to_ftp(file_list):
             remotepath = "{}/{}".format('', filename)
             ftp_client.put(local_file_path, remotepath)
 
-
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -370,7 +342,6 @@ async def upload_file_list_to_ftp(file_list):
         )
     finally:
         ftp_client.close()
-
 
 
 async def upload_file_to_ftp(filename, local_file_path):
@@ -409,7 +380,7 @@ async def update_to_with_lab_status(orders):
     list_of_ids = []
     for order in orders:
         list_of_ids.append(order['client_order_number'])
-    
+
     format_strings = ','.join(['%s'] * len(list_of_ids))
     sql = """
         UPDATE test_samples 
@@ -420,5 +391,5 @@ async def update_to_with_lab_status(orders):
         WHERE
             id IN (%s)
         """ % format_strings
-        
+
     await exec_update(sql, tuple(list_of_ids))

@@ -162,7 +162,7 @@ async def schedule_notifications_using_email():
         FROM result_notification_campaigns 
         WHERE overall_status <> 'final_notified' 
             AND email_sent is NULL
-        LIMIT 250
+        LIMIT 500
     """
     rows = await read_rows(sql)
 

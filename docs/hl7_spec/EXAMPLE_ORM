@@ -14,3 +14,20 @@ OBX|6|ST|COVID-PT-4^Has the patient been hospalized?||N^No||||||||
 OBX|7|ST|COVID-PT-5^Has the patient been hospalized in the ICU?||N^No||||||||COVID-PT-5
 OBX|8|ST|COVID-PT-6^Does the patient reside in congregate care (nursing home, group home, etc.)?||N^No||||||||
 OBX|9|ST|COVID-PT-7^Is the patient pregnant?||N^No||||||||
+
+
+External Code,
+First Name,
+Last Name,
+Date of Birth,
+Gender,
+Date of Collection,
+Race,
+Ethnicity,
+Address,
+Address2,
+City,
+State,
+Zip Code,
+Phone,Client Site Code,Physician NPI,Bill,Client Order Number,Sample Code,Collected By,Sample Type,Sample Source,Panel Code,Panel Name,
+First Test?,Employed in healthcare?,Symptomatic as defined by CDC?,Hospitalized?,ICU?,Resident in a congregate care setting?,Pregnant?
