@@ -64,7 +64,7 @@ async def bp_get_appointment_info(appointment_id, dob):
     return False
 
 
-async def bp_appointment_update(appointment_id: int, action: str, workstation_id: int):
+async def bp_appointment_update(appointment_id: int, action: str, workstation_id: int, vial_id: str = None):
     try:
         appointment = await get_appointment(appointment_id)
 
@@ -75,7 +75,7 @@ async def bp_appointment_update(appointment_id: int, action: str, workstation_id
             await __appointment_begin_test(appointment_id, workstation_id)
 
         elif action == c.APPOINTMENT_ACTION_SCAN_VIAL:
-            await update_appointment_with_scan_vial(appointment_id)
+            await update_appointment_with_scan_vial(appointment_id, vial_id)
 
         elif action == c.APPOINTMENT_ACTION_END_TEST:
             await update_appointment_with_test_completed(appointment_id)
@@ -87,7 +87,7 @@ async def bp_appointment_update(appointment_id: int, action: str, workstation_id
         # TODO: This allows the start_test to be invoked twice (print the label twice). And every other action only to be invoked once.
         # essentially works by waiting to catch the appointment status update in the next round
         # Ideally, this should be handled at the printer label processor
-        if action != c.APPOINTMENT_ACTION_START_TEST:
+        if action != c.APPOINTMENT_ACTION_START_TEST or __is_pre_labeled(workstation_id):
             appointment = await get_appointment(appointment_id)
 
         return {
