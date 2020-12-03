@@ -49,7 +49,7 @@ async def bp_cc_view_test_details(test_id):
 
 async def bp_get_user_role(email):
     try:
-        user = get_user_by_email(email)
+        user = await get_user_by_email(email)
         return user['role']
 
 
@@ -69,7 +69,6 @@ async def bp_get_all_test_results():
     except Exception as err:
         log_generic(
             type=c.ERROR,
-            email="",
             function=whoami(),
             error=err
         )
