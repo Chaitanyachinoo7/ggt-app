@@ -6,7 +6,7 @@ from ggt.models.data_models.data_types import (
     InsuranceIDRecord)
 from ggt.models.workflow_models.billing_flow import get_billing_list, update_billing_status, get_image_from_bucket, \
     get_report_from_bucket, create_insurance_record, update_insurance_record, validate_insurance_record, \
-    delete_insurance_record
+    delete_insurance_record, download_billing_list
 
 router = APIRouter()
 
@@ -49,5 +49,10 @@ async def api_validate_insurance_record(record: InsuranceIDRecord):
 @router.post("/delete_insurance_record", dependencies=[Security(authorize_user, scopes=[p.DELETE_INSURANCE_RECORD])])
 async def api_delete_insurance_record(record: InsuranceIDRecord):
     return await delete_insurance_record(record)
+
+
+@router.get("/download_billing_list/", dependencies=[Security(authorize_user, scopes=[p.GET_BILLING_LIST])])
+async def api_download_billing_list(offset: int = 0, limit: int = 900):
+    return await download_billing_list(offset, limit)
 
 
