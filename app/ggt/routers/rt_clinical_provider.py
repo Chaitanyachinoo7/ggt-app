@@ -35,7 +35,8 @@ async def api_provider_update_appointment(provider_update_appointment_request: P
     return await provider_update_appointment(
         provider_update_appointment_request.appointment_id,
         provider_update_appointment_request.action,
-        provider_update_appointment_request.workstation_id
+        provider_update_appointment_request.workstation_id,
+        provider_update_appointment_request.vial_id
     )
 
 

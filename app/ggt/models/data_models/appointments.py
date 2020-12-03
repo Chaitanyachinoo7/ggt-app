@@ -449,8 +449,8 @@ async def update_appointment_with_test_start(appointment_id: int):
     return await __update_appointment_status(appointment_id, c.APPOINTMENT_STATUS_TEST_IN_PROGRESS)
 
 
-async def update_appointment_with_scan_vial(appointment_id: int):
-    return await __update_appointment_status(appointment_id, c.APPOINTMENT_STATUS_VIAL_SCANNED)
+async def update_appointment_with_scan_vial(appointment_id: int, vial_id: str):
+    return await __update_appointment_status(appointment_id, c.APPOINTMENT_STATUS_VIAL_SCANNED, vial_id)
 
 
 async def update_appointment_with_test_completed(appointment_id: int):
@@ -461,7 +461,7 @@ async def update_appointment_with_test_completed(appointment_id: int):
 ########################################################################################################
 
 
-async def __update_appointment_status(appointment_id: int, status: str):
+async def __update_appointment_status(appointment_id: int, status: str, vial_id: str = None):
 
     switcher = {
         c.APPOINTMENT_STATUS_SCHEDULED: 'update_dt',
@@ -472,17 +472,33 @@ async def __update_appointment_status(appointment_id: int, status: str):
     }
 
     try:
-        sql = """
-            UPDATE appointments
-            SET
-                {} = NOW(),
-                update_dt = NOW(),
-                status = %s
-            WHERE
-                id = %s
-            """.format(switcher.get(status, None))
+        if vial_id:
+            sql = """
+                UPDATE appointments
+                SET
+                    {} = NOW(),
+                    update_dt = NOW(),
+                    vial_id = %s,
+                    status = %s
+                WHERE
+                    id = %s
+                """.format(switcher.get(status, None))
 
-        vals = (status, appointment_id)
+            vals = (vial_id, status, appointment_id)
+
+        else:
+            sql = """
+                UPDATE appointments
+                SET
+                    {} = NOW(),
+                    update_dt = NOW(),
+                    status = %s
+                WHERE
+                    id = %s
+                """.format(switcher.get(status, None))
+
+            vals = (status, appointment_id)
+
         return await exec_update(sql, vals)
 
     except Exception as err:
