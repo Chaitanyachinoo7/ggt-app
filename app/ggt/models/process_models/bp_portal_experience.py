@@ -121,7 +121,7 @@ async def bp_update_group(group):
 
 async def bp_create_location(location):
     try:
-        location_id = create_location(location)
+        location_id = await create_location(location)
         if location_id is None:
             return None
         group_ids = location.group_ids
@@ -135,11 +135,11 @@ async def bp_create_location(location):
             location_services.append((location_id, sid))
 
         if len(location_groups) > 0:
-            g_success = assign_all_groups(tuple(location_groups))
+            g_success = await assign_all_groups(tuple(location_groups))
             if g_success is None or not g_success:
                 return None
         if len(location_services) > 0:
-            s_success = assign_all_services(tuple(location_services))
+            s_success = await assign_all_services(tuple(location_services))
             if s_success is None or not s_success:
                 return None
         return location_id
@@ -217,9 +217,9 @@ async def bp_remove_service(req):
 async def bp_update_location(location):
     try:
         location_id = location.id
-        update_location(location)
-        remove_all_group(location_id)
-        remove_all_service(location_id)
+        await update_location(location)
+        await remove_all_group(location_id)
+        await remove_all_service(location_id)
         group_ids = location.group_ids
         service_ids = location.service_ids
         location_groups = []
@@ -231,11 +231,11 @@ async def bp_update_location(location):
             location_services.append((location_id, sid))
 
         if len(location_groups) > 0:
-            g_success = assign_all_groups(tuple(location_groups))
+            g_success = await assign_all_groups(tuple(location_groups))
             if g_success is None or not g_success:
                 return None
         if len(location_services) > 0:
-            s_success = assign_all_services(tuple(location_services))
+            s_success = await assign_all_services(tuple(location_services))
             if s_success is None or not s_success:
                 return None
         return True
