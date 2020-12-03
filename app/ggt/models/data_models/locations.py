@@ -192,30 +192,47 @@ async def search_locations(account, group_code, site_code):
 
         limit = 500
 
-        sql = """
-        SELECT DISTINCT
-            l.id AS location_id,
-            l.site_code,
-            g.group_code,
-            g.account,
-            l.addr1,
-            l.addr2,
-            l.addr3,
-            l.city,
-            l.st,
-            l.zip,
-            l.lat,
-            l.lng,
-            l.time_zone,
-            l.time_zone_offset,
-            l.test_type_offered,
-            l.status
-        FROM
-            locations l
-                INNER JOIN
-            group_codes_to_locations_mapping m ON l.id = m.location_id
-                INNER JOIN
-            groups g ON (g.id = m.group_id)
+        sql = """ SELECT DISTINCT
+    l.id AS location_id,
+    l.site_code,
+    g.group_code,
+    g.account,
+    l.addr1,
+    l.addr2,
+    l.addr3,
+    l.city,
+    l.st,
+    l.zip,
+    l.lat,
+    l.lng,
+    l.time_zone,
+    l.time_zone_offset,
+    l.test_type_offered,
+    l.status,
+    s.service_names,
+    gp.group_names
+FROM
+    locations l
+        INNER JOIN
+    group_codes_to_locations_mapping m ON l.id = m.location_id
+        INNER JOIN
+    groups g ON (g.id = m.group_id)
+        LEFT JOIN
+    (SELECT 
+        sm.location_id,
+            GROUP_CONCAT(DISTINCT sc.service_name) AS service_names
+    FROM
+        services_to_locations_mapping sm
+    LEFT JOIN services_catalog sc ON sm.service_id = sc.id
+    GROUP BY sm.location_id) s ON l.id = s.location_id
+        LEFT JOIN
+    (SELECT 
+        gm.location_id,
+            GROUP_CONCAT(DISTINCT g.account) AS group_names
+    FROM
+        group_codes_to_locations_mapping gm
+    LEFT JOIN groups g ON gm.group_id = g.id
+    GROUP BY gm.location_id) gp ON l.id = gp.location_id
         WHERE 1=1
             {}
         ORDER BY l.id DESC
