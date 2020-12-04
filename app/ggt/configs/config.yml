@@ -47,11 +47,12 @@ gcp:
   enable_cloud_logger: true
   cloud_logger_log_level: 3 # 0-error, 1-warning, 2-info, 3-debug. 
 
+
 databases:
   mysql:
-    host: 34.66.63.242
+    host: 35.184.98.83
     username: root
-    password: gvMBO96Ohbq3mwFp
+    password: Jr6EEMI2aBNguL1K
     db: ggt_prod
 
   sqlite:

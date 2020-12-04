@@ -180,7 +180,7 @@ async def get_all_locations():
         return None
 
 
-async def search_locations(account, group_code, site_code):
+async def search_locations(account, group_code, site_code, location_name):
     try:
         where_conditions = '' 
         if account != '':
@@ -189,14 +189,15 @@ async def search_locations(account, group_code, site_code):
             where_conditions = "{} AND g.group_code LIKE '%{}%'".format(where_conditions, group_code)
         if site_code != '':
             where_conditions = "{} AND l.site_code LIKE '%{}%'".format(where_conditions, site_code)
+        if location_name != '':
+            where_conditions = "{} AND l.name LIKE '%{}%'".format(where_conditions, location_name)
 
         limit = 500
 
         sql = """ SELECT DISTINCT
+        l.name AS location_name,
     l.id AS location_id,
     l.site_code,
-    g.group_code,
-    g.account,
     l.addr1,
     l.addr2,
     l.addr3,
@@ -210,13 +211,10 @@ async def search_locations(account, group_code, site_code):
     l.test_type_offered,
     l.status,
     s.service_names,
-    gp.group_names
+    gp.group_accounts,
+    gp.group_codes
 FROM
     locations l
-        INNER JOIN
-    group_codes_to_locations_mapping m ON l.id = m.location_id
-        INNER JOIN
-    groups g ON (g.id = m.group_id)
         LEFT JOIN
     (SELECT 
         sm.location_id,
@@ -228,7 +226,8 @@ FROM
         LEFT JOIN
     (SELECT 
         gm.location_id,
-            GROUP_CONCAT(DISTINCT g.account) AS group_names
+            GROUP_CONCAT(DISTINCT g.account) AS group_accounts,
+            GROUP_CONCAT(DISTINCT g.group_code) AS group_codes
     FROM
         group_codes_to_locations_mapping gm
     LEFT JOIN groups g ON gm.group_id = g.id
