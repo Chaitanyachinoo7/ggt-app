@@ -15,7 +15,7 @@ from ggt.models.data_models.data_types import BillingStatusEnum, TestResultsEnum
 from ggt.models.data_models.providers import process_consultations
 
 
-async def get_billing_list(offset, status, from_dt, to_dt, limit=20, sort='DESC', pre_consulted='any', provider_reviewed='any'):
+async def get_billing_list(offset, status=None, from_dt=None, to_dt=None, limit=20, sort='DESC', pre_consulted='any', provider_reviewed='any'):
     try:
 
         where_conditions = ''
@@ -268,7 +268,6 @@ async def update_billing_status(appointment_id):
         )
         updated = await exec_update(sql, vals)
         return updated
-        
 
     except Exception as err:
         log_generic(
