@@ -41,6 +41,30 @@ async def bp_delete_insurance_record(record):
     return await delete_insurance_record(record)
 
 
+async def bp_download_billing_list(offset, limit):
+    _offset = offset
+    _limit = 500
+    factor = int(limit/500)
+    reminder = limit % 500
+    temp = factor + 1 if reminder == 0 else factor + 2
+    for x in range(1, temp):
+        values = []
+        headers = []
+        string = ''
+        if x == factor + 1:
+            _limit = reminder
+        lst = await get_billing_list(offset=offset, limit=_limit)
+        lst = lst['list']
+        for idx, l in enumerate(lst):
+            if x == 1 and idx == 0:
+                headers = l.keys()
+                string = ','.join(headers) + '\n'
+            values = l.values()
+            values = [str(t) for t in values]
+            string = string + ','.join(values) + '\n'
+        yield string
+
+
 async def bp_image_from_bucket(image_id):
     insurance_cards_bucket_name = get_config_val('gcp.insurance_cards_bucket_name')
     blob = await get_file_blob(insurance_cards_bucket_name, image_id)

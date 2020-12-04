@@ -173,7 +173,8 @@ async def api_site_admin_location_search(portal_location_search: PortalLocationS
     return await site_admin_location_search(
         portal_location_search.account,
         portal_location_search.group_code,
-        portal_location_search.site_code
+        portal_location_search.site_code,
+        portal_location_search.location_name
     )
 
 

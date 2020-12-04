@@ -271,9 +271,9 @@ async def bp_get_all_services():
         )
 
 
-async def bp_get_location_search_results(account, group_code, site_code):
+async def bp_get_location_search_results(account, group_code, site_code, location_name):
     try:
-        return await search_locations(account, group_code, site_code)
+        return await search_locations(account, group_code, site_code, location_name)
 
     except Exception as err:
         log_generic(

@@ -8,7 +8,7 @@ from ggt.lib.utils import (
 )
 from ggt.models.process_models.bp_biller_experience import bp_get_billing_list, bp_update_billing_status, \
     bp_image_from_bucket, bp_report_from_bucket, bp_create_insurance_record, bp_update_insurance_record, \
-    bp_validate_insurance_record, bp_delete_insurance_record
+    bp_validate_insurance_record, bp_delete_insurance_record, bp_download_billing_list
 
 from ggt.models.process_models.bp_care_provider_experience import (
     bp_get_provider_processing_list, bp_lock_provider_task, bp_create_patient_test_consultation,
@@ -22,14 +22,14 @@ from ggt.models.process_models.bp_care_provider_experience import (
 async def get_billing_list(billing_request):
     return y_response(
         await bp_get_billing_list(billing_request.offset,
-                            billing_request.status,
-                            billing_request.from_dt,
-                            billing_request.to_dt,
-                            billing_request.limit,
-                            billing_request.sort,
-                            billing_request.pre_consultation,
-                            billing_request.provider_reviewed
-                            )
+                                  billing_request.status,
+                                  billing_request.from_dt,
+                                  billing_request.to_dt,
+                                  billing_request.limit,
+                                  billing_request.sort,
+                                  billing_request.pre_consultation,
+                                  billing_request.provider_reviewed
+                                  )
     )
 
 
@@ -60,6 +60,16 @@ async def validate_insurance_record(record):
 async def delete_insurance_record(record):
     return y_response(
         await bp_delete_insurance_record(record)
+    )
+
+
+async def download_billing_list(offset, limit):
+    return StreamingResponse(
+        bp_download_billing_list(offset, limit),
+        media_type="text/csv",
+        headers={
+            'Content-Disposition': 'inline; filename="results.csv"'
+        }
     )
 
 

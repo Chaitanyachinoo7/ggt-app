@@ -396,6 +396,7 @@ class PortalLocationSearchRequest(BaseModel):
     account: str
     group_code: str
     site_code: str
+    location_name: str
 
 
 class ScheduleGenerationRule(BaseModel):
