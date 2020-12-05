@@ -12,7 +12,7 @@ from ggt.lib.utils import (
 import ggt.lib.constants as c
 
 
-async def send_email(from_email, from_name, to_email, subject, html_content, text_content=""):
+def send_email(from_email, from_name, to_email, subject, html_content, text_content=""):
     sendgrid_api_key = get_config_val('sendgrid.sendgrid_api_key')
 
     sg = SendGridAPIClient(sendgrid_api_key)
@@ -24,7 +24,7 @@ async def send_email(from_email, from_name, to_email, subject, html_content, tex
 
     try:
         # message.from_email = From('help@twilio.com', 'Twilio SendGrid')
-        response = await sg.send(message)
+        response = sg.send(message)
         log_generic(
             type=c.INFO,
             from_email=From(from_email, from_name),

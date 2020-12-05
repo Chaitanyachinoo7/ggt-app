@@ -53,7 +53,6 @@ async def site_admin_general_search(first_name, middle_name, last_name, dob, pho
     )
 
 
-@cached(ttl=60)
 async def site_admin_location_search(account, group_code, site_code):
     return y_response(
         await bp_get_location_search_results(
@@ -98,7 +97,6 @@ async def remove_group(req):
     )
 
 
-@cached(ttl=60)
 async def get_locations():
     return y_response(
         await bp_get_locations()
@@ -117,14 +115,12 @@ async def update_location(location):
     )
 
 
-@cached(ttl=60)
 async def get_all_groups():
     return y_response(
         await bp_get_all_groups()
     )
 
 
-@cached(ttl=3600)
 async def get_all_services():
     return y_response(
         await bp_get_all_services()

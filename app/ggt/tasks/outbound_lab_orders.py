@@ -238,8 +238,8 @@ def __get_formatted_row(order):
 
 async def get_orders_ready_to_transmit():
     #Move completed records from Appointments to Test Samples
-    if not await exec_sp('create_test_samples_records_for_completed_appointments'):
-        raise Exception('Unable to move completed Appointments to Tests')
+    #if not await exec_sp('create_test_samples_records_for_completed_appointments'):
+    #    raise Exception('Unable to move completed Appointments to Tests')
     
     sql = """
         SELECT 
@@ -314,6 +314,7 @@ async def get_orders_ready_to_transmit():
             'Respiratory' AS sample_type,
             (CASE
                 WHEN (l.test_type_offered = 'oral') THEN 'MOUTH'
+                WHEN (l.test_type_offered = 'oral_fluid') THEN 'Oral Fluid'
                 ELSE 'Nasopharynx'
             END) AS sample_source,
             'RESPI507' AS panel_code,
