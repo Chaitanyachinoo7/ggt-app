@@ -226,6 +226,10 @@ async def search_locations(account, group_code, site_code, location_name):
     l.time_zone_offset,
     l.test_type_offered,
     l.status,
+    l.billing_type,
+    l.collect_insurance_info,
+    l.allow_insurance_skip,
+    l.collect_upfront_payment,
     s.service_names,
     gp.group_accounts,
     gp.group_codes
