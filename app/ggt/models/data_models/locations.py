@@ -1,4 +1,6 @@
 from typing import List, Set, Dict, Tuple, Optional
+
+from ggt.lib.adapters.google_maps import get_gps_coordinates
 from ggt.lib.utils import (
     get_config_val,
     log_generic,
@@ -304,13 +306,16 @@ async def create_location(location):
         s_id = 2000 + int(location_id)
 
         site_code = 'GGT{}{}'.format(location.st, str(s_id))
+        geo = get_gps_coordinates(location.addr1, location.city, location.st, location.zip, location.addr2)
 
         sql_2 = """UPDATE locations
                 SET 
-                    site_code = %s
+                    site_code = %s,
+                    lat = %s,
+                    lng = %s
                 WHERE id = %s"""
 
-        vals_2 = (site_code, location_id)
+        vals_2 = (site_code, geo['lat'], geo['lng'], location_id)
         update = await exec_update(sql_2, vals_2)
         if update:
             return location_id
