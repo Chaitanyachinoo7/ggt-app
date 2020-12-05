@@ -108,6 +108,20 @@ async def get_services_available_for_location(location_id):
         return None
 
 
+async def get_states():
+    try:
+        sql = "SELECT * FROM states WHERE active = 1;"
+        return await read_rows(sql)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 async def get_all_locations_without_thumbnail():
     try:
         sql = """SELECT 
