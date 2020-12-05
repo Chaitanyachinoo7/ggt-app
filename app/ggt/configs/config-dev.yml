@@ -83,6 +83,7 @@ google:
   maps:
     api_key: AIzaSyBJmU3ueSBRmXz4mU1MRgdOxAWcfImbQNQ
     base_url: https://maps.googleapis.com/maps/api/staticmap
+    geo_url: https://maps.googleapis.com/maps/api/geocode/json
     zoom_level: 10
     map_type: roadmap
     thumbnail_size: 110x110
