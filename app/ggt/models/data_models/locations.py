@@ -336,7 +336,8 @@ async def create_location(location):
         vals_2 = (site_code, geo['lat'], geo['lng'], location_id)
         update = await exec_update(sql_2, vals_2)
         if update:
-            return location_id
+            location = await search_locations('', '', site_code, location.name)
+            return location
         else:
             return None
 
