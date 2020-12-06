@@ -11,11 +11,13 @@ from ggt.lib.utils import (
 # [Public] functions
 ########################################################################################################
 from ggt.models.data_models.data_types import BillingStatusEnum, TestResultsEnum, ProviderReviewedEnum, \
-    PreConsultationEnum
+    PreConsultationEnum, TestStatusEnum, AppointmentStatusEnum
 from ggt.models.data_models.providers import process_consultations
 
 
-async def get_billing_list(offset, status=None, from_dt=None, to_dt=None, limit=20, sort='DESC', pre_consulted='any', provider_reviewed='any'):
+async def get_billing_list(offset, status=None, from_dt=None, to_dt=None,
+                           limit=20, sort='DESC', pre_consulted='any', provider_reviewed='any', test_status='any',
+                           appointment_status='any'):
     try:
 
         where_conditions = ''
@@ -46,6 +48,12 @@ async def get_billing_list(offset, status=None, from_dt=None, to_dt=None, limit=
             if provider_reviewed == ProviderReviewedEnum.not_provider_reviewed:
                 where_conditions = "{} AND (t.consultation_status = '{}' OR a.billing_status is NULL)".format(
                     where_conditions, ProviderReviewedEnum.not_provider_reviewed)
+        if test_status != TestStatusEnum.any:
+            where_conditions = "{} AND t.status = '{}'".format(
+                where_conditions, test_status)
+        if appointment_status != AppointmentStatusEnum.any:
+            where_conditions = "{} AND a.status = '{}'".format(
+                where_conditions, appointment_status)
 
         sql = """SELECT 
     p.id AS patient_id,

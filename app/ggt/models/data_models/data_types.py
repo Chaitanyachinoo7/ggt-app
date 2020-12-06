@@ -78,6 +78,27 @@ class ProviderReviewedEnum(str, Enum):
     any = 'any'
 
 
+class AppointmentStatusEnum(str, Enum):
+    pending = 'pending'
+    cancelled = 'cancelled'
+    scheduled = 'scheduled'
+    checked_in = 'checked_in'
+    pre_consultation_in_progress = 'pre_consultation_in_progress'
+    test_in_progress = 'test_in_progress'
+    vial_scanned = 'vial_scanned'
+    test_completed = 'test_completed'
+    record_locked = 'record_locked'
+    any = 'any'
+
+
+class TestStatusEnum(str, Enum):
+    ready_to_tx = 'ready_to_tx'
+    with_lab = 'with_lab'
+    lab_result_received = 'lab_result_received'
+    cancelled = 'cancelled'
+    any = 'any'
+
+
 class GetBillingListReq(BaseModel):
     offset: int = 0
     from_dt: str
@@ -87,6 +108,8 @@ class GetBillingListReq(BaseModel):
     limit: int = 20
     pre_consultation: PreConsultationEnum = 'any'
     provider_reviewed: ProviderReviewedEnum = 'any'
+    test_status: TestStatusEnum = 'any'
+    appointment_status: AppointmentStatusEnum = 'any'
 
 
 class User(BaseModel):
