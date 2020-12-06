@@ -196,17 +196,19 @@ async def get_all_locations():
         return None
 
 
-async def search_locations(account, group_code, site_code, location_name):
+async def search_locations(account, group_code, site_code, location_name, id=None):
     try:
         where_conditions = '' 
         if account != '':
             where_conditions = "{} AND g.account LIKE '%{}%'".format(where_conditions, account)
         if group_code != '':
-            where_conditions = "{} AND g.group_code LIKE '%{}%'".format(where_conditions, group_code)
+            where_conditions = "{} AND gp.group_codes LIKE '%{}%'".format(where_conditions, group_code)
         if site_code != '':
             where_conditions = "{} AND l.site_code LIKE '%{}%'".format(where_conditions, site_code)
         if location_name != '':
             where_conditions = "{} AND l.name LIKE '%{}%'".format(where_conditions, location_name)
+        if id:
+            where_conditions = "{} AND l.id = {}".format(where_conditions, id)
 
         limit = 500
 
@@ -230,6 +232,7 @@ async def search_locations(account, group_code, site_code, location_name):
     l.collect_insurance_info,
     l.allow_insurance_skip,
     l.collect_upfront_payment,
+    l.type,
     s.service_names,
     gp.group_accounts,
     gp.group_codes,
@@ -341,8 +344,7 @@ async def create_location(location):
         vals_2 = (site_code, geo['lat'], geo['lng'], location_id)
         update = await exec_update(sql_2, vals_2)
         if update:
-            location = await search_locations('', '', site_code, location.name)
-            return location
+            return {'location_id': location_id, 'site_code': site_code}
         else:
             return None
 
