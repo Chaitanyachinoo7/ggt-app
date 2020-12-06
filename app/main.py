@@ -21,7 +21,8 @@ from ggt.routers import (
     rt_contact_center,
     rt_printer_hub,
     rt_care_provider,
-    rt_billing
+    rt_billing,
+    rt_reporting
 )
 
 app_init()
@@ -126,6 +127,16 @@ app.include_router(
     rt_printer_hub.router,
     prefix=c.PRINTER_HUB_PATH_PREFIX,
     tags=[c.PRINTER_HUB_RT_TAG],
+    responses={404: {c.DESCRIPTION: c.NOT_FOUND}},
+)
+
+#############################################################
+# rt_reporting                    #
+#############################################################
+app.include_router(
+    rt_reporting.router,
+    prefix=c.REPORTING_PATH_PREFIX,
+    tags=[c.REPORT_RT_TAG],
     responses={404: {c.DESCRIPTION: c.NOT_FOUND}},
 )
 
