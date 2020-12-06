@@ -34,7 +34,7 @@ from ggt.lib.constants import (
 ########################################################################################################
 async def get_stats_today():
     try:
-        sql = """"""
+        sql = """SELECT * FROM todays_location_stats_with_totals_test"""
         return await read_rows(sql)
 
     except Exception as err:
