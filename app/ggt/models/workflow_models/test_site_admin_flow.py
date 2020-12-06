@@ -118,7 +118,7 @@ async def remove_service(req):
 
 
 async def update_location(location):
-    return x_response(
+    return y_response(
         await bp_update_location(location)
     )
 
