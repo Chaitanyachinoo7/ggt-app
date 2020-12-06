@@ -15,8 +15,12 @@ from ggt.models.data_models.providers import get_provider_processing_list, provi
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-from ggt.models.data_models.reporting import get_stats_today
+from ggt.models.data_models.reporting import get_stats_today, get_stats_by_date
 
 
 async def bp_get_stats_today():
     return await get_stats_today()
+
+
+async def bp_get_stats_by_date(date):
+    return await get_stats_by_date(date)

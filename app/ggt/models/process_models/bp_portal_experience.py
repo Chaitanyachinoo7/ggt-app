@@ -121,9 +121,10 @@ async def bp_update_group(group):
 
 async def bp_create_location(location):
     try:
-        location_id = await create_location(location)
-        if location_id is None:
+        _location = await create_location(location)
+        if _location is None and len(_location) > 0:
             return None
+        location_id = _location[0]['location_id']
         group_ids = location.group_ids
         service_ids = location.service_ids
         location_groups = []
@@ -142,7 +143,7 @@ async def bp_create_location(location):
             s_success = await assign_all_services(tuple(location_services))
             if s_success is None or not s_success:
                 return None
-        return location_id
+        return _location
 
     except Exception as err:
         log_generic(

@@ -53,7 +53,7 @@ async def site_admin_general_search(first_name, middle_name, last_name, dob, pho
     )
 
 
-@cached(ttl=60)
+# @cached(ttl=60)
 async def site_admin_location_search(account, group_code, site_code, location_name):
     return y_response(
         await bp_get_location_search_results(
