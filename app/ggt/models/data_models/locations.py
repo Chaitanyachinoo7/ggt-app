@@ -232,13 +232,16 @@ async def search_locations(account, group_code, site_code, location_name):
     l.collect_upfront_payment,
     s.service_names,
     gp.group_accounts,
-    gp.group_codes
+    gp.group_codes,
+    s.service_ids,
+    gp.group_ids
 FROM
     locations l
         LEFT JOIN
     (SELECT 
         sm.location_id,
-            GROUP_CONCAT(DISTINCT sc.service_name) AS service_names
+            GROUP_CONCAT(DISTINCT sc.service_name) AS service_names,
+            GROUP_CONCAT(DISTINCT sc.id) AS service_ids
     FROM
         services_to_locations_mapping sm
     LEFT JOIN services_catalog sc ON sm.service_id = sc.id
@@ -246,6 +249,7 @@ FROM
         LEFT JOIN
     (SELECT 
         gm.location_id,
+            GROUP_CONCAT(DISTINCT g.id) AS group_ids,
             GROUP_CONCAT(DISTINCT g.account) AS group_accounts,
             GROUP_CONCAT(DISTINCT g.group_code) AS group_codes
     FROM
@@ -257,7 +261,8 @@ FROM
         ORDER BY l.id DESC
         LIMIT {}
         """.format(where_conditions, limit)
-        return await read_rows(sql)
+        res = await read_rows(sql)
+        return __process_location_search(res)
 
     except Exception as err:
         log_generic(
@@ -566,6 +571,25 @@ async def update_location(location):
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
+def __process_location_search(res):
+    for row in res:
+        service_ids = row['service_ids']
+        group_ids = row['group_ids']
+        if service_ids is not None:
+            service_ids = service_ids.split(',')
+            service_ids = [int(x) for x in service_ids]
+            row['service_ids'] = service_ids
+        else:
+            row['service_ids'] = []
+        if group_ids is not None:
+            group_ids = group_ids.split(',')
+            group_ids = [int(x) for x in group_ids]
+            row['group_ids'] = group_ids
+        else:
+            row['group_ids'] = []
+    return res
+
+
 def __map_row_to_location(row):
     loc = GgtLocation()
     try:

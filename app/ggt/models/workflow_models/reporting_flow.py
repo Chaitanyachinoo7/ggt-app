@@ -18,12 +18,18 @@ from ggt.models.process_models.bp_care_provider_experience import (
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-from ggt.models.process_models.bp_reporting import bp_get_stats_today
+from ggt.models.process_models.bp_reporting import bp_get_stats_today, bp_get_stats_by_date
 
 
 async def get_stats_today():
     return y_response(
         await bp_get_stats_today()
+    )
+
+
+async def get_stats_by_date(date):
+    return y_response(
+        await bp_get_stats_by_date(date)
     )
 
 ########################################################################################################
