@@ -31,7 +31,8 @@ from ggt.models.data_models.generic_search_result import (
 from ggt.models.data_models.locations import (
     search_locations,
     create_location, update_location, assign_group, remove_group, assign_service, remove_service,
-    get_all_locations_without_thumbnail, assign_all_groups, assign_all_services, remove_all_group, remove_all_service)
+    get_all_locations_without_thumbnail, assign_all_groups, assign_all_services, remove_all_group, remove_all_service,
+    get_states)
 
 import ggt.lib.constants as c
 
@@ -120,9 +121,10 @@ async def bp_update_group(group):
 
 async def bp_create_location(location):
     try:
-        location_id = await create_location(location)
-        if location_id is None:
+        _location = await create_location(location)
+        if _location is None and len(_location) > 0:
             return None
+        location_id = _location[0]['location_id']
         group_ids = location.group_ids
         service_ids = location.service_ids
         location_groups = []
@@ -141,7 +143,7 @@ async def bp_create_location(location):
             s_success = await assign_all_services(tuple(location_services))
             if s_success is None or not s_success:
                 return None
-        return location_id
+        return _location
 
     except Exception as err:
         log_generic(
@@ -179,7 +181,6 @@ async def bp_remove_group(req):
     try:
         return await remove_group(req)
 
-
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -191,7 +192,6 @@ async def bp_remove_group(req):
 async def bp_get_locations():
     try:
         return await get_all_locations_without_thumbnail()
-
 
     except Exception as err:
         log_generic(
@@ -251,6 +251,17 @@ async def bp_get_all_groups():
     try:
         return await get_all_groups()
 
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+
+
+async def bp_get_states():
+    try:
+        return await get_states()
     except Exception as err:
         log_generic(
             type=c.ERROR,
