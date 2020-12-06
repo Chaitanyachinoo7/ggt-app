@@ -232,6 +232,7 @@ async def search_locations(account, group_code, site_code, location_name, id=Non
     l.collect_insurance_info,
     l.allow_insurance_skip,
     l.collect_upfront_payment,
+    l.type,
     s.service_names,
     gp.group_accounts,
     gp.group_codes,
