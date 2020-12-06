@@ -28,7 +28,9 @@ async def get_billing_list(billing_request):
                                   billing_request.limit,
                                   billing_request.sort,
                                   billing_request.pre_consultation,
-                                  billing_request.provider_reviewed
+                                  billing_request.provider_reviewed,
+                                  billing_request.test_status,
+                                  billing_request.appointment_status
                                   )
     )
 
