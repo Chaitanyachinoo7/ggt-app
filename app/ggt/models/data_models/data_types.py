@@ -450,6 +450,10 @@ class ScanLabelRequest(BaseModel):
     appointment_id: str = None
 
 
+class SummaryByDate(BaseModel):
+    date: str
+
+
 class GenderEnum(str, Enum):
     male = 'male'
     female = 'female'

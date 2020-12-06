@@ -59,4 +59,4 @@ def get_gps_coordinates(addr1, city, st, zip, addr2=None):
 
     except Exception as err:
             print(err)
-            return None
+            return {'lat': 0, 'lng': 0 }
