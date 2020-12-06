@@ -17,8 +17,10 @@ from ggt.models.data_models.providers import get_provider_processing_list, provi
 ########################################################################################################
 
 
-async def bp_get_billing_list(offset, status, from_dt, to_dt, limit, sort, pre_consulted, provider_reviewed):
-    return await get_billing_list(offset, status, from_dt, to_dt, limit, sort, pre_consulted, provider_reviewed)
+async def bp_get_billing_list(offset, status, from_dt, to_dt, limit, sort, pre_consulted,
+                              provider_reviewed, test_status, appointment_status):
+    return await get_billing_list(offset, status, from_dt, to_dt, limit, sort, pre_consulted, provider_reviewed,
+                                  test_status, appointment_status)
 
 
 async def bp_update_billing_status(appointment_id):
