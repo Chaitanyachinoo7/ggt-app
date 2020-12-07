@@ -56,7 +56,7 @@ from ggt.models.workflow_models.test_site_admin_flow import (
     get_all_services,
     get_locations,
     create_group,
-    update_group
+    update_group, get_states
 )
 
 router = APIRouter()
@@ -78,6 +78,11 @@ async def api_get_user_role(portal_user_role_request: PortalUserRoleRequest,
 @router.post("/site-admin/create_location", dependencies=[Security(authorize_user, scopes=[p.CREATE_LOCATION])])
 async def api_create_location(location: GgtDbLocation):
     return await create_location(location)
+
+
+@router.get("/site-admin/get_states", dependencies=[Security(authorize_user, scopes=[p.CREATE_LOCATION])])
+async def api_get_states():
+    return await get_states()
 
 
 @router.post("/site-admin/create_group", dependencies=[Security(authorize_user, scopes=[p.CREATE_GROUP])])
@@ -173,7 +178,8 @@ async def api_site_admin_location_search(portal_location_search: PortalLocationS
     return await site_admin_location_search(
         portal_location_search.account,
         portal_location_search.group_code,
-        portal_location_search.site_code
+        portal_location_search.site_code,
+        portal_location_search.location_name
     )
 
 

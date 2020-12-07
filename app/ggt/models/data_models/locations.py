@@ -1,4 +1,6 @@
 from typing import List, Set, Dict, Tuple, Optional
+
+from ggt.lib.adapters.google_maps import get_gps_coordinates
 from ggt.lib.utils import (
     get_config_val,
     log_generic,
@@ -106,6 +108,20 @@ async def get_services_available_for_location(location_id):
         return None
 
 
+async def get_states():
+    try:
+        sql = "SELECT * FROM states WHERE active = 1;"
+        return await read_rows(sql)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 async def get_all_locations_without_thumbnail():
     try:
         sql = """SELECT 
@@ -180,23 +196,26 @@ async def get_all_locations():
         return None
 
 
-async def search_locations(account, group_code, site_code):
+async def search_locations(account, group_code, site_code, location_name, id=None):
     try:
         where_conditions = '' 
         if account != '':
             where_conditions = "{} AND g.account LIKE '%{}%'".format(where_conditions, account)
         if group_code != '':
-            where_conditions = "{} AND g.group_code LIKE '%{}%'".format(where_conditions, group_code)
+            where_conditions = "{} AND gp.group_codes LIKE '%{}%'".format(where_conditions, group_code)
         if site_code != '':
             where_conditions = "{} AND l.site_code LIKE '%{}%'".format(where_conditions, site_code)
+        if location_name != '':
+            where_conditions = "{} AND l.name LIKE '%{}%'".format(where_conditions, location_name)
+        if id:
+            where_conditions = "{} AND l.id = {}".format(where_conditions, id)
 
         limit = 500
 
         sql = """ SELECT DISTINCT
+        l.name AS location_name,
     l.id AS location_id,
     l.site_code,
-    g.group_code,
-    g.account,
     l.addr1,
     l.addr2,
     l.addr3,
@@ -209,18 +228,23 @@ async def search_locations(account, group_code, site_code):
     l.time_zone_offset,
     l.test_type_offered,
     l.status,
+    l.billing_type,
+    l.collect_insurance_info,
+    l.allow_insurance_skip,
+    l.collect_upfront_payment,
+    l.type,
     s.service_names,
-    gp.group_names
+    gp.group_accounts,
+    gp.group_codes,
+    s.service_ids,
+    gp.group_ids
 FROM
     locations l
-        INNER JOIN
-    group_codes_to_locations_mapping m ON l.id = m.location_id
-        INNER JOIN
-    groups g ON (g.id = m.group_id)
         LEFT JOIN
     (SELECT 
         sm.location_id,
-            GROUP_CONCAT(DISTINCT sc.service_name) AS service_names
+            GROUP_CONCAT(DISTINCT sc.service_name) AS service_names,
+            GROUP_CONCAT(DISTINCT sc.id) AS service_ids
     FROM
         services_to_locations_mapping sm
     LEFT JOIN services_catalog sc ON sm.service_id = sc.id
@@ -228,7 +252,9 @@ FROM
         LEFT JOIN
     (SELECT 
         gm.location_id,
-            GROUP_CONCAT(DISTINCT g.account) AS group_names
+            GROUP_CONCAT(DISTINCT g.id) AS group_ids,
+            GROUP_CONCAT(DISTINCT g.account) AS group_accounts,
+            GROUP_CONCAT(DISTINCT g.group_code) AS group_codes
     FROM
         group_codes_to_locations_mapping gm
     LEFT JOIN groups g ON gm.group_id = g.id
@@ -238,7 +264,8 @@ FROM
         ORDER BY l.id DESC
         LIMIT {}
         """.format(where_conditions, limit)
-        return await read_rows(sql)
+        res = await read_rows(sql)
+        return __process_location_search(res)
 
     except Exception as err:
         log_generic(
@@ -305,16 +332,19 @@ async def create_location(location):
         s_id = 2000 + int(location_id)
 
         site_code = 'GGT{}{}'.format(location.st, str(s_id))
+        geo = get_gps_coordinates(location.addr1, location.city, location.st, location.zip, location.addr2)
 
         sql_2 = """UPDATE locations
                 SET 
-                    site_code = %s
+                    site_code = %s,
+                    lat = %s,
+                    lng = %s
                 WHERE id = %s"""
 
-        vals_2 = (site_code, location_id)
+        vals_2 = (site_code, geo['lat'], geo['lng'], location_id)
         update = await exec_update(sql_2, vals_2)
         if update:
-            return location_id
+            return {'location_id': location_id, 'site_code': site_code}
         else:
             return None
 
@@ -543,6 +573,25 @@ async def update_location(location):
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
+def __process_location_search(res):
+    for row in res:
+        service_ids = row['service_ids']
+        group_ids = row['group_ids']
+        if service_ids is not None:
+            service_ids = service_ids.split(',')
+            service_ids = [int(x) for x in service_ids]
+            row['service_ids'] = service_ids
+        else:
+            row['service_ids'] = []
+        if group_ids is not None:
+            group_ids = group_ids.split(',')
+            group_ids = [int(x) for x in group_ids]
+            row['group_ids'] = group_ids
+        else:
+            row['group_ids'] = []
+    return res
+
+
 def __map_row_to_location(row):
     loc = GgtLocation()
     try:

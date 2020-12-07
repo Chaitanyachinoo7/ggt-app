@@ -47,11 +47,12 @@ gcp:
   enable_cloud_logger: true
   cloud_logger_log_level: 3 # 0-error, 1-warning, 2-info, 3-debug. 
 
+
 databases:
   mysql:
-    host: 34.66.63.242
+    host: 35.184.98.83
     username: root
-    password: gvMBO96Ohbq3mwFp
+    password: Jr6EEMI2aBNguL1K
     db: ggt_prod
 
   sqlite:
@@ -83,6 +84,7 @@ google:
   maps:
     api_key: AIzaSyAf7kDO2y7Hz7HYb3LHqvXimqJQcA6X8DQ
     base_url: https://maps.googleapis.com/maps/api/staticmap
+    geo_url: https://maps.googleapis.com/maps/api/geocode/json
     zoom_level: 10
     map_type: roadmap
     thumbnail_size: 110x110
