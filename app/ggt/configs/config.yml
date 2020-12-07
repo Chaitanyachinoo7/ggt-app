@@ -6,7 +6,7 @@ env: DEV
 
 server:
   host: 0.0.0.0
-  port: 5000
+  port: 8000
 
 origins: 
   - https://gogettested.com
@@ -107,7 +107,7 @@ vendors:
     algorithms: ['RS256']
     roles: http://roles.ggt/roles
 
-  healthtrackrx:
+  healthtrackrx_outbound:
     hostname: sftp.healthtrackrx.com
     username: wellpay
     password: 9cTE3fh@8H
@@ -117,6 +117,22 @@ vendors:
     remote_backups_path: /backups
     remote_processed_orders_path: /processed_order_files
     local_download_path: /Users/suresh/ggt-tasks/downloads
+    local_outbound_file_path: /Users/suresh/ggt-tasks/outbound
+    local_insurance_card_file_path: /Users/suresh/ggt-tasks/insurance_images
+    local_process_summary_path: /Users/suresh/ggt-tasks/process_summary
+    local_backups_path: /Users/suresh/ggt-tasks/backups
+    outbound_file_prefix: ggt-outbound
+
+  healthtrackrx_inbound:
+    hostname: sftp.gogettested.com
+    username: healthtrackrx
+    password: q-5QXfKMLR\dtM_c
+    port: 22
+    remote_downloads_folder: /ggt-sftp/healthtrackrx/Reports
+    remote_insurance_images_path: /ggt-sftp/healthtrackrx/insurance_files
+    remote_backups_path: /ggt-sftp/healthtrackrx/backups
+    remote_processed_orders_path: /ggt-sftp/healthtrackrx/processed_order_files
+    local_download_path: /Users/suresh/ggt-tasks/downloads/ggt-sftp/healthtrackrx
     local_outbound_file_path: /Users/suresh/ggt-tasks/outbound
     local_insurance_card_file_path: /Users/suresh/ggt-tasks/insurance_images
     local_process_summary_path: /Users/suresh/ggt-tasks/process_summary
