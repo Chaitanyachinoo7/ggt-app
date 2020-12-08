@@ -28,10 +28,10 @@ import ggt.lib.constants as c
 
 session_id = generate_session_id()
 local_outbound_file_path = cfg(
-    'vendors.healthtrackrx.local_outbound_file_path')
-outbound_file_prefix = cfg('vendors.healthtrackrx.outbound_file_prefix')
+    'vendors.healthtrackrx_outbound.local_outbound_file_path')
+outbound_file_prefix = cfg('vendors.healthtrackrx_outbound.outbound_file_prefix')
 local_insurance_card_file_path = cfg(
-    'vendors.healthtrackrx.local_insurance_card_file_path')
+    'vendors.healthtrackrx_outbound.local_insurance_card_file_path')
 
 
 async def task_process_outbound_lab_orders():
@@ -311,10 +311,10 @@ async def get_orders_ready_to_transmit():
 
 async def upload_file_list_to_ftp(file_list):
     try:
-        hostname = cfg('vendors.healthtrackrx.hostname')
-        username = cfg('vendors.healthtrackrx.username')
-        password = cfg('vendors.healthtrackrx.password')
-        port = cfg('vendors.healthtrackrx.port')
+        hostname = cfg('vendors.healthtrackrx_outbound.hostname')
+        username = cfg('vendors.healthtrackrx_outbound.username')
+        password = cfg('vendors.healthtrackrx_outbound.password')
+        port = cfg('vendors.healthtrackrx_outbound.port')
 
         ssh_client = paramiko.SSHClient()
         ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -346,10 +346,10 @@ async def upload_file_list_to_ftp(file_list):
 
 async def upload_file_to_ftp(filename, local_file_path):
     try:
-        hostname = cfg('vendors.healthtrackrx.hostname')
-        username = cfg('vendors.healthtrackrx.username')
-        password = cfg('vendors.healthtrackrx.password')
-        port = cfg('vendors.healthtrackrx.port')
+        hostname = cfg('vendors.healthtrackrx_outbound.hostname')
+        username = cfg('vendors.healthtrackrx_outbound.username')
+        password = cfg('vendors.healthtrackrx_outbound.password')
+        port = cfg('vendors.healthtrackrx_outbound.port')
 
         ssh_client = paramiko.SSHClient()
         ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())

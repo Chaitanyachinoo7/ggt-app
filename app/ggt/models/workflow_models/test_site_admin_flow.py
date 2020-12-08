@@ -11,7 +11,7 @@ from ggt.models.process_models.bp_portal_experience import (
     bp_get_general_search_results,
     bp_get_location_search_results,
     bp_create_location, bp_get_all_groups, bp_update_location, bp_assign_group, bp_remove_group, bp_assign_service,
-    bp_remove_service, bp_get_all_services, bp_get_locations, bp_create_group, bp_update_group,
+    bp_remove_service, bp_get_all_services, bp_get_locations, bp_create_group, bp_update_group, bp_get_states,
 )
 
 from ggt.models.process_models.bp_schedules import (
@@ -53,11 +53,11 @@ async def site_admin_general_search(first_name, middle_name, last_name, dob, pho
     )
 
 
-@cached(ttl=60)
-async def site_admin_location_search(account, group_code, site_code):
+# @cached(ttl=60)
+async def site_admin_location_search(account, group_code, site_code, location_name):
     return y_response(
         await bp_get_location_search_results(
-            account, group_code, site_code
+            account, group_code, site_code, location_name
         )
     )
 
@@ -65,6 +65,12 @@ async def site_admin_location_search(account, group_code, site_code):
 async def create_location(location):
     return y_response(
         await bp_create_location(location)
+    )
+
+
+async def get_states():
+    return y_response(
+        await bp_get_states()
     )
 
 
@@ -98,7 +104,6 @@ async def remove_group(req):
     )
 
 
-@cached(ttl=60)
 async def get_locations():
     return y_response(
         await bp_get_locations()
@@ -112,19 +117,17 @@ async def remove_service(req):
 
 
 async def update_location(location):
-    return x_response(
+    return y_response(
         await bp_update_location(location)
     )
 
 
-@cached(ttl=60)
 async def get_all_groups():
     return y_response(
         await bp_get_all_groups()
     )
 
 
-@cached(ttl=3600)
 async def get_all_services():
     return y_response(
         await bp_get_all_services()

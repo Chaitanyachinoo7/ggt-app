@@ -1,0 +1,33 @@
+MSH|^~\&|DEMOFAC|DEMOFAC|AIT|AIT|20200805133511||ORM^O01|31705156|P|2.3
+PID|1|27927IN|27927IN|Test123IN|Htrxtest^TestIN^^^||19900101|M|^|2054-5|123 Main Ln.^^Allen^TX^75002^^^^||(469)987-6521|||||Test123^^^P||||H
+PV1|1||2||||1982044657^Ramirez^Diana^MD/PMEMR||||||||||1982044657^Ramirez^Diana^MD/PMEMR||
+IN1|1||MMP|MEDICARE MASTER PAYER||||||||||||DOE^JOHN^M|01|195208150000|1700 ONION CREEK PARKWAY^^AUSTIN^TX^78748^US|||1||||||||||INSURANCE||||8J89UD3HR59|||||||F||||||||
+GT1|||DOE^JOHN^M||1700 ONION CREEK PARKWAY^^AUSTIN^TX^78748^US|(303)371-0073||195208150000|F||01|||||||||||||||||||||||||||||||||||||||||||||GT1|1||Htrxtest^Test||123 Main Ln.^^Allen^TX^75002|4699876521|||M||18
+ORC|NW|NBT-000010139494|||||||202008051234|||1982044657^Ramirez^Diana^MD/PMEMR||
+OBR|1|NBT-000010139494||RESPI507^COVID-19 Test|||202008051234||||||||^^^NASOPHARYNGEAL SWAB|1982044657^Ramirez^Diana^MD/PMEMR|(561)360-2034||||^^^^^^
+DG1|1||I10^Essential (primary) hypertension
+OBX|2|ST|COVID-PT-1^Is this the patient's first COVID-19 test?||U^Unknown||||||||
+OBX|3|ST|COVID-PT-2^Is the patient employed in healthcare with direct patient contact?||U^Unknown||||||||
+OBX|4|ST|COVID-PT-3A^Is the patient exhibiting symptoms as defined by the CDC?||Y^Yes||||||||
+OBX|5|ST|COVID-PT-3B^When was first sign of symptoms? (Blank if no or unknown)||20200731||||||||
+OBX|6|ST|COVID-PT-4^Has the patient been hospalized?||N^No||||||||
+OBX|7|ST|COVID-PT-5^Has the patient been hospalized in the ICU?||N^No||||||||COVID-PT-5
+OBX|8|ST|COVID-PT-6^Does the patient reside in congregate care (nursing home, group home, etc.)?||N^No||||||||
+OBX|9|ST|COVID-PT-7^Is the patient pregnant?||N^No||||||||
+
+
+External Code,
+First Name,
+Last Name,
+Date of Birth,
+Gender,
+Date of Collection,
+Race,
+Ethnicity,
+Address,
+Address2,
+City,
+State,
+Zip Code,
+Phone,Client Site Code,Physician NPI,Bill,Client Order Number,Sample Code,Collected By,Sample Type,Sample Source,Panel Code,Panel Name,
+First Test?,Employed in healthcare?,Symptomatic as defined by CDC?,Hospitalized?,ICU?,Resident in a congregate care setting?,Pregnant?
