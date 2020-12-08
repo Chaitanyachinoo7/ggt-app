@@ -173,7 +173,7 @@ def exec_delete(sql, val=()):
             __cnx.close()
 
 
-def read_row(sql, val):
+def read_row(sql, vals):
     log_generic(
         type=c.INFO,
         sql=sql,

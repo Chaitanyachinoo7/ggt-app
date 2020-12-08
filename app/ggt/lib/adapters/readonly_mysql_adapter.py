@@ -65,14 +65,16 @@ def __append_to_sql_log(log_type, sql_type, statement, details=""):
 
 
 
-def read_row(sql, val):
-    log_generic(
-        type=c.INFO,
-        sql=sql,
-        vals=vals,
-        function=whoami()
-    )
+def read_row(sql, vals):
     try:
+        '''
+        log_generic(
+            type=c.INFO,
+            sql=sql,
+            vals=vals,
+            function=whoami()
+        )
+        '''
         __cnx = mysql.connector.connect(**connection_config_dict)
         __cursor = __cnx.cursor(dictionary=True, buffered=True)
 
