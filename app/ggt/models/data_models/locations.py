@@ -12,10 +12,12 @@ import ggt.lib.constants as c
 from ggt.lib.db import (
     exec_insert,
     exec_update,
-    exec_delete,
+    exec_delete
+)
+
+from ggt.lib.readonly_db import (
     read_row,
-    read_rows,
-    exec_batch_execute
+    read_rows
 )
 
 from ggt.models.data_models.data_types import (

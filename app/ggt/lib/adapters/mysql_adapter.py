@@ -173,7 +173,13 @@ def exec_delete(sql, val=()):
             __cnx.close()
 
 
-def read_row(sql, val):
+def read_row(sql, vals):
+    log_generic(
+        type=c.INFO,
+        sql=sql,
+        vals=vals,
+        function=whoami()
+    )
     try:
         __cnx = mysql.connector.connect(**connection_config_dict)
         __cursor = __cnx.cursor(dictionary=True, buffered=True)
@@ -185,6 +191,14 @@ def read_row(sql, val):
             __cursor.statement,
             __cursor.rowcount
         )
+        log_generic(
+            type=c.INFO,
+            sql=sql,
+            vals=vals,
+            function=whoami(),
+            executed=__cursor._executed
+        )
+
         return __cursor.fetchone()
 
     except mysql.connector.Error as err:
@@ -203,6 +217,12 @@ def read_row(sql, val):
 
 
 def read_rows(sql, vals=None):
+    log_generic(
+        type=c.INFO,
+        sql=sql,
+        vals=vals,
+        function=whoami()
+    )
     try:
         __cnx = mysql.connector.connect(**connection_config_dict)
         __cursor = __cnx.cursor(dictionary=True, buffered=True)
@@ -211,6 +231,14 @@ def read_rows(sql, vals=None):
         else:
             __cursor.execute(sql, vals)
         #__append_to_sql_log(INFO, 'SELECT', __cursor.statement, __cursor.rowcount)
+        log_generic(
+            type=c.INFO,
+            sql=sql,
+            vals=vals,
+            function=whoami(),
+            executed=__cursor._executed
+        )
+
         return __cursor.fetchall()
 
     except mysql.connector.Error as err:
@@ -251,8 +279,9 @@ def exec_sp(stored_procedure: str):
         if (__cnx.is_connected()):
             __cursor.close()
             __cnx.close()
-    
+
     return False
+
 
 '''
 except mysql.connector.Error as err:
