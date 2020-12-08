@@ -539,6 +539,7 @@ async def update_location(location):
     try:
         sql = """
                UPDATE locations SET
+                   name = %s,
                    test_type_offered = %s,
                    status = %s,
                    type = %s,
@@ -549,6 +550,7 @@ async def update_location(location):
                WHERE id =  %s
                         """
         vals = (
+            location.location_name,
             location.test_type_offered,
             location.status,
             location.type,

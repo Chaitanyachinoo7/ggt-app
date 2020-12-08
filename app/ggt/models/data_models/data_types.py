@@ -635,6 +635,7 @@ class GgtDbLocation(BaseModel):
 class GgtUpdateLocation(BaseModel):
     id: str = None
     test_type_offered: str = None
+    location_name: str
     status: str = None
     type: str = None
     billing_type: str = None

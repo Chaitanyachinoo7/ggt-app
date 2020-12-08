@@ -253,7 +253,7 @@ async def download_and_cleanup(ftp_client, filename, remote_dir_path, cache_hits
         new_path = '{}{}/{}'.format('/backups/processed',
                                     remote_dir_path, filename).replace('//', '/')
         print('Archiving FTP file {}'.format(old_path))
-        ########await ftp_move_file(ftp_client, old_path, new_path)  # Archive file
+        await ftp_move_file(ftp_client, old_path, new_path)  # Archive file
 
     else:
         cache_misses += 1
@@ -295,13 +295,11 @@ async def ftp_move_file(ftp_client, old_path, new_path):
 
     try:
         ftp_client.chdir(dir_path)
+
     except IOError:
         ftp_create_dir_path(ftp_client, dir_path)
 
-    try:
-        ftp_client.rename(old_path, new_path)
-    except Exception as err:
-        print_error('ftp move failed: {}'.format(err))
+    ftp_client.rename(old_path, new_path)
 
 
 async def ftp_create_dir_path(ftp_client, dir_path):
@@ -568,7 +566,7 @@ async def add_to_healthtrackrx_inbound_data_table():
         await exec_batch_execute(sql, rows)
 
     except Exception as err:
-        print_error('Critical ERROR: {}'.format(err))
+        print("err:", err)
 
 
 async def update_test_samples_with_results():
