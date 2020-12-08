@@ -104,7 +104,6 @@ async def remove_group(req):
     )
 
 
-@cached(ttl=60)
 async def get_locations():
     return y_response(
         await bp_get_locations()
@@ -123,14 +122,12 @@ async def update_location(location):
     )
 
 
-@cached(ttl=60)
 async def get_all_groups():
     return y_response(
         await bp_get_all_groups()
     )
 
 
-@cached(ttl=3600)
 async def get_all_services():
     return y_response(
         await bp_get_all_services()
