@@ -6,7 +6,7 @@ pipelines:
       - step:
           name: Ops Production Deployemrnt
           image: google/cloud-sdk:latest
-          deployment: production
+          deployment: production-ops
           caches:
             - docker
           script:
@@ -23,7 +23,7 @@ pipelines:
       - step:
           name: Portal Production Deployemrnt
           image: google/cloud-sdk:latest
-          deployment: production
+          deployment: production-portal
           caches:
             - docker
           script:
@@ -40,7 +40,7 @@ pipelines:
       - step:
           name: Patient Production Deployemrnt
           image: google/cloud-sdk:latest
-          deployment: production
+          deployment: production-patient
           caches:
             - docker
           script:
