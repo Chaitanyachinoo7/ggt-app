@@ -25,7 +25,7 @@ connection_config_dict = {
 ro_connection_config_dict = {
     'user': get_config_val('databases.mysql.username'),
     'password': get_config_val('databases.mysql.password'),
-    'host': 'read-replica.gogettested.com',
+    'host': get_config_val('databases.mysql.host'),
     'database': get_config_val('databases.mysql.db'),
     'raise_on_warnings': True,
     'use_pure': False,
@@ -186,6 +186,12 @@ def exec_delete(sql, val=()):
 
 
 def read_row(sql, val):
+    log_generic(
+        type=c.INFO,
+        sql=sql,
+        vals=vals,
+        function=whoami()
+    )
     try:
         __cnx = mysql.connector.connect(**ro_connection_config_dict)
         __cursor = __cnx.cursor(dictionary=True, buffered=True)
@@ -197,6 +203,14 @@ def read_row(sql, val):
             __cursor.statement,
             __cursor.rowcount
         )
+        log_generic(
+            type=c.INFO,
+            sql=sql,
+            vals=vals,
+            function=whoami(),
+            executed=__cursor._executed
+        )
+
         return __cursor.fetchone()
 
     except mysql.connector.Error as err:
@@ -215,6 +229,12 @@ def read_row(sql, val):
 
 
 def read_rows(sql, vals=None):
+    log_generic(
+        type=c.INFO,
+        sql=sql,
+        vals=vals,
+        function=whoami()
+    )
     try:
         __cnx = mysql.connector.connect(**ro_connection_config_dict)
         __cursor = __cnx.cursor(dictionary=True, buffered=True)
@@ -223,6 +243,14 @@ def read_rows(sql, vals=None):
         else:
             __cursor.execute(sql, vals)
         #__append_to_sql_log(INFO, 'SELECT', __cursor.statement, __cursor.rowcount)
+        log_generic(
+            type=c.INFO,
+            sql=sql,
+            vals=vals,
+            function=whoami(),
+            executed=__cursor._executed
+        )
+
         return __cursor.fetchall()
 
     except mysql.connector.Error as err:
