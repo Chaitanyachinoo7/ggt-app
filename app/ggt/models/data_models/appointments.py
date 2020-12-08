@@ -114,7 +114,7 @@ async def add_service_to_appointment(appointment_id: int, service_code: str) -> 
     return False
 
 
-async def get_appointment(appointment_id: int):
+async def get_appointment(appointment_id: int) -> GgtAppointment:
     try:
         sql = """
         SELECT 
@@ -345,24 +345,24 @@ async def get_appointment_count_by_phone_dob(phone_number, dob):
     return 0
 
 
-async def update_appointment_with_confirmed_scheduled(appointment_id: int):
-    return await __update_appointment_status(appointment_id, c.APPOINTMENT_STATUS_SCHEDULED)
+async def update_appointment_with_confirmed_scheduled(appointment: GgtAppointment):
+    return await __update_appointment_status(appointment, c.APPOINTMENT_STATUS_SCHEDULED)
 
 
-async def update_appointment_with_checkin(appointment_id: int):
-    return await __update_appointment_status(appointment_id, c.APPOINTMENT_STATUS_CHECKED_IN)
+async def update_appointment_with_checkin(appointment: GgtAppointment):
+    return await __update_appointment_status(appointment, c.APPOINTMENT_STATUS_CHECKED_IN)
 
 
-async def update_appointment_with_test_start(appointment_id: int):
-    return await __update_appointment_status(appointment_id, c.APPOINTMENT_STATUS_TEST_IN_PROGRESS)
+async def update_appointment_with_test_start(appointment: GgtAppointment):
+    return await __update_appointment_status(appointment, c.APPOINTMENT_STATUS_TEST_IN_PROGRESS)
 
 
-async def update_appointment_with_scan_vial(appointment_id: int, vial_id: str):
-    return await __update_appointment_status(appointment_id, c.APPOINTMENT_STATUS_VIAL_SCANNED, vial_id)
+async def update_appointment_with_scan_vial(appointment: GgtAppointment, vial_id: str):
+    return await __update_appointment_status(appointment, c.APPOINTMENT_STATUS_VIAL_SCANNED, vial_id)
 
 
-async def update_appointment_with_test_completed(appointment_id: int):
-    return await __update_appointment_status(appointment_id, c.APPOINTMENT_STATUS_TEST_COMPLETED)
+async def update_appointment_with_test_completed(appointment: GgtAppointment):
+    return await __update_appointment_status(appointment, c.APPOINTMENT_STATUS_TEST_COMPLETED)
 
 ########################################################################################################
 # [Protected] functions
@@ -385,10 +385,14 @@ def __get_mapped_dt_field(status: str) -> str:
     return dt_field
 
 
-async def __update_appointment_status(appointment_id: int, status: str, vial_id: str = None):
+async def __update_appointment_status(appointment: GgtAppointment, status: str, vial_id: str = None):
     vial_id = None if vial_id == '' else vial_id
     usuccess = False
-    # TODO: check if a timestamp already exists, if so, don't allow update to proceed
+
+    #Check if a vial has already been assigned, if so, don't allow update to proceed
+    if appointment.vial_id and vial_id: 
+        return False
+
     try:
         sql = """
             UPDATE appointments
@@ -401,7 +405,7 @@ async def __update_appointment_status(appointment_id: int, status: str, vial_id:
                 id = %s
             """.format(__get_mapped_dt_field(status))
 
-        vals = (vial_id, status, appointment_id)
+        vals = (vial_id, status, appointment.id)
 
         usuccess = await exec_update(sql, vals)
         if usuccess and (status == c.APPOINTMENT_STATUS_TEST_COMPLETED or status == c.APPOINTMENT_STATUS_VIAL_SCANNED):
@@ -419,7 +423,7 @@ async def __update_appointment_status(appointment_id: int, status: str, vial_id:
     return usuccess
 
 
-def __map_row_to_appointment(row: dict):
+def __map_row_to_appointment(row: dict) -> GgtAppointment:
     try:
         l = GgtLocation()
         l.id = row['location_id']
