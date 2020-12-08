@@ -45,7 +45,7 @@ def printer_queue_check(printer_id, printer_token):
 '''
 
 
-@cached(ttl=3600)
+@cached(ttl=600)
 async def provider_get_workstations():
     return x_response(
         await bp_provider_get_workstations()
