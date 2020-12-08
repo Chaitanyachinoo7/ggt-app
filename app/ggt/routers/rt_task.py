@@ -20,6 +20,8 @@ from ggt.lib.constants import (
 )
 from ggt.tasks.archive_notifications import archive_processed_notifications
 from ggt.tasks.mass_sms_notifications import notify_patients
+from ggt.tasks.outbound_external_lab_reports import list_ftp_files, \
+    task_process_outbound_lab_reports, delete_ftp_files
 from ggt.tasks.reminder_sms import (
     task_process_daily_sms_reminders,
     task_process_daily_email_reminders
@@ -151,3 +153,24 @@ async def reminder_sms():
 async def api_get_my_ip():
     r = requests.get('http://curlmyip.org/')
     return {"my_ip": r.text}
+
+
+@router.post("/export_external_outbound_reports", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_export_external_outbound_reports(background_tasks: BackgroundTasks):
+    background_tasks.add_task(task_process_outbound_lab_reports)
+    return {
+        STATUS: SUCCESS,
+        DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
+    }
+
+
+@router.post("/list_ftp_files", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_list_ftp_files():
+    x = await list_ftp_files()
+    return {"response": x}
+
+
+# @router.post("/delete_ftp_files", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+# async def api_delete_ftp_files():
+#     x = await delete_ftp_files()
+#     return {"response": x}
