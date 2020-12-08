@@ -22,18 +22,6 @@ connection_config_dict = {
     'pool_size': 5
 }
 
-ro_connection_config_dict = {
-    'user': get_config_val('databases.mysql.username'),
-    'password': get_config_val('databases.mysql.password'),
-    'host': get_config_val('databases.mysql.host'),
-    'database': get_config_val('databases.mysql.db'),
-    'raise_on_warnings': True,
-    'use_pure': False,
-    'autocommit': True,
-    'pool_name': 'mypool',
-    'pool_size': 5
-}
-
 
 def __append_to_sql_log(log_type, sql_type, statement, details=""):
     return
@@ -185,7 +173,7 @@ def exec_delete(sql, val=()):
             __cnx.close()
 
 
-def read_row(sql, val):
+def read_row(sql, vals):
     log_generic(
         type=c.INFO,
         sql=sql,
@@ -291,8 +279,9 @@ def exec_sp(stored_procedure: str):
         if (__cnx.is_connected()):
             __cursor.close()
             __cnx.close()
-    
+
     return False
+
 
 '''
 except mysql.connector.Error as err:
