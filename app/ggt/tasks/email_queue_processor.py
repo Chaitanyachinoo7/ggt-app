@@ -33,7 +33,7 @@ async def task_process_email_queue():
         html_content = row['html_content']
 
         if status == 'retry':
-            if await send_email(from_email, from_name, to_email, subject, html_content):
+            if send_email(from_email, from_name, to_email, subject, html_content):
                 await update_email_status_to_processed(_id)
             else:
                 await update_email_status_to_error(_id)
