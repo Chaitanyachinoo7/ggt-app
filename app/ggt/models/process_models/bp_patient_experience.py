@@ -242,7 +242,7 @@ async def bp_finalize_booking(booking_req: GgtBooking):
             appointment.payment_url = await __inject_payment_flow(appointment)
         else:
             # payment not required, confirm the appointment and notify
-            await update_appointment_with_confirmed_scheduled(appointment.id)
+            await update_appointment_with_confirmed_scheduled(appointment)
             await __send_qrcode_sms(appointment)
             await __send_qrcode_email(appointment)
 

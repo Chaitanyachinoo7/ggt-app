@@ -3,8 +3,11 @@ import datetime
 import ujson
 import boto3
 
-
 import ggt.lib.constants as c
+
+from ggt.models.data_models.data_types import (
+    GgtAppointment
+)
 
 from ggt.lib.utils import (
     get_config_val,
@@ -33,7 +36,7 @@ from ggt.lib.sys_log import (write_syslog)
 
 async def bp_get_appointment_info(appointment_id, dob):
     try:
-        appointment = await get_appointment(appointment_id)
+        appointment: GgtAppointment = await get_appointment(appointment_id)
         if dob != 'allowdoboverride' and appointment.patient.dob.strftime("%Y%m%d") != dob:
             raise ValueError('Invalid Appointment and DOB')
 
@@ -66,33 +69,33 @@ async def bp_get_appointment_info(appointment_id, dob):
 
 async def bp_appointment_update(appointment_id: int, action: str, workstation_id: int, vial_id: str = None):
     try:
-        appointment = await get_appointment(appointment_id)
+        appointment: GgtAppointment = await get_appointment(appointment_id)
 
         if action == c.APPOINTMENT_ACTION_CHECK_IN:
-            await update_appointment_with_checkin(appointment_id)
+            await update_appointment_with_checkin(appointment)
 
         elif action == c.APPOINTMENT_ACTION_START_TEST:
-            await __appointment_begin_test(appointment_id, workstation_id)
+            await __appointment_begin_test(appointment, workstation_id)
 
         elif action == c.APPOINTMENT_ACTION_SCAN_VIAL:
-            await update_appointment_with_scan_vial(appointment_id, vial_id)
+            await update_appointment_with_scan_vial(appointment, vial_id)
 
         elif action == c.APPOINTMENT_ACTION_END_TEST:
-            await update_appointment_with_test_completed(appointment_id)
+            await update_appointment_with_test_completed(appointment)
             await __send_test_complete_sms(appointment)
 
         elif action == c.APPOINTMENT_ACTION_REPRINT:
-            await __appointment_reprint_label(appointment_id, workstation_id)
+            await __appointment_reprint_label(appointment, workstation_id)
 
         # TODO: This allows the start_test to be invoked twice (print the label twice). And every other action only to be invoked once.
         # essentially works by waiting to catch the appointment status update in the next round
         # Ideally, this should be handled at the printer label processor
-        if action != c.APPOINTMENT_ACTION_START_TEST or __is_pre_labeled(workstation_id):
-            appointment = await get_appointment(appointment_id)
+        if action != c.APPOINTMENT_ACTION_START_TEST or __is_pre_labeled(appointment, workstation_id):
+            appointment: GgtAppointment = await get_appointment(appointment_id)
 
         return {
             'appointment_id': appointment.id,
-            'next_action': __next_action(appointment, __is_pre_labeled(workstation_id)),
+            'next_action': __next_action(appointment, __is_pre_labeled(appointment, workstation_id)),
         }
 
     except Exception as err:
@@ -109,9 +112,8 @@ async def bp_appointment_update(appointment_id: int, action: str, workstation_id
 # [Protected] functions
 ########################################################################################################
 
-
-def __is_pre_labeled(workstation_id: int) -> bool:
-    return False if workstation_id < 100000 else True
+def __is_pre_labeled(appointment: GgtAppointment, workstation_id: int) -> bool:
+    return True if (appointment.location.test_type_offered == 'oral_fluid' or workstation_id > 10000) else False
 
 
 def __formatted_date_text(appointment):
@@ -180,10 +182,10 @@ async def __send_test_complete_sms(appointment):
     return await send_sms(appointment.patient.phone_number, message)
 
 
-async def __appointment_begin_test(appointment_id, workstation_id=1):
-    await update_appointment_with_test_start(appointment_id)
+async def __appointment_begin_test(appointment, workstation_id=1):
+    await update_appointment_with_test_start(appointment.id)
 
-    if __is_pre_labeled(workstation_id):
+    if __is_pre_labeled(appointment, workstation_id):
         return True
 
     return await __send_label_to_printer(appointment_id, workstation_id)
@@ -196,7 +198,7 @@ async def __appointment_reprint_label(appointment_id, workstation_id=1):
 # TODO: [GGT-86] Refactor, decouple integration code
 async def __send_label_to_printer(appointment_id, queue_id):
     try:
-        appointment = await get_appointment(appointment_id)
+        appointment: GgtAppointment = await get_appointment(appointment_id)
         date_text = appointment.scheduled_dt.strftime(
             "%a, %-d %b %Y @ %-I:%M %p")
         patient_name = "{}, {} {}".format(appointment.patient.last_name,

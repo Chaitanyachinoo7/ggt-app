@@ -21,7 +21,7 @@ from ggt.lib.adapters.sendgrid_adapter import (
 
 
 async def send_email(from_email, from_name, to_email, subject, html_content, text_content=""):
-    return await __send_email(from_email, from_name, to_email, subject, html_content, text_content)
+    return __send_email(from_email, from_name, to_email, subject, html_content, text_content)
 
 
 async def render_template(template, **kwargs):
