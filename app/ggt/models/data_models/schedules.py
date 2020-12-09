@@ -997,13 +997,15 @@ async def __get_available_locations_for_current_day_near_lat_lng(lat, lng, radiu
                 AND DATE(nd.first_date_available) = DATE(s.start_dt)
                 AND s.status = 'available'
                 AND s.location_id IN (SELECT 
-                                            m.location_id
-                                        FROM
-                                            group_codes_to_locations_mapping m
-                                                INNER JOIN
-                                            groups g ON (g.id = m.group_id)
-                                        WHERE
-                                            g.group_code = %s)
+                    m.location_id
+                FROM
+                    group_codes_to_locations_mapping m
+                        INNER JOIN
+                    groups g ON (g.id = m.group_id)
+                WHERE
+                    g.group_code = %s)
+            GROUP BY c.id, nd.location_id , pt.average_processing_time
+            ORDER BY distance
         """
         vals = (lat, lng, lat, lat, lng, lat, radius, group_code)
 
@@ -1028,7 +1030,7 @@ async def __get_available_locations_for_current_day_near_lat_lng(lat, lng, radiu
                 l.zip AS zip,
                 l.lat AS lat,
                 l.lng AS lng,
-                NULL AS distance,
+                '100' AS distance,
                 l.image_thumbnail,
                 l.billing_type,
                 l.collect_insurance_info,
@@ -1043,7 +1045,14 @@ async def __get_available_locations_for_current_day_near_lat_lng(lat, lng, radiu
                 '0' AS insurance_amount,
                 NOW() AS first_date_time_available,
                 '100' AS average_processing_time,
-                '10' AS slot_count
+                '0' AS slot_count,
+                l.accepts_bookings,
+                l.accepts_walkins,
+                l.operator,
+                l.phone_number,
+                l.website,
+                l.open_hours,
+                l.is_external
             FROM
                 locations l
             WHERE
@@ -1293,6 +1302,22 @@ def __map_row_to_dtl(row):
 
         if 'distance' in row:
             dtl.distance = row['distance']
+
+        if 'accepts_bookings' in row:
+            dtl.accepts_bookings = row['accepts_bookings']
+        if 'accepts_walkins' in row:
+            dtl.accepts_walkins = row['accepts_walkins']
+        if 'operator' in row:
+            dtl.operated_by = row['operator']
+        if 'phone_number' in row:
+            dtl.external_phone = row['phone_number']
+        if 'website' in row:
+            dtl.website = row['website']
+        if 'open_hours' in row:
+            dtl.open_hours = row['open_hours']
+        if 'is_external' in row:
+            dtl.is_external = row['is_external']
+
 
     except Exception as err:
         log_generic(
