@@ -16,7 +16,7 @@ writer_connection_config_dict = {
     'host': get_config_val('databases.mysql.host'),
     'database': get_config_val('databases.mysql.db'),
     'raise_on_warnings': True,
-    #'use_pure': False,
+    'use_pure': False,
     'autocommit': True,
     'pool_name': 'writerpool',
     'pool_size': 5
@@ -28,7 +28,7 @@ readonly_connection_config_dict = {
     'host': get_config_val('databases.mysql.read_replica_host'),
     'database': get_config_val('databases.mysql.db'),
     'raise_on_warnings': True,
-    #'use_pure': False,
+    'use_pure': False,
     'autocommit': True,
     'pool_name': 'readonlypool',
     'pool_size': 5
