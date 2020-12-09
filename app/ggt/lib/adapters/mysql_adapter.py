@@ -173,11 +173,11 @@ def exec_delete(sql, val=()):
             __cnx.close()
 
 
-def read_row(sql, vals):
+def read_row(sql, val):
     log_generic(
         type=c.INFO,
         sql=sql,
-        vals=vals,
+        val=val,
         function=whoami()
     )
     try:
@@ -194,7 +194,7 @@ def read_row(sql, vals):
         log_generic(
             type=c.INFO,
             sql=sql,
-            vals=vals,
+            val=val,
             function=whoami(),
             executed=__cursor._executed
         )

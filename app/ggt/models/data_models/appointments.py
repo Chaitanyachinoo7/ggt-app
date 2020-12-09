@@ -14,7 +14,7 @@ from ggt.lib.db import (
     exec_delete
 )
 
-from ggt.lib.readonly_db import (
+from ggt.lib.db import (
     read_row,
     read_rows
 )

@@ -13,7 +13,7 @@ import ggt.lib.constants as c
 connection_config_dict = {
     'user': get_config_val('databases.mysql.username'),
     'password': get_config_val('databases.mysql.password'),
-    'host': '35.236.213.48',
+    'host': get_config_val('databases.mysql.host'),
     'database': get_config_val('databases.mysql.db'),
     'raise_on_warnings': True,
     'use_pure': False,
