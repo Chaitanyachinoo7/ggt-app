@@ -14,7 +14,7 @@ from ggt.lib.db import (
     exec_delete
 )
 
-from ggt.lib.readonly_db import (
+from ggt.lib.db import (
     read_row,
     read_rows
 )
@@ -393,8 +393,8 @@ async def __update_appointment_status(appointment: GgtAppointment, status: str, 
     usuccess = False
 
     #Check if a vial has already been assigned, if so, don't allow update to proceed
-    if appointment.vial_id and vial_id: 
-        return False
+    #if appointment.vial_id and vial_id: 
+    #    return False
 
     try:
         sql = """
