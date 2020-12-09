@@ -128,6 +128,13 @@ async def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: floa
                     'map_thumbnail': map_thumbnail,
                     'services_available': dtl.location.services_available,
                     'distance': dtl.distance,
+                    'external': dtl.is_external,
+                    'external_phone': dtl.external_phone,
+                    'operated_by': dtl.operated_by,
+                    'website': dtl.website,
+                    'accepts_bookings': dtl.accepts_bookings,
+                    'accepts_walkins': dtl.accepts_walkins,
+                    'open_hours': dtl.open_hours,
                     'label': location_text,
                     'value': dtl.location.id
                 }

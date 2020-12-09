@@ -17,7 +17,9 @@ from ggt.lib.db import (
     exec_update,
     exec_delete,
     read_row,
-    read_rows
+    read_rows,
+    replica_read_row,
+    replica_read_rows
 )
 
 from ggt.lib.constants import (
@@ -35,7 +37,7 @@ from ggt.lib.constants import (
 async def get_all_printer_hubs():
     try:
         sql = "SELECT * FROM workstations"
-        return await read_rows(sql)
+        return await replica_read_rows(sql)
 
     except Exception as err:
         log_generic(
