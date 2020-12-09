@@ -9,12 +9,11 @@ import ggt.lib.constants as c
 from ggt.lib.db import (
     exec_insert,
     exec_update,
-    exec_delete
-)
-
-from ggt.lib.db import (
+    exec_delete,
     read_row,
-    read_rows
+    read_rows,
+    replica_read_row,
+    replica_read_rows
 )
 
 from ggt.models.data_models.data_types import (
@@ -75,7 +74,7 @@ async def get_signup_record(id):
             id = %s
         """
         vals = (id,)
-        return await read_row(sql, vals)
+        return await replica_read_row(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -98,7 +97,7 @@ async def get_signup_record_by_phone_otp(phone_number, otp):
             AND otp = %s
         """
         vals = (phone_number, otp)
-        row = await read_row(sql, vals)
+        row = await replica_read_row(sql, vals)
         if row:
             return row['token']
         return None
@@ -124,7 +123,7 @@ async def get_signup_record_by_token(token):
             token = %s
         """
         vals = (token,)
-        return await read_row(sql, vals)
+        return await replica_read_row(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -171,10 +170,9 @@ async def get_group_info(group_code: str) -> GgtThirdPartyGroup:
             LIMIT 1
         """
         vals = (group_code,)
-        rows = await read_row(sql, vals) #TODO: Why doesn't read_row work?
 
         group_info = __map_row_to_group(
-            rows[0]
+            await replica_read_row(sql, vals) 
         )
 
     except Exception as err:

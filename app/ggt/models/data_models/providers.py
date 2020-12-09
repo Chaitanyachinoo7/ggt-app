@@ -11,7 +11,9 @@ from ggt.lib.db import (
     exec_update,
     exec_delete,
     read_row,
-    read_rows
+    read_rows,
+    replica_read_row,
+    replica_read_rows
 )
 
 from ggt.models.data_models.data_types import (
@@ -128,7 +130,6 @@ async def get_provider_processing_list(offset, consultation_status, consultation
             t.status AS test_status,
 	        l.id AS location_id,
             l.site_code AS site_code,
-            l.account AS account,
             l.addr1 AS loc_addr1,
             l.addr2 AS loc_addr2,
             l.city AS loc_city,
@@ -178,7 +179,7 @@ async def get_provider_processing_list(offset, consultation_status, consultation
     ORDER BY t.create_dt ASC 
     LIMIT {} OFFSET {};
 """.format(where_conditions, limit, offset)
-        rows = await read_rows(sql)
+        rows = await replica_read_rows(sql)
         return process_consultations(rows)
 
     except Exception as err:

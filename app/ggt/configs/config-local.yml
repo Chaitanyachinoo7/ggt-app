@@ -49,9 +49,10 @@ gcp:
 
 databases:
   mysql:
-    host: 34.66.63.242
-    username: root
-    password: gvMBO96Ohbq3mwFp
+    host: ggt-dev-db.cluster-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+    read_replica_host: ggt-dev-db.cluster-ro-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+    username: admin
+    password: hWMgl5Tfkqn30saQNp9M
     db: ggt_prod
 
   sqlite:

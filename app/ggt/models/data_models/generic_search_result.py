@@ -20,7 +20,9 @@ from ggt.lib.db import (
     exec_update,
     exec_delete,
     read_row,
-    read_rows
+    read_rows,
+    replica_read_row,
+    replica_read_rows
 )
 
 
@@ -327,7 +329,7 @@ async def find_patients(first_name='', middle_name='', last_name='', dob='', pho
         order by {} {}
         LIMIT {}
         """.format(where_conditions, sort_field, sort_type, limit)
-        rows = await read_rows(sql)
+        rows = await replica_read_rows(sql)
         return process_consultations(rows)
 
     except Exception as err:
