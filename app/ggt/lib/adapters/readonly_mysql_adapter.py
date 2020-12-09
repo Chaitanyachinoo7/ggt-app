@@ -18,19 +18,7 @@ connection_config_dict = {
     'raise_on_warnings': True,
     'use_pure': False,
     'autocommit': True,
-    'pool_name': 'mypool',
-    'pool_size': 5
-}
-
-ro_connection_config_dict = {
-    'user': get_config_val('databases.mysql.username'),
-    'password': get_config_val('databases.mysql.password'),
-    'host': 'read-replica.gogettested.com',
-    'database': get_config_val('databases.mysql.db'),
-    'raise_on_warnings': True,
-    'use_pure': False,
-    'autocommit': True,
-    'pool_name': 'mypool',
+    'pool_name': 'readonlypool',
     'pool_size': 5
 }
 
@@ -185,15 +173,15 @@ def exec_delete(sql, val=()):
             __cnx.close()
 
 
-def read_row(sql, val):
+def read_row(sql, vals):
     log_generic(
         type=c.INFO,
         sql=sql,
-        val=val,
+        vals=vals,
         function=whoami()
     )
     try:
-        __cnx = mysql.connector.connect(**ro_connection_config_dict)
+        __cnx = mysql.connector.connect(**connection_config_dict)
         __cursor = __cnx.cursor(dictionary=True, buffered=True)
 
         __cursor.execute(sql, val)
@@ -206,7 +194,7 @@ def read_row(sql, val):
         log_generic(
             type=c.INFO,
             sql=sql,
-            val=val,
+            vals=vals,
             function=whoami(),
             executed=__cursor._executed
         )
@@ -236,7 +224,7 @@ def read_rows(sql, vals=None):
         function=whoami()
     )
     try:
-        __cnx = mysql.connector.connect(**ro_connection_config_dict)
+        __cnx = mysql.connector.connect(**connection_config_dict)
         __cursor = __cnx.cursor(dictionary=True, buffered=True)
         if vals is None:
             __cursor.execute(sql)
@@ -294,13 +282,3 @@ def exec_sp(stored_procedure: str):
 
     return False
 
-
-'''
-except mysql.connector.Error as err:
-    __append_to_sql_log(
-        c.ERROR,
-        'SELECT',
-        __cursor._executed, err
-    )
-    return None
-'''
