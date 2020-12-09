@@ -183,7 +183,7 @@ async def __send_test_complete_sms(appointment):
 
 
 async def __appointment_begin_test(appointment, workstation_id=1):
-    await update_appointment_with_test_start(appointment.id)
+    await update_appointment_with_test_start(appointment)
 
     if __is_pre_labeled(appointment, workstation_id):
         return True
