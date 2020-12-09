@@ -582,8 +582,6 @@ class GgtScheduleSlot(BaseModel):
 class GgtLocation(BaseModel):
     id: int = None
     site_code: str = None
-    group_code: str = None
-    account: str = None
     name: str = None
     addr1: str = None
     addr2: str = None
@@ -604,6 +602,13 @@ class GgtLocation(BaseModel):
     collect_upfront_payment: bool = None
     image_thumbnail: str = None
     services_available: List[GgtServiceCatalogItem] = None
+    is_external: bool = None
+    external_phone: str = None
+    operated_by: str = None
+    accepts_walkins: bool = None
+    accepts_bookings: bool = None
+    website: str = None
+    open_hours: str = None
 
 
 class GgtDbLocation(BaseModel):

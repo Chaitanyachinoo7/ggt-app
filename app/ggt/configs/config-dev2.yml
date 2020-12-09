@@ -49,7 +49,8 @@ gcp:
 
 databases:
   mysql:
-    host: 35.184.98.83
+    host: 34.66.63.242
+    read_replica_host: 34.66.63.242
     username: root
     password: Jr6EEMI2aBNguL1K
     db: ggt_prod
