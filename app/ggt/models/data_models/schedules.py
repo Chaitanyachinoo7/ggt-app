@@ -1189,7 +1189,7 @@ def __map_rows_to_dtl_list(rows):
         log_generic(
             type=c.ERROR,
             function=whoami(),
-            rows=rows,
+            #rows=rows,
             error=err
         )
 
@@ -1206,7 +1206,6 @@ def __map_row_to_dtl(row):
     try:
         dtl = GgtDateTimeLocation()
         dtl.location.id = row['location_id']
-        dtl.location.account = row['account']
         dtl.location.name = row['name']
         dtl.location.addr1 = row['addr1']
         dtl.location.addr2 = row['addr2']
