@@ -72,7 +72,7 @@ def __append_to_sql_log(log_type, sql_type, statement, details=""):
         return None
 
     finally:
-        if (__cnx.is_connected()):
+        if __cnx.is_connected():
             __cursor.close()
             __cnx.close()
 
@@ -99,7 +99,7 @@ def exec_insert(sql, val):
         return None
 
     finally:
-        if (__cnx.is_connected()):
+        if __cnx.is_connected():
             __cursor.close()
             __cnx.close()
 
@@ -125,7 +125,7 @@ def exec_batch_execute(sql, data):
         return False
 
     finally:
-        if (__cnx.is_connected()):
+        if __cnx.is_connected():
             __cursor.close()
             __cnx.close()
 
@@ -150,7 +150,7 @@ def exec_update(sql, val=()):
         return None
 
     finally:
-        if (__cnx.is_connected()):
+        if __cnx.is_connected():
             __cursor.close()
             __cnx.close()
 
@@ -171,23 +171,25 @@ def exec_delete(sql, val=()):
         return True if __cursor.rowcount > 0 else False
 
     except mysql.connector.Error as err:
-        __append_to_sql_log(
-            c.ERROR,
-            'DELETE',
-            __cursor._executed,
-            err
+        log_generic(
+            type=c.ERROR,
+            sql=sql,
+            val=val,
+            function=whoami(),
+            error=err,
+            executed=__cursor._executed
         )
         return None
 
     finally:
-        if (__cnx.is_connected()):
+        if __cnx.is_connected():
             __cursor.close()
             __cnx.close()
 
 
 def read_row(sql, val):
     try:
-        __cnx = mysql.connector.connect(**connection_config_dict)
+        __cnx = mysql.connector.connect(**writer_connection_config_dict)
         __cursor = __cnx.cursor(dictionary=True, buffered=True)
 
         __cursor.execute(sql, val)
@@ -201,23 +203,25 @@ def read_row(sql, val):
         return __cursor.fetchone()
 
     except mysql.connector.Error as err:
-        __append_to_sql_log(
-            c.ERROR,
-            'SELECT',
-            __cursor._executed,
-            err
+        log_generic(
+            type=c.ERROR,
+            sql=sql,
+            val=val,
+            function=whoami(),
+            error=err,
+            executed=__cursor._executed
         )
         return None
 
     finally:
-        if (__cnx.is_connected()):
+        if __cnx and __cnx.is_connected():
             __cursor.close()
             __cnx.close()
 
 
 def read_rows(sql, vals=None):
     try:
-        __cnx = mysql.connector.connect(**connection_config_dict)
+        __cnx = mysql.connector.connect(**writer_connection_config_dict)
         __cursor = __cnx.cursor(dictionary=True, buffered=True)
         if vals is None:
             __cursor.execute(sql)
@@ -239,52 +243,52 @@ def read_rows(sql, vals=None):
         return None
 
     finally:
-        if (__cnx.is_connected()):
+        if __cnx.is_connected():
             __cursor.close()
             __cnx.close()
 
 
 def replica_read_row(sql, val):
     try:
-        __cnx = mysql.connector.connect(**readonly_connection_config_dict)
-        __cursor = __cnx.cursor(dictionary=True, buffered=True)
+        __cnx_ro = mysql.connector.connect(**readonly_connection_config_dict)
+        __cursor_ro = __cnx_ro.cursor(dictionary=True, buffered=True)
 
-        __cursor.execute(sql, val)
+        __cursor_ro.execute(sql, val)
         __append_to_sql_log(
             c.INFO,
             'SELECT',
-            __cursor.statement,
-            __cursor.rowcount
+            __cursor_ro.statement,
+            __cursor_ro.rowcount
         )
 
-        return __cursor.fetchone()
+        return __cursor_ro.fetchone()
 
     except mysql.connector.Error as err:
         __append_to_sql_log(
             c.ERROR,
             'SELECT',
-            __cursor._executed,
+            __cursor_ro._executed,
             err
         )
         return None
 
     finally:
-        if (__cnx.is_connected()):
-            __cursor.close()
-            __cnx.close()
+        if (__cnx_ro.is_connected()):
+            __cursor_ro.close()
+            __cnx_ro.close()
 
 
 def replica_read_rows(sql, vals=None):
     try:
-        __cnx = mysql.connector.connect(**readonly_connection_config_dict)
-        __cursor = __cnx.cursor(dictionary=True, buffered=True)
+        __cnx_ro = mysql.connector.connect(**readonly_connection_config_dict)
+        __cursor_ro = __cnx_ro.cursor(dictionary=True, buffered=True)
         if vals is None:
-            __cursor.execute(sql)
+            __cursor_ro.execute(sql)
         else:
-            __cursor.execute(sql, vals)
+            __cursor_ro.execute(sql, vals)
         #__append_to_sql_log(INFO, 'SELECT', __cursor.statement, __cursor.rowcount)
 
-        return __cursor.fetchall()
+        return __cursor_ro.fetchall()
 
     except mysql.connector.Error as err:
         log_generic(
@@ -293,14 +297,14 @@ def replica_read_rows(sql, vals=None):
             vals=vals,
             function=whoami(),
             error=err,
-            executed=__cursor._executed
+            executed=__cursor_ro._executed
         )
         return None
 
     finally:
-        if (__cnx.is_connected()):
-            __cursor.close()
-            __cnx.close()
+        if (__cnx_ro.is_connected()):
+            __cursor_ro.close()
+            __cnx_ro.close()
 
 
 def exec_sp(stored_procedure: str):
@@ -321,7 +325,7 @@ def exec_sp(stored_procedure: str):
         )
 
     finally:
-        if (__cnx.is_connected()):
+        if __cnx.is_connected():
             __cursor.close()
             __cnx.close()
 
