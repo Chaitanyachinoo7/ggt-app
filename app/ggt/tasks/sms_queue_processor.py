@@ -8,7 +8,11 @@ from ggt.lib.utils import (
 from ggt.lib.db import (
     exec_insert,
     exec_update,
-    read_rows
+    exec_delete,
+    read_row,
+    read_rows,
+    replica_read_row,
+    replica_read_rows
 )
 
 from ggt.lib.constants import (
@@ -35,7 +39,7 @@ async def task_process_sms_queue():
     sql = """
     SELECT * FROM sms_notification_queue where status IN ('pending','retry') ORDER BY ID DESC
     """
-    rows = await read_rows(sql)
+    rows = await replica_read_rows(sql)
     for row in rows:
         _id = row['id']
         status = row['status']

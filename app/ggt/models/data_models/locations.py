@@ -12,12 +12,11 @@ import ggt.lib.constants as c
 from ggt.lib.db import (
     exec_insert,
     exec_update,
-    exec_delete
-)
-
-from ggt.lib.db import (
+    exec_delete,
     read_row,
-    read_rows
+    read_rows,
+    replica_read_row,
+    replica_read_rows
 )
 
 from ggt.models.data_models.data_types import (
@@ -63,15 +62,14 @@ async def get_location_by_id(location_id):
             LIMIT 1
         """
         vals = (location_id,)
-        row = await read_row(sql, vals)
+        row = await replica_read_row(sql, vals)
         return __map_row_to_location(row)
-        
 
     except Exception as err:
         log_generic(
-            type=c.ERROR, 
-            location_id=location_id, 
-            function=whoami(), 
+            type=c.ERROR,
+            location_id=location_id,
+            function=whoami(),
             error=err
         )
         return None
@@ -96,15 +94,14 @@ async def get_services_available_for_location(location_id):
                 location_id = %s
         """
         vals = (location_id,)
-        rows = await read_rows(sql, vals)
+        rows = await replica_read_rows(sql, vals)
         return __map_rows_to_services_list(rows)
-        
 
     except Exception as err:
         log_generic(
-            type=c.ERROR, 
-            location_id=location_id, 
-            function=whoami(), 
+            type=c.ERROR,
+            location_id=location_id,
+            function=whoami(),
             error=err
         )
         return None
@@ -113,7 +110,7 @@ async def get_services_available_for_location(location_id):
 async def get_states():
     try:
         sql = "SELECT * FROM states WHERE active = 1;"
-        return await read_rows(sql)
+        return await replica_read_rows(sql)
 
     except Exception as err:
         log_generic(
@@ -127,58 +124,60 @@ async def get_states():
 async def get_all_locations_without_thumbnail():
     try:
         sql = """SELECT 
-    l.id,
-    l.site_code,
-    l.group_code,
-    l.account,
-    l.name,
-    l.addr1,
-    l.addr2,
-    l.addr3,
-    l.city,
-    l.st,
-    l.zip,
-    l.lat,
-    l.lng,
-    l.time_zone,
-    l.time_zone_offset,
-    l.test_type_offered,
-    l.status,
-    l.type,
-    l.billing_type,
-    l.collect_insurance_info,
-    l.allow_insurance_skip,
-    l.collect_upfront_payment,
-    l.test_covid19,
-    l.test_flu,
-    l.test_consult,
-    l.create_dt,
-    l.update_dt,
-    s.service_names,
-    gp.grpup_names
-FROM
-    locations l
-        LEFT JOIN
-    (SELECT 
-        sm.location_id,
-            GROUP_CONCAT(DISTINCT sc.service_name) AS service_names
-    FROM
-        services_to_locations_mapping sm
-    LEFT JOIN services_catalog sc ON sm.service_id = sc.id
-    GROUP BY sm.location_id) s ON l.id = s.location_id
-    LEFT JOIN (SELECT 
-    gm.location_id, GROUP_CONCAT(DISTINCT g.account) as grpup_names
-FROM
-    group_codes_to_locations_mapping gm
-        LEFT JOIN
-    groups g ON gm.group_id = g.id
-    group by gm.location_id) gp on l.id = gp.location_id"""
-        return await read_rows(sql)
+                    l.id,
+                    l.site_code,
+                    l.name,
+                    l.addr1,
+                    l.addr2,
+                    l.addr3,
+                    l.city,
+                    l.st,
+                    l.zip,
+                    l.lat,
+                    l.lng,
+                    l.time_zone,
+                    l.time_zone_offset,
+                    l.test_type_offered,
+                    l.status,
+                    l.type,
+                    l.billing_type,
+                    l.collect_insurance_info,
+                    l.allow_insurance_skip,
+                    l.collect_upfront_payment,
+                    l.accepts_bookings,
+                    l.accepts_walkins,
+                    l.operator,
+                    l.website,
+                    l.open_hours,
+                    l.is_external,
+                    l.create_dt,
+                    l.update_dt,
+                    s.service_names,
+                    gp.grpup_names
+                FROM
+                    locations l
+                        LEFT JOIN
+                    (SELECT 
+                        sm.location_id,
+                            GROUP_CONCAT(DISTINCT sc.service_name) AS service_names
+                    FROM
+                        services_to_locations_mapping sm
+                    LEFT JOIN services_catalog sc ON sm.service_id = sc.id
+                    GROUP BY sm.location_id) s ON l.id = s.location_id
+                    LEFT JOIN (SELECT 
+                    gm.location_id, GROUP_CONCAT(DISTINCT g.account) as grpup_names
+                FROM
+                    group_codes_to_locations_mapping gm
+                        LEFT JOIN
+                    groups g ON gm.group_id = g.id
+                    group by gm.location_id) gp on l.id = gp.location_id
+            """
+        return await replica_read_rows(sql)
 
     except Exception as err:
         log_generic(
-            type=c.ERROR, 
-            function=whoami(), 
+            type=c.ERROR,
+            function=whoami(),
             error=err
         )
         return None
@@ -187,7 +186,7 @@ FROM
 async def get_all_locations():
     try:
         sql = "SELECT * FROM locations"
-        return await read_rows(sql)
+        return await replica_read_rows(sql)
 
     except Exception as err:
         log_generic(
@@ -200,79 +199,83 @@ async def get_all_locations():
 
 async def search_locations(account, group_code, site_code, location_name, id=None):
     try:
-        where_conditions = '' 
+        where_conditions = ''
         if account != '':
-            where_conditions = "{} AND g.account LIKE '%{}%'".format(where_conditions, account)
+            where_conditions = "{} AND g.account LIKE '%{}%'".format(
+                where_conditions, account)
         if group_code != '':
-            where_conditions = "{} AND gp.group_codes LIKE '%{}%'".format(where_conditions, group_code)
+            where_conditions = "{} AND gp.group_codes LIKE '%{}%'".format(
+                where_conditions, group_code)
         if site_code != '':
-            where_conditions = "{} AND l.site_code LIKE '%{}%'".format(where_conditions, site_code)
+            where_conditions = "{} AND l.site_code LIKE '%{}%'".format(
+                where_conditions, site_code)
         if location_name != '':
-            where_conditions = "{} AND l.name LIKE '%{}%'".format(where_conditions, location_name)
+            where_conditions = "{} AND l.name LIKE '%{}%'".format(
+                where_conditions, location_name)
         if id:
             where_conditions = "{} AND l.id = {}".format(where_conditions, id)
 
         limit = 500
 
         sql = """ SELECT DISTINCT
-        l.name AS location_name,
-    l.id AS location_id,
-    l.site_code,
-    l.addr1,
-    l.addr2,
-    l.addr3,
-    l.city,
-    l.st,
-    l.zip,
-    l.lat,
-    l.lng,
-    l.time_zone,
-    l.time_zone_offset,
-    l.test_type_offered,
-    l.status,
-    l.billing_type,
-    l.collect_insurance_info,
-    l.allow_insurance_skip,
-    l.collect_upfront_payment,
-    l.type,
-    s.service_names,
-    gp.group_accounts,
-    gp.group_codes,
-    s.service_ids,
-    gp.group_ids
-FROM
-    locations l
-        LEFT JOIN
-    (SELECT 
-        sm.location_id,
-            GROUP_CONCAT(DISTINCT sc.service_name) AS service_names,
-            GROUP_CONCAT(DISTINCT sc.id) AS service_ids
-    FROM
-        services_to_locations_mapping sm
-    LEFT JOIN services_catalog sc ON sm.service_id = sc.id
-    GROUP BY sm.location_id) s ON l.id = s.location_id
-        LEFT JOIN
-    (SELECT 
-        gm.location_id,
-            GROUP_CONCAT(DISTINCT g.id) AS group_ids,
-            GROUP_CONCAT(DISTINCT g.account) AS group_accounts,
-            GROUP_CONCAT(DISTINCT g.group_code) AS group_codes
-    FROM
-        group_codes_to_locations_mapping gm
-    LEFT JOIN groups g ON gm.group_id = g.id
-    GROUP BY gm.location_id) gp ON l.id = gp.location_id
-        WHERE 1=1
-            {}
-        ORDER BY l.id DESC
-        LIMIT {}
+                    l.name AS location_name,
+                    l.id AS location_id,
+                    l.site_code,
+                    l.addr1,
+                    l.addr2,
+                    l.addr3,
+                    l.city,
+                    l.st,
+                    l.zip,
+                    l.lat,
+                    l.lng,
+                    l.time_zone,
+                    l.time_zone_offset,
+                    l.test_type_offered,
+                    l.status,
+                    l.billing_type,
+                    l.collect_insurance_info,
+                    l.allow_insurance_skip,
+                    l.collect_upfront_payment,
+                    l.type,
+                    s.service_names,
+                    gp.group_accounts,
+                    gp.group_codes,
+                    s.service_ids,
+                    gp.group_ids
+                FROM
+                    locations l
+                        LEFT JOIN
+                    (SELECT 
+                        sm.location_id,
+                            GROUP_CONCAT(DISTINCT sc.service_name) AS service_names,
+                            GROUP_CONCAT(DISTINCT sc.id) AS service_ids
+                    FROM
+                        services_to_locations_mapping sm
+                    LEFT JOIN services_catalog sc ON sm.service_id = sc.id
+                    GROUP BY sm.location_id) s ON l.id = s.location_id
+                        LEFT JOIN
+                    (SELECT 
+                        gm.location_id,
+                            GROUP_CONCAT(DISTINCT g.id) AS group_ids,
+                            GROUP_CONCAT(DISTINCT g.account) AS group_accounts,
+                            GROUP_CONCAT(DISTINCT g.group_code) AS group_codes
+                    FROM
+                        group_codes_to_locations_mapping gm
+                    LEFT JOIN groups g ON gm.group_id = g.id
+                    GROUP BY gm.location_id) gp ON l.id = gp.location_id
+                        WHERE 1=1
+                            {}
+                        ORDER BY l.id DESC
+                        LIMIT {}
         """.format(where_conditions, limit)
-        res = await read_rows(sql)
+        res = await replica_read_rows(sql)
         return __process_location_search(res)
 
     except Exception as err:
         log_generic(
-            type=c.ERROR, 
-            function=whoami(), 
+            type=c.ERROR,
+            function=whoami(),
             error=err
         )
         return None
@@ -334,7 +337,8 @@ async def create_location(location):
         s_id = 2000 + int(location_id)
 
         site_code = 'GGT{}{}'.format(location.st, str(s_id))
-        geo = get_gps_coordinates(location.addr1, location.city, location.st, location.zip, location.addr2)
+        geo = get_gps_coordinates(
+            location.addr1, location.city, location.st, location.zip, location.addr2)
 
         sql_2 = """UPDATE locations
                 SET 
@@ -621,12 +625,11 @@ def __map_row_to_location(row):
         loc.allow_insurance_skip = row['allow_insurance_skip']
         loc.collect_upfront_payment = row['collect_upfront_payment']
         loc.image_thumbnail = row['image_thumbnail']
-        
 
     except Exception as err:
         log_generic(
-            type=c.ERROR, 
-            function=whoami(), 
+            type=c.ERROR,
+            function=whoami(),
             error=err
         )
         return None

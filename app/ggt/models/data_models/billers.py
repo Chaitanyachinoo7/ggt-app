@@ -1,7 +1,15 @@
 from ggt.lib.db import (
+    exec_insert,
+    exec_update,
+    exec_delete,
+    read_row,
     read_rows,
-    exec_update, exec_insert)
+    replica_read_row,
+    replica_read_rows
+)
+
 import ggt.lib.constants as c
+
 from ggt.lib.utils import (
     log_generic,
     whoami
@@ -135,7 +143,6 @@ async def get_billing_list(offset, status=None, from_dt=None, to_dt=None,
     t.post_test_billed_status AS post_test_billed_status,
     l.id AS location_id,
     l.site_code AS site_code,
-    l.account AS account,
     l.addr1 AS loc_addr1,
     l.addr2 AS loc_addr2,
     l.city AS loc_city,
@@ -247,7 +254,7 @@ FROM
         ORDER BY register_dt {}
         LIMIT {}  offset {};
         """.format(where_conditions, sort, limit, offset)
-        rows = await read_rows(sql)
+        rows = await replica_read_rows(sql)
         return __process_billing_response(rows)
 
     except Exception as err:
