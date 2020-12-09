@@ -6,7 +6,11 @@ env: DEV
 
 server:
   host: 0.0.0.0
+<<<<<<< HEAD
   port: 5000
+=======
+  port: 8080
+>>>>>>> dev2
 
 origins: 
   - https://gogettested.com
