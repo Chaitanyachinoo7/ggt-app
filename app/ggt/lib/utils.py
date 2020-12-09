@@ -98,9 +98,11 @@ def log_generic(**kwargs):
             logging.warning(pformat(kwargs))
         elif kwargs['type'] == c.INFO in kwargs:
             kwargs['.'] = 'ℹ️'
-            logging.info(pformat(kwargs))
+            #logging.info(pformat(kwargs))
+            print(pformat(kwargs))
         else:
-            logging.debug(pformat(kwargs))
+            #logging.debug(pformat(kwargs))
+            print(pformat(kwargs))
     
     else:
         logging.warning('Empty log value')

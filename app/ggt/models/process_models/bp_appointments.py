@@ -183,16 +183,16 @@ async def __send_test_complete_sms(appointment):
 
 
 async def __appointment_begin_test(appointment, workstation_id=1):
-    await update_appointment_with_test_start(appointment.id)
+    await update_appointment_with_test_start(appointment)
 
     if __is_pre_labeled(appointment, workstation_id):
         return True
 
-    return await __send_label_to_printer(appointment_id, workstation_id)
+    return await __send_label_to_printer(appointment.id, workstation_id)
 
 
-async def __appointment_reprint_label(appointment_id, workstation_id=1):
-    return await __send_label_to_printer(appointment_id, workstation_id)
+async def __appointment_reprint_label(appointment, workstation_id=1):
+    return await __send_label_to_printer(appointment.id, workstation_id)
 
 
 # TODO: [GGT-86] Refactor, decouple integration code

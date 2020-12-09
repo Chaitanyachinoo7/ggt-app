@@ -18,7 +18,7 @@ connection_config_dict = {
     'raise_on_warnings': True,
     'use_pure': False,
     'autocommit': True,
-    'pool_name': 'mypool',
+    'pool_name': 'readonlypool',
     'pool_size': 5
 }
 
@@ -173,11 +173,11 @@ def exec_delete(sql, val=()):
             __cnx.close()
 
 
-def read_row(sql, val):
+def read_row(sql, vals):
     log_generic(
         type=c.INFO,
         sql=sql,
-        val=val,
+        vals=vals,
         function=whoami()
     )
     try:
@@ -194,7 +194,7 @@ def read_row(sql, val):
         log_generic(
             type=c.INFO,
             sql=sql,
-            val=val,
+            vals=vals,
             function=whoami(),
             executed=__cursor._executed
         )
@@ -282,13 +282,3 @@ def exec_sp(stored_procedure: str):
 
     return False
 
-
-'''
-except mysql.connector.Error as err:
-    __append_to_sql_log(
-        c.ERROR,
-        'SELECT',
-        __cursor._executed, err
-    )
-    return None
-'''
