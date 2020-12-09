@@ -25,8 +25,8 @@ async def exec_delete(sql, val=()):
     return __exec_delete(sql, val)
 
 
-async def read_row(sql, val):
-    return __read_row(sql, val)
+async def read_row(sql, vals=()):
+    return __read_row(sql, vals)
 
 
 async def read_rows(sql, vals=None):

@@ -11,7 +11,10 @@ from ggt.lib.utils import (
 from ggt.lib.db import (
     exec_insert,
     exec_update,
-    exec_delete,
+    exec_delete
+)
+
+from ggt.lib.db import (
     read_row,
     read_rows
 )

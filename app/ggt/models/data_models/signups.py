@@ -9,7 +9,10 @@ import ggt.lib.constants as c
 from ggt.lib.db import (
     exec_insert,
     exec_update,
-    exec_delete,
+    exec_delete
+)
+
+from ggt.lib.db import (
     read_row,
     read_rows
 )
@@ -160,16 +163,18 @@ async def get_group_info(group_code: str) -> GgtThirdPartyGroup:
     group_info: GgtThirdPartyGroup = None
     try:
         sql = """
-        SELECT * 
-        FROM 
-            groups 
-        WHERE 
-            group_code = %s 
-        LIMIT 1
+            SELECT * 
+            FROM 
+                groups 
+            WHERE 
+                group_code = %s 
+            LIMIT 1
         """
         vals = (group_code,)
+        rows = await read_row(sql, vals) #TODO: Why doesn't read_row work?
+
         group_info = __map_row_to_group(
-            await read_row(sql, vals)
+            rows[0]
         )
 
     except Exception as err:
