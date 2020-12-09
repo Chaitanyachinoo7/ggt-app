@@ -49,8 +49,8 @@ gcp:
 
 databases:
   mysql:
-    host: 34.66.63.242
-    read_replica_host: 34.66.63.242
+    host: prod-ggt-aurora.cluster-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+    read_replica_host: prod-ggt-aurora.cluster-ro-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
     username: admin
     password: hWMgl5Tfkqn30saQNp9M
     db: ggt_prod
