@@ -171,10 +171,9 @@ async def get_group_info(group_code: str) -> GgtThirdPartyGroup:
             LIMIT 1
         """
         vals = (group_code,)
-        rows = await read_row(sql, vals) #TODO: Why doesn't read_row work?
 
         group_info = __map_row_to_group(
-            rows[0]
+            await read_row(sql, vals) 
         )
 
     except Exception as err:
