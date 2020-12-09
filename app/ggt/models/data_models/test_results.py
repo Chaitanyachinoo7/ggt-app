@@ -17,7 +17,9 @@ from ggt.lib.db import (
     exec_update,
     exec_delete,
     read_row,
-    read_rows
+    read_rows,
+    replica_read_row,
+    replica_read_rows
 )
 
 
@@ -33,7 +35,7 @@ async def get_test_result(id):
                 LIMIT 1
             """
         vals = (id,)
-        return await read_row(sql, vals)
+        return await replica_read_row(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -55,7 +57,7 @@ async def get_test_result_by_token(token):
                 LIMIT 1
             """
         vals = (token,)
-        return await read_row(sql, vals)
+        return await replica_read_row(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -77,7 +79,7 @@ async def get_test_details(test_id):
                 LIMIT 1
             """
         vals = (test_id,)
-        return await read_row(sql, vals)
+        return await replica_read_row(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -126,7 +128,7 @@ async def search_details_by_name_and_dob(last_name, dob):
                 ORDER BY t.test_id DESC
             """
         vals = ('%'+last_name+'%', dob)
-        return await read_rows(sql, vals)
+        return await replica_read_rows(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -163,7 +165,7 @@ async def get_all_test_results():
                 INNER JOIN test_samples ts
                     ON pat.id = ts.patient_id
             """
-        return await read_rows(sql, )
+        return await replica_read_rows(sql, )
 
     except Exception as err:
         log_generic(

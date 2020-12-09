@@ -2,8 +2,14 @@ from datetime import datetime, timedelta
 
 import ggt.lib.constants as c
 from ggt.lib.db import (
+    exec_insert,
+    exec_update,
+    exec_delete,
+    read_row,
     read_rows,
-    exec_batch_execute)
+    replica_read_row,
+    replica_read_rows
+)
 from ggt.lib.email import render_template
 from ggt.lib.utils import (
     log_generic,
@@ -265,5 +271,5 @@ FROM
     locations l
             WHERE a.scheduled_dt >= '{}' AND a.scheduled_dt <= '{}' AND a.location_id = {} 
             AND l.id = {};""".format(start_dt, end_dt, location_id, next_location_id)
-    return await read_rows(sql)
+    return await replica_read_rows(sql)
 
