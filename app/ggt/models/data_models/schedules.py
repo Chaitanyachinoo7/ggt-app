@@ -15,7 +15,8 @@ from ggt.lib.db import (
     exec_delete,
     read_row,
     read_rows,
-    exec_batch_execute
+    replica_read_row,
+    replica_read_rows
 )
 
 from ggt.models.data_models.data_types import (
@@ -317,7 +318,7 @@ async def get_available_dates(group_code):
         ORDER BY DATE(start_dt)
         """
         vals = (group_code,)
-        return await read_rows(sql, vals)
+        return await replica_read_rows(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -365,7 +366,7 @@ async def get_processing_averages_by_location():
             GROUP BY dtrwl.location_id
         """
         # ORDER BY l.city
-        return await read_rows(sql)
+        return await replica_read_rows(sql)
 
     except Exception as err:
         log_generic(
@@ -402,7 +403,7 @@ async def get_available_times(location_id, date):
             date=date,
             info='looking_up_available_times'
         )
-        return await read_rows(sql, vals)
+        return await replica_read_rows(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -431,7 +432,7 @@ async def get_slot_information(slot_id):
         """
         vals = (slot_id,)
 
-        row = await read_row(sql, vals)
+        row = await replica_read_row(sql, vals)
         slot = GgtScheduleSlot()
         slot.id = row['id']
         slot.location_id = row['location_id']
@@ -529,7 +530,7 @@ async def get_slots_matching_dt_list(dt_list, location_id):
 
         vals = tuple(dt_list)
 
-        rows = await read_rows(sql, vals)
+        rows = await replica_read_rows(sql, vals)
         if rows:
             for row in rows:
                 slot = GgtScheduleSlot()
@@ -560,7 +561,6 @@ async def __get_available_locations_beyond_current_day(date_str, group_code):
         sql1 = """
             SELECT 
                 nd.location_id,
-                l.account AS account,
                 l.name AS name,
                 l.addr1 AS addr1,
                 l.addr2 AS addr2,
@@ -617,7 +617,6 @@ async def __get_available_locations_beyond_current_day(date_str, group_code):
         sql2 = """
             SELECT 
                 nd.location_id,
-                l.account AS account,
                 l.name AS name,
                 l.addr1 AS addr1,
                 l.addr2 AS addr2,
@@ -683,7 +682,7 @@ async def __get_available_locations_beyond_current_day(date_str, group_code):
 
         try:
             return __map_rows_to_dtl_list(
-                await read_rows(sql1, vals)
+                await replica_read_rows(sql1, vals)
             )
         except Exception as err:
             print('Query1 Failed. Using Query2')
@@ -695,7 +694,7 @@ async def __get_available_locations_beyond_current_day(date_str, group_code):
                 error=err
             )
             return __map_rows_to_dtl_list(
-                await read_rows(sql2, vals)
+                await replica_read_rows(sql2, vals)
             )
 
     except Exception as err:
@@ -714,7 +713,6 @@ async def __get_available_locations_for_current_day(group_code):
         sql1 = """
         SELECT 
             nd.location_id,
-            l.account AS account,
             l.name AS name,
             l.addr1 AS addr1,
             l.addr2 AS addr2,
@@ -771,7 +769,6 @@ async def __get_available_locations_for_current_day(group_code):
         sql2 = """
         SELECT 
             nd.location_id,
-            l.account AS account,
             l.name AS name,
             l.addr1 AS addr1,
             l.addr2 AS addr2,
@@ -833,7 +830,7 @@ async def __get_available_locations_for_current_day(group_code):
 
         try:
             return __map_rows_to_dtl_list(
-                await read_rows(sql1, vals)
+                await replica_read_rows(sql1, vals)
             )
         except Exception as err:
             print('Query1 Failed. Using Query2')
@@ -844,7 +841,7 @@ async def __get_available_locations_for_current_day(group_code):
                 error=err
             )
             return __map_rows_to_dtl_list(
-                await read_rows(sql2, vals)
+                await replica_read_rows(sql2, vals)
             )
 
     except Exception as err:
@@ -862,7 +859,6 @@ async def __get_available_locations_beyond_current_day_near_lat_lng(lat, lng, ra
         sql = """
             SELECT 
                 s.location_id,
-                l.account AS account,
                 l.name AS name,
                 l.addr1 AS addr1,
                 l.addr2 AS addr2,
@@ -946,7 +942,6 @@ async def __get_available_locations_for_current_day_near_lat_lng(lat, lng, radiu
         sql = """
             SELECT 
                 s.location_id,
-                l.account AS account,
                 l.name AS name,
                 l.addr1 AS addr1,
                 l.addr2 AS addr2,
@@ -1010,7 +1005,7 @@ async def __get_available_locations_for_current_day_near_lat_lng(lat, lng, radiu
         )
 
         return __map_rows_to_dtl_list(
-            await read_rows(sql, vals)
+            await replica_read_rows(sql, vals)
         )
 
     except Exception as err:
@@ -1029,7 +1024,6 @@ async def __get_all_available_dtl(group_code):
         sql1 = """
         SELECT 
             nd.location_id,
-            l.account AS account,
             l.name AS name,
             l.addr1 AS addr1,
             l.addr2 AS addr2,
@@ -1087,7 +1081,6 @@ async def __get_all_available_dtl(group_code):
         sql2 = """
         SELECT 
             nd.location_id,
-            l.account AS account,
             l.name AS name,
             l.addr1 AS addr1,
             l.addr2 AS addr2,
@@ -1146,7 +1139,7 @@ async def __get_all_available_dtl(group_code):
 
         try:
             return __map_rows_to_dtl_list(
-                await read_rows(sql2, vals)
+                await replica_read_rows(sql2, vals)
             )
         except Exception as err:
             print('Query1 Failed. Using Query2')
@@ -1157,7 +1150,7 @@ async def __get_all_available_dtl(group_code):
                 error=err
             )
             return __map_rows_to_dtl_list(
-                await read_rows(sql2, vals)
+                await replica_read_rows(sql2, vals)
             )
 
     except Exception as err:
@@ -1196,7 +1189,7 @@ def __map_rows_to_dtl_list(rows):
         log_generic(
             type=c.ERROR,
             function=whoami(),
-            rows=rows,
+            #rows=rows,
             error=err
         )
 
@@ -1213,7 +1206,6 @@ def __map_row_to_dtl(row):
     try:
         dtl = GgtDateTimeLocation()
         dtl.location.id = row['location_id']
-        dtl.location.account = row['account']
         dtl.location.name = row['name']
         dtl.location.addr1 = row['addr1']
         dtl.location.addr2 = row['addr2']

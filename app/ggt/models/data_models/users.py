@@ -17,7 +17,9 @@ from ggt.lib.db import (
     exec_update,
     exec_delete,
     read_row,
-    read_rows
+    read_rows,
+    replica_read_row,
+    replica_read_rows
 )
 
 
@@ -35,7 +37,7 @@ async def get_user_by_email(email):
             LIMIT 1
             """
         vals = (email,)
-        return await read_row(sql, vals)
+        return await replica_read_row(sql, vals)
 
     except Exception as err:
         log_generic(
