@@ -1004,9 +1004,20 @@ async def __get_available_locations_for_current_day_near_lat_lng(lat, lng, radiu
                                             groups g ON (g.id = m.group_id)
                                         WHERE
                                             g.group_code = %s)
+        """
+        vals = (lat, lng, lat, lat, lng, lat, radius, group_code)
 
-            UNION
+        '''
+        log_generic(
+            type=c.INFO,
+            function=whoami(),
+            group_code=group_code
+        )
+        '''
 
+        ggt_location_rows = await replica_read_rows(sql, vals)
+
+        sql = """
             SELECT 
                 l.id AS location_id,
                 l.name AS name,
@@ -1023,34 +1034,25 @@ async def __get_available_locations_for_current_day_near_lat_lng(lat, lng, radiu
                 l.collect_insurance_info,
                 l.allow_insurance_skip,
                 l.collect_upfront_payment,
-                NULL AS service_id,
-                NULL AS service_code,
-                NULL AS service_name,
-                NULL AS price,
-                NULL AS selfpay_amount,
-                NULL AS copay_amount,
-                NULL AS insurance_amount,
-                NULL AS first_date_time_available,
-                NULL AS slot_count
+                '1' AS service_id,
+                'COVID_19_TEST' AS service_code,
+                'Covid-19 Test' AS service_name,
+                '0' AS price,
+                '0' AS selfpay_amount,
+                '0' AS copay_amount,
+                '0' AS insurance_amount,
+                NOW() AS first_date_time_available,
+                '100' AS average_processing_time,
+                '10' AS slot_count
             FROM
                 locations l
             WHERE
                 l.is_external = 1 
-
-            
         """
-        vals = (lat, lng, lat, lat, lng, lat, radius, group_code)
-
-        '''
-        log_generic(
-            type=c.INFO,
-            function=whoami(),
-            group_code=group_code
-        )
-        '''
-
+        other_location_rows = await replica_read_rows(sql, )
+        
         return __map_rows_to_dtl_list(
-            await replica_read_rows(sql, vals)
+            ggt_location_rows + other_location_rows
         )
 
     except Exception as err:
