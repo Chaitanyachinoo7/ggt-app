@@ -263,17 +263,17 @@ run_tests()
 
 
 @router.post("/finalize_registration", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
-async def api_finalize_registration(finalize_registration_request: FinalizeRegistrationRequest):
+def api_finalize_registration(finalize_registration_request: FinalizeRegistrationRequest):
     return finalize_registration(finalize_registration_request)
 
 
 @router.post("/finalize_payment", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
-async def api_finalize_payment(finalize_payment_request: FinalizePaymentRequest):
+def api_finalize_payment(finalize_payment_request: FinalizePaymentRequest):
     return finalize_payment(finalize_payment_request)
 
 
 @router.post("/lookup_appointment", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
-async def api_lookup_appointment(req: LookupAppointmentRequest):
+def api_lookup_appointment(req: LookupAppointmentRequest):
     return lookup_appointment(
         req.appointment_id,
         req.dob
@@ -283,7 +283,7 @@ async def api_lookup_appointment(req: LookupAppointmentRequest):
 
 
 @router.post("/verify_existing_patient")
-async def api_verify_existing_patient(req: VerifyExistingPatientRequest):
+def api_verify_existing_patient(req: VerifyExistingPatientRequest):
     return verify_existing_patient(
         req.phone_number,
         req.dob
