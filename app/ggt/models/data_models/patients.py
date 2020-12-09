@@ -15,12 +15,11 @@ from ggt.lib.constants import (
 from ggt.lib.db import (
     exec_insert,
     exec_update,
-    exec_delete
-)
-
-from ggt.lib.db import (
+    exec_delete,
     read_row,
-    read_rows
+    read_rows,
+    replica_read_row,
+    replica_read_rows
 )
 
 from ggt.models.data_models.data_types import (
@@ -154,7 +153,7 @@ async def get_patient_by_token(token, expect_no_match=False):
             LIMIT 1
         """
         vals = (token,)
-        row = await read_row(sql, vals)
+        row = await replica_read_row(sql, vals)
 
         #When checking Table for duplicates, Null is the expected result
         if expect_no_match and row is None:

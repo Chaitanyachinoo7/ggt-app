@@ -7,9 +7,12 @@ from ggt.lib.utils import (
 
 from ggt.lib.db import (
     exec_insert,
-    exec_batch_execute,
     exec_update,
-    read_rows
+    exec_delete,
+    read_row,
+    read_rows,
+    replica_read_row,
+    replica_read_rows
 )
 
 from ggt.lib.email import render_template
@@ -132,7 +135,7 @@ async def schedule_notifications_using_sms():
         SELECT * FROM result_notification_campaigns
         WHERE overall_status = 'scheduled'
     """
-    rows = await read_rows(sql)
+    rows = await replica_read_rows(sql)
 
     # ---
     data = []
@@ -164,7 +167,7 @@ async def schedule_notifications_using_email():
             AND email_sent is NULL
         LIMIT 500
     """
-    rows = await read_rows(sql)
+    rows = await replica_read_rows(sql)
 
     data = []
     test_id_list = []
