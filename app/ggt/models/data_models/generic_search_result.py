@@ -269,7 +269,6 @@ async def find_patients(first_name='', middle_name='', last_name='', dob='', pho
             t.test_result AS test_result,
             t.consultation_status AS consultation_status,
             t.consultation_notes AS consultation_notes,
-            t.vial_id,
             t.status AS test_status,
             l.id AS location_id,
             l.site_code AS site_code,
