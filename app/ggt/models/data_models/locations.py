@@ -288,7 +288,6 @@ async def create_location(location):
                INSERT INTO locations
                (
                    site_code,
-                   group_code,
                    name,
                    addr1,
                    addr2,
@@ -313,7 +312,6 @@ async def create_location(location):
                """
         vals = (
             location.site_code,
-            location.group_code,
             location.name,
             location.addr1,
             location.addr2,
