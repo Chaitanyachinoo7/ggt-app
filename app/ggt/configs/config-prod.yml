@@ -1,5 +1,5 @@
 app_name: ggt-api
-app_version: 1.0
+app_version: 1.1
 log_level: INFO
 base_url: https://start.GoGetTested.com
 env: PROD
