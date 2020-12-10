@@ -22,7 +22,7 @@ from ggt.models.data_models.schedules import (
     update_schedule_generation_rule,
     delete_schedule_generation_rule,
     get_all_available_dtl,
-    update_schedule_generation_rules_start_dt,
+    trim_schedule_generation_rules_start_dt,
     get_slots_matching_dt_list
 )
 
@@ -53,12 +53,13 @@ async def bp_get_schedule_dates_available(group_code):
                     "value": date_str
                 }
             )
-
+            '''
             log_generic(
                 type=c.INFO,
                 available_dates=available_dates,
                 function=whoami()
             )
+            '''
 
         return {
             "available_dates": available_dates
@@ -335,7 +336,7 @@ async def bp_generate_full_schedule(location_id):
             hour=0, minute=0, second=0, microsecond=0)
 
         await delete_schedule_entries_by_location_id(location_id)
-        await update_schedule_generation_rules_start_dt(location_id, latest_schedule_dt)
+        await trim_schedule_generation_rules_start_dt(location_id, latest_schedule_dt)
         rules = await get_schedule_generation_rules_by_location_id(location_id)
 
         for rule in rules:
@@ -483,8 +484,10 @@ async def __process_schedule_rule(rule):
 
             schedule_date = schedule_date + timedelta(days=1)
 
-        rows = await __remove_reserved_slots(rows, location_id)
-        await add_schedule_entries(rows)
+        if rows:
+            rows = await __remove_reserved_slots(rows, location_id)
+        if rows:
+            await add_schedule_entries(rows)
         return True
 
     except Exception as err:

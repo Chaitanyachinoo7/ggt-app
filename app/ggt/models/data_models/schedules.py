@@ -232,7 +232,7 @@ async def delete_schedule_entries_by_location_id(location_id):
         return None
 
 
-async def update_schedule_generation_rules_start_dt(location_id, new_dt):
+async def trim_schedule_generation_rules_start_dt(location_id, new_dt):
     try:
         sql = """
         UPDATE schedule_generation_rules
@@ -997,47 +997,15 @@ async def __get_available_locations_for_current_day_near_lat_lng(lat, lng, radiu
                 AND DATE(nd.first_date_available) = DATE(s.start_dt)
                 AND s.status = 'available'
                 AND s.location_id IN (SELECT 
-                                            m.location_id
-                                        FROM
-                                            group_codes_to_locations_mapping m
-                                                INNER JOIN
-                                            groups g ON (g.id = m.group_id)
-                                        WHERE
-                                            g.group_code = %s)
-
-            UNION
-
-            SELECT 
-                l.id AS location_id,
-                l.name AS name,
-                l.addr1 AS addr1,
-                l.addr2 AS addr2,
-                l.city AS city,
-                l.st AS st,
-                l.zip AS zip,
-                l.lat AS lat,
-                l.lng AS lng,
-                NULL AS distance,
-                l.image_thumbnail,
-                l.billing_type,
-                l.collect_insurance_info,
-                l.allow_insurance_skip,
-                l.collect_upfront_payment,
-                NULL AS service_id,
-                NULL AS service_code,
-                NULL AS service_name,
-                NULL AS price,
-                NULL AS selfpay_amount,
-                NULL AS copay_amount,
-                NULL AS insurance_amount,
-                NULL AS first_date_time_available,
-                NULL AS slot_count
-            FROM
-                locations l
-            WHERE
-                l.is_external = 1 
-
-            
+                    m.location_id
+                FROM
+                    group_codes_to_locations_mapping m
+                        INNER JOIN
+                    groups g ON (g.id = m.group_id)
+                WHERE
+                    g.group_code = %s)
+            GROUP BY c.id, nd.location_id , pt.average_processing_time
+            ORDER BY distance
         """
         vals = (lat, lng, lat, lat, lng, lat, radius, group_code)
 
@@ -1049,8 +1017,51 @@ async def __get_available_locations_for_current_day_near_lat_lng(lat, lng, radiu
         )
         '''
 
+        ggt_location_rows = await replica_read_rows(sql, vals)
+
+        sql = """
+            SELECT 
+                l.id AS location_id,
+                l.name AS name,
+                l.addr1 AS addr1,
+                l.addr2 AS addr2,
+                l.city AS city,
+                l.st AS st,
+                l.zip AS zip,
+                l.lat AS lat,
+                l.lng AS lng,
+                '100' AS distance,
+                l.image_thumbnail,
+                l.billing_type,
+                l.collect_insurance_info,
+                l.allow_insurance_skip,
+                l.collect_upfront_payment,
+                '1' AS service_id,
+                'COVID_19_TEST' AS service_code,
+                'Covid-19 Test' AS service_name,
+                '0' AS price,
+                '0' AS selfpay_amount,
+                '0' AS copay_amount,
+                '0' AS insurance_amount,
+                NOW() AS first_date_time_available,
+                '100' AS average_processing_time,
+                '0' AS slot_count,
+                l.accepts_bookings,
+                l.accepts_walkins,
+                l.operator,
+                l.phone_number,
+                l.website,
+                l.open_hours,
+                l.is_external
+            FROM
+                locations l
+            WHERE
+                l.is_external = 1 
+        """
+        other_location_rows = await replica_read_rows(sql, )
+        
         return __map_rows_to_dtl_list(
-            await replica_read_rows(sql, vals)
+            ggt_location_rows + other_location_rows
         )
 
     except Exception as err:
@@ -1291,6 +1302,22 @@ def __map_row_to_dtl(row):
 
         if 'distance' in row:
             dtl.distance = row['distance']
+
+        if 'accepts_bookings' in row:
+            dtl.accepts_bookings = row['accepts_bookings']
+        if 'accepts_walkins' in row:
+            dtl.accepts_walkins = row['accepts_walkins']
+        if 'operator' in row:
+            dtl.operated_by = row['operator']
+        if 'phone_number' in row:
+            dtl.external_phone = row['phone_number']
+        if 'website' in row:
+            dtl.website = row['website']
+        if 'open_hours' in row:
+            dtl.open_hours = row['open_hours']
+        if 'is_external' in row:
+            dtl.is_external = row['is_external']
+
 
     except Exception as err:
         log_generic(
