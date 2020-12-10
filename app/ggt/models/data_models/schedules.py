@@ -979,7 +979,14 @@ async def __get_available_locations_for_current_day_near_lat_lng(lat, lng, radiu
                     WHEN (pt.average_processing_time IS NULL) THEN 48
                     ELSE pt.average_processing_time
                 END) AS average_processing_time,
-                COUNT(DISTINCT (s.start_dt)) AS slot_count
+                COUNT(DISTINCT (s.start_dt)) AS slot_count,
+                l.accepts_bookings,
+                l.accepts_walkins,
+                l.operator,
+                l.phone_number,
+                l.website,
+                l.open_hours,
+                l.is_external
             FROM
                 schedules s
                     JOIN
@@ -1016,52 +1023,8 @@ async def __get_available_locations_for_current_day_near_lat_lng(lat, lng, radiu
             group_code=group_code
         )
         '''
-
-        ggt_location_rows = await replica_read_rows(sql, vals)
-
-        sql = """
-            SELECT 
-                l.id AS location_id,
-                l.name AS name,
-                l.addr1 AS addr1,
-                l.addr2 AS addr2,
-                l.city AS city,
-                l.st AS st,
-                l.zip AS zip,
-                l.lat AS lat,
-                l.lng AS lng,
-                '100' AS distance,
-                l.image_thumbnail,
-                l.billing_type,
-                l.collect_insurance_info,
-                l.allow_insurance_skip,
-                l.collect_upfront_payment,
-                '1' AS service_id,
-                'COVID_19_TEST' AS service_code,
-                'Covid-19 Test' AS service_name,
-                '0' AS price,
-                '0' AS selfpay_amount,
-                '0' AS copay_amount,
-                '0' AS insurance_amount,
-                NOW() AS first_date_time_available,
-                '100' AS average_processing_time,
-                '0' AS slot_count,
-                l.accepts_bookings,
-                l.accepts_walkins,
-                l.operator,
-                l.phone_number,
-                l.website,
-                l.open_hours,
-                l.is_external
-            FROM
-                locations l
-            WHERE
-                l.is_external = 1 
-        """
-        other_location_rows = await replica_read_rows(sql, )
-        
         return __map_rows_to_dtl_list(
-            ggt_location_rows + other_location_rows
+            await replica_read_rows(sql, vals)
         )
 
     except Exception as err:
