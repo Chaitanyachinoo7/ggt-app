@@ -308,7 +308,7 @@ async def create_location(location):
                    collect_upfront_payment,
                    image_thumbnail 
                )
-               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                """
         vals = (
             location.site_code,
@@ -333,12 +333,14 @@ async def create_location(location):
             location.image_thumbnail
         )
         location_id = await exec_insert(sql, vals)
-        s_id = 2000 + int(location_id)
 
-        site_code = 'GGT{}{}'.format(location.st, str(s_id))
-        geo = get_gps_coordinates(
-            location.addr1, location.city, location.st, location.zip, location.addr2)
-
+        site_code = 'GGT{}{}'.format(location.st, location_id)
+        
+        #geo = get_gps_coordinates(
+        #    location.addr1, location.city, location.st, location.zip, location.addr2)
+        geo={}
+        geo['lat']=0
+        geo['lng']=0
         sql_2 = """UPDATE locations
                 SET 
                     site_code = %s,
