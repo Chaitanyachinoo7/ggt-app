@@ -232,7 +232,7 @@ async def delete_schedule_entries_by_location_id(location_id):
         return None
 
 
-async def update_schedule_generation_rules_start_dt(location_id, new_dt):
+async def trim_schedule_generation_rules_start_dt(location_id, new_dt):
     try:
         sql = """
         UPDATE schedule_generation_rules

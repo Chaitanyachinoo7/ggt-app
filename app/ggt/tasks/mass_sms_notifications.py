@@ -7,6 +7,7 @@ from ggt.lib.db import (
     exec_delete,
     read_row,
     read_rows,
+    exec_batch_execute,
     replica_read_row,
     replica_read_rows
 )
@@ -94,8 +95,10 @@ async def get_reschedule_sms_body(data):
     try:
 
         scheduled_dt = str(data['scheduled_dt'])
-        test_date = datetime.strptime(scheduled_dt[0:10], "%Y-%m-%d").strftime('%A %d %B %Y')
-        test_time = datetime.strptime(str(scheduled_dt[11: len(scheduled_dt)]), "%H:%M:%S").strftime("%I:%M %p")
+        test_date = datetime.strptime(
+            scheduled_dt[0:10], "%Y-%m-%d").strftime('%A %d %B %Y')
+        test_time = datetime.strptime(
+            str(scheduled_dt[11: len(scheduled_dt)]), "%H:%M:%S").strftime("%I:%M %p")
         template_vars = {
             "first_name": data['first_name'],
             "test_number": data['appointment_id'],
@@ -105,8 +108,8 @@ async def get_reschedule_sms_body(data):
             "test_date": test_date,
             "test_time": test_time,
             "test_location_address": "{}, {}, {}".format(data['new_addr1'] if data['new_addr1'] else '',
-                                                          data['new_addr2'] if data['new_addr2'] else '',
-                                                          data['new_addr3'] if data['new_addr3'] else '')
+                                                         data['new_addr2'] if data['new_addr2'] else '',
+                                                         data['new_addr3'] if data['new_addr3'] else '')
         }
 
         message = "Hi {}, \nwe’ve had to close the testing location where you have registered for your " \
@@ -133,8 +136,10 @@ async def get_relocate_sms_body(data):
     try:
 
         scheduled_dt = str(data['scheduled_dt'])
-        test_date = datetime.strptime(scheduled_dt[0:10], "%Y-%m-%d").strftime('%A %d %B %Y')
-        test_time = datetime.strptime(str(scheduled_dt[11: len(scheduled_dt)]), "%H:%M:%S").strftime("%I:%M %p")
+        test_date = datetime.strptime(
+            scheduled_dt[0:10], "%Y-%m-%d").strftime('%A %d %B %Y')
+        test_time = datetime.strptime(
+            str(scheduled_dt[11: len(scheduled_dt)]), "%H:%M:%S").strftime("%I:%M %p")
         template_vars = {
             "first_name": data['first_name'],
             "test_number": data['appointment_id'],
@@ -144,8 +149,8 @@ async def get_relocate_sms_body(data):
             "test_date": test_date,
             "test_time": test_time,
             "test_location_address": "{}, {}, {}".format(data['new_addr1'] if data['new_addr1'] else '',
-                                                          data['new_addr2'] if data['new_addr2'] else '',
-                                                          data['new_addr3'] if data['new_addr3'] else '')
+                                                         data['new_addr2'] if data['new_addr2'] else '',
+                                                         data['new_addr3'] if data['new_addr3'] else '')
         }
 
         message = "Hi {}, we’ve had to change your testing location to {}. If you’re unable to make your " \
@@ -159,7 +164,6 @@ async def get_relocate_sms_body(data):
             'message': message
         }
         return formatted
-        
 
     except Exception as err:
         log_generic(
@@ -174,8 +178,10 @@ async def get_reschedule_email_body(data):
     try:
 
         scheduled_dt = str(data['scheduled_dt'])
-        test_date = datetime.strptime(scheduled_dt[0:10], "%Y-%m-%d").strftime('%A %d %B %Y')
-        test_time = datetime.strptime(str(scheduled_dt[11: len(scheduled_dt)]), "%H:%M:%S").strftime("%I:%M %p")
+        test_date = datetime.strptime(
+            scheduled_dt[0:10], "%Y-%m-%d").strftime('%A %d %B %Y')
+        test_time = datetime.strptime(
+            str(scheduled_dt[11: len(scheduled_dt)]), "%H:%M:%S").strftime("%I:%M %p")
         template_vars = {
             "first_name": data['first_name'],
             "test_number": data['appointment_id'],
@@ -211,8 +217,10 @@ async def get_relocate_email_body(data):
     try:
 
         scheduled_dt = str(data['scheduled_dt'])
-        test_date = datetime.strptime(scheduled_dt[0:10], "%Y-%m-%d").strftime('%A %d %B %Y')
-        test_time = datetime.strptime(str(scheduled_dt[11: len(scheduled_dt)]), "%H:%M:%S").strftime("%I:%M %p")
+        test_date = datetime.strptime(
+            scheduled_dt[0:10], "%Y-%m-%d").strftime('%A %d %B %Y')
+        test_time = datetime.strptime(
+            str(scheduled_dt[11: len(scheduled_dt)]), "%H:%M:%S").strftime("%I:%M %p")
         template_vars = {
             "first_name": data['first_name'],
             "test_number": data['appointment_id'],
@@ -272,4 +280,3 @@ FROM
             WHERE a.scheduled_dt >= '{}' AND a.scheduled_dt <= '{}' AND a.location_id = {} 
             AND l.id = {};""".format(start_dt, end_dt, location_id, next_location_id)
     return await replica_read_rows(sql)
-
