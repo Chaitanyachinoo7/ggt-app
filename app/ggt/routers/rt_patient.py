@@ -41,7 +41,7 @@ router = APIRouter()
 
 @router.get("/get_screen_flow_seq/{group_code}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_get_screen_flow_seq(group_code: str):
-    return get_screen_flow_seq(group_code)
+    return await get_screen_flow_seq(group_code)
 
 
 @router.post("/verify_phone", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
