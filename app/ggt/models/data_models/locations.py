@@ -15,6 +15,7 @@ from ggt.lib.db import (
     exec_delete,
     read_row,
     read_rows,
+    exec_batch_execute,
     replica_read_row,
     replica_read_rows
 )
