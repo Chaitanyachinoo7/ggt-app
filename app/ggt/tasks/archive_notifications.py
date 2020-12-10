@@ -6,9 +6,16 @@ from ggt.lib.storage import (
 )
 
 from ggt.lib.db import (
-    read_rows,
+    exec_insert,
+    exec_update,
     exec_delete,
-    exec_batch_execute)
+    read_row,
+    read_rows,
+    exec_batch_execute,
+    replica_read_row,
+    replica_read_rows
+)
+
 from ggt.lib.constants import (
     INFO
 )

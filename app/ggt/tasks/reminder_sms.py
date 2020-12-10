@@ -19,10 +19,13 @@ from ggt.lib.utils import (
 
 from ggt.lib.db import (
     exec_insert,
-    exec_batch_execute,
     exec_update,
+    exec_delete,
     read_row,
-    read_rows
+    read_rows,
+    exec_batch_execute,
+    replica_read_row,
+    replica_read_rows
 )
 
 from ggt.lib.storage import (
