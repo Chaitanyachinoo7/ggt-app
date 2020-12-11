@@ -1,3 +1,5 @@
+import math
+
 from ggt.lib.utils import (
     get_config_val as cfg,
     log_generic,
@@ -161,13 +163,29 @@ async def schedule_notifications_using_sms():
 
 
 async def schedule_notifications_using_email():
+    batch_size = 100
+    sql = """
+        SELECT count(*) as total
+        FROM result_notification_campaigns 
+        WHERE overall_status <> 'final_notified' 
+            AND (email_sent is NULL OR email_sent = 0)
+    """
+    row = await replica_read_row(sql,)
+    total_count = row['total']
+    limit = math.ceil(total_count/batch_size)
+    
+    for _ in range(limit):
+        await __batch_schedule_notifications_using_email(batch_size)
+
+
+async def __batch_schedule_notifications_using_email(batch_size=100):
     sql = """
         SELECT * 
         FROM result_notification_campaigns 
         WHERE overall_status <> 'final_notified' 
-            AND email_sent is NULL
-        LIMIT 500
-    """
+            AND (email_sent is NULL OR email_sent = 0)
+        LIMIT {}
+    """.format(batch_size)
     rows = await replica_read_rows(sql)
 
     data = []
@@ -179,7 +197,7 @@ async def schedule_notifications_using_email():
 
         data.append(
             (email['from_email'], email['from_name'],
-             email['to_email'], email['subject'], email['html_content'])
+            email['to_email'], email['subject'], email['html_content'])
         )
         test_id_list.append(
             test_id
@@ -189,7 +207,6 @@ async def schedule_notifications_using_email():
         await batch_update_notification_queue_status_for_email(
             str(test_id_list).strip('[]')
         )
-
 
 async def formatted_email_message(row):
     base_url = cfg('base_url')
