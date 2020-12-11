@@ -1,5 +1,6 @@
+import math
 from ggt.lib.utils import (
-    get_config_val,
+    get_config_val as cfg,
     log_generic,
     generate_session_id,
     whoami
@@ -11,6 +12,7 @@ from ggt.lib.db import (
     exec_delete,
     read_row,
     read_rows,
+    exec_batch_execute,
     replica_read_row,
     replica_read_rows
 )
@@ -33,13 +35,35 @@ def _task_process_sms_queue():
     send_sms(to_number, message)
 '''
 
+
 async def task_process_sms_queue():
+    print('\n\n********************task_process_SMS_queue****************************\n\n')
+
+    batch_size = 100
+    sql = """
+        SELECT count(*) as total FROM sms_notification_queue where status IN ('pending','retry')
+    """
+    row = await replica_read_row(sql,)
+    total_count = row['total']
+    limit = math.ceil(total_count/batch_size)
+
+    for _ in range(limit):
+        await __batch_process_sms_queue(batch_size)
+
     print('\n\n************************************************\n\n')
 
+
+async def __batch_process_sms_queue(batch_size=100):
     sql = """
-    SELECT * FROM sms_notification_queue where status IN ('pending','retry') ORDER BY ID DESC
-    """
+    SELECT * 
+    FROM sms_notification_queue 
+    WHERE status 
+        IN ('pending','retry') 
+    ORDER BY ID DESC
+    LIMIT {}
+    """.format(batch_size)
     rows = await replica_read_rows(sql)
+
     for row in rows:
         _id = row['id']
         status = row['status']
@@ -57,8 +81,6 @@ async def task_process_sms_queue():
             else:
                 await update_sms_status_to_retry(_id)
 
-    print('\n\n************************************************\n\n')
-
 
 async def update_sms_status_to_processed(id):
     sql = """
@@ -69,7 +91,7 @@ async def update_sms_status_to_processed(id):
         WHERE `id` = %s
     """
     vals = (id,)
-    await exec_update(sql, vals)    
+    await exec_update(sql, vals)
 
 
 async def update_sms_status_to_retry(id):
@@ -81,7 +103,7 @@ async def update_sms_status_to_retry(id):
         WHERE `id` = %s
     """
     vals = (id,)
-    await exec_update(sql, vals)    
+    await exec_update(sql, vals)
 
 
 async def update_sms_status_to_error(id):
@@ -93,4 +115,4 @@ async def update_sms_status_to_error(id):
         WHERE `id` = %s
     """
     vals = (id,)
-    await exec_update(sql, vals)    
+    await exec_update(sql, vals)
