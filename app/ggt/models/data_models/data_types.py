@@ -411,6 +411,7 @@ class PortalGeneralSearchRequest(BaseModel):
     group_code: str = None
     appointment_date: str = None
     location_id: str = None
+    vial_id: str = None
     sort_field: str = "register_dt"
     sort_type: str = "desc"
 
