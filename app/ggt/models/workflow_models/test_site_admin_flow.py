@@ -103,7 +103,7 @@ async def remove_group(req):
         await bp_remove_group(req)
     )
 
-
+@cached(ttl=30)
 async def get_locations():
     return y_response(
         await bp_get_locations()

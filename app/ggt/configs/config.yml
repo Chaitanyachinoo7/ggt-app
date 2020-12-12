@@ -2,7 +2,7 @@ app_name: ggt-api
 app_version: 1.0
 log_level: INFO
 base_url: https://start.GoGetTested.com
-env: DEV
+env: PROD
 
 server:
   host: 0.0.0.0
