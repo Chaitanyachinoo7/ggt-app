@@ -1,3 +1,4 @@
+import math
 from ggt.lib.utils import (
     get_config_val as cfg,
     log_generic,
@@ -8,7 +9,12 @@ from ggt.lib.utils import (
 from ggt.lib.db import (
     exec_insert,
     exec_update,
-    read_rows
+    exec_delete,
+    read_row,
+    read_rows,
+    exec_batch_execute,
+    replica_read_row,
+    replica_read_rows
 )
 
 from ggt.lib.email import send_email, render_template
@@ -19,9 +25,28 @@ import ggt.lib.constants as c
 async def task_process_email_queue():
     print('\n\n********************task_process_email_queue****************************\n\n')
 
+    batch_size = 100
     sql = """
-    SELECT * FROM email_notification_queue where status IN ('pending','retry') ORDER BY ID DESC
+        SELECT count(*) as total FROM email_notification_queue where status IN ('pending','retry')
     """
+    row = await replica_read_row(sql,)
+    total_count = row['total']
+    limit = math.ceil(total_count/batch_size)
+
+    for _ in range(limit):
+        await __batch_process_email_queue(batch_size)
+
+    print('\n\n************************************************\n\n')
+
+
+async def __batch_process_email_queue(batch_size=100):
+    sql = """
+    SELECT * FROM email_notification_queue 
+    WHERE status 
+        IN ('pending','retry') 
+    ORDER BY ID
+    LIMIT {}
+    """.format(batch_size)
     rows = await read_rows(sql)
     for row in rows:
         _id = row['id']
@@ -42,8 +67,6 @@ async def task_process_email_queue():
                 await update_email_status_to_processed(_id)
             else:
                 await update_email_status_to_retry(_id)
-
-    print('\n\n************************************************\n\n')
 
 
 async def update_email_status_to_processed(id):

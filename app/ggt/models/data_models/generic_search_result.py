@@ -189,7 +189,7 @@ async def find_patients(first_name='', middle_name='', last_name='', dob='', pho
         if location_id != '':
             where_conditions = "{} AND a.location_id = '{}'".format(
                 where_conditions, location_id)
-        if vial_id != '':
+        if vial_id != '' and vial_id:
             where_conditions = "{} AND a.vial_id = '{}'".format(
                 where_conditions, vial_id)
 
