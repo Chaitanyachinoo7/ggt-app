@@ -898,3 +898,15 @@ class InsuranceUpdateRecord(BaseModel):
 
 class InsuranceIDRecord(BaseModel):
     id: str
+
+
+class Base64Image(BaseModel):
+    data: str
+
+
+class InsuranceCardResponse(BaseModel):
+    provider: str
+    subsriber_name: str
+    subsriber_id: str
+    group_id: str
+    effective_date: str
