@@ -17,8 +17,6 @@ from ggt.lib.utils import (
 
 session_id = generate_session_id()
 local_outbound_file_path = '/tmp'
-outbound_file_prefix = cfg('vendors.healthtrackrx_outbound.outbound_file_prefix')
-
 
 async def task_process_outbound_lab_reports():
     print('\n\n************************************************\n\n')
@@ -36,10 +34,12 @@ async def task_process_outbound_lab_reports():
         filename, local_file_path = await create_outbound_file(reports)
 
         print('uploading file to FTP server')
-        await upload_file_to_ftp(filename, local_file_path)
-
-        print('marking records to "with_lab" status')
-        await update_to_with_lab_status(reports)
+        if await upload_file_to_ftp(filename, local_file_path):
+            print('marking records to "with_lab" status')
+            if await update_to_with_lab_status(reports):
+                print('publishing report to KDHE completed')
+        else:
+            print('Error publishing report to KDHE')
     else:
         print('no orders to process')
 
@@ -52,8 +52,7 @@ async def task_process_outbound_lab_reports():
 
 
 async def create_outbound_file(reports):
-    filename = "{}-{}.csv".format(
-        outbound_file_prefix,
+    filename = "ggt-outbound-{}.csv".format(
         datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S")
     )
     local_file_path = "{}/{}".format(local_outbound_file_path, filename)
@@ -187,6 +186,7 @@ WHERE
 
 
 async def upload_file_to_ftp(filename, local_file_path):
+    status = False
     try:
         hostname = cfg('vendors.kdhe.hostname')
         username = cfg('vendors.kdhe.username')
@@ -207,6 +207,7 @@ async def upload_file_to_ftp(filename, local_file_path):
 
         remotepath = "{}/{}".format(path, filename)
         ftp_client.put(local_file_path, remotepath)
+        status = True
 
     except Exception as err:
         log_generic(
@@ -217,6 +218,8 @@ async def upload_file_to_ftp(filename, local_file_path):
         )
     finally:
         ftp_client.close()
+    
+    return status
 
 
 async def list_ftp_files():
@@ -307,4 +310,4 @@ async def update_to_with_lab_status(reports):
             Accession_Number IN (%s)
         """ % format_strings
 
-    await exec_update(sql, tuple(list_of_ids))
+    return await exec_update(sql, tuple(list_of_ids))
