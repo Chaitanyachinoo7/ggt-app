@@ -35,16 +35,41 @@ from ggt.lib.constants import (
 # [Public] functions
 ########################################################################################################
 async def get_sms_stats_by_date(date):
+    where_statement = "1=1"
+    if date != 'all':
+        where_statement = "{} and `date(create_dt)` = '{}'".format(where_statement, date)
     try:
         sql = """SELECT 
                         `date(create_dt)` AS date, 
                         `count(date(create_dt))` AS sms_count
                  FROM
-                        ggt_prod.sms_notification_counts_by_day
+                        sms_notification_counts_by_day
                  WHERE
-                        `date(create_dt)` = %s;"""
-        vals = (date,)
-        return await read_rows(sql, vals)
+                        {}""".format(where_statement)
+        return await read_rows(sql)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+async def get_email_stats_by_date(date):
+    where_statement = "1=1"
+    if date != 'all':
+        where_statement = "{} and `date(create_dt)` = '{}'".format(where_statement, date)
+    try:
+        sql = """SELECT 
+                        `date(create_dt)` AS date, 
+                        `count(date(create_dt))` AS email_count
+                 FROM
+                        email_notification_counts_by_day
+                 WHERE
+                        {}""".format(where_statement)
+        return await read_rows(sql)
 
     except Exception as err:
         log_generic(
