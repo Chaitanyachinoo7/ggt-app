@@ -86,8 +86,8 @@ async def task_process_inbound_lab_reports():
     # load_data_from_remote_db_to_cache()
 
     # clean_downloads_folder()
-    await download_ftp_files()
-    await parse_csv_files()
+    #await download_ftp_files()
+    #await parse_csv_files()
 
     await add_to_healthtrackrx_inbound_data_table()
     await update_test_samples_with_results()
@@ -568,7 +568,7 @@ async def add_to_healthtrackrx_inbound_data_table():
             VALUES (%s,%s,%s,%s, %s,%s,%s,%s)
             ON DUPLICATE KEY UPDATE requisition_id=requisition_id
         """
-        await exec_batch_execute(sql, rows)
+        exec_batch_execute(sql, rows)
 
     except Exception as err:
         print_error('Critical ERROR: {}'.format(err))
