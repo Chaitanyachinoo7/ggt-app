@@ -411,6 +411,7 @@ class PortalGeneralSearchRequest(BaseModel):
     group_code: str = None
     appointment_date: str = None
     location_id: str = None
+    vial_id: str = None
     sort_field: str = "register_dt"
     sort_type: str = "desc"
 
@@ -602,13 +603,6 @@ class GgtLocation(BaseModel):
     collect_upfront_payment: bool = None
     image_thumbnail: str = None
     services_available: List[GgtServiceCatalogItem] = None
-    is_external: bool = None
-    external_phone: str = None
-    operated_by: str = None
-    accepts_walkins: bool = None
-    accepts_bookings: bool = None
-    website: str = None
-    open_hours: str = None
 
 
 class GgtDbLocation(BaseModel):
@@ -658,6 +652,14 @@ class GgtDateTimeLocation(BaseModel):
     wait_time: float = None
     slot_count: int = None
     distance: float = None
+    is_external: bool = None
+    external_phone: str = None
+    operated_by: str = None
+    accepts_walkins: bool = None
+    accepts_bookings: bool = None
+    website: str = None
+    open_hours: str = None
+
 
 
 class GgtBooking(BaseModel):

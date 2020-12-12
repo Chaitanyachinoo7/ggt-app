@@ -1,5 +1,5 @@
 app_name: COVID-19 Testing
-app_version: 1.0
+app_version: 1.1
 log_level: DEBUG
 base_url: https://start.GoGetTested.com
 env: DEV
@@ -50,7 +50,7 @@ gcp:
 databases:
   mysql:
     host: prod-ggt-aurora.cluster-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
-    read_replica_host: prod-ggt-aurora.cluster-ro-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+    read_replica_host: reader.cluster-custom-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
     username: admin
     password: hWMgl5Tfkqn30saQNp9M
     db: ggt_prod

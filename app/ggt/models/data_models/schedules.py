@@ -15,6 +15,7 @@ from ggt.lib.db import (
     exec_delete,
     read_row,
     read_rows,
+    exec_batch_execute,
     replica_read_row,
     replica_read_rows
 )
@@ -231,7 +232,7 @@ async def delete_schedule_entries_by_location_id(location_id):
         return None
 
 
-async def update_schedule_generation_rules_start_dt(location_id, new_dt):
+async def trim_schedule_generation_rules_start_dt(location_id, new_dt):
     try:
         sql = """
         UPDATE schedule_generation_rules
@@ -396,6 +397,7 @@ async def get_available_times(location_id, date):
             ORDER BY id
         """
         vals = (location_id, date)
+        '''
         log_generic(
             type=c.INFO,
             function=whoami(),
@@ -403,6 +405,7 @@ async def get_available_times(location_id, date):
             date=date,
             info='looking_up_available_times'
         )
+        '''
         return await replica_read_rows(sql, vals)
 
     except Exception as err:
@@ -442,6 +445,7 @@ async def get_slot_information(slot_id):
         slot.status = row['status']
         slot.appointment_id = row['appointment_id']
 
+        '''
         log_generic(
             type=c.INFO,
             function=whoami(),
@@ -449,6 +453,7 @@ async def get_slot_information(slot_id):
             data=slot,
             info='looking_up_slot_info'
         )
+        '''
 
         return slot
 
@@ -672,6 +677,7 @@ async def __get_available_locations_beyond_current_day(date_str, group_code):
         """
         vals = (date_str, group_code)
 
+        '''
         log_generic(
             type=c.INFO,
             function=whoami(),
@@ -679,6 +685,7 @@ async def __get_available_locations_beyond_current_day(date_str, group_code):
             date=date_str,
             info='looking_up_available_locations_beyond_current_day'
         )
+        '''
 
         try:
             return __map_rows_to_dtl_list(
@@ -821,12 +828,14 @@ async def __get_available_locations_for_current_day(group_code):
         """
         vals = (group_code,)
 
+        '''
         log_generic(
             type=c.INFO,
             function=whoami(),
             group_code=group_code,
             info='looking_up_available_locations_for_current_day'
         )
+        '''
 
         try:
             return __map_rows_to_dtl_list(
@@ -915,12 +924,14 @@ async def __get_available_locations_beyond_current_day_near_lat_lng(lat, lng, ra
         """
         vals = (lat, lng, lat, lat, lng, lat, radius, date_str, group_code)
 
+        '''
         log_generic(
             type=c.INFO,
             function=whoami(),
             group_code=group_code,
             date=date_str
         )
+        '''
 
         return __map_rows_to_dtl_list(
             await read_rows(sql, vals)
@@ -968,7 +979,14 @@ async def __get_available_locations_for_current_day_near_lat_lng(lat, lng, radiu
                     WHEN (pt.average_processing_time IS NULL) THEN 48
                     ELSE pt.average_processing_time
                 END) AS average_processing_time,
-                COUNT(DISTINCT (s.start_dt)) AS slot_count
+                COUNT(DISTINCT (s.start_dt)) AS slot_count,
+                l.accepts_bookings,
+                l.accepts_walkins,
+                l.operator,
+                l.phone_number,
+                l.website,
+                l.open_hours,
+                l.is_external
             FROM
                 schedules s
                     JOIN
@@ -998,12 +1016,13 @@ async def __get_available_locations_for_current_day_near_lat_lng(lat, lng, radiu
         """
         vals = (lat, lng, lat, lat, lng, lat, radius, group_code)
 
+        '''
         log_generic(
             type=c.INFO,
             function=whoami(),
             group_code=group_code
         )
-
+        '''
         return __map_rows_to_dtl_list(
             await replica_read_rows(sql, vals)
         )
@@ -1131,11 +1150,13 @@ async def __get_all_available_dtl(group_code):
         """
         vals = (group_code,)
 
+        '''
         log_generic(
             type=c.INFO,
             function=whoami(),
             group_code=group_code,
             info='looking_up_all_available_locations_date_and_time')
+        '''
 
         try:
             return __map_rows_to_dtl_list(
@@ -1244,6 +1265,22 @@ def __map_row_to_dtl(row):
 
         if 'distance' in row:
             dtl.distance = row['distance']
+
+        if 'accepts_bookings' in row:
+            dtl.accepts_bookings = row['accepts_bookings']
+        if 'accepts_walkins' in row:
+            dtl.accepts_walkins = row['accepts_walkins']
+        if 'operator' in row:
+            dtl.operated_by = row['operator']
+        if 'phone_number' in row:
+            dtl.external_phone = row['phone_number']
+        if 'website' in row:
+            dtl.website = row['website']
+        if 'open_hours' in row:
+            dtl.open_hours = row['open_hours']
+        if 'is_external' in row:
+            dtl.is_external = row['is_external']
+
 
     except Exception as err:
         log_generic(

@@ -19,6 +19,7 @@ pipelines:
 #            - gcloud run deploy --image gcr.io/ggt-ops-prod/ggt-ops-services --platform managed  --allow-unauthenticated --region us-central1 ggt-ops-services
             - gcloud beta run deploy ggt-ops-services --image=gcr.io/ggt-ops-prod/ggt-ops-services --vpc-connector=vpc-connector-prod  --vpc-egress=all --platform=managed  --allow-unauthenticated --region=us-central1
             - gcloud run services update-traffic ggt-ops-services --platform managed --region us-central1 --to-latest
+
     production-portal:
       - step:
           name: Portal Production Deployemrnt
@@ -33,9 +34,10 @@ pipelines:
             - gcloud auth activate-service-account --key-file app/ggt/configs/gcp-service-account.json
             - gcloud config set project ggt-pfe-prod
             - gcloud builds submit --tag gcr.io/ggt-pfe-prod/ggt-portal-services
-#            - gcloud run deploy --image gcr.io/ggt-pfe-prod/ggt-portal-services --platform managed  --allow-unauthenticated --region us-central1 ggt-portal-services
+            #- gcloud run deploy --image gcr.io/ggt-pfe-prod/ggt-portal-services --platform managed  --allow-unauthenticated --region us-central1 ggt-portal-services
             - gcloud beta run deploy ggt-portal-services --image=gcr.io/ggt-pfe-prod/ggt-portal-services --vpc-connector=vpc-connector-prod  --vpc-egress=all --platform=managed  --allow-unauthenticated --region=us-central1
             - gcloud run services update-traffic ggt-portal-services --platform managed --region us-central1 --to-latest
+
     production-patient:
       - step:
           name: Patient Production Deployemrnt
@@ -50,9 +52,30 @@ pipelines:
             - gcloud auth activate-service-account --key-file app/ggt/configs/gcp-service-account.json
             - gcloud config set project ggt-pfe-prod
             - gcloud builds submit --tag gcr.io/ggt-pfe-prod/ggt-pfe-services
-#            - gcloud run deploy --image gcr.io/ggt-pfe-prod/ggt-pfe-services --platform managed  --allow-unauthenticated --region us-central1 ggt-pfe-services
+            #- gcloud run deploy --image gcr.io/ggt-pfe-prod/ggt-pfe-services --platform managed  --allow-unauthenticated --region us-central1 ggt-pfe-services
             - gcloud beta run deploy ggt-pfe-services --image=gcr.io/ggt-pfe-prod/ggt-pfe-services --vpc-connector=vpc-connector-prod  --vpc-egress=all --platform=managed  --allow-unauthenticated --region=us-central1
             - gcloud run services update-traffic ggt-pfe-services --platform managed --region us-central1 --to-latest
+
+    production-aws:
+      - step:
+          name: Patient AWS Fargate Deployemrnt
+          services:
+            - docker
+          caches:
+            - pip
+          script:
+            - cp app/ggt/configs/config-prod.yml app/ggt/configs/config.yml
+            - cp app/ggt/configs/log-config-prod.yml app/ggt/configs/log-config.yml
+            - cp app/ggt/configs/gcp-service-account-prod.json app/ggt/configs/gcp-service-account.json
+            - pip3 install awscli
+            - aws configure set aws_access_key_id "${AWS_KEY}"
+            - aws configure set aws_secret_access_key "${AWS_SECRET}"
+            - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 135292740376.dkr.ecr.us-east-1.amazonaws.com
+            - docker build -t ggt-api .
+            - docker tag ggt-api:latest 135292740376.dkr.ecr.us-east-1.amazonaws.com/ggt-api:latest
+            - docker push 135292740376.dkr.ecr.us-east-1.amazonaws.com/ggt-api:latest
+            - aws ecs update-service --region us-east-1 --cluster ggt-api --service ggt-api-5 --force-new-deployment
+
     dev:
       - step:
           name: Development Deployment
@@ -85,7 +108,6 @@ pipelines:
             - gcloud builds submit --tag gcr.io/ggt-pfe-qa/ggt-pfe-services
             - gcloud beta run deploy ggt-pfe-services --image=gcr.io/ggt-pfe-qa/ggt-pfe-services --vpc-connector=vpc-connector-qa --vpc-egress=all --platform=managed  --allow-unauthenticated --region=us-central1
 
-
     dev2:
       - step:
           name: DEV2 Deployment
@@ -101,6 +123,7 @@ pipelines:
             - gcloud config set project ggt-pfe-dev2
             - gcloud builds submit --tag gcr.io/ggt-pfe-dev2/ggt-pfe-services
             - gcloud beta run deploy ggt-pfe-services --image=gcr.io/ggt-pfe-dev2/ggt-pfe-services --vpc-connector=vpc-connector-dev2 --vpc-egress=all --platform=managed  --allow-unauthenticated --region=us-central1
+
 
 options:
   docker: true

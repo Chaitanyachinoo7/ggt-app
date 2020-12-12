@@ -22,7 +22,7 @@ from ggt.models.data_models.schedules import (
     update_schedule_generation_rule,
     delete_schedule_generation_rule,
     get_all_available_dtl,
-    update_schedule_generation_rules_start_dt,
+    trim_schedule_generation_rules_start_dt,
     get_slots_matching_dt_list
 )
 
@@ -53,12 +53,13 @@ async def bp_get_schedule_dates_available(group_code):
                     "value": date_str
                 }
             )
-
+            '''
             log_generic(
                 type=c.INFO,
                 available_dates=available_dates,
                 function=whoami()
             )
+            '''
 
         return {
             "available_dates": available_dates
@@ -128,13 +129,13 @@ async def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: floa
                     'map_thumbnail': map_thumbnail,
                     'services_available': dtl.location.services_available,
                     'distance': dtl.distance,
-                    #'external': dtl.is_external,
-                    #'external_phone': dtl.external_phone,
-                    #'operated_by': dtl.operated_by,
-                    #'website': dtl.website,
-                    #'accepts_bookings': dtl.accepts_bookings,
-                    #'accepts_walkins': dtl.accepts_walkins,
-                    #'open_hours': dtl.open_hours,
+                    'external': dtl.is_external,
+                    'external_phone': dtl.external_phone,
+                    'operated_by': dtl.operated_by,
+                    'website': dtl.website,
+                    'accepts_bookings': dtl.accepts_bookings,
+                    'accepts_walkins': dtl.accepts_walkins,
+                    'open_hours': dtl.open_hours,
                     'label': location_text,
                     'value': dtl.location.id
                 }
@@ -335,7 +336,7 @@ async def bp_generate_full_schedule(location_id):
             hour=0, minute=0, second=0, microsecond=0)
 
         await delete_schedule_entries_by_location_id(location_id)
-        await update_schedule_generation_rules_start_dt(location_id, latest_schedule_dt)
+        await trim_schedule_generation_rules_start_dt(location_id, latest_schedule_dt)
         rules = await get_schedule_generation_rules_by_location_id(location_id)
 
         for rule in rules:
@@ -483,8 +484,10 @@ async def __process_schedule_rule(rule):
 
             schedule_date = schedule_date + timedelta(days=1)
 
-        rows = await __remove_reserved_slots(rows, location_id)
-        await add_schedule_entries(rows)
+        if rows:
+            rows = await __remove_reserved_slots(rows, location_id)
+        if rows:
+            await add_schedule_entries(rows)
         return True
 
     except Exception as err:
@@ -604,11 +607,13 @@ def __map_dtl_list_to_available_locations(dtl_list):
                 }
             )
 
+        '''
         log_generic(
             type=c.INFO,
             available_locations=available_locations,
             function=whoami()
         )
+        '''
 
     except Exception as err:
         log_generic(
