@@ -34,6 +34,27 @@ from ggt.lib.constants import (
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
+async def get_sms_stats_by_date(date):
+    try:
+        sql = """SELECT 
+                        `date(create_dt)` AS date, 
+                        `count(date(create_dt))` AS sms_count
+                 FROM
+                        ggt_prod.sms_notification_counts_by_day
+                 WHERE
+                        `date(create_dt)` = %s;"""
+        vals = (date,)
+        return await read_rows(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 async def get_stats_today():
     try:
         sql = """SELECT * FROM todays_location_stats_with_totals_test"""
