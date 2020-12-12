@@ -36,7 +36,7 @@ async def read_rows(sql, vals=None):
     return __read_rows(sql, vals)
 
 
-async def exec_batch_execute(sql, data):
+def exec_batch_execute(sql, data):
     return __exec_batch_execute(sql, data)
 
 
