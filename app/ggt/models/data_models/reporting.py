@@ -94,6 +94,20 @@ async def get_stats_today():
         return None
 
 
+async def aging_samples_with_lab_by_ship_date():
+    try:
+        sql = """SELECT * FROM aging_samples_with_lab_stats_by_ship_date"""
+        return await read_rows(sql)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 async def get_stats_by_date(date):
     try:
         sql = """  SELECT 

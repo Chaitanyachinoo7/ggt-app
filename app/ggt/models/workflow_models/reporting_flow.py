@@ -19,7 +19,7 @@ from ggt.models.process_models.bp_care_provider_experience import (
 # [Public] functions
 ########################################################################################################
 from ggt.models.process_models.bp_reporting import bp_get_stats_today, bp_get_stats_by_date, bp_get_sms_stats_by_date, \
-    bp_get_email_stats_by_date
+    bp_get_email_stats_by_date, bp_aging_samples_with_lab
 
 
 async def get_stats_today():
@@ -43,6 +43,12 @@ async def get_sms_stats_by_date(date):
 async def get_email_stats_by_date(date):
     return y_response(
         await bp_get_email_stats_by_date(date)
+    )
+
+
+async def aging_samples_with_lab():
+    return y_response(
+        await bp_aging_samples_with_lab()
     )
 
 ########################################################################################################
