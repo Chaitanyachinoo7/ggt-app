@@ -13,13 +13,13 @@ from ggt.models.data_models.users import (
     get_user_by_email
 )
 
-from ggt.models.data_models.test_results import (
+from ggt.models.data_models.clinical_test_results import (
     get_all_test_results,
     search_details_by_name_and_dob,
     get_test_details
 )
 
-from ggt.models.data_models.test_sample import (
+from ggt.models.data_models.clinical_test_sample import (
     create_test_sample_from_appointment,
     record_label_scan
 )
