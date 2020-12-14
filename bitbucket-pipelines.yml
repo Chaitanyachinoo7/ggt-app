@@ -120,8 +120,9 @@ pipelines:
             - ls
             - pwd
             - pipenv lock --requirements > app/requirements.txt
+            - cat app/requirements.txt
             - pip install --no-cache-dir -r app/requirements.txt
-            - pytest
+            - pytest  app/tests/portal_test.py
       - step:
           name: DEV2 Deployment
           image: google/cloud-sdk:latest
