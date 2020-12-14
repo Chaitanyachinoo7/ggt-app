@@ -117,6 +117,7 @@ pipelines:
           artifacts:
             - pytest-logs.txt
           script:
+            - apt-get update && apt-get -y install gcc
             - pip install pipenv
             - pipenv lock --requirements
             - ls
