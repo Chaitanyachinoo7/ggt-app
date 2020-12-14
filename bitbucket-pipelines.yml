@@ -123,8 +123,7 @@ pipelines:
             - cat app/requirements.txt
             - pip install --no-cache-dir -r app/requirements.txt
             - python --version
-            - export PYTHONPATH="$PWD/app"
-            - python -m pytest app/tests/patient_test.py
+            - pytest -vs
       - step:
           name: DEV2 Deployment
           image: google/cloud-sdk:latest
