@@ -115,8 +115,10 @@ pipelines:
           caches:
             - pip
           script:
-            - pip install pytest
-            - pip install nest_asyncio
+            - pip install pipenv
+            - pipenv lock --requirements
+            - pipenv lock --requirements > app/requirements.txt
+            - pip install --no-cache-dir -r app/requirements.txt
             - pytest
       - step:
           name: DEV2 Deployment
