@@ -114,6 +114,8 @@ pipelines:
           image: python:3.7.2
           caches:
             - pip
+          artifacts:
+            - pytest-logs.txt
           script:
             - pip install pipenv
             - pipenv lock --requirements
@@ -123,7 +125,7 @@ pipelines:
             - cat app/requirements.txt
             - pip install --no-cache-dir -r app/requirements.txt
             - python --version
-            - pytest -vs
+            - pytest -vs >> pytest-logs.txt
       - step:
           name: DEV2 Deployment
           image: google/cloud-sdk:latest
