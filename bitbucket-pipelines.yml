@@ -115,12 +115,13 @@ pipelines:
           deployment: staging
           caches:
             - docker
+            - pip
           script:
             - cp app/ggt/configs/config-dev2.yml app/ggt/configs/config.yml
             - cp app/ggt/configs/log-config-dev2.yml app/ggt/configs/log-config.yml
             - cp app/ggt/configs/gcp-service-account-dev2.json app/ggt/configs/gcp-service-account.json
-            - python3.7.2 -m pip install pytest
-            - python3.7.2 -m pip install package nest_asyncio
+            - pip install pytest
+            - pip install nest_asyncio
             - pytest
             - gcloud auth activate-service-account --key-file app/ggt/configs/gcp-service-account.json
             - gcloud config set project ggt-pfe-dev2
