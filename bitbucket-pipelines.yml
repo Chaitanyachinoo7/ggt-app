@@ -117,6 +117,8 @@ pipelines:
           script:
             - pip install pipenv
             - pipenv lock --requirements
+            - ls
+            - pwd
             - pipenv lock --requirements > app/requirements.txt
             - pip install --no-cache-dir -r app/requirements.txt
             - pytest
