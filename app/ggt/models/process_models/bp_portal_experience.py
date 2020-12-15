@@ -3,7 +3,7 @@ from datetime import datetime
 from ggt.lib.utils import (
     log_generic,
     whoami)
-from ggt.models.data_models.groups import get_all_groups, create_group, update_group
+from ggt.models.data_models.groups import get_all_groups, create_group, update_group, get_group_by_id
 from ggt.models.data_models.providers import get_provider_processing_list, provider_lock_task, \
     create_patient_test_consultation, update_consultation_note, provider_complete_task, \
     provider_rollback_to_pending_task
@@ -95,9 +95,10 @@ async def bp_get_general_search_results(first_name, middle_name, last_name, dob,
 
 async def bp_create_group(group):
     try:
-        return await create_group(group)
-
-
+        _id = await create_group(group)
+        if _id is None:
+            return None
+        return await get_group_by_id(_id)
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -108,9 +109,10 @@ async def bp_create_group(group):
 
 async def bp_update_group(group):
     try:
-        return await update_group(group)
-        
-
+        updated = await update_group(group)
+        if updated:
+            return await get_group_by_id(group.id)
+        return None
     except Exception as err:
         log_generic(
             type=c.ERROR,
