@@ -23,7 +23,8 @@ from ggt.routers import (
     rt_printer_hub,
     rt_care_provider,
     rt_billing,
-    rt_reporting
+    rt_reporting,
+    rt_insurance_card_ocr
 )
 
 app_init()
@@ -42,7 +43,7 @@ app.add_middleware(
 )
 
 app.add_middleware(
-    GZipMiddleware, 
+    GZipMiddleware,
     minimum_size=512
 )
 
