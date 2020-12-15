@@ -411,12 +411,12 @@ async def __update_appointment_status(appointment: GgtAppointment, status: str, 
 
         usuccess = await exec_update(sql, vals)
         if usuccess and (status == c.APPOINTMENT_STATUS_TEST_COMPLETED or status == c.APPOINTMENT_STATUS_VIAL_SCANNED):
-            return await create_test_sample_from_appointment(appointment_id)
+            return await create_test_sample_from_appointment(appointment.id)
 
     except Exception as err:
         log_generic(
             type=c.ERROR,
-            appointment_id=appointment_id,
+            appointment_id=appointment.id,
             status=status,
             function=whoami(),
             error=err

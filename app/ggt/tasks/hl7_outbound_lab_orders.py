@@ -20,6 +20,10 @@ from ggt.lib.db import (
     read_rows
 )
 
+from ggt.models.data_models.hl7 import (
+    Message, MSH, MSG, PID, PV1, DG1, ORC, OBR, OBX, IN1, GT1
+)
+
 from ggt.lib.storage import (
     get_file_blob
 )
@@ -29,12 +33,13 @@ import ggt.lib.constants as c
 session_id = generate_session_id()
 local_outbound_file_path = cfg(
     'vendors.healthtrackrx_outbound.local_outbound_file_path')
-outbound_file_prefix = cfg('vendors.healthtrackrx_outbound.outbound_file_prefix')
+outbound_file_prefix = cfg(
+    'vendors.healthtrackrx_outbound.outbound_file_prefix')
 local_insurance_card_file_path = cfg(
     'vendors.healthtrackrx_outbound.local_insurance_card_file_path')
 
 
-async def task_process_outbound_lab_orders():
+async def task_process_hl7_lab_orders():
     print('\n\n************************************************\n\n')
     log_generic(
         type=c.INFO,
@@ -42,20 +47,21 @@ async def task_process_outbound_lab_orders():
         task_session_id=session_id,
         info='Begin Processing outbound HL7 Lab Orders')
 
-    print('looking up ready to transmit orders')
+    #print('looking up ready to transmit orders')
     orders = await get_orders_ready_to_transmit()
 
-    await upload_insurance_files_from_gstore(orders)
+    # await upload_insurance_files_from_gstore(orders)
 
     if len(orders) > 0:
         print('generating outbound file')
-        filename, local_file_path = await create_outbound_file(orders)
+        #filename, local_file_path = await create_outbound_file(orders)
+        await create_outbound_files(orders)
 
-        print('uploading file to FTP server')
-        await upload_file_to_ftp(filename, local_file_path)
+        #print('uploading file to FTP server')
+        # await upload_file_to_ftp(filename, local_file_path)
 
-        print('marking records to "with_lab" status')
-        await update_to_with_lab_status(orders)
+        #print('marking records to "with_lab" status')
+        # await update_to_with_lab_status(orders)
     else:
         print('no orders to process')
 
@@ -65,6 +71,7 @@ async def task_process_outbound_lab_orders():
         task_session_id=session_id,
         info='End Processing outbound Lab Reports')
     print('\n\n************************************************\n\n')
+
 
 
 async def upload_insurance_files_from_gstore(orders):
@@ -114,103 +121,249 @@ async def get_insurance_photo_base64(appointment_id):
     return row['insurance_photo']
 
 
-async def create_outbound_file(orders):
-    filename = "{}-{}.csv".format(
-        outbound_file_prefix,
-        datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S")
+def __get_msh(order):
+    return MSH(
+        msh_1_field_separator='|',
+        msh_2_encoding_characters='^~\&',
+        msh_3_sending_application='WELLHEALTH',
+        # "For Client Bill MSH 4 will be ""WELLHLTX // For Insured or Unisured MSH 4 will be ""WELLHLD"" // If IN1 or GT1 are blank, mark as Self Pay"
+        msh_4_sending_facility=order['client_site_code'],
+        msh_5_receiving_application='AIT',
+        msh_6_receiving_facility='AIT',
+        msh_7_datetime_of_message=datetime.datetime.now().strftime("%Y%m%d%H%M%S"),
+        msh_9_message_type='ORM^O01',
+        msh_10_message_control_id=order['id'],
+        msh_11_processing_id='P',
+        msh_12_version_id='2.3'
     )
-    local_file_path = "{}/{}".format(local_outbound_file_path, filename)
 
-    with open(local_file_path, 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile, delimiter=',')
-        writer.writerow(
-            __get_header_row()
+
+def __get_pid(order):
+    return PID(
+        pid_1_set_id=1,
+        pid_2_patient_id=order['patient_id'],  # External Code
+        
+        pid_5_patient_name='{}^{}^^^'.format(
+            order['last_name'], order['first_name']),  # Last Name^First Name
+        pid_7_date_time_of_birth=order['dob'].replace(
+            '-', ''),  # Date of Birth
+        pid_8_administrative_sex=order['gender'],  # Gender
+        pid_10_race=order['race'],  # Race
+        pid_11_patient_address='{}^{}^{}^{}^{}^^^^'.format(
+            order['addr1'], order['addr2'], order['city'], order['st'], order['zip']),  # Address^Address2^City^State^Zip Code
+        pid_13_phone_number_home=order['phone_number'],  # Phone
+        pid_18_patient_account_number='{}^^^P'.format(order['patient_id']),
+        pid_20_drivers_license_number_patient='',
+        pid_22_ethnic_group=order['ethnicity']  # Ethnicity
+    )
+
+
+def __get_pv1(order):
+    return PV1(
+        pv1_1_set_id=1,
+        pv1_3_assigned_patient_location='',
+        # Physician NPI^Provider Last Name^Provider First name
+        pv1_7_attending_doctor='{}^{}^{}'.format(
+            order['physician_npi'], 'Khan', 'Samad')
+    )
+
+'''
+def __get_in1(order):
+    return IN1(
+        in1_1_set_id=1,
+        in1_3_insurance_company_id='MMP',
+        in1_4_insurance_company_name='MEDICARE MASTER PAYER',
+        in1_16_name_of_insured='DOE^JOHN^M',
+        in1_17_insureds_relationship_to_patient='01',
+        in1_18_insureds_date_of_birth='195208150000',
+        in1_19_insureds_address='1700 ONION CREEK PARKWAY^^AUSTIN^TX^78748^US',
+        in1_22_coord_of_ben_priority='1',
+        in1_32_billing_status='INSURANCE',
+        in1_36_policy_number='8J89UD3HR59',
+        in1_43_insureds_administrative_sex='F'
+    )
+'''
+
+def __get_gt1(order):
+    return GT1(
+        gt1_1_set_id_gt1='',
+        gt1_3_guarantor_name='{}^{}^^^'.format(
+            order['last_name'], order['first_name']),  # Last Name^First Name
+        gt1_5_guarantor_address='{}^{}^{}^{}^{}^^^^'.format(
+            order['addr1'], order['addr2'], order['city'], order['st'], order['zip']),  # Address^Address2^City^State^Zip Code
+        gt1_6_guarantor_ph_num_home=order['phone_number'],  # Phone
+        gt1_7_guarantor_ph_num_business='',
+        gt1_8_guarantor_datetime_of_birth=order['dob'].replace(
+            '-', ''),  # Date of Birth
+        gt1_9_guarantor_administrative_sex=order['gender'],  # Gender
+        gt1_11_guarantor_relationship='01'
+    )
+
+
+def __get_orc(order):
+    return ORC(
+        orc_1_order_control='',
+        # Client Order Number^
+        orc_2_placer_order_number=order['client_order_number'],
+        orc_3_filler_order_number='{}^{}'.format(
+            order['sample_code'], 'AIT' if order['sample_code'] else ''),  # Sample Code^Lab Vial Owner
+        orc_4_placer_group_number='',
+        orc_5_order_status='',
+        orc_6_response_flag='',
+        orc_7_quantitytiming='',
+        orc_8_parent_order='',
+        # Date of Collection
+        orc_9_datetime_of_transaction=order['date_of_collection'],
+        orc_10_entered_by='',
+        orc_11_verified_by='',
+        # Physician NPI^Provider Last Name^Provider First name
+        orc_12_ordering_provider='{}^{}^{}'.format(
+            order['physician_npi'], 'Khan', 'Samad'),
+    )
+
+
+def __get_obr(order):
+    return OBR(
+        obr_1_set_id='1',
+        # Client Order Number
+        obr_2_placer_order_number=order['client_order_number'],
+        obr_3_filler_order_number='{}^{}'.format(
+            order['sample_code'], 'AIT' if order['sample_code'] else ''),  # Sample Code^Lab Vial Owner
+        obr_4_universal_service_identifier='RESPI507^COVID-19 Test',  # Panel Code^Panel Name
+        obr_6_requested_datetime='',  # Date of Collection
+        obr_7_observation_datetime='202008051234',  # Date of Collection
+        obr_15_specimen_source='^^^NASOPHARYNGEAL SWAB',  # Sample Source
+        # Physician NPI^Provider Last Name
+        obr_16_ordering_provider='1982044657^Ramirez^Diana^MD/PMEMR',
+        obr_17_order_callback_phone_number='(561)360-2034',
+        obr_21_filler_field_2='^^^^^^'
+    )
+
+
+def __get_dg1(order):
+    return DG1(
+        dg1_1_set_id_dg1=1,
+        # ICD Code
+        dg1_3_diagnosis_code_dg1='Z20.828^Contact with and (suspected) exposure to other viral communicable diseases'
+    )
+
+'''
+
+OBX-2.1: 'ED' for electronic document
+OBX-3.1: something like 'INSURANCE' or 'INSATTACH' to indicate it's the insurance scan
+OBX-3.2: name of the file
+OBX-5.3: extension (JPEG, PNG, etc.)
+OBX-5.4: 'Base64'
+OBX-5.5: The base64 encoded string for the image (with no line breaks)
+'''
+async def __get_obx(order):
+    obx2 = OBX(
+        obx_1_set_id=2,
+        obx_2_value_type='ST',
+        obx_3_observation_identifier='COVID-PT-1^Is this the patient\'s first COVID-19 test?',
+        obx_5_observation_value='{}^{}'.format(
+            order['is_first_test'][0:1], order['is_first_test'])
+    )
+
+    obx3 = OBX(
+        obx_1_set_id=3,
+        obx_2_value_type='ST',
+        obx_3_observation_identifier='COVID-PT-2^Is the patient employed in healthcare with direct patient contact?',
+        obx_5_observation_value='{}^{}'.format(
+            order['is_first_test'][0:1], order['is_first_test'])
+    )
+
+    obx4 = OBX(
+        obx_1_set_id=4,
+        obx_2_value_type='ST',
+        obx_3_observation_identifier='COVID-PT-3A^Is the patient exhibiting symptoms as defined by the CDC?',
+        obx_5_observation_value='{}^{}'.format(
+            order['is_first_test'][0:1], order['is_first_test'])
+    )
+
+    obx5 = OBX(
+        obx_1_set_id=5,
+        obx_2_value_type='ST',
+        obx_3_observation_identifier='COVID-PT-3B^When was first sign of symptoms? (Blank if no or unknown)',
+        obx_5_observation_value=''
+    )
+
+    obx6 = OBX(
+        obx_1_set_id=6,
+        obx_2_value_type='ST',
+        obx_3_observation_identifier='COVID-PT-4^Has the patient been hospalized?',
+        obx_5_observation_value='{}^{}'.format(
+            order['is_hospitalized'][0:1], order['is_hospitalized'])
+    )
+
+    obx7 = OBX(
+        obx_1_set_id=7,
+        obx_2_value_type='ST',
+        obx_3_observation_identifier='COVID-PT-5^Has the patient been hospalized in the ICU?',
+        obx_5_observation_value='{}^{}'.format(
+            order['is_in_icu'][0:1], order['is_in_icu'])
+    )
+    obx8 = OBX(
+        obx_1_set_id=8,
+        obx_2_value_type='ST',
+        obx_3_observation_identifier='COVID-PT-6^Does the patient reside in congregate care (nursing home, group home, etc.)?',
+        obx_5_observation_value='{}^{}'.format(
+            order['is_congregate_resident'][0:1], order['is_congregate_resident'])
+    )
+
+    obx9 = OBX(
+        obx_1_set_id=9,
+        obx_2_value_type='ST',
+        obx_3_observation_identifier='COVID-PT-7^Is the patient pregnant?',
+        obx_5_observation_value='{}^{}'.format(
+            order['is_pregnant'][0:1], order['is_pregnant'])
+    )
+
+    obx10 = None
+    if order['bill'] == 'Insurance Attached':
+        try:
+            blob = await get_file_blob('ggt-insurance-cards-prod', '{}.png'.format(order['id']))
+            if blob:
+                content = blob.download_as_string()
+                b64content = base64.b64encode(content)
+
+                obx10 = OBX(
+                    obx_1_set_id=10,
+                    obx_2_value_type='ED',
+                    obx_3_observation_identifier='INSURANCE^{}.png'.format(order['client_order_number']),
+                    obx_5_observation_value='^^PNG^Base64^{}'.format(b64content)
+                )
+        except Exception as err:
+            print(err)
+
+    arr = [obx2, obx3, obx4, obx5, obx6, obx7, obx8, obx9, obx10]
+
+    return arr
+
+
+async def create_outbound_files(orders):
+    for order in orders:
+        
+        hl7_message = Message()
+        hl7_message.msh = __get_msh(order)
+        hl7_message.pid = __get_pid(order)
+        hl7_message.pv1 = __get_pv1(order)
+        hl7_message.orc = __get_orc(order)
+        hl7_message.obr = __get_obr(order)
+        hl7_message.dg1 = __get_dg1(order)
+        hl7_message.obx_list = await __get_obx(order)
+
+        if order['bill'] == 'Insurance Attached':
+            hl7_message.gt1 = __get_gt1(order)
+        
+        filename = "{}-{}.hl7".format(
+            outbound_file_prefix,
+            order['id']
         )
-
-        for order in orders:
-            writer.writerow(
-                __get_formatted_row(order)
-            )
-
-    return filename, local_file_path
-
-
-def __get_header_row():
-    return [
-        'External Code',
-        'First Name',
-        'Last Name',
-        'Date of Birth',
-        'Gender',
-        'Date of Collection',
-        'Race',
-        'Ethnicity',
-        'Address',
-        'Address2',
-        'City',
-        'State',
-        'Zip Code',
-        'Phone',
-        'Client Site Code',
-        'Physician NPI',
-        'Bill',
-        'Client Order Number',
-        'Sample Code',
-        'Collected By',
-        'Sample Type',
-        'Sample Source',
-        'Panel Code',
-        'Panel Name',
-        'First Test?',
-        'Employed in healthcare?',
-        'Symptomatic as defined by CDC?',
-        'Hospitalized?',
-        'ICU?',
-        'Resident in a congregate care setting?',
-        'Pregnant?']
-
-
-def __get_formatted_row(order):
-    formatted_row = []
-    try:
-        formatted_row = [
-            order['patient_id'],
-            order['first_name'],
-            order['last_name'],
-            order['dob'],
-            order['gender'],
-            order['date_of_collection'],
-            order['race'],
-            order['ethnicity'],
-            order['addr1'],
-            order['addr2'],
-            order['city'],
-            order['st'],
-            order['zip'],
-            order['phone_number'],
-            order['client_site_code'],
-            order['physician_npi'],
-            order['bill'],
-            order['client_order_number'],
-            order['sample_code'],
-            order['collected_by'],
-            order['sample_type'],
-            order['sample_source'],
-            order['panel_code'],
-            order['panel_name'],
-            order['is_first_test'],
-            order['is_healthcare_employee'],
-            order['is_cdc_symptomatic'],
-            order['is_hospitalized'],
-            order['is_in_icu'],
-            order['is_congregate_resident'],
-            order['is_pregnant']
-        ]
-
-    except Exception as err:
-        print(err)
-
-    return formatted_row
+        local_file_path = "{}/{}".format(local_outbound_file_path, filename)
+        
+        with open(local_file_path, 'w', newline='') as hl7file:
+            hl7file.write(str(hl7_message))
 
 
 async def get_orders_ready_to_transmit():
@@ -222,8 +375,8 @@ async def get_orders_ready_to_transmit():
             REPLACE(p.last_name, ',', '') AS last_name,
             DATE_FORMAT(p.dob, '%m/%d/%Y') AS dob,
             (CASE
-                WHEN (p.gender = 'male') THEN 'Male'
-                WHEN (p.gender = 'female') THEN 'Female'
+                WHEN (p.gender = 'male') THEN 'M'
+                WHEN (p.gender = 'female') THEN 'F'
                 ELSE 'Unknown'
             END) AS gender,
             (CASE

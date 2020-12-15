@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import Dict, List, Optional
 
 from ggt.lib.utils import (
-    get_config_val,
+    get_config_val as cfg,
     log_generic,
     whoami
 )
@@ -154,6 +154,7 @@ class GenericSearchResult(BaseModel):
 class GenericSearchResults(BaseModel):
     search_results: Optional[GenericSearchResult] = None
 
+#tz = cfg(default_timezone)
 
 async def find_patients(first_name='', middle_name='', last_name='', dob='', phone_number='',
                         email='', appointment_id='', group_code='', appointment_date='', location_id='', vial_id='', sort_field="register_dt", sort_type="desc"):
@@ -232,7 +233,7 @@ async def find_patients(first_name='', middle_name='', last_name='', dob='', pho
             p.phone_number_verified AS phone_number_verified,
             p.email AS email,
             p.email_verified AS email_verified,
-            p.create_dt AS register_dt,
+            p.create_dt AS register_dt, 
             p.token AS token,
             q.symptom_fever AS symptom_fever,
             q.symptom_shortness_breath AS symptom_shortness_breath,

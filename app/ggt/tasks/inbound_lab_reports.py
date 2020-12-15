@@ -86,7 +86,7 @@ async def task_process_inbound_lab_reports():
     # load_data_from_remote_db_to_cache()
 
     # clean_downloads_folder()
-    await download_ftp_files()
+    #await download_ftp_files()
     await parse_csv_files()
 
     await add_to_healthtrackrx_inbound_data_table()

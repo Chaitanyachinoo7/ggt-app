@@ -175,6 +175,7 @@ async def schedule_notifications_using_email():
     limit = math.ceil(total_count/batch_size)
     
     for _ in range(limit):
+        print('*')
         await __batch_schedule_notifications_using_email(batch_size)
 
 

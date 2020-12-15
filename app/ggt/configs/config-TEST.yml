@@ -3,6 +3,7 @@ app_version: 1.1
 log_level: DEBUG
 base_url: https://start.GoGetTested.com
 env: DEV
+default_timezone: CST
 
 server:
   host: 0.0.0.0
