@@ -25,7 +25,7 @@ from ggt.models.data_models.data_types import (
     GgtPatient
 )
 
-from ggt.models.data_models.test_sample import (
+from ggt.models.data_models.clinical_test_sample import (
     create_test_sample_from_appointment
 )
 

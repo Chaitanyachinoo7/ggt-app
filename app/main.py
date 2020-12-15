@@ -12,6 +12,7 @@ from ggt.lib.utils import (
     get_config_val as cfg,
     app_init
 )
+import sys, os
 from ggt.routers import (
     rt_redirect,
     rt_clinical_provider,

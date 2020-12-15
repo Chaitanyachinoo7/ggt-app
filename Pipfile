@@ -39,6 +39,10 @@ gevent = "*"
 aiocache = "*"
 ujson = "*"
 msgpack = "*"
+pytest = "*"
+pytest-asyncio = "*"
+nest-asyncio = "*"
+pytest-faulthandler = "*"
 
 [requires]
 python_version = "3.7"

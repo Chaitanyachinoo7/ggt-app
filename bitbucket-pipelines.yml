@@ -110,6 +110,20 @@ pipelines:
 
     dev2:
       - step:
+          name: DEV2 Testing
+          image: python:3.7.9
+          caches:
+            - pip
+          artifacts:
+            - pytest-logs.txt
+          script:
+            - apt-get update && apt-get -y install gcc
+            - pip install pipenv
+            - pipenv lock --requirements
+            - pipenv lock --requirements > app/requirements.txt
+            - pip install --no-cache-dir -r app/requirements.txt
+            - pytest -vs
+      - step:
           name: DEV2 Deployment
           image: google/cloud-sdk:latest
           deployment: staging
