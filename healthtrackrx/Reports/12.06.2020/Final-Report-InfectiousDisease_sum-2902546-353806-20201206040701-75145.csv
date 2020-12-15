@@ -1,2 +1,0 @@
-requisition_id,order_number,first_name,last_name,DOB,assay_name,status,result
-2902546,719320,John,Schmeltz,1965-07-28,"COVID-19 Coronavirus (SARS-CoV-2)",Approved,Negative

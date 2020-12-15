@@ -1,2 +1,0 @@
-requisition_id,order_number,first_name,last_name,DOB,assay_name,status,result
-2900921,721148,Lisa,Smith,1966-06-28,"COVID-19 Coronavirus (SARS-CoV-2)",Approved,Negative

@@ -1,2 +1,0 @@
-requisition_id,order_number,first_name,last_name,DOB,assay_name,status,result
-2931499,732123,Michael,Roberts,1950-11-27,"COVID-19 Coronavirus (SARS-CoV-2)",Approved,Negative

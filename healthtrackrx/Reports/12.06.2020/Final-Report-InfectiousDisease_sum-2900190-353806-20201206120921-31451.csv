@@ -1,2 +1,0 @@
-requisition_id,order_number,first_name,last_name,DOB,assay_name,status,result
-2900190,721757,David,Ortiz,1966-11-08,"COVID-19 Coronavirus (SARS-CoV-2)",Approved,Negative

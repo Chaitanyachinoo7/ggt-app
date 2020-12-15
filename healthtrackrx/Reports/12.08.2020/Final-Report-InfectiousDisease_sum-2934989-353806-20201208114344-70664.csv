@@ -1,2 +1,0 @@
-requisition_id,order_number,first_name,last_name,DOB,assay_name,status,result
-2934989,735440,John,Ingham,1983-12-11,"COVID-19 Coronavirus (SARS-CoV-2)",Approved,Negative

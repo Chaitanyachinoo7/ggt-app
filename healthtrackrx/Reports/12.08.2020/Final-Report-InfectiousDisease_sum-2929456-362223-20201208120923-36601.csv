@@ -1,2 +1,0 @@
-requisition_id,order_number,first_name,last_name,DOB,assay_name,status,result
-2929456,725373,Dylan,Kim,1988-06-27,"COVID-19 Coronavirus (SARS-CoV-2)",Approved,Negative

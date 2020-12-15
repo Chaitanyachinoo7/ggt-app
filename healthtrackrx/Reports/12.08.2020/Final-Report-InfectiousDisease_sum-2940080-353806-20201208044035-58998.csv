@@ -1,2 +1,0 @@
-requisition_id,order_number,first_name,last_name,DOB,assay_name,status,result
-2940080,739740,Thomas,High,1992-12-18,"COVID-19 Coronavirus (SARS-CoV-2)",Approved,Negative

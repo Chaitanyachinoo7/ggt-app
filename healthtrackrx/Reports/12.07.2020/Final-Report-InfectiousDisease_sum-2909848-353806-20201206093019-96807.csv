@@ -1,2 +1,0 @@
-requisition_id,order_number,first_name,last_name,DOB,assay_name,status,result
-2909848,725791,Gavin,Healy,1999-03-04,"COVID-19 Coronavirus (SARS-CoV-2)",Approved,Negative

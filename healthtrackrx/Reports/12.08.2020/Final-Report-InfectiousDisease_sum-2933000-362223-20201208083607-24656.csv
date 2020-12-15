@@ -1,2 +1,0 @@
-requisition_id,order_number,first_name,last_name,DOB,assay_name,status,result
-2933000,733468,Eduardo,Vidales,2001-06-16,"COVID-19 Coronavirus (SARS-CoV-2)",Approved,Negative

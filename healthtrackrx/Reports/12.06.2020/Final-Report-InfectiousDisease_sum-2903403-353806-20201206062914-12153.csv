@@ -1,2 +1,0 @@
-requisition_id,order_number,first_name,last_name,DOB,assay_name,status,result
-2903403,721480,Alexander,Nguyen,1988-03-15,"COVID-19 Coronavirus (SARS-CoV-2)",Approved,Negative

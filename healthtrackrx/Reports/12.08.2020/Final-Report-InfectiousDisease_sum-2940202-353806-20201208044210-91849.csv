@@ -1,2 +1,0 @@
-requisition_id,order_number,first_name,last_name,DOB,assay_name,status,result
-2940202,740008,Zachary,Rathburn,1990-09-28,"COVID-19 Coronavirus (SARS-CoV-2)",Approved,Positive

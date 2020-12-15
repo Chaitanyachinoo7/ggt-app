@@ -1,2 +1,0 @@
-requisition_id,order_number,first_name,last_name,DOB,assay_name,status,result
-2918512,731897,Erik,Lundquist,1990-09-19,"COVID-19 Coronavirus (SARS-CoV-2)",Approved,Negative

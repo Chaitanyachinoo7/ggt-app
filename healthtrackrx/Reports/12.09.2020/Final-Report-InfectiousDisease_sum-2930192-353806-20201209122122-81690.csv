@@ -1,2 +1,0 @@
-requisition_id,order_number,first_name,last_name,DOB,assay_name,status,result
-2930192,729983,Jack,Steckel,1996-06-10,"COVID-19 Coronavirus (SARS-CoV-2)",Approved,Negative

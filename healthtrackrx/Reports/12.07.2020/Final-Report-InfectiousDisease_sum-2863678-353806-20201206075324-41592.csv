@@ -1,2 +1,0 @@
-requisition_id,order_number,first_name,last_name,DOB,assay_name,status,result
-2863678,708868,Cassandra,Cuellar,2003-10-02,"COVID-19 Coronavirus (SARS-CoV-2)",Approved,Negative

@@ -1,2 +1,0 @@
-requisition_id,order_number,first_name,last_name,DOB,assay_name,status,result
-2914457,729159,John,Gonzalez,2013-10-29,"COVID-19 Coronavirus (SARS-CoV-2)",Approved,Negative

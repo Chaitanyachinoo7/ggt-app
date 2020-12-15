@@ -1,2 +1,0 @@
-requisition_id,order_number,first_name,last_name,DOB,assay_name,status,result
-2880652,717905,Ruben,Gonzalez,1970-06-07,"COVID-19 Coronavirus (SARS-CoV-2)",Approved,Negative

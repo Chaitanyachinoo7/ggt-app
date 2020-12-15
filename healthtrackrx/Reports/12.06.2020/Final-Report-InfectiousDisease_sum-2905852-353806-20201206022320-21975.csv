@@ -1,2 +1,0 @@
-requisition_id,order_number,first_name,last_name,DOB,assay_name,status,result
-2905852,725022,Sean,Baxter,1971-11-01,"COVID-19 Coronavirus (SARS-CoV-2)",Approved,Negative

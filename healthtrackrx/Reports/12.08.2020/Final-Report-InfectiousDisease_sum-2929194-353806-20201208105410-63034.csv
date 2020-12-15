@@ -1,2 +1,0 @@
-requisition_id,order_number,first_name,last_name,DOB,assay_name,status,result
-2929194,719973,Pedro,Franceschi,1955-05-25,"COVID-19 Coronavirus (SARS-CoV-2)",Approved,Negative

@@ -1,2 +1,0 @@
-requisition_id,order_number,first_name,last_name,DOB,assay_name,status,result
-2902431,718564,Julian,"villanueva jr",1990-10-25,"COVID-19 Coronavirus (SARS-CoV-2)",Approved,Negative

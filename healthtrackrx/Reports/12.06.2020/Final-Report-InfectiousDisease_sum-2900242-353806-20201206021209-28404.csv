@@ -1,2 +1,0 @@
-requisition_id,order_number,first_name,last_name,DOB,assay_name,status,result
-2900242,721861,Tina,Nguyen,1995-09-25,"COVID-19 Coronavirus (SARS-CoV-2)",Approved,Negative

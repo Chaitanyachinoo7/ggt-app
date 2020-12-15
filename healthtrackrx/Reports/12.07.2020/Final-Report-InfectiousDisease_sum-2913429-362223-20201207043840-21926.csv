@@ -1,2 +1,0 @@
-requisition_id,order_number,first_name,last_name,DOB,assay_name,status,result
-2913429,719901,Elizabeth,TRUE,1986-05-14,"COVID-19 Coronavirus (SARS-CoV-2)",Approved,Negative

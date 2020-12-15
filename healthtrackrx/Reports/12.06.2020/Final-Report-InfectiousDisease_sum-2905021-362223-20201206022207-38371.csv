@@ -1,2 +1,0 @@
-requisition_id,order_number,first_name,last_name,DOB,assay_name,status,result
-2905021,723843,Lucas,Huang,2017-09-27,"COVID-19 Coronavirus (SARS-CoV-2)",Approved,Negative

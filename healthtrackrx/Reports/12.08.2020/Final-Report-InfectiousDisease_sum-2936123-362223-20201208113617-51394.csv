@@ -1,2 +1,0 @@
-requisition_id,order_number,first_name,last_name,DOB,assay_name,status,result
-2936123,736751,Cassandra,Gill,1977-03-24,"COVID-19 Coronavirus (SARS-CoV-2)",Approved,Negative

@@ -1,2 +1,0 @@
-requisition_id,order_number,first_name,last_name,DOB,assay_name,status,result
-2913872,727685,Anthony,Tran,2005-03-22,"COVID-19 Coronavirus (SARS-CoV-2)",Approved,Negative

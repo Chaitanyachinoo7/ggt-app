@@ -1,2 +1,0 @@
-requisition_id,order_number,first_name,last_name,DOB,assay_name,status,result
-2906126,725484,Larry,Rossum,1960-07-16,"COVID-19 Coronavirus (SARS-CoV-2)",Approved,Negative

@@ -1,2 +1,0 @@
-requisition_id,order_number,first_name,last_name,DOB,assay_name,status,result
-2903542,721814,Toby,Garner,1995-01-13,"COVID-19 Coronavirus (SARS-CoV-2)",Approved,Negative

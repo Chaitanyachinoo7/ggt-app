@@ -1,2 +1,0 @@
-requisition_id,order_number,first_name,last_name,DOB,assay_name,status,result
-2902782,719996,Jose,Gutierrez,1955-02-26,"COVID-19 Coronavirus (SARS-CoV-2)",Approved,Negative
