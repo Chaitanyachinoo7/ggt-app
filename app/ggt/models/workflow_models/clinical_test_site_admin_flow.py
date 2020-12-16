@@ -82,7 +82,7 @@ async def create_group(group):
 
 
 async def update_group(group):
-    return x_response(
+    return y_response(
         await bp_update_group(group)
     )
 

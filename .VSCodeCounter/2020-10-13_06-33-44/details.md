@@ -65,8 +65,8 @@ Total : 121 files,  12187 codes, 1956 comments, 2212 blanks, all 16355 lines
 | [app/ggt/models/data_models/service_catalog.py](/app/ggt/models/data_models/service_catalog.py) | Python | 27 | 6 | 9 | 42 |
 | [app/ggt/models/data_models/signups.py](/app/ggt/models/data_models/signups.py) | Python | 106 | 6 | 22 | 134 |
 | [app/ggt/models/data_models/tasks_local_cache.py](/app/ggt/models/data_models/tasks_local_cache.py) | Python | 360 | 0 | 53 | 413 |
-| [app/ggt/models/data_models/test_results.py](/app/ggt/models/data_models/test_results.py) | Python | 101 | 89 | 20 | 210 |
-| [app/ggt/models/data_models/test_sample.py](/app/ggt/models/data_models/test_sample.py) | Python | 45 | 39 | 12 | 96 |
+| [app/ggt/models/data_models/test_results.py](/ggt/models/data_models/clinical_test_results.py) | Python | 101 | 89 | 20 | 210 |
+| [app/ggt/models/data_models/test_sample.py](/ggt/models/data_models/clinical_test_sample.py) | Python | 45 | 39 | 12 | 96 |
 | [app/ggt/models/data_models/users.py](/app/ggt/models/data_models/users.py) | Python | 32 | 13 | 8 | 53 |
 | [app/ggt/models/data_models/wellpay.py](/app/ggt/models/data_models/wellpay.py) | Python | 27 | 0 | 7 | 34 |
 | [app/ggt/models/process_models/bp_appointments.py](/app/ggt/models/process_models/bp_appointments.py) | Python | 198 | 10 | 47 | 255 |
@@ -82,7 +82,7 @@ Total : 121 files,  12187 codes, 1956 comments, 2212 blanks, all 16355 lines
 | [app/ggt/models/workflow_models/portal_general_flow.py](/app/ggt/models/workflow_models/portal_general_flow.py) | Python | 29 | 9 | 10 | 48 |
 | [app/ggt/models/workflow_models/printer_flow.py](/app/ggt/models/workflow_models/printer_flow.py) | Python | 31 | 6 | 9 | 46 |
 | [app/ggt/models/workflow_models/provider_field_testing_flow.py](/app/ggt/models/workflow_models/provider_field_testing_flow.py) | Python | 65 | 9 | 18 | 92 |
-| [app/ggt/models/workflow_models/test_site_admin_flow.py](/app/ggt/models/workflow_models/test_site_admin_flow.py) | Python | 73 | 6 | 23 | 102 |
+| [app/ggt/models/workflow_models/test_site_admin_flow.py](/ggt/models/workflow_models/clinical_test_site_admin_flow.py) | Python | 73 | 6 | 23 | 102 |
 | [app/ggt/routers/__init__.py](/app/ggt/routers/__init__.py) | Python | 1 | 0 | 1 | 2 |
 | [app/ggt/routers/rt_contact_center.py](/app/ggt/routers/rt_contact_center.py) | Python | 149 | 0 | 24 | 173 |
 | [app/ggt/routers/rt_patient.py](/app/ggt/routers/rt_patient.py) | Python | 75 | 0 | 30 | 105 |

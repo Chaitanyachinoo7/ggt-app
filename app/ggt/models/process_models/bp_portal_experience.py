@@ -3,7 +3,7 @@ from datetime import datetime
 from ggt.lib.utils import (
     log_generic,
     whoami)
-from ggt.models.data_models.groups import get_all_groups, create_group, update_group
+from ggt.models.data_models.groups import get_all_groups, create_group, update_group, get_group_by_id
 from ggt.models.data_models.providers import get_provider_processing_list, provider_lock_task, \
     create_patient_test_consultation, update_consultation_note, provider_complete_task, \
     provider_rollback_to_pending_task
@@ -13,13 +13,13 @@ from ggt.models.data_models.users import (
     get_user_by_email
 )
 
-from ggt.models.data_models.test_results import (
+from ggt.models.data_models.clinical_test_results import (
     get_all_test_results,
     search_details_by_name_and_dob,
     get_test_details
 )
 
-from ggt.models.data_models.test_sample import (
+from ggt.models.data_models.clinical_test_sample import (
     create_test_sample_from_appointment,
     record_label_scan
 )
@@ -95,9 +95,10 @@ async def bp_get_general_search_results(first_name, middle_name, last_name, dob,
 
 async def bp_create_group(group):
     try:
-        return await create_group(group)
-
-
+        _id = await create_group(group)
+        if _id is None:
+            return None
+        return await get_group_by_id(_id)
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -108,9 +109,10 @@ async def bp_create_group(group):
 
 async def bp_update_group(group):
     try:
-        return await update_group(group)
-        
-
+        updated = await update_group(group)
+        if updated:
+            return await get_group_by_id(group.id)
+        return None
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -136,11 +138,11 @@ async def bp_create_location(location):
             location_services.append((location_id, sid))
 
         if len(location_groups) > 0:
-            g_success = await assign_all_groups(tuple(location_groups))
+            g_success = assign_all_groups(tuple(location_groups))
             if g_success is None or not g_success:
                 return None
         if len(location_services) > 0:
-            s_success = await assign_all_services(tuple(location_services))
+            s_success = assign_all_services(tuple(location_services))
             if s_success is None or not s_success:
                 return None
         _location = await search_locations('', '', l['site_code'], '')
@@ -231,11 +233,11 @@ async def bp_update_location(location):
             location_services.append((location_id, sid))
 
         if len(location_groups) > 0:
-            g_success = await assign_all_groups(tuple(location_groups))
+            g_success = assign_all_groups(tuple(location_groups))
             if g_success is None or not g_success:
                 return None
         if len(location_services) > 0:
-            s_success = await assign_all_services(tuple(location_services))
+            s_success = assign_all_services(tuple(location_services))
             if s_success is None or not s_success:
                 return None
         _location = await search_locations('', '', '', '', location_id)
