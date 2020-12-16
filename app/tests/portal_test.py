@@ -17,16 +17,16 @@ from tests.resources import group, location
 client = TestClient(app)
 
 
-def test_create_group():
-    response = client.post(
-        "/api/portal/site-admin/create_group",
-        headers={"X-Token": "coneofsilence"},
-        json=group
-    )
-
-    r = response.json()
-    assert response.status_code == 200
-    assert r['status'] == 'success'
+# def test_create_group():
+#     response = client.post(
+#         "/api/portal/site-admin/create_group",
+#         headers={"X-Token": "coneofsilence"},
+#         json=group
+#     )
+#
+#     r = response.json()
+#     assert response.status_code == 200
+#     assert r['status'] == 'success'
 
 
 def test_create_location():
@@ -41,24 +41,24 @@ def test_create_location():
     assert r['status'] == 'success'
 
 
-@pytest.mark.asyncio
-async def test_group_update():
-    group_code = group['group_code']
-    id = await get_group_id_by_code(group_code)
-    _update = group
-    _update['id'] = id
-    _update['account'] = "TEST ACCOUNT 2"
-    response = client.post(
-        "/api/portal/site-admin/update_group",
-        headers={"X-Token": "coneofsilence"},
-        json=_update
-    )
-
-    r = response.json()
-    print(r)
-    assert response.status_code == 200
-    assert r['status'] == 'success'
-    await delete_group_by_code(group_code)
+# @pytest.mark.asyncio
+# async def test_group_update():
+#     group_code = group['group_code']
+#     id = await get_group_id_by_code(group_code)
+#     _update = group
+#     _update['id'] = id
+#     _update['account'] = "TEST ACCOUNT 2"
+#     response = client.post(
+#         "/api/portal/site-admin/update_group",
+#         headers={"X-Token": "coneofsilence"},
+#         json=_update
+#     )
+#
+#     r = response.json()
+#     print(r)
+#     assert response.status_code == 200
+#     assert r['status'] == 'success'
+#     await delete_group_by_code(group_code)
 
 
 async def get_group_id_by_code(code):

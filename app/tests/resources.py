@@ -20,7 +20,7 @@ group = {
 }
 
 location = {
-    "name": "Site A",
+    "name": "Test Location",
     "addr1": "123 any street",
     "addr2": "suit one",
     "addr3": "dd",

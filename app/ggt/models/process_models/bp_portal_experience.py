@@ -138,11 +138,11 @@ async def bp_create_location(location):
             location_services.append((location_id, sid))
 
         if len(location_groups) > 0:
-            g_success = await assign_all_groups(tuple(location_groups))
+            g_success = assign_all_groups(tuple(location_groups))
             if g_success is None or not g_success:
                 return None
         if len(location_services) > 0:
-            s_success = await assign_all_services(tuple(location_services))
+            s_success = assign_all_services(tuple(location_services))
             if s_success is None or not s_success:
                 return None
         _location = await search_locations('', '', l['site_code'], '')
@@ -233,11 +233,11 @@ async def bp_update_location(location):
             location_services.append((location_id, sid))
 
         if len(location_groups) > 0:
-            g_success = await assign_all_groups(tuple(location_groups))
+            g_success = assign_all_groups(tuple(location_groups))
             if g_success is None or not g_success:
                 return None
         if len(location_services) > 0:
-            s_success = await assign_all_services(tuple(location_services))
+            s_success = assign_all_services(tuple(location_services))
             if s_success is None or not s_success:
                 return None
         _location = await search_locations('', '', '', '', location_id)
