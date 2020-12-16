@@ -22,8 +22,11 @@ import ggt.lib.constants as c
 curr_file = Path(__file__)
 
 service_account_file = cfg('gcp.service_account_file')
+service_account_file_prod = cfg('gcp.service_account_file_prod')
 service_account_file = curr_file.parent.parent.parent.joinpath(
     'configs/{}'.format(service_account_file))
+service_account_file_prod = curr_file.parent.parent.parent.joinpath(
+    'configs/{}'.format(service_account_file_prod))
 
 default_link_expiration_time_limit = cfg(
     'gcp.default_link_expiration_time_limit')
@@ -283,7 +286,7 @@ async def blob_exists(bucket_name: str, filename: str) -> bool:
 async def get_file_blob(bucket_name: str, filename: str):
     try:
         storage_client = storage.Client.from_service_account_json(
-            service_account_file)
+            service_account_file_prod)
         bucket = storage_client.get_bucket(bucket_name)
         blob = bucket.blob(filename)
         if blob.exists():

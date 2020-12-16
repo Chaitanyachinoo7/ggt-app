@@ -53,7 +53,7 @@ from ggt.models.data_models.schedules import (
     update_slot_information
 )
 
-from ggt.models.data_models.test_results import (
+from ggt.models.data_models.clinical_test_results import (
     get_test_result_by_token
 )
 

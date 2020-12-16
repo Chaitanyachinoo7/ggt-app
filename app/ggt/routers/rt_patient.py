@@ -31,7 +31,7 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
 )
 
 # TODO: [GGT-193] Move this to a dedicated API
-from ggt.models.workflow_models.test_site_admin_flow import (
+from ggt.models.workflow_models.clinical_test_site_admin_flow import (
     site_admin_general_search
 )
 
