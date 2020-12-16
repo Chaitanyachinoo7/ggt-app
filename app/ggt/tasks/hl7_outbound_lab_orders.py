@@ -2,6 +2,7 @@ import os
 import glob
 import csv
 import datetime
+import time
 import paramiko
 import base64
 from PIL import Image
@@ -79,7 +80,7 @@ async def upload_insurance_files_from_gstore(orders):
         print('converting insurance image files to PDF')
         file_buffer = []
         for order in orders:
-            if order['bill'] == 'Insurance Attached':
+            if order['bill'] == 'DB':
                 try:
                     file_path_png = "{}/{}_001.png".format(
                         local_insurance_card_file_path, order['id'])
@@ -122,17 +123,18 @@ async def get_insurance_photo_base64(appointment_id):
 
 
 def __get_msh(order):
+    dt = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+    cid = str(int(time.time()))
     return MSH(
-        msh_1_field_separator='|',
-        msh_2_encoding_characters='^~\&',
+        msh_1_field_separator='^~\&',
+        msh_2_encoding_characters='',
         msh_3_sending_application='WELLHEALTH',
-        # "For Client Bill MSH 4 will be ""WELLHLTX // For Insured or Unisured MSH 4 will be ""WELLHLD"" // If IN1 or GT1 are blank, mark as Self Pay"
         msh_4_sending_facility=order['client_site_code'],
         msh_5_receiving_application='AIT',
         msh_6_receiving_facility='AIT',
-        msh_7_datetime_of_message=datetime.datetime.now().strftime("%Y%m%d%H%M%S"),
+        msh_7_datetime_of_message=dt,
         msh_9_message_type='ORM^O01',
-        msh_10_message_control_id=order['id'],
+        msh_10_message_control_id=int(time.time()*1000),
         msh_11_processing_id='P',
         msh_12_version_id='2.3'
     )
@@ -142,7 +144,6 @@ def __get_pid(order):
     return PID(
         pid_1_set_id=1,
         pid_2_patient_id=order['patient_id'],  # External Code
-        
         pid_5_patient_name='{}^{}^^^'.format(
             order['last_name'], order['first_name']),  # Last Name^First Name
         pid_7_date_time_of_birth=order['dob'].replace(
@@ -151,7 +152,7 @@ def __get_pid(order):
         pid_10_race=order['race'],  # Race
         pid_11_patient_address='{}^{}^{}^{}^{}^^^^'.format(
             order['addr1'], order['addr2'], order['city'], order['st'], order['zip']),  # Address^Address2^City^State^Zip Code
-        pid_13_phone_number_home=order['phone_number'],  # Phone
+        pid_13_phone_number_home=order['phone_number'].replace('+1',''),  # Phone
         pid_18_patient_account_number='{}^^^P'.format(order['patient_id']),
         pid_20_drivers_license_number_patient='',
         pid_22_ethnic_group=order['ethnicity']  # Ethnicity
@@ -163,8 +164,8 @@ def __get_pv1(order):
         pv1_1_set_id=1,
         pv1_3_assigned_patient_location='',
         # Physician NPI^Provider Last Name^Provider First name
-        pv1_7_attending_doctor='{}^{}^{}'.format(
-            order['physician_npi'], 'Khan', 'Samad')
+        pv1_7_attending_doctor='{}^{}^{}'.format(order['physician_npi'], 'Khan', 'Samad'),
+        pv1_20_financial_class=order['bill']
     )
 
 '''
@@ -191,7 +192,7 @@ def __get_gt1(order):
             order['last_name'], order['first_name']),  # Last Name^First Name
         gt1_5_guarantor_address='{}^{}^{}^{}^{}^^^^'.format(
             order['addr1'], order['addr2'], order['city'], order['st'], order['zip']),  # Address^Address2^City^State^Zip Code
-        gt1_6_guarantor_ph_num_home=order['phone_number'],  # Phone
+        gt1_6_guarantor_ph_num_home=order['phone_number'].replace('+1',''),  # Phone
         gt1_7_guarantor_ph_num_business='',
         gt1_8_guarantor_datetime_of_birth=order['dob'].replace(
             '-', ''),  # Date of Birth
@@ -231,11 +232,11 @@ def __get_obr(order):
             order['sample_code'], 'AIT' if order['sample_code'] else ''),  # Sample Code^Lab Vial Owner
         obr_4_universal_service_identifier='RESPI507^COVID-19 Test',  # Panel Code^Panel Name
         obr_6_requested_datetime='',  # Date of Collection
-        obr_7_observation_datetime='202008051234',  # Date of Collection
+        obr_7_observation_datetime=order['date_of_collection'],  # Date of Collection
         obr_15_specimen_source='^^^NASOPHARYNGEAL SWAB',  # Sample Source
         # Physician NPI^Provider Last Name
-        obr_16_ordering_provider='1982044657^Ramirez^Diana^MD/PMEMR',
-        obr_17_order_callback_phone_number='(561)360-2034',
+        obr_16_ordering_provider='{}^{}^{}'.format(order['physician_npi'], 'Khan', 'Samad'),
+        obr_17_order_callback_phone_number='4697892595', #WH Phopne number
         obr_21_filler_field_2='^^^^^^'
     )
 
@@ -320,7 +321,7 @@ async def __get_obx(order):
     )
 
     obx10 = None
-    if order['bill'] == 'Insurance Attached':
+    if order['bill'] == 'DB':
         try:
             blob = await get_file_blob('ggt-insurance-cards-prod', '{}.png'.format(order['id']))
             if blob:
@@ -353,7 +354,7 @@ async def create_outbound_files(orders):
         hl7_message.dg1 = __get_dg1(order)
         hl7_message.obx_list = await __get_obx(order)
 
-        if order['bill'] == 'Insurance Attached':
+        if order['bill'] == 'DB':
             hl7_message.gt1 = __get_gt1(order)
         
         filename = "{}-{}.hl7".format(
@@ -363,7 +364,8 @@ async def create_outbound_files(orders):
         local_file_path = "{}/{}".format(local_outbound_file_path, filename)
         
         with open(local_file_path, 'w', newline='') as hl7file:
-            hl7file.write(str(hl7_message))
+            _str = str(hl7_message).encode("utf-8").decode('utf-8','ignore')
+            hl7file.write(_str)
 
 
 async def get_orders_ready_to_transmit():
@@ -373,32 +375,46 @@ async def get_orders_ready_to_transmit():
             t.patient_id AS patient_id,
             REPLACE(p.first_name, ',', '') AS first_name,
             REPLACE(p.last_name, ',', '') AS last_name,
-            DATE_FORMAT(p.dob, '%m/%d/%Y') AS dob,
+            DATE_FORMAT(p.dob, '%Y%m%d') AS dob,
             (CASE
                 WHEN (p.gender = 'male') THEN 'M'
                 WHEN (p.gender = 'female') THEN 'F'
                 ELSE 'Unknown'
             END) AS gender,
             (CASE
-                WHEN (t.sample_collection_start_dt IS NOT NULL) THEN DATE_FORMAT(t.sample_collection_start_dt, '%m/%d/%y')
-                WHEN (t.sample_collection_end_dt IS NOT NULL) THEN DATE_FORMAT(t.sample_collection_end_dt, '%m/%d/%y')
-                WHEN (t.pre_ship_label_scan_dt IS NOT NULL) THEN DATE_FORMAT(t.pre_ship_label_scan_dt, '%m/%d/%y')
-                ELSE DATE_FORMAT(CONVERT_TZ(NOW(), '+00:00', '-06:00'),
-                        '%m/%d/%y')
+                WHEN (t.sample_collection_start_dt IS NOT NULL) THEN 
+                    DATE_FORMAT(CONVERT_TZ(t.sample_collection_start_dt,
+                            '+00:00',
+                            '-06:00'),
+                    '%Y%m%d')
+                WHEN (t.sample_collection_end_dt IS NOT NULL) THEN 
+                    DATE_FORMAT(CONVERT_TZ(t.sample_collection_end_dt,
+                            '+00:00',
+                            '-06:00'),
+                    '%Y%m%d')
+                WHEN (t.pre_ship_label_scan_dt IS NOT NULL) THEN 
+                    DATE_FORMAT(CONVERT_TZ(t.pre_ship_label_scan_dt,
+                            '+00:00',
+                            '-06:00'),
+                    '%Y%m%d')
+                ELSE DATE_FORMAT(CONVERT_TZ(NOW(),
+                            '+00:00',
+                            '-06:00'),
+                    '%Y%m%d')
             END) AS date_of_collection,
             (CASE
-                WHEN (p.race = 'race_american_indian') THEN 'American Indian or Alaska Native'
-                WHEN (p.race = 'race_asian') THEN 'Asian'
-                WHEN (p.race = 'race_black') THEN 'Black or African American'
-                WHEN (p.race = 'race_hawaiian') THEN 'Native Hawaiian or Other Pacific Islander'
-                WHEN (p.race = 'race_other') THEN 'Other'
-                WHEN (p.race = 'race_white') THEN 'White'
+                WHEN (p.race = 'race_american_indian') THEN '1002-5'
+                WHEN (p.race = 'race_asian') THEN '2028-9'
+                WHEN (p.race = 'race_black') THEN '2054-5'
+                WHEN (p.race = 'race_hawaiian') THEN '2076-8'
+                WHEN (p.race = 'race_other') THEN '2131-1'
+                WHEN (p.race = 'race_white') THEN '2106-3'
                 ELSE 'Unknown'
             END) AS race,
             (CASE
-                WHEN (p.ethnicity = 'true') THEN 'Hispanic or Latino'
-                WHEN (p.ethnicity = 'false') THEN 'Not Hispanic or Latino'
-                WHEN (p.ethnicity = 'hispanic_latino_spanish') THEN 'Hispanic or Latino'
+                WHEN (p.ethnicity = 'true') THEN '2135-2'
+                WHEN (p.ethnicity = 'false') THEN '2186-5'
+                WHEN (p.ethnicity = 'hispanic_latino_spanish') THEN '2135-2'
                 ELSE 'Unknown'
             END) AS ethnicity,
             REPLACE(p.addr1, ',', '') AS addr1,
@@ -423,13 +439,13 @@ async def get_orders_ready_to_transmit():
                     ((l.billing_type = 'insurance')
                         AND (q.has_insurance_photo = 1))
                 THEN
-                    'Insurance Attached'
+                    'DB'
                 WHEN
                     ((l.billing_type = 'insurance')
                         AND (q.has_insurance_photo <> 1))
                 THEN
-                    'Self-Pay'
-                ELSE 'Client Bill'
+                    'SP'
+                ELSE 'CB'
             END) AS bill,
             t.id AS client_order_number,
             t.vial_id AS sample_code,
@@ -458,6 +474,7 @@ async def get_orders_ready_to_transmit():
             JOIN patient_questionnaires q ON ((p.id = q.patient_id)))
         WHERE
             (t.status = 'ready_to_tx')
+        LIMIT 100
             """
     return await read_rows(sql,)
 

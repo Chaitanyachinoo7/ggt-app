@@ -7,7 +7,7 @@ from pprint import pprint
 
 class MSH(BaseModel):
     # https://hl7-definition.caristix.com/v2/HL7v2.5.1/Segments/MSH
-    msh_1_field_separator: constr(max_length=1)
+    msh_1_field_separator: = ''
     msh_2_encoding_characters: constr(max_length=4)
     msh_3_sending_application: Optional[constr(max_length=227)] = ''
     msh_4_sending_facility: Optional[constr(max_length=227)] = ''

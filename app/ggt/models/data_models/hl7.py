@@ -1,13 +1,50 @@
 from datetime import datetime
+import time
 from enum import Enum
 from typing import List, Optional
 from pydantic import BaseModel, constr
 from pprint import pprint
 
+'''
+MSH|^~\&|WELLHEALTH|WELLHLD|AIT|AIT|20201215171758||ORM^O01|(1608070668,)|P|2.3|||||||||
+PID|1|494800|||salguero^krystel^^^||11/24/1997|F||Unknown|2075 stillwater pl^^Lewisville^TX^75067^^^^||14695447901|||||494800^^^P||||2135-2|||||||||||||||||
+PV1|1||||||1780944496^Khan^Samad|||||||||||||SP||||||||||||||||||||||||||||||||
+ORC||594164|^||||||12/15/20|||1780944496^Khan^Samad|||||||||||||||||||
+DG1|1||Z20.828^Contact with and (suspected) exposure to other viral communicable diseases||||||||||||||||||
+OBR|1|594164|^|RESPI507^COVID-19 Test|||202008051234||||||||^^^NASOPHARYNGEAL SWAB|1982044657^Ramirez^Diana^MD/PMEMR|(561)360-2034||||^^^^^^|||||||||||||||||||||||||||||
+OBX|2|ST|COVID-PT-1^Is this the patient's first COVID-19 test?||U^Unknown||||||||||||||||||||
+OBX|3|ST|COVID-PT-2^Is the patient employed in healthcare with direct patient contact?||U^Unknown||||||||||||||||||||
+OBX|4|ST|COVID-PT-3A^Is the patient exhibiting symptoms as defined by the CDC?||U^Unknown||||||||||||||||||||
+OBX|5|ST|COVID-PT-3B^When was first sign of symptoms? (Blank if no or unknown)||||||||||||||||||||||
+OBX|6|ST|COVID-PT-4^Has the patient been hospalized?||U^Unknown||||||||||||||||||||
+OBX|7|ST|COVID-PT-5^Has the patient been hospalized in the ICU?||U^Unknown||||||||||||||||||||
+OBX|8|ST|COVID-PT-6^Does the patient reside in congregate care (nursing home, group home, etc.)?||U^Unknown||||||||||||||||||||
+OBX|9|ST|COVID-PT-7^Is the patient pregnant?||U^Unknown||||||||||||||||||||
+
+'''
+
+'''
+MSH|^~\&|DEMOFAC|DEMOFAC|AIT|AIT|20200805133511||ORM^O01|31705156|P|2.3
+PID|1|27927IN|27927IN|Test123IN|Htrxtest^TestIN^^^||19900101|M|^|2054-5|123 Main Ln.^^Allen^TX^75002^^^^||(469)987-6521|||||Test123^^^P||||H
+PV1|1||2||||1982044657^Ramirez^Diana^MD/PMEMR||||||||||1982044657^Ramirez^Diana^MD/PMEMR||
+IN1|1||MMP|MEDICARE MASTER PAYER||||||||||||DOE^JOHN^M|01|195208150000|1700 ONION CREEK PARKWAY^^AUSTIN^TX^78748^US|||1||||||||||INSURANCE||||8J89UD3HR59|||||||F||||||||
+GT1|||DOE^JOHN^M||1700 ONION CREEK PARKWAY^^AUSTIN^TX^78748^US|(303)371-0073||195208150000|F||01|||||||||||||||||||||||||||||||||||||||||||||GT1|1||Htrxtest^Test||123 Main Ln.^^Allen^TX^75002|4699876521|||M||18
+ORC|NW|NBT-000010139494|||||||202008051234|||1982044657^Ramirez^Diana^MD/PMEMR||
+OBR|1|NBT-000010139494||RESPI507^COVID-19 Test|||202008051234||||||||^^^NASOPHARYNGEAL SWAB|1982044657^Ramirez^Diana^MD/PMEMR|(561)360-2034||||^^^^^^
+DG1|1||I10^Essential (primary) hypertension
+OBX|2|ST|COVID-PT-1^Is this the patient's first COVID-19 test?||U^Unknown||||||||
+OBX|3|ST|COVID-PT-2^Is the patient employed in healthcare with direct patient contact?||U^Unknown||||||||
+OBX|4|ST|COVID-PT-3A^Is the patient exhibiting symptoms as defined by the CDC?||Y^Yes||||||||
+OBX|5|ST|COVID-PT-3B^When was first sign of symptoms? (Blank if no or unknown)||20200731||||||||
+OBX|6|ST|COVID-PT-4^Has the patient been hospalized?||N^No||||||||
+OBX|7|ST|COVID-PT-5^Has the patient been hospalized in the ICU?||N^No||||||||COVID-PT-5
+OBX|8|ST|COVID-PT-6^Does the patient reside in congregate care (nursing home, group home, etc.)?||N^No||||||||
+OBX|9|ST|COVID-PT-7^Is the patient pregnant?||N^No||||||||
+'''
 
 class MSH(BaseModel):
     # https://hl7-definition.caristix.com/v2/HL7v2.5.1/Segments/MSH
-    msh_1_field_separator: constr(max_length=1)
+    msh_1_field_separator = ''
     msh_2_encoding_characters: constr(max_length=4)
     msh_3_sending_application: Optional[constr(max_length=227)] = ''
     msh_4_sending_facility: Optional[constr(max_length=227)] = ''
@@ -15,7 +52,7 @@ class MSH(BaseModel):
     msh_6_receiving_facility: Optional[constr(max_length=227)] = ''
     msh_7_datetime_of_message: constr(max_length=26)  # Timestamp
     msh_8_security: Optional[constr(max_length=40)] = ''
-    msh_9_message_type: constr(max_length=15)
+    msh_9_message_type: Optional[constr(max_length=15)] = ''
     msh_10_message_control_id: constr(max_length=20)
     msh_11_processing_id: constr(max_length=3)
     msh_12_version_id: constr(max_length=60)
@@ -33,7 +70,7 @@ class MSH(BaseModel):
     msh_21_message_profile_identifier: Optional[constr(max_length=427)] = ''
 
     def __str__(self):
-        return 'MSH|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}'.format(
+        return 'MSH|{}{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}'.format(
             self.msh_1_field_separator,
             self.msh_2_encoding_characters,
             self.msh_3_sending_application,
@@ -1125,9 +1162,9 @@ class Message(BaseModel):
     pv1: Optional[PV1] = ''
     gt1: Optional[GT1] = ''
     in1: Optional[IN1] = ''
+    dg1: Optional[DG1] = ''
     orc: Optional[ORC] = ''
     obr: Optional[OBR] = ''
-    dg1: Optional[DG1] = ''
     obx_list: Optional[List[OBX]] = ''
     def __str__(self):
         _str = ''
@@ -1139,8 +1176,8 @@ class Message(BaseModel):
             str(self.pid),
             str(self.pv1),
             str(self.gt1),
-            str(self.orc),
             str(self.dg1),
+            str(self.orc),
             str(self.obr),
             _str
-        )
+        ).replace('None','').replace('\n\n','\n').replace('\n\n','\n').replace('b\'','').replace('\'|','|')
