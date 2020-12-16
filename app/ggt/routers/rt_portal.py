@@ -36,7 +36,7 @@ from ggt.models.workflow_models.contact_center_flow import (
 from ggt.models.workflow_models.portal_general_flow import (
     portal_get_user_role
 )
-from ggt.models.workflow_models.test_site_admin_flow import (
+from ggt.models.workflow_models.clinical_test_site_admin_flow import (
     site_admin_general_search,
     generate_schedule,
     generate_all_schedules,

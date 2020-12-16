@@ -80,6 +80,20 @@ async def create_group(group):
         return None
 
 
+async def get_group_by_id(id):
+    try:
+        sql = """SELECT * FROM groups WHERE id = %s"""
+        vals = (id,)
+        return await read_rows(sql, vals)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 async def update_group(group):
     try:
         sql = """

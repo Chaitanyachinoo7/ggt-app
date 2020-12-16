@@ -602,6 +602,13 @@ class GgtLocation(BaseModel):
     allow_insurance_skip: bool = None
     collect_upfront_payment: bool = None
     image_thumbnail: str = None
+    accepts_bookings: bool = None
+    accepts_walkins: bool = None
+    operator: str = None
+    phone_number: str = None
+    website: str = None
+    open_hours: str = None
+    is_external: bool = False
     services_available: List[GgtServiceCatalogItem] = None
 
 
@@ -627,6 +634,13 @@ class GgtDbLocation(BaseModel):
     allow_insurance_skip: bool = 1
     collect_upfront_payment: bool = 0
     image_thumbnail: Optional[str] = None
+    accepts_bookings: bool = None
+    accepts_walkins: bool = None
+    operator: str = None
+    phone_number: str = None
+    website: str = None
+    open_hours: str = None
+    is_external: bool = False
     group_ids: List[int] = []
     service_ids: List[int] = []
 
@@ -641,6 +655,13 @@ class GgtUpdateLocation(BaseModel):
     collect_insurance_info: str = None
     allow_insurance_skip: str = None
     collect_upfront_payment: str = None
+    accepts_bookings: bool = None
+    accepts_walkins: bool = None
+    operator: str = None
+    phone_number: str = None
+    website: str = None
+    open_hours: str = None
+    is_external: bool = False
     group_ids: List[int] = []
     service_ids: List[int] = []
 
@@ -898,3 +919,15 @@ class InsuranceUpdateRecord(BaseModel):
 
 class InsuranceIDRecord(BaseModel):
     id: str
+
+
+class Base64Image(BaseModel):
+    data: str
+
+
+class InsuranceCardResponse(BaseModel):
+    provider: str
+    subsriber_name: str
+    subsriber_id: str
+    group_id: str
+    effective_date: str
