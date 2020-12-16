@@ -420,7 +420,7 @@ async def assign_group(req):
         return None
 
 
-async def assign_all_groups(vals):
+def assign_all_groups(vals):
     try:
         sql = """
                INSERT INTO group_codes_to_locations_mapping
@@ -430,7 +430,7 @@ async def assign_all_groups(vals):
                )
                values (%s, %s)
                """
-        map_id = await exec_batch_execute(sql, vals)
+        map_id = exec_batch_execute(sql, vals)
         return map_id
 
     except Exception as err:
@@ -468,7 +468,7 @@ async def assign_service(req):
         return None
 
 
-async def assign_all_services(vals):
+def assign_all_services(vals):
     try:
         sql = """
                INSERT INTO services_to_locations_mapping
@@ -478,7 +478,7 @@ async def assign_all_services(vals):
                )
                values (%s, %s)
                """
-        map_id = await exec_batch_execute(sql, vals)
+        map_id = exec_batch_execute(sql, vals)
         return map_id
 
     except Exception as err:

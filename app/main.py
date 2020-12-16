@@ -42,7 +42,7 @@ app.add_middleware(
 )
 
 app.add_middleware(
-    GZipMiddleware, 
+    GZipMiddleware,
     minimum_size=512
 )
 
