@@ -23,8 +23,7 @@ from ggt.routers import (
     rt_printer_hub,
     rt_care_provider,
     rt_billing,
-    rt_reporting,
-    rt_insurance_card_ocr
+    rt_reporting
 )
 
 app_init()
