@@ -76,13 +76,12 @@ async def download_billing_list(offset, limit):
 
 
 async def get_image_from_bucket(image_id):
-    return StreamingResponse(
-        await bp_image_from_bucket(image_id),
-        media_type="image/png",
-        headers={
-            'Content-Disposition': 'inline; filename="insurance_card.png"'
-        }
-    )
+    return StreamingResponse(bp_image_from_bucket(image_id),
+                             media_type="image/png",
+                             headers={
+                                 'Content-Disposition': 'inline; filename="insurance_card.png"'
+                             }
+                             )
 
 
 async def get_report_from_bucket(report_id):

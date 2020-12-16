@@ -12,12 +12,12 @@ pipelines:
           script:
             - cp app/ggt/configs/config-prod.yml app/ggt/configs/config.yml
             - cp app/ggt/configs/log-config-prod.yml app/ggt/configs/log-config.yml
-            - cp app/ggt/configs/gcp-service-account-prod.json app/ggt/configs/gcp-service-account.json
+            - cp app/ggt/configs/gcp-service-account-ops-prod.json app/ggt/configs/gcp-service-account.json
             - gcloud auth activate-service-account --key-file app/ggt/configs/gcp-service-account.json
-            - gcloud config set project ggt-pfe-prod
-            - gcloud builds submit --tag gcr.io/ggt-pfe-prod/ggt-ops-services
-            #- gcloud run deploy --image gcr.io/ggt-pfe-prod/ggt-ops-services --platform managed  --allow-unauthenticated --region us-central1 ggt-ops-services
-            - gcloud beta run deploy ggt-ops-services --image=gcr.io/ggt-pfe-prod/ggt-ops-services --vpc-connector=vpc-connector-prod  --vpc-egress=all --platform=managed  --allow-unauthenticated --region=us-central1
+            - gcloud config set project ggt-ops-prod
+            - gcloud builds submit --tag gcr.io/ggt-ops-prod/ggt-ops-services
+#            - gcloud run deploy --image gcr.io/ggt-ops-prod/ggt-ops-services --platform managed  --allow-unauthenticated --region us-central1 ggt-ops-services
+            - gcloud beta run deploy ggt-ops-services --image=gcr.io/ggt-ops-prod/ggt-ops-services --vpc-connector=vpc-connector-prod  --vpc-egress=all --platform=managed  --allow-unauthenticated --region=us-central1
             - gcloud run services update-traffic ggt-ops-services --platform managed --region us-central1 --to-latest
 
     production-portal:
@@ -77,6 +77,23 @@ pipelines:
             - aws ecs update-service --region us-east-1 --cluster ggt-api --service ggt-api-5 --force-new-deployment
 
     dev:
+      - step:
+          name: DEV Testing
+          image: python:3.7.9
+          caches:
+            - pip
+          artifacts:
+            - pytest-logs.txt
+          script:
+            - cp app/ggt/configs/config-dev.yml app/ggt/configs/config.yml
+            - cp app/ggt/configs/log-config-dev.yml app/ggt/configs/log-config.yml
+            - cp app/ggt/configs/gcp-service-account-dev.json app/ggt/configs/gcp-service-account.json
+            - apt-get update && apt-get -y install gcc
+            - pip install pipenv
+            - pipenv lock --requirements
+            - pipenv lock --requirements > app/requirements.txt
+            - pip install --no-cache-dir -r app/requirements.txt
+            - pytest -vs
       - step:
           name: Development Deployment
           image: google/cloud-sdk:latest

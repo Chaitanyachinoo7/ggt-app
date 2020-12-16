@@ -55,7 +55,14 @@ async def get_location_by_id(location_id):
                 collect_insurance_info,
                 allow_insurance_skip,
                 collect_upfront_payment,
-                image_thumbnail
+                image_thumbnail,
+                accepts_bookings,
+                accepts_walkins,
+                operator,
+                website,
+                open_hours,
+                phone_number,
+                is_external
             FROM 
                 locations 
             WHERE 
@@ -150,6 +157,7 @@ async def get_all_locations_without_thumbnail():
                     l.operator,
                     l.website,
                     l.open_hours,
+                    l.phone_number,
                     l.is_external,
                     l.create_dt,
                     l.update_dt,
@@ -239,6 +247,13 @@ async def search_locations(account, group_code, site_code, location_name, id=Non
                     l.allow_insurance_skip,
                     l.collect_upfront_payment,
                     l.type,
+                    l.accepts_bookings,
+                    l.accepts_walkins,
+                    l.operator,
+                    l.website,
+                    l.open_hours,
+                    l.phone_number,
+                    l.is_external,
                     s.service_names,
                     gp.group_accounts,
                     gp.group_codes,
@@ -306,9 +321,17 @@ async def create_location(location):
                    collect_insurance_info,
                    allow_insurance_skip,
                    collect_upfront_payment,
-                   image_thumbnail 
+                   image_thumbnail,
+                   accepts_bookings,
+                   accepts_walkins,
+                   operator,
+                   phone_number,
+                   website,
+                   open_hours,
+                   is_external
                )
-               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 
+               %s, %s, %s)
                """
         vals = (
             location.site_code,
@@ -330,7 +353,14 @@ async def create_location(location):
             location.collect_insurance_info,
             location.allow_insurance_skip,
             location.collect_upfront_payment,
-            location.image_thumbnail
+            location.image_thumbnail,
+            location.accepts_bookings,
+            location.accepts_walkins,
+            location.operator,
+            location.phone_number,
+            location.website,
+            location.open_hours,
+            location.is_external
         )
         location_id = await exec_insert(sql, vals)
 
@@ -390,7 +420,7 @@ async def assign_group(req):
         return None
 
 
-async def assign_all_groups(vals):
+def assign_all_groups(vals):
     try:
         sql = """
                INSERT INTO group_codes_to_locations_mapping
@@ -400,7 +430,7 @@ async def assign_all_groups(vals):
                )
                values (%s, %s)
                """
-        map_id = await exec_batch_execute(sql, vals)
+        map_id = exec_batch_execute(sql, vals)
         return map_id
 
     except Exception as err:
@@ -438,7 +468,7 @@ async def assign_service(req):
         return None
 
 
-async def assign_all_services(vals):
+def assign_all_services(vals):
     try:
         sql = """
                INSERT INTO services_to_locations_mapping
@@ -448,7 +478,7 @@ async def assign_all_services(vals):
                )
                values (%s, %s)
                """
-        map_id = await exec_batch_execute(sql, vals)
+        map_id = exec_batch_execute(sql, vals)
         return map_id
 
     except Exception as err:
@@ -553,7 +583,14 @@ async def update_location(location):
                    billing_type = %s,
                    collect_insurance_info = %s,
                    allow_insurance_skip = %s,
-                   collect_upfront_payment = %s
+                   collect_upfront_payment = %s,
+                   accepts_bookings = %s,
+                   accepts_walkins = %s,
+                   operator = %s,
+                   phone_number = %s,
+                   website = %s,
+                   open_hours = %s,
+                   is_external = %s
                WHERE id =  %s
                         """
         vals = (
@@ -565,6 +602,13 @@ async def update_location(location):
             location.collect_insurance_info,
             location.allow_insurance_skip,
             location.collect_upfront_payment,
+            location.accepts_bookings,
+            location.accepts_walkins,
+            location.operator,
+            location.phone_number,
+            location.website,
+            location.open_hours,
+            location.is_external,
             location.id
         )
         updated = await exec_update(sql, vals)
@@ -626,6 +670,13 @@ def __map_row_to_location(row):
         loc.allow_insurance_skip = row['allow_insurance_skip']
         loc.collect_upfront_payment = row['collect_upfront_payment']
         loc.image_thumbnail = row['image_thumbnail']
+        loc.image_thumbnail = row['accepts_bookings']
+        loc.image_thumbnail = row['accepts_walkins']
+        loc.image_thumbnail = row['operator']
+        loc.image_thumbnail = row['phone_number']
+        loc.image_thumbnail = row['website']
+        loc.image_thumbnail = row['open_hours']
+        loc.image_thumbnail = row['is_external']
 
     except Exception as err:
         log_generic(
