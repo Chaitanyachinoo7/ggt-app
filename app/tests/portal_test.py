@@ -64,13 +64,13 @@ async def test_group_update():
 async def get_group_id_by_code(code):
     sql = """SELECT * FROM groups WHERE group_code = %s"""
     vals = (code,)
-    _group = await read_rows(sql, vals)
+    _group = read_rows(sql, vals)
     return _group[0]['id']
 
 
 async def delete_group_by_code(code):
     sql = """DELETE FROM groups WHERE group_code = %s"""
     vals = (code,)
-    return await exec_delete(sql, vals)
+    return exec_delete(sql, vals)
 
 

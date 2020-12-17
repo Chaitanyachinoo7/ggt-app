@@ -57,7 +57,7 @@ async def create_test_sample_from_appointment(appointment_id):
             id = %s;
         """
         vals = (appointment_id,)
-        return await exec_insert(sql, vals)
+        return exec_insert(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -81,7 +81,7 @@ async def record_label_scan(appointment_id):
 
         vals = (appointment_id,)
         
-        return await exec_update(sql, vals)
+        return exec_update(sql, vals)
 
     except Exception as err:
         log_generic(

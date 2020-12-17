@@ -78,7 +78,7 @@ async def create_result_notification_campaign():
         task_session_id=session_id,
         info='BEGIN - Creating result notification campaign')
 
-    await exec_insert(sql, vals)
+    exec_insert(sql, vals)
 
     log_generic(
         type=c.INFO,
@@ -124,7 +124,7 @@ async def schedule_positive_followups():
         task_session_id=session_id,
         info='BEGIN - Scheduling Positive Report Followup sessions')
 
-    await exec_insert(sql, vals)
+    exec_insert(sql, vals)
 
     log_generic(
         type=c.INFO,
@@ -138,7 +138,7 @@ async def schedule_notifications_using_sms():
         SELECT * FROM result_notification_campaigns
         WHERE overall_status = 'scheduled'
     """
-    rows = await replica_read_rows(sql)
+    rows = replica_read_rows(sql)
 
     # ---
     data = []
@@ -170,7 +170,7 @@ async def schedule_notifications_using_email():
         WHERE overall_status <> 'final_notified' 
             AND (email_sent is NULL OR email_sent = 0)
     """
-    row = await replica_read_row(sql,)
+    row = replica_read_row(sql,)
     total_count = row['total']
     limit = math.ceil(total_count/batch_size)
     
@@ -186,7 +186,7 @@ async def __batch_schedule_notifications_using_email(batch_size=100):
             AND (email_sent is NULL OR email_sent = 0)
         LIMIT {}
     """.format(batch_size)
-    rows = await replica_read_rows(sql)
+    rows = replica_read_rows(sql)
 
     data = []
     test_id_list = []
@@ -242,7 +242,7 @@ async def add_to_healthtrackrx_inbound_data_table():
             VALUES (%s,%s,%s,%s, %s,%s,%s,%s)
             ON DUPLICATE KEY UPDATE requisition_id=requisition_id
         """
-        await exec_batch_execute(sql, rows)
+        exec_batch_execute(sql, rows)
 
     except Exception as err:
         print("err:", err)
@@ -264,7 +264,7 @@ async def add_to_sms_queue(phone_number, message):
         (%s, %s);
     """
     vals = (phone_number, message)
-    await exec_insert(sql, vals)
+    exec_insert(sql, vals)
 
     log_generic(
         type=c.INFO,
@@ -290,7 +290,7 @@ async def batch_update_notification_queue_status_for_email(test_id_list):
                 test_id IN ({})
                 AND test_id <> 0
             """.format(test_id_list)
-        await exec_update(sql)
+        exec_update(sql)
 
     except Exception as err:
         print("err:", err)
@@ -306,7 +306,7 @@ async def update_notification_queue_status_to_pending(test_id):
             WHERE test_id = %s
             """
         vals = (test_id,)
-        await exec_update(sql, vals)
+        exec_update(sql, vals)
 
     except Exception as err:
         print("err:", err)
@@ -320,7 +320,7 @@ async def batch_enqueue_sms_notifications(data):
             VALUES
                 (%s, %s);
         """
-        await exec_batch_execute(sql, data)
+        exec_batch_execute(sql, data)
 
     except Exception as err:
         print("err:", err)
@@ -334,7 +334,7 @@ async def batch_enqueue_email_notifications(data):
             VALUES
                 (%s, %s, %s, %s, %s);
         """
-        await exec_batch_execute(sql, data)
+        exec_batch_execute(sql, data)
         return True
 
     except Exception as err:
@@ -354,4 +354,4 @@ async def batch_update_notification_queue_status_to_pending(test_id_list):
             test_id IN ({})
             AND test_id <> 0
         """.format(test_id_list)
-    await exec_update(sql)
+    exec_update(sql)

@@ -402,7 +402,7 @@ async def load_data_from_remote_db_to_cache():
         SELECT * 
         FROM healthtrackrx_inbound_data 
         """
-    rows = await read_rows(sql)
+    rows = read_rows(sql)
 
     row_count = len(rows)
     i = 0
@@ -594,7 +594,7 @@ async def update_test_samples_with_results():
                 AND test_samples.id = healthtrackrx_inbound_data.order_number
         """
     vals = ()
-    await exec_update(sql, vals)
+    exec_update(sql, vals)
 
 
 def extract_filename(file_path):

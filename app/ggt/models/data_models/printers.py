@@ -37,7 +37,7 @@ from ggt.lib.constants import (
 async def get_all_printer_hubs():
     try:
         sql = "SELECT * FROM workstations"
-        return await replica_read_rows(sql)
+        return replica_read_rows(sql)
 
     except Exception as err:
         log_generic(
@@ -74,7 +74,7 @@ async def __enqueue(workstation_id, appointment_id):
                     (%s, %s)
             """
         vals = (workstation_id, appointment_id)
-        return await exec_insert(sql, vals)
+        return exec_insert(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -97,7 +97,7 @@ async def __dequeue(print_job_id):
                     id = %s
             """
         vals = (print_job_id,)
-        return await exec_update(sql, vals)
+        return exec_update(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -134,7 +134,7 @@ async def __peek(workstation_id, workstation_token):
                 LIMIT 1
             """
         vals = (workstation_id, workstation_token)
-        return await read_row(sql, vals)
+        return read_row(sql, vals)
 
     except Exception as err:
         log_generic(

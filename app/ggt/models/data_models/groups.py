@@ -16,7 +16,7 @@ from ggt.lib.utils import (
 async def get_all_groups():
     try:
         sql = "SELECT * FROM groups"
-        return await read_rows(sql)
+        return read_rows(sql)
 
     except Exception as err:
         log_generic(
@@ -68,7 +68,7 @@ async def create_group(group):
             group.logo_2,
             group.optional_screens
         )
-        group_id = await exec_insert(sql, vals)
+        group_id = exec_insert(sql, vals)
         return group_id
 
     except Exception as err:
@@ -84,7 +84,7 @@ async def get_group_by_id(id):
     try:
         sql = """SELECT * FROM groups WHERE id = %s"""
         vals = (id,)
-        return await read_rows(sql, vals)
+        return read_rows(sql, vals)
     except Exception as err:
         log_generic(
             type=ERROR,
@@ -135,7 +135,7 @@ async def update_group(group):
             group.optional_screens,
             group.id
         )
-        updated = await exec_update(sql, vals)
+        updated = exec_update(sql, vals)
         return updated
 
     except Exception as err:

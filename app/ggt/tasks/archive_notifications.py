@@ -94,7 +94,7 @@ async def get_available_email_notifications(limit):
                     status = 'processed'
                 ORDER BY id
                 LIMIT {};""".format(limit)
-    return await read_rows(sql)
+    return read_rows(sql)
 
 
 async def get_available_sms_notifications(limit):
@@ -106,7 +106,7 @@ async def get_available_sms_notifications(limit):
                     status = 'processed'
                 ORDER BY id
                 LIMIT {};""".format(limit)
-    return await read_rows(sql)
+    return read_rows(sql)
 
 
 async def insert_email_archive_table(records):
@@ -134,7 +134,7 @@ async def insert_email_archive_table(records):
             record['update_dt']
         )
         vals.append(val)
-    return await exec_batch_execute(sql, tuple(vals))
+    return exec_batch_execute(sql, tuple(vals))
 
 
 async def insert_sms_archive_table(records):
@@ -156,7 +156,7 @@ async def insert_sms_archive_table(records):
             record['update_dt']
         )
         vals.append(val)
-    return await exec_batch_execute(sql, tuple(vals))
+    return exec_batch_execute(sql, tuple(vals))
 
 
 async def delete_archived_email_record():
@@ -173,7 +173,7 @@ async def delete_archived_email_record():
                             INNER JOIN archived_email_notification AS an 
                                 ON en.id = an.id) as 
                             temp);"""
-    return await exec_delete(sql)
+    return exec_delete(sql)
 
 
 async def delete_archived_sms_record():
@@ -190,7 +190,7 @@ async def delete_archived_sms_record():
                             INNER JOIN archived_sms_notification AS an 
                                 ON en.id = an.id) as 
                             temp);"""
-    return await exec_delete(sql)
+    return exec_delete(sql)
 
 
 async def archive_sms_notifications(records):

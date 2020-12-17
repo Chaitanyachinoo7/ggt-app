@@ -35,7 +35,7 @@ async def get_test_result(id):
                 LIMIT 1
             """
         vals = (id,)
-        return await replica_read_row(sql, vals)
+        return replica_read_row(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -57,7 +57,7 @@ async def get_test_result_by_token(token):
                 LIMIT 1
             """
         vals = (token,)
-        return await replica_read_row(sql, vals)
+        return replica_read_row(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -79,7 +79,7 @@ async def get_test_details(test_id):
                 LIMIT 1
             """
         vals = (test_id,)
-        return await replica_read_row(sql, vals)
+        return replica_read_row(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -128,7 +128,7 @@ async def search_details_by_name_and_dob(last_name, dob):
                 ORDER BY t.test_id DESC
             """
         vals = ('%'+last_name+'%', dob)
-        return await replica_read_rows(sql, vals)
+        return replica_read_rows(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -165,7 +165,7 @@ async def get_all_test_results():
                 INNER JOIN test_samples ts
                     ON pat.id = ts.patient_id
             """
-        return await replica_read_rows(sql, )
+        return replica_read_rows(sql, )
 
     except Exception as err:
         log_generic(

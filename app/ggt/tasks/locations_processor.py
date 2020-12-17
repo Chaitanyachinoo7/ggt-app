@@ -30,7 +30,7 @@ async def task_populate_location_thumbnails():
     WHERE
         image_thumbnail IS NULL
     """
-    rows = await read_rows(sql)
+    rows = read_rows(sql)
     for row in rows:
         location_id = row['id']
 
@@ -68,7 +68,7 @@ async def update_location_thumbnails(location_id, encoded_image):
             id = %s
     """
     vals = (encoded_image, location_id)
-    await exec_update(sql, vals)    
+    exec_update(sql, vals)
 
 
 
@@ -87,7 +87,7 @@ async def task_populate_gps_coordinates():
         lng = ''
     """
     
-    rows = await read_rows(sql)
+    rows = read_rows(sql)
     for row in rows:
         location_id = row['id']
 
@@ -142,7 +142,7 @@ async def update_gps_coordinates(location_id, lat, lng):
             id = %s
     """
     vals = (lat, lng, location_id)
-    await exec_update(sql, vals)    
+    exec_update(sql, vals)
 
 
 

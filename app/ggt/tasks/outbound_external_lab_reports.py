@@ -182,7 +182,7 @@ FROM
     outbound_kdhe_epitrax k
 WHERE
     k.status = 'pending'"""
-    return await read_rows(sql, )
+    return read_rows(sql, )
 
 
 async def upload_file_to_ftp(filename, local_file_path):
@@ -310,4 +310,4 @@ async def update_to_with_lab_status(reports):
             Accession_Number IN (%s)
         """ % format_strings
 
-    return await exec_update(sql, tuple(list_of_ids))
+    return exec_update(sql, tuple(list_of_ids))

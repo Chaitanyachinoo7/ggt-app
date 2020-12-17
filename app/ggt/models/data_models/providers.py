@@ -179,7 +179,7 @@ async def get_provider_processing_list(offset, consultation_status, consultation
     ORDER BY t.create_dt ASC 
     LIMIT {} OFFSET {};
 """.format(where_conditions, limit, offset)
-        rows = await replica_read_rows(sql)
+        rows = replica_read_rows(sql)
         return process_consultations(rows)
 
     except Exception as err:
@@ -208,7 +208,7 @@ async def provider_lock_task(test_id):
             test_id,
             in_progress
         )
-        updated = await exec_update(sql, vals)
+        updated = exec_update(sql, vals)
         return updated
 
     except Exception as err:
@@ -234,7 +234,7 @@ async def create_patient_test_consultation(appointment_id, user_id):
             user_id,
             appointment_id,
         )
-        id = await exec_insert(sql, vals)
+        id = exec_insert(sql, vals)
 
         if id:
             return {"consultation_id": id}
@@ -270,7 +270,7 @@ async def update_consultation_note(consultation_id, notes, consultation_type_cod
             resolution_code,
             consultation_id
         )
-        updated = await exec_update(sql, vals)
+        updated = exec_update(sql, vals)
         return updated
 
     except Exception as err:
@@ -297,7 +297,7 @@ async def provider_complete_task(test_id):
             test_id,
             in_progress
         )
-        updated = await exec_update(sql, vals)
+        updated = exec_update(sql, vals)
         return updated
 
     except Exception as err:
@@ -322,7 +322,7 @@ async def provider_rollback_to_pending_task(test_id):
             pending,
             test_id
         )
-        updated = await exec_update(sql, vals)
+        updated = exec_update(sql, vals)
         return updated
 
     except Exception as err:

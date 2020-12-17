@@ -133,7 +133,7 @@ async def get_insurance_photo_base64(appointment_id):
     LIMIT 1
     """
     vals = (appointment_id,)
-    row = await read_row(sql, vals)
+    row = read_row(sql, vals)
     return row['insurance_photo']
 
 
@@ -334,7 +334,7 @@ async def get_orders_ready_to_transmit():
         WHERE
             (t.status = 'ready_to_tx')
             """
-    return await read_rows(sql,)
+    return read_rows(sql,)
 
 
 async def upload_file_list_to_ftp(file_list):
@@ -422,4 +422,4 @@ async def update_to_with_lab_status(orders):
             id IN (%s)
         """ % format_strings
         
-    await exec_update(sql, tuple(list_of_ids))
+    exec_update(sql, tuple(list_of_ids))

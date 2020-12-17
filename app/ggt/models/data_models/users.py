@@ -37,7 +37,7 @@ async def get_user_by_email(email):
             LIMIT 1
             """
         vals = (email,)
-        return await replica_read_row(sql, vals)
+        return replica_read_row(sql, vals)
 
     except Exception as err:
         log_generic(

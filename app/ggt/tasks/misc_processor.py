@@ -195,7 +195,7 @@ async def batch_enqueue_email_notifications(data):
             VALUES
                 (%s, %s, %s, %s, %s);
         """
-        await exec_batch_execute(sql, data)
+        exec_batch_execute(sql, data)
         return True
 
     except Exception as err:
@@ -211,7 +211,7 @@ async def batch_enqueue_sms_notifications(data):
             VALUES
                 (%s, %s);
         """
-        await exec_batch_execute(sql, data)
+        exec_batch_execute(sql, data)
 
     except Exception as err:
         print("err:", err)
@@ -232,7 +232,7 @@ async def get_appointments():
                 AND scheduled_dt < '2020-12-03'
                 AND status = 'scheduled'
         """
-        return await read_rows(sql)
+        return read_rows(sql)
 
     except Exception as err:
         print(err)
@@ -265,7 +265,7 @@ async def sync_appointments_with_schedule_slots():
                         appointment_id IS NOT NULL
                 )
     """
-    rows = await read_rows(sql)
+    rows = read_rows(sql)
     print('Appointments loaded. Count: {}'.format(len(rows)))
 
     for row in rows:
@@ -282,7 +282,7 @@ async def sync_appointments_with_schedule_slots():
                 LIMIT 1
             """
             vals = (row['id'], row['scheduled_dt'], row['location_id'])
-            # if await exec_update(sql, vals):
+            # if exec_update(sql, vals):
             #    print(row['id'], row['scheduled_dt'])
 
             print("""UPDATE schedules SET status = 'booked', appointment_id = {} WHERE start_dt = '{}' AND location_id = {} AND status = 'available' LIMIT 1""".format(
@@ -313,7 +313,7 @@ async def upload_insurance_images_to_gcp():
                 appointments a ON (a.patient_id = q.patient_id)
             LIMIT {},{}
             """.format(i, increment)
-            rows = await read_rows(sql)
+            rows = read_rows(sql)
 
             for row in rows:
                 try:
@@ -354,7 +354,7 @@ async def upload_insurance_images_to_gcp_with_small_table():
         WHERE length(q.insurance_photo)>10
         LIMIT 100
         """
-        rows = await read_rows(sql)
+        rows = read_rows(sql)
 
         for row in rows:
             try:
@@ -392,7 +392,7 @@ async def remove_image_from_questionnnaires_table(id):
             id = %s
         """
         val = (id,)
-        result = await exec_update(sql, val)
+        result = exec_update(sql, val)
         pass
 
     except Exception as err:

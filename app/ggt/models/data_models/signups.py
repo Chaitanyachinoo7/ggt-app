@@ -47,7 +47,7 @@ async def create_pending_signup_record(phone_number, otp, token=None, ip=None, d
             status,
             token
         )
-        return await exec_insert(sql, vals)
+        return exec_insert(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -74,7 +74,7 @@ async def get_signup_record(id):
             id = %s
         """
         vals = (id,)
-        return await replica_read_row(sql, vals)
+        return replica_read_row(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -97,7 +97,7 @@ async def get_signup_record_by_phone_otp(phone_number, otp):
             AND otp = %s
         """
         vals = (phone_number, otp)
-        row = await replica_read_row(sql, vals)
+        row = replica_read_row(sql, vals)
         if row:
             return row['token']
         return None
@@ -123,7 +123,7 @@ async def get_signup_record_by_token(token):
             token = %s
         """
         vals = (token,)
-        return await replica_read_row(sql, vals)
+        return replica_read_row(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -146,7 +146,7 @@ async def update_signup_record(id):
             id = %s
         """
         vals = (id,)
-        return await exec_update(sql, vals)
+        return exec_update(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -172,7 +172,7 @@ async def get_group_info(group_code: str) -> GgtThirdPartyGroup:
         vals = (group_code,)
 
         group_info = __map_row_to_group(
-            await replica_read_row(sql, vals) 
+            replica_read_row(sql, vals)
         )
 
     except Exception as err:

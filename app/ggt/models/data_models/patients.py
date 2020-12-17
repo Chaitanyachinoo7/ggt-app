@@ -77,7 +77,7 @@ async def create_patient_record(patient):
             patient.token
         )
 
-        return await exec_insert(sql, vals)
+        return exec_insert(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -107,7 +107,7 @@ async def get_patient(patient_id):
             LIMIT 1
         """
         vals = (patient_id,)
-        row = await read_row(sql, vals)
+        row = read_row(sql, vals)
 
         patient = GgtPatient()
         patient.id = row['id']
@@ -153,7 +153,7 @@ async def get_patient_by_token(token, expect_no_match=False):
             LIMIT 1
         """
         vals = (token,)
-        row = await replica_read_row(sql, vals)
+        row = replica_read_row(sql, vals)
 
         #When checking Table for duplicates, Null is the expected result
         if expect_no_match and row is None:

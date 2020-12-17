@@ -24,7 +24,7 @@ async def __insert_record_syslog(event, log_type, payload):
     try:
         sql = "INSERT INTO system_log (event, type, payload) VALUES (%s, %s, %s)"
         val = (event, log_type, payload)
-        return await exec_insert(sql, val)
+        return exec_insert(sql, val)
 
     except Exception as err:
         log_generic(

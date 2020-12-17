@@ -258,7 +258,7 @@ async def update_appointments(data):
                 status = %s
              WHERE
                 id = %s;"""
-    return await exec_batch_execute(sql, data)
+    return exec_batch_execute(sql, data)
 
 
 async def get_notify_patients(location_id, next_location_id, start_dt, end_dt):
@@ -279,4 +279,4 @@ FROM
     locations l
             WHERE a.scheduled_dt >= '{}' AND a.scheduled_dt <= '{}' AND a.location_id = {} 
             AND l.id = {};""".format(start_dt, end_dt, location_id, next_location_id)
-    return await replica_read_rows(sql)
+    return replica_read_rows(sql)

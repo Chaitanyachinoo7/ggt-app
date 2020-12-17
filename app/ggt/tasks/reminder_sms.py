@@ -94,7 +94,7 @@ async def batch_enqueue_sms_notifications(data):
             VALUES
                 (%s, %s, %s);
         """
-        await exec_batch_execute(sql, data)
+        exec_batch_execute(sql, data)
 
     except Exception as err:
         print("err:", err)
@@ -188,7 +188,7 @@ async def batch_enqueue_email_notifications(data):
             VALUES
                 (%s, %s, %s, %s, %s, %s);
         """
-        await exec_batch_execute(sql, data)
+        exec_batch_execute(sql, data)
         return True
 
     except Exception as err:
@@ -206,7 +206,7 @@ async def get_appointments_for_today():
         where scheduled_dt LIKE %s
         """
         vals = (datetime.today().strftime('%Y-%m-%d')+'%',)
-        return await read_rows(sql, vals)
+        return read_rows(sql, vals)
 
     except Exception as err:
         print(err)

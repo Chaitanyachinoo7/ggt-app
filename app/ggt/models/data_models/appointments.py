@@ -58,7 +58,7 @@ async def create_appointment(appointment_req: GgtBooking):
             appointment_req.total_cost/100,  # cents --> decimal
             appointment_req.billed_amount/100  # cents --> decimal
         )
-        appointment_id = await exec_insert(sql, vals)
+        appointment_id = exec_insert(sql, vals)
         await __add_services_to_appointment(appointment_id, appointment_req)
         return await get_appointment(appointment_id)
 
@@ -101,7 +101,7 @@ async def add_service_to_appointment(appointment_id: int, service_code: str) -> 
             
         """.format(appointment_id)
         vals = (service_code, )
-        if await exec_insert(sql, vals):
+        if exec_insert(sql, vals):
             return True
 
     except Exception as err:
@@ -158,7 +158,7 @@ async def get_appointment(appointment_id: int) -> GgtAppointment:
         """
 
         vals = (appointment_id,)
-        row = await read_row(sql, vals)
+        row = read_row(sql, vals)
 
         if not row:
             raise ValueError('No Appointment info')
@@ -188,7 +188,7 @@ async def get_monthy_calendar(from_date: str, to_date: str, location_id: int):
             """
 
         vals = (from_date, to_date, location_id)
-        return await read_rows(sql, vals)
+        return read_rows(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -242,7 +242,7 @@ async def positive_result_followup():
         """
 
         vals = ("scheduled",)
-        return await replica_read_row(sql, vals)
+        return replica_read_row(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -264,7 +264,7 @@ async def update_appointment_with_receipt_token(appointment: GgtAppointment):
                 id = %s
         """
         vals = (appointment.wp_receipt_token, appointment.id)
-        return await exec_update(sql, vals)
+        return exec_update(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -288,7 +288,7 @@ async def update_positive_result_followup(id: int, date_time: datetime):
             """
 
         vals = ("pending", date_time, id)
-        return await exec_update(sql, vals)
+        return exec_update(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -331,7 +331,7 @@ async def get_appointment_count_by_phone_dob(phone_number, dob):
             """
             vals = (phone_number,)
 
-        row = await replica_read_row(sql, vals)
+        row = replica_read_row(sql, vals)
         if row:
             return row['count']
 
@@ -409,7 +409,7 @@ async def __update_appointment_status(appointment: GgtAppointment, status: str, 
 
         vals = (vial_id, status, appointment.id)
 
-        usuccess = await exec_update(sql, vals)
+        usuccess = exec_update(sql, vals)
         if usuccess and (status == c.APPOINTMENT_STATUS_TEST_COMPLETED or status == c.APPOINTMENT_STATUS_VIAL_SCANNED):
             return await create_test_sample_from_appointment(appointment_id)
 

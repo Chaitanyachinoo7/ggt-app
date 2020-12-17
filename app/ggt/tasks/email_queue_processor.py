@@ -29,7 +29,7 @@ async def task_process_email_queue():
     sql = """
         SELECT count(*) as total FROM email_notification_queue where status IN ('pending','retry')
     """
-    row = await replica_read_row(sql,)
+    row = replica_read_row(sql,)
     total_count = row['total']
     limit = math.ceil(total_count/batch_size)
 
@@ -47,7 +47,7 @@ async def __batch_process_email_queue(batch_size=100):
     ORDER BY ID
     LIMIT {}
     """.format(batch_size)
-    rows = await read_rows(sql)
+    rows = read_rows(sql)
     for row in rows:
         _id = row['id']
         status = row['status']
@@ -78,7 +78,7 @@ async def update_email_status_to_processed(id):
         WHERE `id` = %s
     """
     vals = (id,)
-    await exec_update(sql, vals)
+    exec_update(sql, vals)
 
 
 async def update_email_status_to_retry(id):
@@ -90,7 +90,7 @@ async def update_email_status_to_retry(id):
         WHERE `id` = %s
     """
     vals = (id,)
-    await exec_update(sql, vals)
+    exec_update(sql, vals)
 
 
 async def update_email_status_to_error(id):
@@ -102,7 +102,7 @@ async def update_email_status_to_error(id):
         WHERE `id` = %s
     """
     vals = (id,)
-    await exec_update(sql, vals)
+    exec_update(sql, vals)
 
 
 '''

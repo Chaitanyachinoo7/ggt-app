@@ -37,7 +37,7 @@ from ggt.models.data_models.data_types import (
 async def get_all_services():
     try:
         sql = "SELECT * FROM services_catalog"
-        return await replica_read_rows(sql)
+        return replica_read_rows(sql)
 
     except Exception as err:
         log_generic(

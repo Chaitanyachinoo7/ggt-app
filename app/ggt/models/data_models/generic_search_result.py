@@ -333,7 +333,7 @@ async def find_patients(first_name='', middle_name='', last_name='', dob='', pho
         order by {} {}
         LIMIT {}
         """.format(where_conditions, sort_field, sort_type, limit)
-        rows = await replica_read_rows(sql)
+        rows = replica_read_rows(sql)
         return process_consultations(rows)
 
     except Exception as err:
