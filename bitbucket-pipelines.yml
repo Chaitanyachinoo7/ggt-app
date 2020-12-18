@@ -157,9 +157,9 @@ pipelines:
             - aws configure set aws_access_key_id "${AWS_KEY}"
             - aws configure set aws_secret_access_key "${AWS_SECRET}"
             - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 135292740376.dkr.ecr.us-east-1.amazonaws.com
-            - docker build -t ggt-api-portal .
-            - docker tag ggt-api-portal:latest 135292740376.dkr.ecr.us-east-1.amazonaws.com/ggt-api-portal:latest
-            - docker push 135292740376.dkr.ecr.us-east-1.amazonaws.com/ggt-api-portal:latest
+            - docker build -t ggt-api .
+            - docker tag ggt-api:portal 135292740376.dkr.ecr.us-east-1.amazonaws.com/ggt-api:portal
+            - docker push 135292740376.dkr.ecr.us-east-1.amazonaws.com/ggt-api:portal
             - aws ecs update-service --region us-east-1 --cluster ggt-api --service ggt-api-portal --force-new-deployment
 
 
