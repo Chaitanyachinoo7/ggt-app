@@ -13,7 +13,7 @@ from ggt.lib.utils import (
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-async def get_all_groups():
+def get_all_groups():
     try:
         sql = "SELECT * FROM groups"
         return read_rows(sql)
@@ -27,7 +27,7 @@ async def get_all_groups():
         return None
 
 
-async def create_group(group):
+def create_group(group):
     try:
         sql = """INSERT INTO groups
                 (
@@ -80,7 +80,7 @@ async def create_group(group):
         return None
 
 
-async def get_group_by_id(id):
+def get_group_by_id(id):
     try:
         sql = """SELECT * FROM groups WHERE id = %s"""
         vals = (id,)
@@ -94,7 +94,7 @@ async def get_group_by_id(id):
         return None
 
 
-async def update_group(group):
+def update_group(group):
     try:
         sql = """
                UPDATE groups SET

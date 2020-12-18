@@ -52,7 +52,7 @@ def task_populate_location_thumbnails():
 
         map_thumbnail_url = 'https://maps.googleapis.com/maps/api/staticmap?center={}&zoom=10&size=110x110&markers=color:red|size:tiny|{}&maptype=roadmap&key=AIzaSyBJmU3ueSBRmXz4mU1MRgdOxAWcfImbQNQ'.format(location_text, location_text)
         encoded_image = base64.b64encode(requests.get(map_thumbnail_url).content)
-        await update_location_thumbnails(location_id, encoded_image)
+        update_location_thumbnails(location_id, encoded_image)
 
     print('\n\n************************************************\n\n')
 
@@ -117,7 +117,7 @@ def task_populate_gps_coordinates():
             lat = response['results'][0]['geometry']['location']['lat']
             lng = response['results'][0]['geometry']['location']['lng']
 
-            await update_gps_coordinates(location_id, lat, lng)
+            update_gps_coordinates(location_id, lat, lng)
 
         except Exception as err:
             print(err)

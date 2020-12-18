@@ -26,7 +26,7 @@ from ggt.lib.db import (
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-async def get_test_result(id):
+def get_test_result(id):
     try:
         sql = """
                 SELECT * 
@@ -47,7 +47,7 @@ async def get_test_result(id):
         return False
 
 
-async def get_test_result_by_token(token):
+def get_test_result_by_token(token):
     try:
         sql = """
                 SELECT * 
@@ -69,7 +69,7 @@ async def get_test_result_by_token(token):
         return False
 
 
-async def get_test_details(test_id):
+def get_test_details(test_id):
     try:
         sql = """
                 SELECT * 
@@ -91,7 +91,7 @@ async def get_test_details(test_id):
         return False
 
 
-async def search_details_by_name_and_dob(last_name, dob):
+def search_details_by_name_and_dob(last_name, dob):
     try:
         sql = """
                 SELECT 
@@ -141,7 +141,7 @@ async def search_details_by_name_and_dob(last_name, dob):
         return False
 
 
-async def get_all_test_results():
+def get_all_test_results():
     try:
         sql = """
                 SELECT 

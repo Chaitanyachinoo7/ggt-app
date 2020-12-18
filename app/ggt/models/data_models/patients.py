@@ -30,7 +30,7 @@ from ggt.models.data_models.data_types import (
 ########################################################################################################
 
 
-async def create_patient_record(patient):
+def create_patient_record(patient):
     try:
         sql = """
             INSERT INTO 
@@ -90,7 +90,7 @@ async def create_patient_record(patient):
         return None
 
 
-async def get_patient(patient_id):
+def get_patient(patient_id):
     try:
         sql = """
             SELECT 
@@ -136,7 +136,7 @@ async def get_patient(patient_id):
         return None
 
 
-async def get_patient_by_token(token, expect_no_match=False):
+def get_patient_by_token(token, expect_no_match=False):
     try:
         sql = """
             SELECT 

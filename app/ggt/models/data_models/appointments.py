@@ -34,7 +34,7 @@ from ggt.models.data_models.clinical_test_sample import (
 ########################################################################################################
 
 
-async def create_appointment(appointment_req: GgtBooking):
+def create_appointment(appointment_req: GgtBooking):
     try:
         sql = """
         INSERT INTO appointments
@@ -59,8 +59,8 @@ async def create_appointment(appointment_req: GgtBooking):
             appointment_req.billed_amount/100  # cents --> decimal
         )
         appointment_id = exec_insert(sql, vals)
-        await __add_services_to_appointment(appointment_id, appointment_req)
-        return await get_appointment(appointment_id)
+        __add_services_to_appointment(appointment_id, appointment_req)
+        return get_appointment(appointment_id)
 
     except Exception as err:
         log_generic(
@@ -73,7 +73,7 @@ async def create_appointment(appointment_req: GgtBooking):
     return None
 
 
-async def add_service_to_appointment(appointment_id: int, service_code: str) -> bool:
+def add_service_to_appointment(appointment_id: int, service_code: str) -> bool:
     try:
         sql = """
         INSERT INTO appointment_services
@@ -116,7 +116,7 @@ async def add_service_to_appointment(appointment_id: int, service_code: str) -> 
     return False
 
 
-async def get_appointment(appointment_id: int) -> GgtAppointment:
+def get_appointment(appointment_id: int) -> GgtAppointment:
     try:
         sql = """
         SELECT 
@@ -176,7 +176,7 @@ async def get_appointment(appointment_id: int) -> GgtAppointment:
     return None
 
 
-async def get_monthy_calendar(from_date: str, to_date: str, location_id: int):
+def get_monthy_calendar(from_date: str, to_date: str, location_id: int):
     try:
         sql = """
             SELECT * 
@@ -203,7 +203,7 @@ async def get_monthy_calendar(from_date: str, to_date: str, location_id: int):
     return None
 
 
-async def positive_result_followup():
+def positive_result_followup():
     try:
         sql = """
             SELECT
@@ -254,7 +254,7 @@ async def positive_result_followup():
     return None
 
 
-async def update_appointment_with_receipt_token(appointment: GgtAppointment):
+def update_appointment_with_receipt_token(appointment: GgtAppointment):
     try:
         sql = """
             UPDATE appointments
@@ -277,7 +277,7 @@ async def update_appointment_with_receipt_token(appointment: GgtAppointment):
     return None
 
 
-async def update_positive_result_followup(id: int, date_time: datetime):
+def update_positive_result_followup(id: int, date_time: datetime):
     try:
         sql = """
             UPDATE positive_result_followup_queue
@@ -302,7 +302,7 @@ async def update_positive_result_followup(id: int, date_time: datetime):
     return None
 
 
-async def get_appointment_count_by_phone_dob(phone_number, dob):
+def get_appointment_count_by_phone_dob(phone_number, dob):
     try:
         if dob:
             sql = """
@@ -347,24 +347,24 @@ async def get_appointment_count_by_phone_dob(phone_number, dob):
     return 0
 
 
-async def update_appointment_with_confirmed_scheduled(appointment: GgtAppointment):
-    return await __update_appointment_status(appointment, c.APPOINTMENT_STATUS_SCHEDULED)
+def update_appointment_with_confirmed_scheduled(appointment: GgtAppointment):
+    return __update_appointment_status(appointment, c.APPOINTMENT_STATUS_SCHEDULED)
 
 
-async def update_appointment_with_checkin(appointment: GgtAppointment):
-    return await __update_appointment_status(appointment, c.APPOINTMENT_STATUS_CHECKED_IN)
+def update_appointment_with_checkin(appointment: GgtAppointment):
+    return __update_appointment_status(appointment, c.APPOINTMENT_STATUS_CHECKED_IN)
 
 
-async def update_appointment_with_test_start(appointment: GgtAppointment):
-    return await __update_appointment_status(appointment, c.APPOINTMENT_STATUS_TEST_IN_PROGRESS)
+def update_appointment_with_test_start(appointment: GgtAppointment):
+    return __update_appointment_status(appointment, c.APPOINTMENT_STATUS_TEST_IN_PROGRESS)
 
 
-async def update_appointment_with_scan_vial(appointment: GgtAppointment, vial_id: str):
-    return await __update_appointment_status(appointment, c.APPOINTMENT_STATUS_VIAL_SCANNED, vial_id)
+def update_appointment_with_scan_vial(appointment: GgtAppointment, vial_id: str):
+    return __update_appointment_status(appointment, c.APPOINTMENT_STATUS_VIAL_SCANNED, vial_id)
 
 
-async def update_appointment_with_test_completed(appointment: GgtAppointment):
-    return await __update_appointment_status(appointment, c.APPOINTMENT_STATUS_TEST_COMPLETED)
+def update_appointment_with_test_completed(appointment: GgtAppointment):
+    return __update_appointment_status(appointment, c.APPOINTMENT_STATUS_TEST_COMPLETED)
 
 ########################################################################################################
 # [Protected] functions
@@ -387,7 +387,7 @@ def __get_mapped_dt_field(status: str) -> str:
     return dt_field
 
 
-async def __update_appointment_status(appointment: GgtAppointment, status: str, vial_id: str = None):
+def __update_appointment_status(appointment: GgtAppointment, status: str, vial_id: str = None):
     vial_id = None if vial_id == '' else vial_id
     usuccess = False
 
@@ -411,7 +411,7 @@ async def __update_appointment_status(appointment: GgtAppointment, status: str, 
 
         usuccess = exec_update(sql, vals)
         if usuccess and (status == c.APPOINTMENT_STATUS_TEST_COMPLETED or status == c.APPOINTMENT_STATUS_VIAL_SCANNED):
-            return await create_test_sample_from_appointment(appointment_id)
+            return create_test_sample_from_appointment(appointment_id)
 
     except Exception as err:
         log_generic(
@@ -499,16 +499,16 @@ def __map_row_to_appointment(row: dict) -> GgtAppointment:
     return a
 
 
-async def __add_services_to_appointment(appointment_id: int, appointment_req: GgtBooking) -> bool:
+def __add_services_to_appointment(appointment_id: int, appointment_req: GgtBooking) -> bool:
     try:
         if appointment_req.service_covid19_test:
-            await add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST)
+            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST)
 
         if appointment_req.service_flu_shot:
-            await add_service_to_appointment(appointment_id, c.SERVICE_CODE_FLU_SHOT)
+            add_service_to_appointment(appointment_id, c.SERVICE_CODE_FLU_SHOT)
 
         if appointment_req.service_consult:
-            await add_service_to_appointment(appointment_id, c.SERVICE_CODE_CONSULT)
+            add_service_to_appointment(appointment_id, c.SERVICE_CODE_CONSULT)
 
         return True
 

@@ -1,7 +1,7 @@
 from datetime import date
 from contextlib import suppress
 
-from aiocache import cached
+from cachetools import cached, LRUCache, TTLCache
 
 from ggt.lib.utils import (
     log_generic,
@@ -37,12 +37,11 @@ from ggt.models.data_models.data_types import (
 import ggt.lib.constants as c
 
 
-
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
 
-@cached(ttl=600)
+@cached(cache=TTLCache(maxsize=1024, ttl=600))
 def get_screen_flow_seq(group_code):
     return x_response(
         bp_get_screen_flow_seq(group_code)
@@ -58,6 +57,7 @@ def initiate_verification_flow(phone_number, with_otp=True):
     )
 
 
+@cached(cache=TTLCache(maxsize=1024, ttl=60))
 def validate_phone_number(phone_number, otp):
     return x_response(
         bp_validate_phone_number(
@@ -66,7 +66,8 @@ def validate_phone_number(phone_number, otp):
         )
     )
 
-@cached(ttl=60)
+
+@cached(cache=TTLCache(maxsize=1024, ttl=60))
 def get_schedule_dates_available(group_code=c.DEFAULT_GROUP_CODE):
     return x_response(
         bp_get_schedule_dates_available(
@@ -74,7 +75,8 @@ def get_schedule_dates_available(group_code=c.DEFAULT_GROUP_CODE):
         )
     )
 
-@cached(ttl=60)
+
+@cached(cache=TTLCache(maxsize=1024, ttl=60))
 def get_schedule_locations_available(group_code, date):
     return x_response(
         bp_get_schedule_locations_available(
@@ -83,7 +85,8 @@ def get_schedule_locations_available(group_code, date):
         )
     )
 
-@cached(ttl=60)
+
+@cached(cache=TTLCache(maxsize=1024, ttl=60))
 def get_schedule_locations_available_near_lat_lng(date, group_code, lat, lng, radius):
     return x_response(
         bp_get_schedule_locations_available_near_lat_lng(
@@ -95,17 +98,19 @@ def get_schedule_locations_available_near_lat_lng(date, group_code, lat, lng, ra
         )
     )
 
-@cached(ttl=60)
+
+@cached(cache=TTLCache(maxsize=1024, ttl=60))
 def get_all_available_locations_and_times(group_code):
     return x_response(
         bp_get_all_available_locations_and_times(group_code)
     )
 
-@cached(ttl=60)
+
+@cached(cache=TTLCache(maxsize=1024, ttl=60))
 def get_schedule_times_available(
-        location_id, 
-        date=date.today().strftime("%Y-%m-%d")
-    ):
+    location_id,
+    date=date.today().strftime("%Y-%m-%d")
+):
     return x_response(
         bp_get_schedule_times_available(
             location_id,
@@ -114,15 +119,17 @@ def get_schedule_times_available(
     )
 
 
+@cached(cache=TTLCache(maxsize=1024, ttl=60))
 def lookup_appointment(appointment_id, dob):
     return x_response(
         bp_get_appointment_info(
-            appointment_id, 
+            appointment_id,
             dob
         )
     )
 
 
+@cached(cache=TTLCache(maxsize=1024, ttl=60))
 def lookup_test_result(token, dob):
     return x_response(
         bp_get_test_result(
@@ -203,14 +210,15 @@ def __map_to_booking_req(finalize_registration_request):
         b.autoimmune_disease = finalize_registration_request.preExistingConditions.autoimmune_disease
         b.other_chronic_disease = finalize_registration_request.preExistingConditions.other_chronic_disease
         b.allergies = finalize_registration_request.preExistingConditions.allergies
-        
+
         if finalize_registration_request.serviceSelection:
             b.service_covid19_test = finalize_registration_request.serviceSelection.COVID_19_TEST
             b.service_flu_shot = finalize_registration_request.serviceSelection.FLU_SHOT
             b.service_consult = finalize_registration_request.serviceSelection.CONSULT
         else:
-            b.service_covid19_test =  True #handle errors in form submission where there is no test type submitted
-        
+            # handle errors in form submission where there is no test type submitted
+            b.service_covid19_test = True
+
         b.insurance_photo = finalize_registration_request.insurancePhoto
         if b.insurance_photo and len(b.insurance_photo) > 250:
             b.has_insurance_photo = True
@@ -244,7 +252,6 @@ def __map_to_booking_req(finalize_registration_request):
             b.flu_screen_life_threatening_reaction = finalize_registration_request.influenzaScreening.life_threatening_reaction
             b.flu_screen_egg_allergy = finalize_registration_request.influenzaScreening.egg_allergy
 
-
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -252,5 +259,5 @@ def __map_to_booking_req(finalize_registration_request):
             finalize_registration_request=finalize_registration_request,
             error=err
         )
-    
+
     return b

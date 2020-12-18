@@ -28,13 +28,13 @@ session_id = generate_session_id()
 def task_schedule_result_notifications_and_followups():
     print('\n\n************************************************\n\n')
     print('create_result_notification_campaign')
-    await create_result_notification_campaign()
+    create_result_notification_campaign()
     print('schedule_notifications_using_sms')
-    await schedule_notifications_using_sms()
+    schedule_notifications_using_sms()
     print('schedule_notifications_using_email')
-    await schedule_notifications_using_email()
+    schedule_notifications_using_email()
     print('schedule_positive_followups')
-    await schedule_positive_followups()
+    schedule_positive_followups()
 
     print('\n\n************************************************\n\n')
 
@@ -156,8 +156,8 @@ def schedule_notifications_using_sms():
             test_id
         )
 
-    await batch_enqueue_sms_notifications(data)
-    await batch_update_notification_queue_status_to_pending(
+    batch_enqueue_sms_notifications(data)
+    batch_update_notification_queue_status_to_pending(
         str(test_id_list).strip('[]')
     )
 
@@ -175,7 +175,7 @@ def schedule_notifications_using_email():
     limit = math.ceil(total_count/batch_size)
     
     for _ in range(limit):
-        await __batch_schedule_notifications_using_email(batch_size)
+        __batch_schedule_notifications_using_email(batch_size)
 
 
 def __batch_schedule_notifications_using_email(batch_size=100):
@@ -193,7 +193,7 @@ def __batch_schedule_notifications_using_email(batch_size=100):
 
     for row in rows:
         test_id = row['test_id']
-        email = await formatted_email_message(row)
+        email = formatted_email_message(row)
 
         data.append(
             (email['from_email'], email['from_name'],
@@ -203,8 +203,8 @@ def __batch_schedule_notifications_using_email(batch_size=100):
             test_id
         )
 
-    if await batch_enqueue_email_notifications(data):
-        await batch_update_notification_queue_status_for_email(
+    if batch_enqueue_email_notifications(data):
+        batch_update_notification_queue_status_for_email(
             str(test_id_list).strip('[]')
         )
 
@@ -220,7 +220,7 @@ def formatted_email_message(row):
     }
 
     template_name = cfg('notifications.result_template')
-    html_content = await render_template(template_name, **template_vars)
+    html_content = render_template(template_name, **template_vars)
 
     email_message = {
         'from_email': from_email,
@@ -234,7 +234,7 @@ def formatted_email_message(row):
 
 
 def add_to_healthtrackrx_inbound_data_table():
-    rows = await get_all_lab_records_from_cache()
+    rows = get_all_lab_records_from_cache()
     try:
         sql = """
             INSERT INTO healthtrackrx_inbound_data

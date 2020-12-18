@@ -48,7 +48,7 @@ def task_process_sms_queue():
     limit = math.ceil(total_count/batch_size)
 
     for _ in range(limit):
-        await __batch_process_sms_queue(batch_size)
+        __batch_process_sms_queue(batch_size)
 
     print('\n\n************************************************\n\n')
 
@@ -71,15 +71,15 @@ def __batch_process_sms_queue(batch_size=100):
         message = row['message']
 
         if status == 'retry':
-            if await send_sms(to_number, message):
-                await update_sms_status_to_processed(_id)
+            if send_sms(to_number, message):
+                update_sms_status_to_processed(_id)
             else:
-                await update_sms_status_to_error(_id)
+                update_sms_status_to_error(_id)
         else:
-            if await send_sms(to_number, message):
-                await update_sms_status_to_processed(_id)
+            if send_sms(to_number, message):
+                update_sms_status_to_processed(_id)
             else:
-                await update_sms_status_to_retry(_id)
+                update_sms_status_to_retry(_id)
 
 
 def update_sms_status_to_processed(id):

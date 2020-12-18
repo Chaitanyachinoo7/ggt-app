@@ -23,7 +23,7 @@ from ggt.models.data_models.data_types import BillingStatusEnum, TestResultsEnum
 from ggt.models.data_models.providers import process_consultations
 
 
-async def get_billing_list(offset, status=None, from_dt=None, to_dt=None,
+def get_billing_list(offset, status=None, from_dt=None, to_dt=None,
                            limit=20, sort='DESC', pre_consulted='any', provider_reviewed='any', test_status='any',
                            appointment_status='any'):
     try:
@@ -266,7 +266,7 @@ FROM
         return None
 
 
-async def update_billing_status(appointment_id):
+def update_billing_status(appointment_id):
     try:
         sql = """UPDATE appointments
                   SET
@@ -293,7 +293,7 @@ async def update_billing_status(appointment_id):
         return None
 
 
-async def create_insurance_record(insurance_record):
+def create_insurance_record(insurance_record):
     try:
         sql = """INSERT INTO `insurance_info`
             (
@@ -319,7 +319,7 @@ async def create_insurance_record(insurance_record):
             error=err)
 
 
-async def update_insurance_record(insurance_record):
+def update_insurance_record(insurance_record):
     try:
         sql = """UPDATE `insurance_info` 
                     SET
@@ -344,7 +344,7 @@ async def update_insurance_record(insurance_record):
             error=err)
 
 
-async def validate_insurance_record(insurance_record):
+def validate_insurance_record(insurance_record):
     try:
         sql = """UPDATE `insurance_info` 
                 SET
@@ -361,7 +361,7 @@ async def validate_insurance_record(insurance_record):
             error=err)
 
 
-async def delete_insurance_record(insurance_record):
+def delete_insurance_record(insurance_record):
     try:
         sql = """DELETE FROM `insurance_info` 
                  WHERE `id` = %s"""

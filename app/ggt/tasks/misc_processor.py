@@ -58,11 +58,11 @@ def task_process_misc():
     # sync_appointments_with_schedule_slots()
     # upload_insurance_images_to_gcp_with_small_table()
     # process_email_notifications()
-    #await upload_insurance_files_from_gstore()
+    #upload_insurance_files_from_gstore()
 
-    await upload_insurance_files_from_gstore()
-    #await process_sms_notifications()
-    #await process_email_notifications()
+    upload_insurance_files_from_gstore()
+    #process_sms_notifications()
+    #process_email_notifications()
 
     log_generic(
         type=c.INFO,
@@ -85,7 +85,7 @@ def upload_insurance_files_from_gstore():
                 file_path_png = "{}/{}_001.png".format(local_insurance_card_file_path, appointment_id)
                 filename = "{}_001.pdf".format(appointment_id)
                 file_path_pdf = "{}/{}".format(local_insurance_card_file_path, filename)
-                blob = await get_file_blob('ggt-insurance-cards-prod', '{}.png'.format(appointment_id))
+                blob = get_file_blob('ggt-insurance-cards-prod', '{}.png'.format(appointment_id))
                 if blob:
                     blob.download_to_filename(file_path_png)
                     Image.open(file_path_png).convert('RGB').save(file_path_pdf)
@@ -138,30 +138,30 @@ def upload_file_list_to_ftp(file_list):
 
 
 def process_sms_notifications():
-    rows = await get_appointments()
+    rows = get_appointments()
     data = []
     for row in rows:
         phone_number = row['phone_number']
         data.append(
-            (phone_number, await prepare_sms_text(row))
+            (phone_number, prepare_sms_text(row))
         )
 
-    await batch_enqueue_sms_notifications(data)
+    batch_enqueue_sms_notifications(data)
 
 
 def process_email_notifications():
-    rows = await get_appointments()
+    rows = get_appointments()
     data = []
 
     for row in rows:
-        email = await formatted_email_message(row)
+        email = formatted_email_message(row)
 
         data.append(
             (email['from_email'], email['from_name'],
              email['to_email'], email['subject'], email['html_content'])
         )
 
-    await batch_enqueue_email_notifications(data)
+    batch_enqueue_email_notifications(data)
 
 
 def formatted_email_message(row):
@@ -174,7 +174,7 @@ def formatted_email_message(row):
     }
 
     template_name = 'GGT-4-APPOINTMENT-RESCHEDULE-EMAIL.html'
-    html_content = await render_template(template_name, **template_vars)
+    html_content = render_template(template_name, **template_vars)
 
     email_message = {
         'from_email': from_email,
@@ -328,7 +328,7 @@ def upload_insurance_images_to_gcp():
                             base64string = insurance_photo.split(",")[1]
 
                         dest_file_name = '{}.png'.format(appointment_id)
-                        await upload_insurance_card_from_base64_string(
+                        upload_insurance_card_from_base64_string(
                             base64string, 'image/png', dest_file_name)
 
                         print('uploaded image: {}'.format(dest_file_name))
@@ -369,11 +369,11 @@ def upload_insurance_images_to_gcp_with_small_table():
                         base64string = insurance_photo.split(",")[1]
 
                     dest_file_name = '{}.png'.format(appointment_id)
-                    await upload_insurance_card_from_base64_string(
+                    upload_insurance_card_from_base64_string(
                         base64string, 'image/png', dest_file_name)
 
                     print('uploaded image: {}'.format(dest_file_name))
-                    await remove_image_from_questionnnaires_table(qid)
+                    remove_image_from_questionnnaires_table(qid)
 
             except Exception as err:
                 print(err)

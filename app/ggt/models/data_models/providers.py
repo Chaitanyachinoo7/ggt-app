@@ -27,7 +27,7 @@ from ggt.models.data_models.data_types import (
 ########################################################################################################
 
 
-async def get_provider_processing_list(offset, consultation_status, consultation_notes, positive_call, limit=20):
+def get_provider_processing_list(offset, consultation_status, consultation_notes, positive_call, limit=20):
     try:
         where_conditions = '1=1'
         # where_conditions = '(TO_DAYS(NOW()) - TO_DAYS(t.create_dt)) <= 25'
@@ -191,7 +191,7 @@ async def get_provider_processing_list(offset, consultation_status, consultation
         return None
 
 
-async def provider_lock_task(test_id):
+def provider_lock_task(test_id):
     """
     Update the test sample table 1st, if updated then update patient consultation table
     """
@@ -220,7 +220,7 @@ async def provider_lock_task(test_id):
         return None
 
 
-async def create_patient_test_consultation(appointment_id, user_id):
+def create_patient_test_consultation(appointment_id, user_id):
     try:
         sql = """INSERT INTO `patient_consultations`
                         (
@@ -250,7 +250,7 @@ async def create_patient_test_consultation(appointment_id, user_id):
         return None
 
 
-async def update_consultation_note(consultation_id, notes, consultation_type_code, resolution_code):
+def update_consultation_note(consultation_id, notes, consultation_type_code, resolution_code):
     """
     Update the test sample table 1st, if updated then update patient consultation table
     """
@@ -282,7 +282,7 @@ async def update_consultation_note(consultation_id, notes, consultation_type_cod
         return None
 
 
-async def provider_complete_task(test_id):
+def provider_complete_task(test_id):
     try:
         sql = """UPDATE test_samples
                      SET
@@ -309,7 +309,7 @@ async def provider_complete_task(test_id):
         return None
 
 
-async def provider_rollback_to_pending_task(test_id):
+def provider_rollback_to_pending_task(test_id):
     try:
         sql = """UPDATE test_samples
                      SET

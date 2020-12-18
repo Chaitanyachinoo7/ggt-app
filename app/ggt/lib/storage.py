@@ -15,52 +15,52 @@ from ggt.lib.adapters.google_adapter import (
 )
 
 
-async def upload_to_all_inbound_files(local_file_path, destination_filename):
-    return await __upload_to_all_inbound_files(local_file_path, destination_filename)
+def upload_to_all_inbound_files(local_file_path, destination_filename):
+    return __upload_to_all_inbound_files(local_file_path, destination_filename)
 
 
-async def file_exists_in_all_inbound_files(filename):
-    return await __file_exists_in_all_inbound_files(filename)
+def file_exists_in_all_inbound_files(filename):
+    return __file_exists_in_all_inbound_files(filename)
 
 
-async def file_exists_in_lab_reports(filename):
-    return await __file_exists_in_lab_reports(filename)
+def file_exists_in_lab_reports(filename):
+    return __file_exists_in_lab_reports(filename)
 
 
-async def file_exists_in_insurance_cards(filename):
-    return await __file_exists_in_insurance_cards(filename)
+def file_exists_in_insurance_cards(filename):
+    return __file_exists_in_insurance_cards(filename)
 
 
-async def upload_lab_report(local_file_path, destination_filename):
-    return await __upload_lab_report(local_file_path, destination_filename)
+def upload_lab_report(local_file_path, destination_filename):
+    return __upload_lab_report(local_file_path, destination_filename)
 
 
-async def upload_insurance_card_file(local_file_path, destination_filename):
-    return await __upload_insurance_card(local_file_path, destination_filename)
+def upload_insurance_card_file(local_file_path, destination_filename):
+    return __upload_insurance_card(local_file_path, destination_filename)
 
 
-async def upload_insurance_card_from_base64_string(base64string, content_type, destination_filename):
-    return await __upload_insurance_card_from_base64_string(base64string, content_type, destination_filename)
+def upload_insurance_card_from_base64_string(base64string, content_type, destination_filename):
+    return __upload_insurance_card_from_base64_string(base64string, content_type, destination_filename)
 
 
-async def get_temporary_lab_report_url(filename):
-    return await __get_temp_lab_report_url(filename)
+def get_temporary_lab_report_url(filename):
+    return __get_temp_lab_report_url(filename)
 
 
-async def get_temporary_insurance_card_url(filename):
-    return await __get_temp_insurance_card_url(filename)
+def get_temporary_insurance_card_url(filename):
+    return __get_temp_insurance_card_url(filename)
     
 
-async def get_list_of_all_uploaded_lab_reports():
-    return await __get_list_of_all_uploaded_lab_reports
+def get_list_of_all_uploaded_lab_reports():
+    return __get_list_of_all_uploaded_lab_reports
 
 
-async def get_list_of_all_uploaded_inbound_files():
-    return await __get_list_of_all_uploaded_inbound_files
+def get_list_of_all_uploaded_inbound_files():
+    return __get_list_of_all_uploaded_inbound_files
 
 
-async def get_file_blob(bucket_name, filename):
-    return await __get_file_blob(bucket_name, filename)
+def get_file_blob(bucket_name, filename):
+    return __get_file_blob(bucket_name, filename)
 
-async def upload_archived_notification_from_base64_string(bucket_name: str, base64string: str, content_type: str, destination_blob_name: str) -> bool:
-    return await __upload_archived_notification_from_base64_string(bucket_name, base64string, content_type, destination_blob_name)
+def upload_archived_notification_from_base64_string(bucket_name: str, base64string: str, content_type: str, destination_blob_name: str) -> bool:
+    return __upload_archived_notification_from_base64_string(bucket_name, base64string, content_type, destination_blob_name)

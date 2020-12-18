@@ -42,7 +42,7 @@ from ggt.lib.maps import (
 def bp_get_schedule_dates_available(group_code):
     try:
         group_code = normalize_group_code(group_code)
-        rows = await get_available_dates(group_code)
+        rows = get_available_dates(group_code)
         available_dates = []
         for row in rows:
             date_str = row['available_date']
@@ -86,7 +86,7 @@ def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: float, rad
         date_str = date.today().strftime("%Y-%m-%d")
 
     group_code = normalize_group_code(group_code)
-    dtl_list = await get_available_locations_near_lat_lng(
+    dtl_list = get_available_locations_near_lat_lng(
         lat, lng, radius, date_str, group_code)
     available_locations = []
     try:
@@ -166,7 +166,7 @@ def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: float, rad
 
 def bp_get_schedule_locations_available(date, group_code=c.DEFAULT_GROUP_CODE):
     group_code = normalize_group_code(group_code)
-    dtl_list = await get_available_locations(date, group_code)
+    dtl_list = get_available_locations(date, group_code)
     available_locations = []
     try:
         for dtl in dtl_list:
@@ -240,7 +240,7 @@ def bp_get_all_available_locations_and_times(group_code=c.DEFAULT_GROUP_CODE):
         group_code = c.DEFAULT_GROUP_CODE
     group_code = normalize_group_code(group_code)
 
-    dtl_list = await get_all_available_dtl(group_code)
+    dtl_list = get_all_available_dtl(group_code)
     available_locations = __map_dtl_list_to_available_locations(dtl_list)
 
     return {
@@ -249,7 +249,7 @@ def bp_get_all_available_locations_and_times(group_code=c.DEFAULT_GROUP_CODE):
 
 
 def bp_get_schedule_times_available(location_id, date):
-    rows = await get_available_times(location_id, date)
+    rows = get_available_times(location_id, date)
     available_times = []
     try:
         for row in rows:
@@ -279,9 +279,9 @@ def bp_get_schedule_times_available(location_id, date):
 
 def bp_generate_all_schedules():
     try:
-        locations = await get_all_locations()
+        locations = get_all_locations()
         for location in locations:
-            await bp_generate_full_schedule(location['id'])
+            bp_generate_full_schedule(location['id'])
 
         return True
 
@@ -297,7 +297,7 @@ def bp_generate_all_schedules():
 
 def bp_delete_schedule(location_id):
     try:
-        return await delete_schedule_entries_by_location_id(location_id)
+        return delete_schedule_entries_by_location_id(location_id)
 
     except Exception as err:
         log_generic(
@@ -312,7 +312,7 @@ def bp_delete_schedule(location_id):
 
 def bp_delete_schedule_for_date(location_id, date_str):
     try:
-        return await delete_schedule_entries_by_location_id_for_date(location_id, date_str)
+        return delete_schedule_entries_by_location_id_for_date(location_id, date_str)
 
     except Exception as err:
         log_generic(
@@ -335,12 +335,12 @@ def bp_generate_full_schedule(location_id):
         latest_schedule_dt = latest_schedule_dt.replace(
             hour=0, minute=0, second=0, microsecond=0)
 
-        await delete_schedule_entries_by_location_id(location_id)
-        await trim_schedule_generation_rules_start_dt(location_id, latest_schedule_dt)
-        rules = await get_schedule_generation_rules_by_location_id(location_id)
+        delete_schedule_entries_by_location_id(location_id)
+        trim_schedule_generation_rules_start_dt(location_id, latest_schedule_dt)
+        rules = get_schedule_generation_rules_by_location_id(location_id)
 
         for rule in rules:
-            await __process_schedule_rule(rule)
+            __process_schedule_rule(rule)
 
         print('END schedule generation / location id: {} / at: {}'.format(
             location_id,
@@ -369,7 +369,7 @@ def bp_add_schedule_generation_rule(data):
         data.active_local_end_dt = data.active_local_end_dt.replace(
             hour=0, minute=0, second=0)
 
-        return await add_schedule_generation_rule(data)
+        return add_schedule_generation_rule(data)
 
     except Exception as err:
         log_generic(
@@ -392,7 +392,7 @@ def bp_update_schedule_generation_rule(data):
         data.active_local_end_dt = data.active_local_end_dt.replace(
             hour=0, minute=0, second=0)
 
-        return await update_schedule_generation_rule(data)
+        return update_schedule_generation_rule(data)
 
     except Exception as err:
         log_generic(
@@ -407,7 +407,7 @@ def bp_update_schedule_generation_rule(data):
 
 def bp_delete_schedule_generation_rule(id):
     try:
-        return await delete_schedule_generation_rule(id)
+        return delete_schedule_generation_rule(id)
 
     except Exception as err:
         log_generic(
@@ -422,7 +422,7 @@ def bp_delete_schedule_generation_rule(id):
 
 def bp_get_schedule_generation_rules(location_id):
     try:
-        return await get_schedule_generation_rules_by_location_id(location_id)
+        return get_schedule_generation_rules_by_location_id(location_id)
 
     except Exception as err:
         log_generic(
@@ -452,7 +452,7 @@ def __process_schedule_rule(rule):
         current_dt = datetime.today()
 
         if rule_type == 'exception':
-            await bp_delete_schedule_for_date(location_id, start_date_str)
+            bp_delete_schedule_for_date(location_id, start_date_str)
 
         rows = []
         valid_days = __get_valid_days(rule)
@@ -485,9 +485,9 @@ def __process_schedule_rule(rule):
             schedule_date = schedule_date + timedelta(days=1)
 
         if rows:
-            rows = await __remove_reserved_slots(rows, location_id)
+            rows = __remove_reserved_slots(rows, location_id)
         if rows:
-            await add_schedule_entries(rows)
+            add_schedule_entries(rows)
         return True
 
     except Exception as err:
@@ -523,7 +523,7 @@ def __remove_reserved_slots(rows, location_id):
                 generated_dt_counts[dtkey] = 1
                 generated_dt_list.append(dtkey)
 
-        reserved_slots = await get_slots_matching_dt_list(
+        reserved_slots = get_slots_matching_dt_list(
             generated_dt_list, location_id)
 
         for slot in reserved_slots:

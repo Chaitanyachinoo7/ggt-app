@@ -1,6 +1,6 @@
 from starlette.responses import StreamingResponse
 
-from aiocache import cached
+from cachetools import cached, LRUCache, TTLCache
 
 from ggt.lib.utils import (
     x_response,
@@ -77,10 +77,10 @@ def download_billing_list(offset, limit):
 
 def get_image_from_bucket(image_id):
     return StreamingResponse(bp_image_from_bucket(image_id),
-                             media_type="image/png",
-                             headers={
+                            media_type="image/png",
+                            headers={
                                  'Content-Disposition': 'inline; filename="insurance_card.png"'
-    }
+                            }
     )
 
 

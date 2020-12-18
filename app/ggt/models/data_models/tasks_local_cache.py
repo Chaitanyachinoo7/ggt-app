@@ -100,10 +100,10 @@ def add_to_lab_test_records_cache(rec):
 
 
 def add_to_csv_pdf_sync_cache(rec, source='csv'):
-    if await is_present_in_csv_pdf_sync_cache(str(rec['requisition_id'])):
-        await update_csv_pdf_sync_cache(rec, source)
+    if is_present_in_csv_pdf_sync_cache(str(rec['requisition_id'])):
+        update_csv_pdf_sync_cache(rec, source)
     else:
-        await insert_into_csv_pdf_sync_cache(rec, source)
+        insert_into_csv_pdf_sync_cache(rec, source)
 
 
 def insert_into_csv_pdf_sync_cache(rec, source):

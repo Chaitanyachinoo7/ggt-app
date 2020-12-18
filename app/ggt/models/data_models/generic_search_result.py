@@ -155,7 +155,7 @@ class GenericSearchResults(BaseModel):
     search_results: Optional[GenericSearchResult] = None
 
 
-async def find_patients(first_name='', middle_name='', last_name='', dob='', phone_number='',
+def find_patients(first_name='', middle_name='', last_name='', dob='', phone_number='',
                         email='', appointment_id='', group_code='', appointment_date='', location_id='', vial_id='', sort_field="register_dt", sort_type="desc"):
     try:
         where_conditions = ''

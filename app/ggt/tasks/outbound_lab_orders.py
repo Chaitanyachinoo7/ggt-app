@@ -41,20 +41,20 @@ def task_process_outbound_lab_orders():
         info='Begin Processing outbound Lab Reports')
 
     print('looking up ready to transmit orders')
-    orders = await get_orders_ready_to_transmit()
+    orders = get_orders_ready_to_transmit()
 
     #upload_insurance_files_from_db(orders)
-    await upload_insurance_files_from_gstore(orders)
+    upload_insurance_files_from_gstore(orders)
 
     if len(orders)>0:
         print('generating outbound file')
-        filename, local_file_path = await create_outbound_file(orders)
+        filename, local_file_path = create_outbound_file(orders)
 
         print('uploading file to FTP server')
-        await upload_file_to_ftp(filename, local_file_path)
+        upload_file_to_ftp(filename, local_file_path)
 
         print('marking records to "with_lab" status')
-        await update_to_with_lab_status(orders)
+        update_to_with_lab_status(orders)
     else:
         print('no orders to process')
 
@@ -77,7 +77,7 @@ def upload_insurance_files_from_db(orders):
                 filename = "{}_001.pdf".format(order['id'])
                 file_path_pdf = "{}/{}".format(local_insurance_card_file_path, filename)
 
-                insurance_photo_str = await get_insurance_photo_base64(order['id'])
+                insurance_photo_str = get_insurance_photo_base64(order['id'])
                 base64string = insurance_photo_str.split(",")[1]
 
                 with open(file_path_png, "wb") as fh:
@@ -87,7 +87,7 @@ def upload_insurance_files_from_db(orders):
                 file_buffer.append((filename, file_path_pdf))
         
         print('uploading insurance files to FTP')
-        await upload_file_list_to_ftp(file_buffer)
+        upload_file_list_to_ftp(file_buffer)
 
     except Exception as err:
         print(err)
@@ -104,7 +104,7 @@ def upload_insurance_files_from_gstore(orders):
                     filename = "{}_001.pdf".format(order['id'])
                     file_path_pdf = "{}/{}".format(local_insurance_card_file_path, filename)
                     appointment_id = order['id']
-                    blob = await get_file_blob('ggt-insurance-cards-prod', '{}.png'.format(appointment_id))
+                    blob = get_file_blob('ggt-insurance-cards-prod', '{}.png'.format(appointment_id))
                     if blob:
                         blob.download_to_filename(file_path_png)
                         Image.open(file_path_png).convert('RGB').save(file_path_pdf)
@@ -114,7 +114,7 @@ def upload_insurance_files_from_gstore(orders):
                     print(err)    
         
         print('uploading insurance files to FTP')
-        await upload_file_list_to_ftp(file_buffer)
+        upload_file_list_to_ftp(file_buffer)
 
     except Exception as err:
         print(err)
@@ -238,7 +238,7 @@ def __get_formatted_row(order):
 
 def get_orders_ready_to_transmit():
     #Move completed records from Appointments to Test Samples
-    #if not await exec_sp('create_test_samples_records_for_completed_appointments'):
+    #if not exec_sp('create_test_samples_records_for_completed_appointments'):
     #    raise Exception('Unable to move completed Appointments to Tests')
     
     sql = """

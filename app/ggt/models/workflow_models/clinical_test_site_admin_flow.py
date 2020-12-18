@@ -1,4 +1,4 @@
-from aiocache import cached
+from cachetools import cached, LRUCache, TTLCache
 
 from ggt.lib.utils import (
     log_generic,
@@ -32,11 +32,11 @@ import ggt.lib.constants as c
 ########################################################################################################
 
 
-@cached(ttl=60)
-async def site_admin_general_search(first_name, middle_name, last_name, dob, phone_number, email, appointment_id,
+@cached(cache=TTLCache(maxsize=1024, ttl=60))
+def site_admin_general_search(first_name, middle_name, last_name, dob, phone_number, email, appointment_id,
                                     group_code, appointment_date, location_id, vial_id="", sort_field="register_dt", sort_type="desc"):
     return y_response(
-        await bp_get_general_search_results(
+        bp_get_general_search_results(
             first_name,
             middle_name,
             last_name,
@@ -54,134 +54,134 @@ async def site_admin_general_search(first_name, middle_name, last_name, dob, pho
     )
 
 
-# @cached(ttl=60)
-async def site_admin_location_search(account, group_code, site_code, location_name):
+# @cached(cache=TTLCache(maxsize=1024, ttl=60))
+def site_admin_location_search(account, group_code, site_code, location_name):
     return y_response(
-        await bp_get_location_search_results(
+        bp_get_location_search_results(
             account, group_code, site_code, location_name
         )
     )
 
 
-async def create_location(location):
+def create_location(location):
     return y_response(
-        await bp_create_location(location)
+        bp_create_location(location)
     )
 
 
-async def get_states():
+def get_states():
     return y_response(
-        await bp_get_states()
+        bp_get_states()
     )
 
 
-async def create_group(group):
+def create_group(group):
     return y_response(
-        await bp_create_group(group)
+        bp_create_group(group)
     )
 
 
-async def update_group(group):
+def update_group(group):
     return y_response(
-        await bp_update_group(group)
+        bp_update_group(group)
     )
 
 
-async def assign_group(req):
+def assign_group(req):
     return y_response(
-        await bp_assign_group(req)
+        bp_assign_group(req)
     )
 
 
-async def assign_service(req):
+def assign_service(req):
     return y_response(
-        await bp_assign_service(req)
+        bp_assign_service(req)
     )
 
 
-async def remove_group(req):
+def remove_group(req):
     return x_response(
-        await bp_remove_group(req)
+        bp_remove_group(req)
     )
 
 
-async def get_locations():
+def get_locations():
     return y_response(
-        await bp_get_locations()
+        bp_get_locations()
     )
 
 
-async def remove_service(req):
+def remove_service(req):
     return x_response(
-        await bp_remove_service(req)
+        bp_remove_service(req)
     )
 
 
-async def update_location(location):
+def update_location(location):
     return y_response(
-        await bp_update_location(location)
+        bp_update_location(location)
     )
 
 
-async def get_all_groups():
+def get_all_groups():
     return y_response(
-        await bp_get_all_groups()
+        bp_get_all_groups()
     )
 
 
-async def get_all_services():
+def get_all_services():
     return y_response(
-        await bp_get_all_services()
+        bp_get_all_services()
     )
 
 
-async def generate_schedule(location_id):
-    await bp_generate_full_schedule(location_id)
+def generate_schedule(location_id):
+    bp_generate_full_schedule(location_id)
 
 
-async def generate_all_schedules():
-    await bp_generate_all_schedules()
+def generate_all_schedules():
+    bp_generate_all_schedules()
 
 
-async def delete_schedule_generation_rule(id):
+def delete_schedule_generation_rule(id):
     status = False
-    if await bp_delete_schedule_generation_rule(id):
-        status = await bp_generate_full_schedule(id)
+    if bp_delete_schedule_generation_rule(id):
+        status = bp_generate_full_schedule(id)
 
     return x_response(
         status
     )
 
 
-async def delete_schedule(location_id):
+def delete_schedule(location_id):
     return x_response(
-        await bp_delete_schedule(location_id)
+        bp_delete_schedule(location_id)
     )
 
 
-async def add_schedule_generation_rule(data):
+def add_schedule_generation_rule(data):
     status = False
-    if await bp_add_schedule_generation_rule(data):
-        status = await bp_generate_full_schedule(data.location_id)
+    if bp_add_schedule_generation_rule(data):
+        status = bp_generate_full_schedule(data.location_id)
 
     return x_response(
         status
     )
 
 
-async def update_schedule_generation_rule(data):
+def update_schedule_generation_rule(data):
     status = False
-    if await bp_update_schedule_generation_rule(data):
-        status = await bp_generate_full_schedule(data.location_id)
+    if bp_update_schedule_generation_rule(data):
+        status = bp_generate_full_schedule(data.location_id)
 
     return x_response(
         status
     )
 
 
-async def get_schedule_generation_rules(location_id):
+def get_schedule_generation_rules(location_id):
     return y_response(
-        await bp_get_schedule_generation_rules(location_id)
+        bp_get_schedule_generation_rules(location_id)
     )
 ########################################################################################################
 # [Protected] functions

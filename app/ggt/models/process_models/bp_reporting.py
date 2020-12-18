@@ -20,20 +20,20 @@ from ggt.models.data_models.reporting import get_stats_today, get_stats_by_date,
 
 
 def bp_get_stats_today():
-    return await get_stats_today()
+    return get_stats_today()
 
 
 def bp_get_stats_by_date(date):
-    return await get_stats_by_date(date)
+    return get_stats_by_date(date)
 
 
 def bp_get_sms_stats_by_date(date):
-    return await get_sms_stats_by_date(date)
+    return get_sms_stats_by_date(date)
 
 
 def bp_get_email_stats_by_date(date):
-    return await get_email_stats_by_date(date)
+    return get_email_stats_by_date(date)
 
 
 def bp_aging_samples_with_lab():
-    return await aging_samples_with_lab_by_ship_date()
+    return aging_samples_with_lab_by_ship_date()

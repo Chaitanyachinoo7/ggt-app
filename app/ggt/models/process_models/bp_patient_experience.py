@@ -83,7 +83,7 @@ from ggt.lib.storage import get_temporary_lab_report_url
 
 
 def bp_get_screen_flow_seq(group_code: str):
-    group_info: GgtThirdPartyGroup = await get_group_info(group_code)
+    group_info: GgtThirdPartyGroup = get_group_info(group_code)
 
     validations = {}
     screens = []
@@ -125,7 +125,7 @@ def bp_initiate_verification_flow(phone_number: str, with_otp: bool = True):
     # Create a temp record until phone number is validated
     try:
         phone_number = validate_phone_number_format(phone_number)
-        otp_code, token = await __create_pending_entry(phone_number)
+        otp_code, token = __create_pending_entry(phone_number)
 
         if otp_code is None:
             raise ValueError('NO OTP / Cannot create Pending Phone Verification record')
@@ -141,7 +141,7 @@ def bp_initiate_verification_flow(phone_number: str, with_otp: bool = True):
                 return True
 
             # send SMS
-            if await __send_otp_sms(phone_number, message):
+            if __send_otp_sms(phone_number, message):
                 log_generic(
                     type=c.INFO,
                     phone_number=phone_number,
@@ -174,7 +174,7 @@ def bp_validate_phone_number(phone_number: str, otp: str):
         if otp == override_otp_code:
             token = "NOVERIFY{}".format(generate_token()[8:])
         else:
-            token = await get_signup_record_by_phone_otp(phone_number, otp)
+            token = get_signup_record_by_phone_otp(phone_number, otp)
 
         if token is None:
             raise ValueError('Invalid Token')
@@ -207,17 +207,17 @@ def bp_finalize_booking(booking_req: GgtBooking):
     appointment: GgtAppointment = None
     status_message = None
     try:
-        if not await __is_valid_token(booking_req.token):
+        if not alid_token(booking_req.token):
             raise ValueError('Invalid Token')
 
         # create patient
         _patient = __extract_patient_from_booking_req(booking_req)
-        booking_req.patient_id = await create_patient_record(_patient)
+        booking_req.patient_id = _patient_record(_patient)
         if not booking_req.patient_id:
             raise ValueError('Invalid Patient ID')
 
         # create questionnaire
-        booking_req.patient_questionnaire_id = await create_patient_questionnaire(
+        booking_req.patient_questionnaire_id = _patient_questionnaire(
             booking_req)
         if not booking_req.patient_questionnaire_id:
             raise ValueError('Invalid Patient Questionnaire ID')
@@ -228,23 +228,23 @@ def bp_finalize_booking(booking_req: GgtBooking):
         booking_req.billed_amount = upfront_payment_info.billed_amount
 
         # generate appointment/booking
-        appointment = await __generate_appointment(booking_req)
+        appointment = rate_appointment(booking_req)
         if not appointment:
             raise ValueError('Invalid Appointment info')
 
         # store insurance card
-        if not await __save_insurance_image(appointment.id, booking_req.insurance_photo):
+        if not _insurance_image(appointment.id, booking_req.insurance_photo):
             pass  # allow transaction to proceed. TODO: Handle alternative action
 
         # if a payment is required, generate a payment link
         appointment.payment_url = ''
         if upfront_payment_info.is_payment_required:
-            appointment.payment_url = await __inject_payment_flow(appointment)
+            appointment.payment_url = ct_payment_flow(appointment)
         else:
             # payment not required, confirm the appointment and notify
-            await update_appointment_with_confirmed_scheduled(appointment)
-            await __send_qrcode_sms(appointment)
-            await __send_qrcode_email(appointment)
+            _appointment_with_confirmed_scheduled(appointment)
+            _qrcode_sms(appointment)
+            _qrcode_email(appointment)
 
     except Exception as err:
         status_message = str(err)
@@ -260,10 +260,10 @@ def bp_finalize_booking(booking_req: GgtBooking):
 
 def bp_finalize_payment(appointment_id: int, wp_receipt_token: str):
     try:
-        appointment = await get_appointment(appointment_id)
+        appointment = pointment(appointment_id)
         if appointment.wp_receipt_token == wp_receipt_token:
-            await update_appointment_with_confirmed_scheduled(appointment_id)
-            result = await __send_qrcode_sms(appointment)
+            _appointment_with_confirmed_scheduled(appointment_id)
+            result = _qrcode_sms(appointment)
 
             return True
 
@@ -281,7 +281,7 @@ def bp_finalize_payment(appointment_id: int, wp_receipt_token: str):
 
 def bp_get_test_result(token: str, dob: str):
     try:
-        lab_result = await get_test_result_by_token(token)
+        lab_result = st_result_by_token(token)
 
         if lab_result:
             patient_dob_us = lab_result['dob'].strftime("%m%d%Y")
@@ -297,7 +297,7 @@ def bp_get_test_result(token: str, dob: str):
                 result = 'Unknown'
 
             try:
-                url = await get_temporary_lab_report_url('{}.pdf'.format(test_id))
+                url = mporary_lab_report_url('{}.pdf'.format(test_id))
             except Exception as err:
                 url = ''
 
@@ -323,7 +323,7 @@ def bp_get_test_result(token: str, dob: str):
 
 def bp_has_appointments(phone_number: str, dob: str) -> bool:
     try:
-        if await get_appointment_count_by_phone_dob(phone_number, dob) > 0:
+        if pointment_count_by_phone_dob(phone_number, dob) > 0:
             log_generic(
                 type=c.INFO,
                 phone_number=phone_number,
@@ -356,14 +356,14 @@ def bp_has_appointments(phone_number: str, dob: str) -> bool:
 def __generate_appointment(booking_req: GgtBooking):
     appointment: GgtAppointment = None
     try:
-        booking_req.timeslot = await get_slot_information(booking_req.timeslot_id)
+        booking_req.timeslot = ot_information(booking_req.timeslot_id)
         if not booking_req.timeslot:
             raise ValueError('Invalid Slot')
 
-        appointment = await create_appointment(booking_req)
+        appointment = _appointment(booking_req)
 
         if appointment:
-            await update_slot_information(booking_req.timeslot_id, appointment.id)
+            _slot_information(booking_req.timeslot_id, appointment.id)
 
             '''
             log_generic(
@@ -405,7 +405,7 @@ def __create_pending_entry(phone_number: str):
             token=token,
             function=whoami())
 
-        record_id = await create_pending_signup_record(
+        record_id = create_pending_signup_record(
             phone_number,
             otp_code,
             token
@@ -438,13 +438,13 @@ def __send_qrcode_sms(appointment: GgtAppointment):
                 appointment.id,
                 appointment.patient.dob.strftime('%Y%m%d')
             )
-        result_1 = await send_sms(appointment.patient.phone_number,
+        result_1 = ms(appointment.patient.phone_number,
                             message.replace('\t', ''))
 
         followup_message = "" \
             "Please bring this QR code, and an Acceptable ID when you arrive at the test. " \
             "We will scan the QR code to check you in for testing. Please, no eating or drinking at least 15 minutes prior to testing as this may impact your test results."
-        result_2 = await send_sms(appointment.patient.phone_number, followup_message)
+        result_2 = ms(appointment.patient.phone_number, followup_message)
 
         log_generic(
             type=c.INFO,
@@ -492,12 +492,12 @@ def __send_qrcode_email(appointment: GgtAppointment):
         )
         
         template_name = cfg('notifications.confirmation_template')
-        html_content = await render_template(
+        html_content = _template(
             template_name, 
             **template_vars
         )
 
-        await send_email(
+        mail(
             from_email,
             from_name,
             appointment.patient.email,
@@ -526,7 +526,7 @@ def __send_otp_sms(phone_number: str, message: str) -> bool:
             message=message,
             function=whoami()
         )
-        return await send_sms(phone_number, message)
+        return send_sms(phone_number, message)
 
     except Exception as err:
         log_generic(
@@ -563,7 +563,7 @@ def __override_random_otp(phone_number: str):
 def __is_valid_token(token: str) -> bool:
     try:
         # Check Duplicate Token
-        if await get_patient_by_token(token, expect_no_match=True):
+        if tient_by_token(token, expect_no_match=True):
             print('Duplicate Token: {}', token)
             return False
 
@@ -571,7 +571,7 @@ def __is_valid_token(token: str) -> bool:
         if token.startswith("NOVERIFY"):
             return True
         else:
-            return await get_signup_record_by_token(token)
+            return gnup_record_by_token(token)
 
     except Exception as err:
         log_generic(
@@ -660,7 +660,7 @@ def __save_insurance_image(appointment_id: int, insurance_image: str) -> bool:
                 base64string = insurance_image.split(",")[1]
 
             dest_file_name = '{}.png'.format(appointment_id)
-            if await upload_insurance_card_from_base64_string(base64string, 'image/png', dest_file_name):
+            if _insurance_card_from_base64_string(base64string, 'image/png', dest_file_name):
                 print('uploaded image: {}'.format(dest_file_name))
                 return True
 
@@ -678,7 +678,7 @@ def __save_insurance_image(appointment_id: int, insurance_image: str) -> bool:
 
 def __inject_payment_flow(appointment: GgtAppointment):
     try:
-        wp_bill = await __create_wp_bill(appointment)
+        wp_bill = te_wp_bill(appointment)
 
         appointment.wp_receipt_token = wp_bill.receipt_token
         appointment.wp_customer_info_id = wp_bill.customer_id
@@ -732,7 +732,7 @@ def __evaluate_upfront_payment(booking_req: GgtBooking):
 def __create_wp_bill(appointment: GgtAppointment):
     res: WellpayCreateBillResponse = WellpayCreateBillResponse()
     try:
-        wp_api_key, wp_refresh_token = await __get_wp_api_tokens()
+        wp_api_key, wp_refresh_token = wp_api_tokens()
 
         base_url = cfg('vendors.wellpay.endpoint')
         url = "{}/bill/submit".format(base_url)

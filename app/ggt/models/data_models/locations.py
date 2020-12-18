@@ -29,7 +29,7 @@ from ggt.models.data_models.data_types import (
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-async def get_location_by_id(location_id):
+def get_location_by_id(location_id):
     try:
         sql = """
             SELECT 
@@ -83,7 +83,7 @@ async def get_location_by_id(location_id):
         return None
 
 
-async def get_services_available_for_location(location_id):
+def get_services_available_for_location(location_id):
     try:
         sql = """
             SELECT 
@@ -115,7 +115,7 @@ async def get_services_available_for_location(location_id):
         return None
 
 
-async def get_states():
+def get_states():
     try:
         sql = "SELECT * FROM states WHERE active = 1;"
         return replica_read_rows(sql)
@@ -129,7 +129,7 @@ async def get_states():
         return None
 
 
-async def get_all_locations_without_thumbnail():
+def get_all_locations_without_thumbnail():
     try:
         sql = """SELECT 
                     l.id,
@@ -192,7 +192,7 @@ async def get_all_locations_without_thumbnail():
         return None
 
 
-async def get_all_locations():
+def get_all_locations():
     try:
         sql = "SELECT * FROM locations"
         return replica_read_rows(sql)
@@ -206,7 +206,7 @@ async def get_all_locations():
         return None
 
 
-async def search_locations(account, group_code, site_code, location_name, id=None):
+def search_locations(account, group_code, site_code, location_name, id=None):
     try:
         where_conditions = ''
         if account != '':
@@ -297,7 +297,7 @@ async def search_locations(account, group_code, site_code, location_name, id=Non
         return None
 
 
-async def create_location(location):
+def create_location(location):
     try:
         sql = """
                INSERT INTO locations
@@ -394,7 +394,7 @@ async def create_location(location):
         return None
 
 
-async def assign_group(req):
+def assign_group(req):
     try:
         sql = """
                INSERT INTO group_codes_to_locations_mapping
@@ -442,7 +442,7 @@ def assign_all_groups(vals):
         return None
 
 
-async def assign_service(req):
+def assign_service(req):
     try:
         sql = """
                INSERT INTO services_to_locations_mapping
@@ -490,7 +490,7 @@ def assign_all_services(vals):
         return None
 
 
-async def remove_group(req):
+def remove_group(req):
     try:
         sql = """
                DELETE FROM group_codes_to_locations_mapping WHERE group_id = %s AND location_id = %s
@@ -511,7 +511,7 @@ async def remove_group(req):
         return None
 
 
-async def remove_all_group(location_id):
+def remove_all_group(location_id):
     try:
         sql = """
                DELETE FROM group_codes_to_locations_mapping WHERE location_id = %s
@@ -531,7 +531,7 @@ async def remove_all_group(location_id):
         return None
 
 
-async def remove_service(req):
+def remove_service(req):
     try:
         sql = """
                DELETE FROM services_to_locations_mapping WHERE service_id = %s AND location_id = %s
@@ -552,7 +552,7 @@ async def remove_service(req):
         return None
 
 
-async def remove_all_service(location_id):
+def remove_all_service(location_id):
     try:
         sql = """
                DELETE FROM services_to_locations_mapping WHERE location_id = %s
@@ -572,7 +572,7 @@ async def remove_all_service(location_id):
         return None
 
 
-async def update_location(location):
+def update_location(location):
     try:
         sql = """
                UPDATE locations SET

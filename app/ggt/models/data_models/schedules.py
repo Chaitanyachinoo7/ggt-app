@@ -331,23 +331,23 @@ def get_available_dates(group_code):
 
 
 def get_all_available_dtl(group_code):
-    return await __get_all_available_dtl(group_code)
+    return __get_all_available_dtl(group_code)
 
 
 def get_available_locations(date_str, group_code):
     today = date.today().strftime("%Y-%m-%d")
     if date_str == today:
-        return await __get_available_locations_for_current_day(group_code)
+        return __get_available_locations_for_current_day(group_code)
     else:
-        return await __get_available_locations_beyond_current_day(date_str, group_code)
+        return __get_available_locations_beyond_current_day(date_str, group_code)
 
 
 def get_available_locations_near_lat_lng(lat, lng, radius, date_str, group_code):
     today = date.today().strftime("%Y-%m-%d")
     if date_str == today:
-        return await __get_available_locations_for_current_day_near_lat_lng(lat, lng, radius, group_code)
+        return __get_available_locations_for_current_day_near_lat_lng(lat, lng, radius, group_code)
     else:
-        return await __get_available_locations_beyond_current_day_near_lat_lng(lat, lng, radius, date_str, group_code)
+        return __get_available_locations_beyond_current_day_near_lat_lng(lat, lng, radius, date_str, group_code)
 
 
 def get_processing_averages_by_location():

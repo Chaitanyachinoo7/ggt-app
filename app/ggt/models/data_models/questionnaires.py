@@ -29,7 +29,7 @@ from ggt.lib.constants import (
 ########################################################################################################
 
 # TODO: isPatient?
-async def create_patient_questionnaire(booking_req):
+def create_patient_questionnaire(booking_req):
     try:
         sql = """
         INSERT INTO 

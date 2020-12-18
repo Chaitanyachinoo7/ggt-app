@@ -1,4 +1,4 @@
-from aiocache import cached
+from cachetools import cached, LRUCache, TTLCache
 from ggt.lib.constants import (
     ERROR
 )
@@ -14,7 +14,7 @@ from ggt.models.data_models.providers import get_provider_processing_list, provi
 # [Public] functions
 ########################################################################################################
 
-@cached(ttl=30)
+@cached(cache=TTLCache(maxsize=1024, ttl=30))
 def bp_get_provider_processing_list(offset, consultation_status, consultation_notes, positive_call, limit):
     try:
         if not offset:

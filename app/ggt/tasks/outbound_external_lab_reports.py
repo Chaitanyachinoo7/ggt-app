@@ -27,16 +27,16 @@ def task_process_outbound_lab_reports():
         info='Begin Processing outbound External Lab Reports')
 
     print('looking up ready to transmit reports')
-    reports = await get_reports_ready_to_transmit()
+    reports = get_reports_ready_to_transmit()
 
     if len(reports) > 0:
         print('generating outbound file')
-        filename, local_file_path = await create_outbound_file(reports)
+        filename, local_file_path = create_outbound_file(reports)
 
         print('uploading file to FTP server')
-        if await upload_file_to_ftp(filename, local_file_path):
+        if upload_file_to_ftp(filename, local_file_path):
             print('marking records to "with_lab" status')
-            if await update_to_with_lab_status(reports):
+            if update_to_with_lab_status(reports):
                 print('publishing report to KDHE completed')
         else:
             print('Error publishing report to KDHE')

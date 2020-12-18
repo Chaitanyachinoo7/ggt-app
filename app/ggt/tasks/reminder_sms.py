@@ -59,7 +59,7 @@ def task_process_daily_sms_reminders():
             function='task_process_sms_reminders',
             task_session_id=session_id,
             info='SMS Reminders started')
-        rows = await get_appointments_for_today()
+        rows = get_appointments_for_today()
         data = []
         for row in rows:
             phone_number = row['phone_number']
@@ -69,7 +69,7 @@ def task_process_daily_sms_reminders():
             data.append(
                 (phone_number, prepare_appointment_details(row), 9)
             )
-        await batch_enqueue_sms_notifications(tuple(data))
+        batch_enqueue_sms_notifications(tuple(data))
         log_generic(
             type="info",
             function='task_process_inbound_lab_reports',
@@ -111,7 +111,7 @@ def task_process_daily_email_reminders():
             task_session_id=session_id,
             info='Email Reminders started')
 
-        rows = await get_appointments_for_today()
+        rows = get_appointments_for_today()
         data = []
         for row in rows:
             email = formatted_email_message(row)
@@ -121,7 +121,7 @@ def task_process_daily_email_reminders():
             )
         data1 = list(chunks(data, 100))
         for d in data1:
-            await batch_enqueue_email_notifications(d)
+            batch_enqueue_email_notifications(d)
 
         log_generic(
             type="info",
@@ -164,7 +164,7 @@ def formatted_email_message(row):
         }
         print(template_vars)
         template_name = cfg('notifications.appointment_reminder_template')
-        html_content = await render_template(template_name, **template_vars)
+        html_content = render_template(template_name, **template_vars)
 
         email_message = {
             'from_email': from_email,

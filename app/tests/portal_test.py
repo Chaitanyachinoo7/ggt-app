@@ -44,7 +44,7 @@ def test_create_location():
 @pytest.mark.asyncio
 def test_group_update():
     group_code = group['group_code']
-    id = await get_group_id_by_code(group_code)
+    id = get_group_id_by_code(group_code)
     _update = group
     _update['id'] = id
     _update['account'] = "TEST ACCOUNT 2"
@@ -58,7 +58,7 @@ def test_group_update():
     print(r)
     assert response.status_code == 200
     assert r['status'] == 'success'
-    await delete_group_by_code(group_code)
+    delete_group_by_code(group_code)
 
 
 def get_group_id_by_code(code):

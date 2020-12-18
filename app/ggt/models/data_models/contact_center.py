@@ -17,7 +17,7 @@ from ggt.lib.db import (
 )
 
 
-async def add_outbound_call_status(test_id: int,
+def add_outbound_call_status(test_id: int,
                              first_name: str,
                              test_date: str,
                              dob: str,
@@ -83,7 +83,7 @@ async def add_outbound_call_status(test_id: int,
         return None
 
 # Todo clean up
-async def update_outbound_call_status(test_id, call_status, datetime_field, date_time):
+def update_outbound_call_status(test_id, call_status, datetime_field, date_time):
     try:
         sql = "UPDATE outbound_results_logs SET " + datetime_field + " = '" + \
             str(date_time)+"', call_status = '" + \
@@ -105,7 +105,7 @@ async def update_outbound_call_status(test_id, call_status, datetime_field, date
     return None
 
 
-async def __delete_earlier_status(test_id: int):
+def __delete_earlier_status(test_id: int):
     try:
         sql = """
             DELETE FROM 

@@ -38,14 +38,14 @@ def notify_patients(req):
     if req_type == NotificationEnum.relocate:
         next_location_id = req.next_location_id
 
-    patients = await get_notify_patients(location_id, next_location_id, start_dt, end_dt)
+    patients = get_notify_patients(location_id, next_location_id, start_dt, end_dt)
     reschedule_list = []
     email_list = []
     sms_list = []
     try:
         for p in patients:
-            email = await get_email_body(p, req_type)
-            sms = await get_sms_body(p, req_type)
+            email = get_email_body(p, req_type)
+            sms = get_sms_body(p, req_type)
 
             if email is not None:
                 email_list.append((
@@ -194,7 +194,7 @@ def get_reschedule_email_body(data):
                                                           data['new_addr2'] if data['new_addr2'] else '',
                                                           data['new_addr3'] if data['new_addr3'] else '')
         }
-        html_content = await render_template(reschedule_template, **template_vars)
+        html_content = render_template(reschedule_template, **template_vars)
         email_message = {
             'from_email': from_email,
             'from_name': from_name,
@@ -233,7 +233,7 @@ def get_relocate_email_body(data):
                                                           data['new_addr2'] if data['new_addr2'] else '',
                                                           data['new_addr3'] if data['new_addr3'] else '')
         }
-        html_content = await render_template(relocate_template, **template_vars)
+        html_content = render_template(relocate_template, **template_vars)
         email_message = {
             'from_email': from_email,
             'from_name': from_name,

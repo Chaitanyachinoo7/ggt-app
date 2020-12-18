@@ -24,7 +24,7 @@ from ggt.lib.db import (
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-async def create_test_sample_from_appointment(appointment_id):
+def create_test_sample_from_appointment(appointment_id):
     try:
         sql = """
             INSERT ignore INTO test_samples
@@ -69,7 +69,7 @@ async def create_test_sample_from_appointment(appointment_id):
         return None
 
 
-async def record_label_scan(appointment_id):
+def record_label_scan(appointment_id):
     try:
         sql = """
             UPDATE test_samples 

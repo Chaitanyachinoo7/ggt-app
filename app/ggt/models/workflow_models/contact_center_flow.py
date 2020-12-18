@@ -1,4 +1,4 @@
-from aiocache import cached
+from cachetools import cached, LRUCache, TTLCache
 
 from ggt.lib.utils import (
     log_generic,
@@ -21,7 +21,7 @@ import ggt.lib.constants as c
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-
+@cached(cache=TTLCache(maxsize=1024, ttl=120))
 def cc_view_test_details(auth_token, test_id):
     return x_response(
         bp_cc_view_test_details(
@@ -29,7 +29,7 @@ def cc_view_test_details(auth_token, test_id):
         )
     )
 
-
+@cached(cache=TTLCache(maxsize=1024, ttl=60))
 def cc_search_details_by_name_and_dob(last_name, dob):
     return y_response(
         bp_cc_search_details_by_name_and_dob(

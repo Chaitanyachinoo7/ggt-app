@@ -1,4 +1,4 @@
-from aiocache import cached
+from cachetools import cached, LRUCache, TTLCache
 
 from ggt.lib.utils import (
     log_generic,

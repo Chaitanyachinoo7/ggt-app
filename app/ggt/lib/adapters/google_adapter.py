@@ -36,9 +36,9 @@ all_inbound_files_bucket_name = cfg(
     'gcp.all_inbound_files_bucket_name')
 
 
-async def upload_lab_report(local_file_path: str, destination_filename: str) -> bool:
+def upload_lab_report(local_file_path: str, destination_filename: str) -> bool:
     try:
-        return await upload_blob(
+        return upload_blob(
             lab_reports_bucket_name,
             local_file_path,
             destination_filename
@@ -53,9 +53,9 @@ async def upload_lab_report(local_file_path: str, destination_filename: str) -> 
         return False
 
 
-async def get_list_of_all_uploaded_lab_reports():
+def get_list_of_all_uploaded_lab_reports():
     try:
-        return await get_file_list_in_bucket(lab_reports_bucket_name)
+        return get_file_list_in_bucket(lab_reports_bucket_name)
 
     except Exception as err:
         log_generic(
@@ -66,9 +66,9 @@ async def get_list_of_all_uploaded_lab_reports():
         return None
 
 
-async def get_list_of_all_uploaded_inbound_files():
+def get_list_of_all_uploaded_inbound_files():
     try:
-        return await get_file_list_in_bucket(all_inbound_files_bucket_name)
+        return get_file_list_in_bucket(all_inbound_files_bucket_name)
 
     except Exception as err:
         log_generic(
@@ -79,9 +79,9 @@ async def get_list_of_all_uploaded_inbound_files():
         return None
 
 
-async def upload_insurance_card(local_file_path: str, destination_filename: str) -> bool:
+def upload_insurance_card(local_file_path: str, destination_filename: str) -> bool:
     try:
-        return await upload_blob(
+        return upload_blob(
             insurance_cards_bucket_name,
             local_file_path,
             destination_filename
@@ -96,9 +96,9 @@ async def upload_insurance_card(local_file_path: str, destination_filename: str)
         return False
 
 
-async def upload_insurance_card_from_base64_string(base64string: str, content_type: str, destination_blob_name: str) -> bool:
+def upload_insurance_card_from_base64_string(base64string: str, content_type: str, destination_blob_name: str) -> bool:
     try:
-        return await upload_blob_from_string(
+        return upload_blob_from_string(
             insurance_cards_bucket_name,
             base64string,
             content_type,
@@ -114,9 +114,9 @@ async def upload_insurance_card_from_base64_string(base64string: str, content_ty
         return False
 
 
-async def upload_archived_notification_from_base64_string(bucket_name: str, base64string: str, content_type: str, destination_blob_name: str) -> bool:
+def upload_archived_notification_from_base64_string(bucket_name: str, base64string: str, content_type: str, destination_blob_name: str) -> bool:
     try:
-        return await upload_blob_from_string(
+        return upload_blob_from_string(
             bucket_name,
             base64string,
             content_type,
@@ -132,9 +132,9 @@ async def upload_archived_notification_from_base64_string(bucket_name: str, base
         return False
 
 
-async def get_temp_lab_report_url(filename: str):
+def get_temp_lab_report_url(filename: str):
     try:
-        return await get_signed_url(
+        return get_signed_url(
             lab_reports_bucket_name,
             filename
         )
@@ -148,9 +148,9 @@ async def get_temp_lab_report_url(filename: str):
         return None
 
 
-async def get_temp_insurance_card_url(filename: str):
+def get_temp_insurance_card_url(filename: str):
     try:
-        return await get_signed_url(
+        return get_signed_url(
             insurance_cards_bucket_name,
             filename
         )
@@ -164,9 +164,9 @@ async def get_temp_insurance_card_url(filename: str):
         return None
 
 
-async def upload_to_all_inbound_files(local_file_path: str, destination_filename) -> bool:
+def upload_to_all_inbound_files(local_file_path: str, destination_filename) -> bool:
     try:
-        return await upload_blob(
+        return upload_blob(
             all_inbound_files_bucket_name,
             local_file_path,
             destination_filename
@@ -181,9 +181,9 @@ async def upload_to_all_inbound_files(local_file_path: str, destination_filename
         return False
 
 
-async def file_exists_in_all_inbound_files(filename: str) -> bool:
+def file_exists_in_all_inbound_files(filename: str) -> bool:
     try:
-        return await blob_exists(
+        return blob_exists(
             all_inbound_files_bucket_name,
             filename
         )
@@ -197,9 +197,9 @@ async def file_exists_in_all_inbound_files(filename: str) -> bool:
         return False
 
 
-async def file_exists_in_lab_reports(filename: str) -> bool:
+def file_exists_in_lab_reports(filename: str) -> bool:
     try:
-        return await blob_exists(
+        return blob_exists(
             lab_reports_bucket_name,
             filename
         )
@@ -213,9 +213,9 @@ async def file_exists_in_lab_reports(filename: str) -> bool:
         return False
 
 
-async def file_exists_in_insurance_cards(filename: str) -> bool:
+def file_exists_in_insurance_cards(filename: str) -> bool:
     try:
-        return await blob_exists(
+        return blob_exists(
             insurance_cards_bucket_name,
             filename
         )
@@ -229,7 +229,7 @@ async def file_exists_in_insurance_cards(filename: str) -> bool:
         return False
 
 
-async def get_bucket_list():
+def get_bucket_list():
     try:
         storage_client = storage.Client.from_service_account_json(
             service_account_file)
@@ -245,7 +245,7 @@ async def get_bucket_list():
         return None
 
 
-async def get_file_list_in_bucket(bucket_name: str, prefix: str=''):
+def get_file_list_in_bucket(bucket_name: str, prefix: str=''):
     try:
         storage_client = storage.Client.from_service_account_json(
             service_account_file)
@@ -264,7 +264,7 @@ async def get_file_list_in_bucket(bucket_name: str, prefix: str=''):
         return None
 
 
-async def blob_exists(bucket_name: str, filename: str) -> bool:
+def blob_exists(bucket_name: str, filename: str) -> bool:
     try:
         storage_client = storage.Client.from_service_account_json(
             service_account_file)
@@ -283,7 +283,7 @@ async def blob_exists(bucket_name: str, filename: str) -> bool:
         return False
 
 
-async def get_file_blob(bucket_name: str, filename: str):
+def get_file_blob(bucket_name: str, filename: str):
     try:
         storage_client = storage.Client.from_service_account_json(
             service_account_file_prod)
@@ -303,7 +303,7 @@ async def get_file_blob(bucket_name: str, filename: str):
         return None
 
 
-async def get_signed_url(bucket_name,
+def get_signed_url(bucket_name,
                          object_name,
                          subresource=None,
                          expiration=None,
@@ -318,7 +318,7 @@ async def get_signed_url(bucket_name,
         if expiration > 604800:
             return False
 
-        if await blob_exists(bucket_name, object_name):
+        if blob_exists(bucket_name, object_name):
             escaped_object_name = quote(
                 six.ensure_binary(object_name), safe=b'/~')
             canonical_uri = '/{}'.format(escaped_object_name)
@@ -419,8 +419,8 @@ async def get_signed_url(bucket_name,
         return None
 
 
-async def upload_blob(bucket_name: str, source_filename: str, destination_blob_name: str) -> bool:
-    if await blob_exists(bucket_name, destination_blob_name):
+def upload_blob(bucket_name: str, source_filename: str, destination_blob_name: str) -> bool:
+    if blob_exists(bucket_name, destination_blob_name):
         #print('file_exists -- skipping')
         return False
     try:
@@ -456,8 +456,8 @@ async def upload_blob(bucket_name: str, source_filename: str, destination_blob_n
         return False
 
 
-async def upload_blob_from_string(bucket_name: str, base64string: str, content_type: str, destination_blob_name: str) -> bool:
-    if await blob_exists(bucket_name, destination_blob_name):
+def upload_blob_from_string(bucket_name: str, base64string: str, content_type: str, destination_blob_name: str) -> bool:
+    if blob_exists(bucket_name, destination_blob_name):
         #print('file_exists -- skipping')
         return False
     try:
