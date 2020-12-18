@@ -87,7 +87,7 @@ def task_process_inbound_lab_reports():
 
     # clean_downloads_folder()
     #download_ftp_files()
-    #parse_csv_files()
+    parse_csv_files()
 
     add_to_healthtrackrx_inbound_data_table()
     update_test_samples_with_results()

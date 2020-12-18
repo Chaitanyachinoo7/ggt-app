@@ -430,7 +430,7 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
     except Exception as err:
         log_generic(
             type=c.ERROR,
-            appointment_id=appointment_id,
+            appointment_id=appointment.id,
             status=status,
             function=whoami(),
             error=err
