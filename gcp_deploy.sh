@@ -32,4 +32,4 @@ gcloud builds submit --config app/ggt/configs/buildconfigs/cloudbuild.yml .
 #gcloud run deploy --image gcr.io/${PROJECT_ID}/${SERVICE_NAME} --platform managed  --allow-unauthenticated --region ${REGION} ${SERVICE_NAME}
 
 gcloud beta run deploy ${SERVICE_NAME} --image=gcr.io/${PROJECT_ID}/${SERVICE_NAME} --vpc-connector=vpc-connector-${ENV}  --vpc-egress=all --platform=managed  --allow-unauthenticated --region=${REGION}
-#gcloud run services update-traffic ${SERVICE_NAME} --to-latest
+#gcloud run services update-traffic ${SERVICE_NAME} --to-latest --platform=managed --region=us-central1
