@@ -1,7 +1,7 @@
-app_name: COVID-19 Testing
-app_version: 1.2
+app_name: ggt-api
+app_version: 1.1
 log_level: DEBUG
-base_url: https://start.GoGetTested.com
+base_url: https://start-dev.GoGetTested.com
 env: DEV
 
 server:
@@ -36,22 +36,22 @@ aws:
   sqs_print_queue_base_url: https://sqs.us-east-1.amazonaws.com/135292740376/ggt-print-queue
 
 gcp:
-  project_id: ggt-pfe-prod
+  project_id: ggt-pfe-dev2
   service_account_file: gcp-service-account.json
   default_link_expiration_time_limit: 300
   service_account_file_prod: gcp-service-account-prod.json
   all_inbound_files_bucket_name: ggt-all-inbound-files-prod
   lab_reports_bucket_name: ggt-lab-reports-prod
   insurance_cards_bucket_name: ggt-insurance-cards-prod
-  notification_archive_bucket_name: ggt-notification-archive-prod
+  notification_archive_bucket_name: ggt-notification-archive-dev2
   enable_cloud_profiler: false
   enable_cloud_logger: false
   cloud_logger_log_level: 3 # 0-error, 1-warning, 2-info, 3-debug. 
 
 databases:
   mysql:
-    host: prod-ggt-aurora.cluster-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
-    read_replica_host: reader.cluster-custom-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+    host: ggt-dev-db.cluster-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+    read_replica_host: ggt-dev-db.cluster-ro-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
     username: admin
     password: hWMgl5Tfkqn30saQNp9M
     db: ggt_prod
@@ -83,8 +83,9 @@ sendgrid:
 
 google:
   maps:
-    api_key: AIzaSyAf7kDO2y7Hz7HYb3LHqvXimqJQcA6X8DQ
+    api_key: AIzaSyBJmU3ueSBRmXz4mU1MRgdOxAWcfImbQNQ
     base_url: https://maps.googleapis.com/maps/api/staticmap
+    geo_url: https://maps.googleapis.com/maps/api/geocode/json
     zoom_level: 10
     map_type: roadmap
     thumbnail_size: 110x110
@@ -105,7 +106,7 @@ app:
 vendors:
   auth0:
     auth0_domain: gogettested.us.auth0.com
-    api_audience: https://pfe-api.gogettested.com/api
+    api_audience: https://role-base-auth.test/api
     algorithms: ['RS256']
     roles: http://roles.ggt/roles
 
@@ -134,7 +135,7 @@ vendors:
     remote_insurance_images_path: /ggt-sftp/healthtrackrx/insurance_files
     remote_backups_path: /ggt-sftp/healthtrackrx/backups
     remote_processed_orders_path: /ggt-sftp/healthtrackrx/processed_order_files
-    local_download_path: /Users/suresh/ggt-tasks/downloads/ggt-sftp/healthtrackrx
+    local_download_path: /Users/suresh/ggt-tasks/downloads
     local_outbound_file_path: /Users/suresh/ggt-tasks/outbound
     local_insurance_card_file_path: /Users/suresh/ggt-tasks/insurance_images
     local_process_summary_path: /Users/suresh/ggt-tasks/process_summary
@@ -142,9 +143,9 @@ vendors:
     outbound_file_prefix: ggt-outbound
 
   wellpay:
-    endpoint: https://api.getwellpay.com/api/public/v1
+    endpoint: https://api-staging.getwellpay.com/api/public/v1
     auth_user: suresh@wellpay.com
-    auth_password: y7f{=/$>VfRF$vqE
+    auth_password: 8,tp{Na{76<~@.>(
 
   kdhe:
     hostname: sl64.endpoint.com
