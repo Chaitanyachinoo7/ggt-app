@@ -141,6 +141,27 @@ pipelines:
             - gcloud builds submit --tag gcr.io/ggt-pfe-dev2/ggt-pfe-services
             - gcloud beta run deploy ggt-pfe-services --image=gcr.io/ggt-pfe-dev2/ggt-pfe-services --vpc-connector=vpc-connector-dev2 --vpc-egress=all --platform=managed  --allow-unauthenticated --region=us-central1
             - gcloud run services update-traffic ggt-pfe-services --to-latest --platform=managed --region=us-central1
+#
+#    GGT-295-create-portal-and-ops-apis-in-aw:
+#      - step:
+#          name: DEV2 Deployment
+#          image: google/cloud-sdk:latest
+#          deployment: staging
+#          caches:
+#            - docker
+#          script:
+#            - cp app/ggt/configs/config-dev2.yml app/ggt/configs/config.yml
+#            - cp app/ggt/configs/log-config-dev2.yml app/ggt/configs/log-config.yml
+#            - cp app/ggt/configs/gcp-service-account-dev2.json app/ggt/configs/gcp-service-account.json
+#            - pip3 install awscli
+#            - aws configure set aws_access_key_id "${AWS_KEY}"
+#            - aws configure set aws_secret_access_key "${AWS_SECRET}"
+#            - aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 135292740376.dkr.ecr.us-east-2.amazonaws.com
+#            - docker build -t ggt-api:portal .
+#            - docker tag ggt-api:portal 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:portal
+#            - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:portal
+#            - aws ecs update-service --region us-east-2 --cluster ggt-api --service ggt-api-portal --force-new-deployment
+
 
     GGT-295-create-portal-and-ops-apis-in-aw:
       - step:
@@ -157,10 +178,10 @@ pipelines:
             - aws configure set aws_access_key_id "${AWS_KEY}"
             - aws configure set aws_secret_access_key "${AWS_SECRET}"
             - aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 135292740376.dkr.ecr.us-east-2.amazonaws.com
-            - docker build -t ggt-api:portal .
-            - docker tag ggt-api:portal 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:portal
-            - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:portal
-            - aws ecs update-service --region us-east-2 --cluster ggt-api --service ggt-api-portal --force-new-deployment
+            - docker build -t ggt-api:ops .
+            - docker tag ggt-api:ops 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:ops
+            - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:ops
+            - aws ecs update-service --region us-east-2 --cluster ggt-api --service ggt-api-ops --force-new-deployment
 
 
 options:
