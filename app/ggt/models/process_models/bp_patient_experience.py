@@ -207,17 +207,17 @@ def bp_finalize_booking(booking_req: GgtBooking):
     appointment: GgtAppointment = None
     status_message = None
     try:
-        if not alid_token(booking_req.token):
+        if not __is_valid_token(booking_req.token):
             raise ValueError('Invalid Token')
 
         # create patient
         _patient = __extract_patient_from_booking_req(booking_req)
-        booking_req.patient_id = _patient_record(_patient)
+        booking_req.patient_id = create_patient_record(_patient)
         if not booking_req.patient_id:
             raise ValueError('Invalid Patient ID')
 
         # create questionnaire
-        booking_req.patient_questionnaire_id = _patient_questionnaire(
+        booking_req.patient_questionnaire_id = create_patient_questionnaire(
             booking_req)
         if not booking_req.patient_questionnaire_id:
             raise ValueError('Invalid Patient Questionnaire ID')
@@ -228,23 +228,23 @@ def bp_finalize_booking(booking_req: GgtBooking):
         booking_req.billed_amount = upfront_payment_info.billed_amount
 
         # generate appointment/booking
-        appointment = rate_appointment(booking_req)
+        appointment = __generate_appointment(booking_req)
         if not appointment:
             raise ValueError('Invalid Appointment info')
 
         # store insurance card
-        if not _insurance_image(appointment.id, booking_req.insurance_photo):
+        if not __save_insurance_image(appointment.id, booking_req.insurance_photo):
             pass  # allow transaction to proceed. TODO: Handle alternative action
 
         # if a payment is required, generate a payment link
         appointment.payment_url = ''
         if upfront_payment_info.is_payment_required:
-            appointment.payment_url = ct_payment_flow(appointment)
+            appointment.payment_url = __inject_payment_flow(appointment)
         else:
             # payment not required, confirm the appointment and notify
-            _appointment_with_confirmed_scheduled(appointment)
-            _qrcode_sms(appointment)
-            _qrcode_email(appointment)
+            update_appointment_with_confirmed_scheduled(appointment)
+            __send_qrcode_sms(appointment)
+            __send_qrcode_email(appointment)
 
     except Exception as err:
         status_message = str(err)
@@ -262,9 +262,9 @@ def bp_finalize_payment(appointment_id: int, wp_receipt_token: str):
     try:
         appointment = pointment(appointment_id)
         if appointment.wp_receipt_token == wp_receipt_token:
-            _appointment_with_confirmed_scheduled(appointment_id)
-            result = _qrcode_sms(appointment)
-
+            update_appointment_with_confirmed_scheduled(appointment_id)
+            __send_qrcode_sms(appointment)
+            __send_qrcode_email(appointment)
             return True
 
     except Exception as err:
@@ -356,14 +356,14 @@ def bp_has_appointments(phone_number: str, dob: str) -> bool:
 def __generate_appointment(booking_req: GgtBooking):
     appointment: GgtAppointment = None
     try:
-        booking_req.timeslot = ot_information(booking_req.timeslot_id)
+        booking_req.timeslot = get_slot_information(booking_req.timeslot_id)
         if not booking_req.timeslot:
             raise ValueError('Invalid Slot')
 
-        appointment = _appointment(booking_req)
+        appointment = create_appointment(booking_req)
 
         if appointment:
-            _slot_information(booking_req.timeslot_id, appointment.id)
+            update_slot_information(booking_req.timeslot_id, appointment.id)
 
             '''
             log_generic(
@@ -438,13 +438,13 @@ def __send_qrcode_sms(appointment: GgtAppointment):
                 appointment.id,
                 appointment.patient.dob.strftime('%Y%m%d')
             )
-        result_1 = ms(appointment.patient.phone_number,
+        result_1 = send_sms(appointment.patient.phone_number,
                             message.replace('\t', ''))
 
         followup_message = "" \
             "Please bring this QR code, and an Acceptable ID when you arrive at the test. " \
             "We will scan the QR code to check you in for testing. Please, no eating or drinking at least 15 minutes prior to testing as this may impact your test results."
-        result_2 = ms(appointment.patient.phone_number, followup_message)
+        result_2 = send_sms(appointment.patient.phone_number, followup_message)
 
         log_generic(
             type=c.INFO,
@@ -492,12 +492,12 @@ def __send_qrcode_email(appointment: GgtAppointment):
         )
         
         template_name = cfg('notifications.confirmation_template')
-        html_content = _template(
+        html_content = render_template(
             template_name, 
             **template_vars
         )
 
-        mail(
+        send_email(
             from_email,
             from_name,
             appointment.patient.email,
@@ -563,7 +563,7 @@ def __override_random_otp(phone_number: str):
 def __is_valid_token(token: str) -> bool:
     try:
         # Check Duplicate Token
-        if tient_by_token(token, expect_no_match=True):
+        if get_patient_by_token(token, expect_no_match=True):
             print('Duplicate Token: {}', token)
             return False
 
@@ -660,7 +660,7 @@ def __save_insurance_image(appointment_id: int, insurance_image: str) -> bool:
                 base64string = insurance_image.split(",")[1]
 
             dest_file_name = '{}.png'.format(appointment_id)
-            if _insurance_card_from_base64_string(base64string, 'image/png', dest_file_name):
+            if upload_insurance_card_from_base64_string(base64string, 'image/png', dest_file_name):
                 print('uploaded image: {}'.format(dest_file_name))
                 return True
 
