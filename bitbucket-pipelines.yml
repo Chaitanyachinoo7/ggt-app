@@ -56,7 +56,7 @@ pipelines:
             - gcloud beta run deploy ggt-pfe-services --image=gcr.io/ggt-pfe-prod/ggt-pfe-services --vpc-connector=vpc-connector-prod  --vpc-egress=all --platform=managed  --allow-unauthenticated --region=us-central1
             - gcloud run services update-traffic ggt-pfe-services --platform managed --region us-central1 --to-latest
 
-    production-aws:
+    production-patient-aws:
       - step:
           name: Patient AWS Fargate Deployemrnt
           services:
