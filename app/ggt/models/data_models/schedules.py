@@ -684,11 +684,7 @@ def __get_available_locations_beyond_current_day(date_str, group_code):
 
         try:
             return __map_rows_to_dtl_list(
-<<<<<<< HEAD
                 replica_read_rows(sql1, vals)
-=======
-                await replica_read_rows(sql2, vals)
->>>>>>> dev2
             )
         except Exception as err:
             print('Query1 Failed. Using Query2')
@@ -1157,11 +1153,7 @@ def __get_all_available_dtl(group_code):
 
         try:
             return __map_rows_to_dtl_list(
-<<<<<<< HEAD
                 replica_read_rows(sql2, vals)
-=======
-                await replica_read_rows(sql1, vals)
->>>>>>> dev2
             )
         except Exception as err:
             print('Query1 Failed. Using Query2')
