@@ -1,6 +1,6 @@
-app_name: ggt-api
-app_version: 1.1
-log_level: INFO
+app_name: COVID-19 Testing
+app_version: 1.2
+log_level: DEBUG
 base_url: https://start.GoGetTested.com
 env: PROD
 
@@ -85,7 +85,6 @@ google:
   maps:
     api_key: AIzaSyAf7kDO2y7Hz7HYb3LHqvXimqJQcA6X8DQ
     base_url: https://maps.googleapis.com/maps/api/staticmap
-    geo_url: https://maps.googleapis.com/maps/api/geocode/json
     zoom_level: 10
     map_type: roadmap
     thumbnail_size: 110x110

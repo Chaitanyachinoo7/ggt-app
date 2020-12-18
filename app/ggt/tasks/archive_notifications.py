@@ -31,7 +31,7 @@ bucket_name = get_config_val('gcp.notification_archive_bucket_name')
 limit = 100
 
 
-async def archive_processed_email_notifications():
+def archive_processed_email_notifications():
     print('\n\n************************************************\n\n')
     log_generic(
         type=INFO,
@@ -43,12 +43,12 @@ async def archive_processed_email_notifications():
     keep_processing = True
 
     while keep_processing:
-        rows = await get_available_email_notifications(limit)
+        rows = get_available_email_notifications(limit)
         if len(rows) == 0:
             break
-        if await insert_email_archive_table(rows):
-            if await archive_email_notifications(rows):
-                await delete_archived_email_record()
+        if insert_email_archive_table(rows):
+            if archive_email_notifications(rows):
+                delete_archived_email_record()
 
     log_generic(
         type=INFO,
@@ -58,7 +58,7 @@ async def archive_processed_email_notifications():
     print('\n\n************************************************\n\n')
 
 
-async def archive_processed_sms_notifications():
+def archive_processed_sms_notifications():
     print('\n\n************************************************\n\n')
     log_generic(
         type=INFO,
@@ -70,12 +70,12 @@ async def archive_processed_sms_notifications():
     keep_processing = True
 
     while keep_processing:
-        rows = await get_available_sms_notifications(limit)
+        rows = get_available_sms_notifications(limit)
         if len(rows) == 0:
             break
-        await insert_sms_archive_table(rows)
-        await archive_sms_notifications(rows)
-        await delete_archived_sms_record()
+        insert_sms_archive_table(rows)
+        archive_sms_notifications(rows)
+        delete_archived_sms_record()
 
     log_generic(
         type=INFO,
@@ -85,7 +85,7 @@ async def archive_processed_sms_notifications():
     print('\n\n************************************************\n\n')
 
 
-async def get_available_email_notifications(limit):
+def get_available_email_notifications(limit):
     sql = """SELECT 
                     *
                 FROM
@@ -94,10 +94,10 @@ async def get_available_email_notifications(limit):
                     status = 'processed'
                 ORDER BY id
                 LIMIT {};""".format(limit)
-    return await read_rows(sql)
+    return read_rows(sql)
 
 
-async def get_available_sms_notifications(limit):
+def get_available_sms_notifications(limit):
     sql = """SELECT 
                     *
                 FROM
@@ -106,10 +106,10 @@ async def get_available_sms_notifications(limit):
                     status = 'processed'
                 ORDER BY id
                 LIMIT {};""".format(limit)
-    return await read_rows(sql)
+    return read_rows(sql)
 
 
-async def insert_email_archive_table(records):
+def insert_email_archive_table(records):
     print('Archiving  {} email notifications'.format(len(records)))
     sql = """INSERT IGNORE INTO archived_email_notification
             (id,
@@ -134,10 +134,10 @@ async def insert_email_archive_table(records):
             record['update_dt']
         )
         vals.append(val)
-    return await exec_batch_execute(sql, tuple(vals))
+    return exec_batch_execute(sql, tuple(vals))
 
 
-async def insert_sms_archive_table(records):
+def insert_sms_archive_table(records):
     print('Archiving  {} sms notifications'.format(len(records)))
     sql = """INSERT INTO archived_sms_notification
             (id,
@@ -156,10 +156,10 @@ async def insert_sms_archive_table(records):
             record['update_dt']
         )
         vals.append(val)
-    return await exec_batch_execute(sql, tuple(vals))
+    return exec_batch_execute(sql, tuple(vals))
 
 
-async def delete_archived_email_record():
+def delete_archived_email_record():
     print("Deleting archived records from email_notification_queue.")
     sql = """DELETE FROM email_notification_queue 
                 WHERE
@@ -173,10 +173,10 @@ async def delete_archived_email_record():
                             INNER JOIN archived_email_notification AS an 
                                 ON en.id = an.id) as 
                             temp);"""
-    return await exec_delete(sql)
+    return exec_delete(sql)
 
 
-async def delete_archived_sms_record():
+def delete_archived_sms_record():
     print("Deleting archived records from sms_notification_queue.")
     sql = """DELETE FROM sms_notification_queue 
                 WHERE
@@ -190,35 +190,35 @@ async def delete_archived_sms_record():
                             INNER JOIN archived_sms_notification AS an 
                                 ON en.id = an.id) as 
                             temp);"""
-    return await exec_delete(sql)
+    return exec_delete(sql)
 
 
-async def archive_sms_notifications(records):
+def archive_sms_notifications(records):
     print("Uploading sms archives to the bucket")
     for rec in records:
         note = rec['message']
         note = str(note)
         destination_blob_name = "{}_sms_{}_{}.json".format(
             rec['id'], rec['to_number'],  rec['update_dt'])
-        await upload_archived_notification(note, destination_blob_name)
+        upload_archived_notification(note, destination_blob_name)
 
 
-async def archive_email_notifications(records):
+def archive_email_notifications(records):
     print("Uploading email archives to the bucket")
     for rec in records:
         note = rec['html_content']
         note = str(note)
         destination_blob_name = "{}_email_{}_{}.json".format(
             rec['id'], rec['to_email'],  rec['update_dt'])
-        await upload_archived_notification(note, destination_blob_name)
+        upload_archived_notification(note, destination_blob_name)
 
 
-async def upload_archived_notification(notification, destination_blob_name):
+def upload_archived_notification(notification, destination_blob_name):
     content_type = 'application/json'
     notification = {"notification": notification}
     notification = ujson.dumps(notification)
     notification = base64.b64encode(notification.encode('utf-8'))
-    return await upload_archived_notification_from_base64_string(
+    return upload_archived_notification_from_base64_string(
         bucket_name, 
         notification,
         content_type, 
@@ -226,6 +226,6 @@ async def upload_archived_notification(notification, destination_blob_name):
     )
 
 
-async def archive_processed_notifications():
-    await archive_processed_email_notifications()
-    await archive_processed_sms_notifications()
+def archive_processed_notifications():
+    archive_processed_email_notifications()
+    archive_processed_sms_notifications()

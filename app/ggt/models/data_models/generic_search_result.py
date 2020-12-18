@@ -155,7 +155,7 @@ class GenericSearchResults(BaseModel):
     search_results: Optional[GenericSearchResult] = None
 
 
-async def find_patients(first_name='', middle_name='', last_name='', dob='', phone_number='',
+def find_patients(first_name='', middle_name='', last_name='', dob='', phone_number='',
                         email='', appointment_id='', group_code='', appointment_date='', location_id='', vial_id='', sort_field="register_dt", sort_type="desc"):
     try:
         where_conditions = ''
@@ -333,7 +333,7 @@ async def find_patients(first_name='', middle_name='', last_name='', dob='', pho
         order by {} {}
         LIMIT {}
         """.format(where_conditions, sort_field, sort_type, limit)
-        rows = await replica_read_rows(sql)
+        rows = replica_read_rows(sql)
         return process_consultations(rows)
 
     except Exception as err:

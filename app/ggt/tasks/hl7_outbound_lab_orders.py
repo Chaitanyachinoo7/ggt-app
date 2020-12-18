@@ -34,7 +34,7 @@ local_insurance_card_file_path = cfg(
     'vendors.healthtrackrx_outbound.local_insurance_card_file_path')
 
 
-async def task_process_outbound_lab_orders():
+def task_process_outbound_lab_orders():
     print('\n\n************************************************\n\n')
     log_generic(
         type=c.INFO,
@@ -43,19 +43,19 @@ async def task_process_outbound_lab_orders():
         info='Begin Processing outbound HL7 Lab Orders')
 
     print('looking up ready to transmit orders')
-    orders = await get_orders_ready_to_transmit()
+    orders = get_orders_ready_to_transmit()
 
-    await upload_insurance_files_from_gstore(orders)
+    upload_insurance_files_from_gstore(orders)
 
     if len(orders) > 0:
         print('generating outbound file')
-        filename, local_file_path = await create_outbound_file(orders)
+        filename, local_file_path = create_outbound_file(orders)
 
         print('uploading file to FTP server')
-        await upload_file_to_ftp(filename, local_file_path)
+        upload_file_to_ftp(filename, local_file_path)
 
         print('marking records to "with_lab" status')
-        await update_to_with_lab_status(orders)
+        update_to_with_lab_status(orders)
     else:
         print('no orders to process')
 
@@ -67,7 +67,7 @@ async def task_process_outbound_lab_orders():
     print('\n\n************************************************\n\n')
 
 
-async def upload_insurance_files_from_gstore(orders):
+def upload_insurance_files_from_gstore(orders):
     try:
         print('converting insurance image files to PDF')
         file_buffer = []
@@ -80,7 +80,7 @@ async def upload_insurance_files_from_gstore(orders):
                     file_path_pdf = "{}/{}".format(
                         local_insurance_card_file_path, filename)
                     appointment_id = order['id']
-                    blob = await get_file_blob('ggt-insurance-cards-prod', '{}.png'.format(appointment_id))
+                    blob = get_file_blob('ggt-insurance-cards-prod', '{}.png'.format(appointment_id))
                     if blob:
                         blob.download_to_filename(file_path_png)
                         Image.open(file_path_png).convert(
@@ -91,13 +91,13 @@ async def upload_insurance_files_from_gstore(orders):
                     print(err)
 
         print('uploading insurance files to FTP')
-        await upload_file_list_to_ftp(file_buffer)
+        upload_file_list_to_ftp(file_buffer)
 
     except Exception as err:
         print(err)
 
 
-async def get_insurance_photo_base64(appointment_id):
+def get_insurance_photo_base64(appointment_id):
     sql = """
     SELECT 
         q.insurance_photo
@@ -110,11 +110,11 @@ async def get_insurance_photo_base64(appointment_id):
     LIMIT 1
     """
     vals = (appointment_id,)
-    row = await read_row(sql, vals)
+    row = read_row(sql, vals)
     return row['insurance_photo']
 
 
-async def create_outbound_file(orders):
+def create_outbound_file(orders):
     filename = "{}-{}.csv".format(
         outbound_file_prefix,
         datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S")
@@ -213,7 +213,7 @@ def __get_formatted_row(order):
     return formatted_row
 
 
-async def get_orders_ready_to_transmit():
+def get_orders_ready_to_transmit():
     sql = """
         SELECT 
             t.id AS id,
@@ -306,10 +306,10 @@ async def get_orders_ready_to_transmit():
         WHERE
             (t.status = 'ready_to_tx')
             """
-    return await read_rows(sql,)
+    return read_rows(sql,)
 
 
-async def upload_file_list_to_ftp(file_list):
+def upload_file_list_to_ftp(file_list):
     try:
         hostname = cfg('vendors.healthtrackrx_outbound.hostname')
         username = cfg('vendors.healthtrackrx_outbound.username')
@@ -344,7 +344,7 @@ async def upload_file_list_to_ftp(file_list):
         ftp_client.close()
 
 
-async def upload_file_to_ftp(filename, local_file_path):
+def upload_file_to_ftp(filename, local_file_path):
     try:
         hostname = cfg('vendors.healthtrackrx_outbound.hostname')
         username = cfg('vendors.healthtrackrx_outbound.username')
@@ -376,7 +376,7 @@ async def upload_file_to_ftp(filename, local_file_path):
         ftp_client.close()
 
 
-async def update_to_with_lab_status(orders):
+def update_to_with_lab_status(orders):
     list_of_ids = []
     for order in orders:
         list_of_ids.append(order['client_order_number'])
@@ -392,4 +392,4 @@ async def update_to_with_lab_status(orders):
             id IN (%s)
         """ % format_strings
 
-    await exec_update(sql, tuple(list_of_ids))
+    exec_update(sql, tuple(list_of_ids))

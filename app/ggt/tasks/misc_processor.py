@@ -46,7 +46,7 @@ local_outbound_file_path = cfg('vendors.healthtrackrx_outbound.local_outbound_fi
 outbound_file_prefix = cfg('vendors.healthtrackrx_outbound.outbound_file_prefix')
 local_insurance_card_file_path = cfg('vendors.healthtrackrx_outbound.local_insurance_card_file_path')
 
-async def task_process_misc():
+def task_process_misc():
     print('\n\n************************************************\n\n')
     log_generic(
         type=c.INFO,
@@ -58,11 +58,11 @@ async def task_process_misc():
     # sync_appointments_with_schedule_slots()
     # upload_insurance_images_to_gcp_with_small_table()
     # process_email_notifications()
-    #await upload_insurance_files_from_gstore()
+    #upload_insurance_files_from_gstore()
 
-    await upload_insurance_files_from_gstore()
-    #await process_sms_notifications()
-    #await process_email_notifications()
+    upload_insurance_files_from_gstore()
+    #process_sms_notifications()
+    #process_email_notifications()
 
     log_generic(
         type=c.INFO,
@@ -73,7 +73,7 @@ async def task_process_misc():
 
 
 
-async def upload_insurance_files_from_gstore():
+def upload_insurance_files_from_gstore():
     try:
         print('converting insurance image files to PDF')
         file_buffer = []
@@ -85,7 +85,7 @@ async def upload_insurance_files_from_gstore():
                 file_path_png = "{}/{}_001.png".format(local_insurance_card_file_path, appointment_id)
                 filename = "{}_001.pdf".format(appointment_id)
                 file_path_pdf = "{}/{}".format(local_insurance_card_file_path, filename)
-                blob = await get_file_blob('ggt-insurance-cards-prod', '{}.png'.format(appointment_id))
+                blob = get_file_blob('ggt-insurance-cards-prod', '{}.png'.format(appointment_id))
                 if blob:
                     blob.download_to_filename(file_path_png)
                     Image.open(file_path_png).convert('RGB').save(file_path_pdf)
@@ -137,34 +137,34 @@ def upload_file_list_to_ftp(file_list):
         ftp_client.close()
 
 
-async def process_sms_notifications():
-    rows = await get_appointments()
+def process_sms_notifications():
+    rows = get_appointments()
     data = []
     for row in rows:
         phone_number = row['phone_number']
         data.append(
-            (phone_number, await prepare_sms_text(row))
+            (phone_number, prepare_sms_text(row))
         )
 
-    await batch_enqueue_sms_notifications(data)
+    batch_enqueue_sms_notifications(data)
 
 
-async def process_email_notifications():
-    rows = await get_appointments()
+def process_email_notifications():
+    rows = get_appointments()
     data = []
 
     for row in rows:
-        email = await formatted_email_message(row)
+        email = formatted_email_message(row)
 
         data.append(
             (email['from_email'], email['from_name'],
              email['to_email'], email['subject'], email['html_content'])
         )
 
-    await batch_enqueue_email_notifications(data)
+    batch_enqueue_email_notifications(data)
 
 
-async def formatted_email_message(row):
+def formatted_email_message(row):
     from_email = cfg('notifications.from_email')
     from_name = cfg('notifications.from_name')
     subject = "{}, Your Appointment has changed".format(row['first_name'])
@@ -174,7 +174,7 @@ async def formatted_email_message(row):
     }
 
     template_name = 'GGT-4-APPOINTMENT-RESCHEDULE-EMAIL.html'
-    html_content = await render_template(template_name, **template_vars)
+    html_content = render_template(template_name, **template_vars)
 
     email_message = {
         'from_email': from_email,
@@ -187,7 +187,7 @@ async def formatted_email_message(row):
     return email_message
 
 
-async def batch_enqueue_email_notifications(data):
+def batch_enqueue_email_notifications(data):
     try:
         sql = """
             INSERT INTO email_notification_queue
@@ -195,7 +195,7 @@ async def batch_enqueue_email_notifications(data):
             VALUES
                 (%s, %s, %s, %s, %s);
         """
-        await exec_batch_execute(sql, data)
+        exec_batch_execute(sql, data)
         return True
 
     except Exception as err:
@@ -203,7 +203,7 @@ async def batch_enqueue_email_notifications(data):
         return False
 
 
-async def batch_enqueue_sms_notifications(data):
+def batch_enqueue_sms_notifications(data):
     try:
         sql = """
             INSERT INTO sms_notification_queue
@@ -211,13 +211,13 @@ async def batch_enqueue_sms_notifications(data):
             VALUES
                 (%s, %s);
         """
-        await exec_batch_execute(sql, data)
+        exec_batch_execute(sql, data)
 
     except Exception as err:
         print("err:", err)
 
 
-async def get_appointments():
+def get_appointments():
     try:
         sql = """
         SELECT 
@@ -232,13 +232,13 @@ async def get_appointments():
                 AND scheduled_dt < '2020-12-03'
                 AND status = 'scheduled'
         """
-        return await read_rows(sql)
+        return read_rows(sql)
 
     except Exception as err:
         print(err)
 
 
-async def prepare_sms_text(appointment):
+def prepare_sms_text(appointment):
     return """Hi {}, we’ve had to close the testing location where you have registered for your COVID-19 test. We apologize for the inconvenience. 
 
 Please visit GoGetTested.com and register for another appointment at a convenient location. Thank you for choosing GoGetTested.
@@ -247,7 +247,7 @@ Reply STOP to cancel msgs
     """.format(appointment["first_name"])
 
 
-async def sync_appointments_with_schedule_slots():
+def sync_appointments_with_schedule_slots():
     sql = """
         SELECT 
             id, scheduled_dt, location_id
@@ -265,7 +265,7 @@ async def sync_appointments_with_schedule_slots():
                         appointment_id IS NOT NULL
                 )
     """
-    rows = await read_rows(sql)
+    rows = read_rows(sql)
     print('Appointments loaded. Count: {}'.format(len(rows)))
 
     for row in rows:
@@ -282,7 +282,7 @@ async def sync_appointments_with_schedule_slots():
                 LIMIT 1
             """
             vals = (row['id'], row['scheduled_dt'], row['location_id'])
-            # if await exec_update(sql, vals):
+            # if exec_update(sql, vals):
             #    print(row['id'], row['scheduled_dt'])
 
             print("""UPDATE schedules SET status = 'booked', appointment_id = {} WHERE start_dt = '{}' AND location_id = {} AND status = 'available' LIMIT 1""".format(
@@ -296,7 +296,7 @@ async def sync_appointments_with_schedule_slots():
             )
 
 
-async def upload_insurance_images_to_gcp():
+def upload_insurance_images_to_gcp():
     limit = 500000
     increment = 1000
     start = random.randint(0, 100000)
@@ -313,7 +313,7 @@ async def upload_insurance_images_to_gcp():
                 appointments a ON (a.patient_id = q.patient_id)
             LIMIT {},{}
             """.format(i, increment)
-            rows = await read_rows(sql)
+            rows = read_rows(sql)
 
             for row in rows:
                 try:
@@ -328,7 +328,7 @@ async def upload_insurance_images_to_gcp():
                             base64string = insurance_photo.split(",")[1]
 
                         dest_file_name = '{}.png'.format(appointment_id)
-                        await upload_insurance_card_from_base64_string(
+                        upload_insurance_card_from_base64_string(
                             base64string, 'image/png', dest_file_name)
 
                         print('uploaded image: {}'.format(dest_file_name))
@@ -341,7 +341,7 @@ async def upload_insurance_images_to_gcp():
         print(err)
 
 
-async def upload_insurance_images_to_gcp_with_small_table():
+def upload_insurance_images_to_gcp_with_small_table():
     print('starting...')
     try:
         sql = """
@@ -354,7 +354,7 @@ async def upload_insurance_images_to_gcp_with_small_table():
         WHERE length(q.insurance_photo)>10
         LIMIT 100
         """
-        rows = await read_rows(sql)
+        rows = read_rows(sql)
 
         for row in rows:
             try:
@@ -369,11 +369,11 @@ async def upload_insurance_images_to_gcp_with_small_table():
                         base64string = insurance_photo.split(",")[1]
 
                     dest_file_name = '{}.png'.format(appointment_id)
-                    await upload_insurance_card_from_base64_string(
+                    upload_insurance_card_from_base64_string(
                         base64string, 'image/png', dest_file_name)
 
                     print('uploaded image: {}'.format(dest_file_name))
-                    await remove_image_from_questionnnaires_table(qid)
+                    remove_image_from_questionnnaires_table(qid)
 
             except Exception as err:
                 print(err)
@@ -382,7 +382,7 @@ async def upload_insurance_images_to_gcp_with_small_table():
         print(err)
 
 
-async def remove_image_from_questionnnaires_table(id):
+def remove_image_from_questionnnaires_table(id):
     try:
         sql = """
         UPDATE patient_questionnaires 
@@ -392,7 +392,7 @@ async def remove_image_from_questionnnaires_table(id):
             id = %s
         """
         val = (id,)
-        result = await exec_update(sql, val)
+        result = exec_update(sql, val)
         pass
 
     except Exception as err:

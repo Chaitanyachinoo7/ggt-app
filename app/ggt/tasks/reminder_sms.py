@@ -49,7 +49,7 @@ from ggt.models.data_models.tasks_local_cache import (
 session_id = generate_session_id()
 
 
-async def task_process_daily_sms_reminders():
+def task_process_daily_sms_reminders():
     try:
         start = time.time()
         print_header(
@@ -59,7 +59,7 @@ async def task_process_daily_sms_reminders():
             function='task_process_sms_reminders',
             task_session_id=session_id,
             info='SMS Reminders started')
-        rows = await get_appointments_for_today()
+        rows = get_appointments_for_today()
         data = []
         for row in rows:
             phone_number = row['phone_number']
@@ -69,7 +69,7 @@ async def task_process_daily_sms_reminders():
             data.append(
                 (phone_number, prepare_appointment_details(row), 9)
             )
-        await batch_enqueue_sms_notifications(tuple(data))
+        batch_enqueue_sms_notifications(tuple(data))
         log_generic(
             type="info",
             function='task_process_inbound_lab_reports',
@@ -86,7 +86,7 @@ async def task_process_daily_sms_reminders():
         print(err)
 
 
-async def batch_enqueue_sms_notifications(data):
+def batch_enqueue_sms_notifications(data):
     try:
         sql = """
             INSERT INTO sms_notification_queue
@@ -94,13 +94,13 @@ async def batch_enqueue_sms_notifications(data):
             VALUES
                 (%s, %s, %s);
         """
-        await exec_batch_execute(sql, data)
+        exec_batch_execute(sql, data)
 
     except Exception as err:
         print("err:", err)
 
 
-async def task_process_daily_email_reminders():
+def task_process_daily_email_reminders():
     try:
         start = time.time()
         print_header(
@@ -111,7 +111,7 @@ async def task_process_daily_email_reminders():
             task_session_id=session_id,
             info='Email Reminders started')
 
-        rows = await get_appointments_for_today()
+        rows = get_appointments_for_today()
         data = []
         for row in rows:
             email = formatted_email_message(row)
@@ -121,7 +121,7 @@ async def task_process_daily_email_reminders():
             )
         data1 = list(chunks(data, 100))
         for d in data1:
-            await batch_enqueue_email_notifications(d)
+            batch_enqueue_email_notifications(d)
 
         log_generic(
             type="info",
@@ -145,7 +145,7 @@ def chunks(l, n):
         yield l[i:i+n]
 
 
-async def formatted_email_message(row):
+def formatted_email_message(row):
     try:
         base_url = cfg('base_url')
         from_email = cfg('notifications.from_email')
@@ -164,7 +164,7 @@ async def formatted_email_message(row):
         }
         print(template_vars)
         template_name = cfg('notifications.appointment_reminder_template')
-        html_content = await render_template(template_name, **template_vars)
+        html_content = render_template(template_name, **template_vars)
 
         email_message = {
             'from_email': from_email,
@@ -180,7 +180,7 @@ async def formatted_email_message(row):
         print(err)
 
 
-async def batch_enqueue_email_notifications(data):
+def batch_enqueue_email_notifications(data):
     try:
         sql = """
             INSERT INTO email_notification_queue
@@ -188,7 +188,7 @@ async def batch_enqueue_email_notifications(data):
             VALUES
                 (%s, %s, %s, %s, %s, %s);
         """
-        await exec_batch_execute(sql, data)
+        exec_batch_execute(sql, data)
         return True
 
     except Exception as err:
@@ -196,7 +196,7 @@ async def batch_enqueue_email_notifications(data):
         return False
 
 
-async def get_appointments_for_today():
+def get_appointments_for_today():
     try:
         sql = """
         SELECT a.id, a.scheduled_dt, b.first_name, b.phone_number, b.dob, b.token, b.email, c.addr1, IFNULL(c.addr2,"") as addr2, c.city, c.st, c.zip 
@@ -206,7 +206,7 @@ async def get_appointments_for_today():
         where scheduled_dt LIKE %s
         """
         vals = (datetime.today().strftime('%Y-%m-%d')+'%',)
-        return await read_rows(sql, vals)
+        return read_rows(sql, vals)
 
     except Exception as err:
         print(err)

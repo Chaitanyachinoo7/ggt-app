@@ -13,10 +13,10 @@ from ggt.lib.utils import (
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-async def get_all_groups():
+def get_all_groups():
     try:
         sql = "SELECT * FROM groups"
-        return await read_rows(sql)
+        return read_rows(sql)
 
     except Exception as err:
         log_generic(
@@ -27,7 +27,7 @@ async def get_all_groups():
         return None
 
 
-async def create_group(group):
+def create_group(group):
     try:
         sql = """INSERT INTO groups
                 (
@@ -68,7 +68,7 @@ async def create_group(group):
             group.logo_2,
             group.optional_screens
         )
-        group_id = await exec_insert(sql, vals)
+        group_id = exec_insert(sql, vals)
         return group_id
 
     except Exception as err:
@@ -80,11 +80,11 @@ async def create_group(group):
         return None
 
 
-async def get_group_by_id(id):
+def get_group_by_id(id):
     try:
         sql = """SELECT * FROM groups WHERE id = %s"""
         vals = (id,)
-        return await read_rows(sql, vals)
+        return read_rows(sql, vals)
     except Exception as err:
         log_generic(
             type=ERROR,
@@ -94,7 +94,7 @@ async def get_group_by_id(id):
         return None
 
 
-async def update_group(group):
+def update_group(group):
     try:
         sql = """
                UPDATE groups SET
@@ -135,7 +135,7 @@ async def update_group(group):
             group.optional_screens,
             group.id
         )
-        updated = await exec_update(sql, vals)
+        updated = exec_update(sql, vals)
         return updated
 
     except Exception as err:

@@ -61,18 +61,18 @@ def get_value(user, key):
         return ""
 
 
-async def get_rsa_key(token):
+def get_rsa_key(token):
     if 'RSA_KEY' in os.environ:
         return ujson.loads(os.environ.get('RSA_KEY'))
 
     else:
-        rsa_key = await get_rsa_key_auth0(token)
+        rsa_key = get_rsa_key_auth0(token)
         return rsa_key
 
 # TODO: [GGT-83] read from config/DB as already concatinated value of tokenUrl or use a function that generates these auth0 urls
 
 
-async def get_rsa_key_auth0(token):
+def get_rsa_key_auth0(token):
     jsonurl = urllib2.urlopen(
         "https://" + get_config_val('vendors.auth0.auth0_domain') + "/.well-known/jwks.json")
     jwks = ujson.loads(jsonurl.read())
@@ -101,7 +101,7 @@ async def get_rsa_key_auth0(token):
         }, 401)
 
 
-async def authorize_user(security_scopes: SecurityScopes, token: str = Depends(oauth2_scheme)):
+def authorize_user(security_scopes: SecurityScopes, token: str = Depends(oauth2_scheme)):
     if (get_config_val('env') == 'DEV'):  # Allow auth override for dev
         return True
     try:
@@ -109,7 +109,7 @@ async def authorize_user(security_scopes: SecurityScopes, token: str = Depends(o
         if p.ANONYMOUS in scopes:
             return True
         elif token is not None:
-            auth = await authorize(scopes, token)
+            auth = authorize(scopes, token)
             return auth
         else:
             raise HTTPException(status_code=401, detail=c.AUTH_FAILED_MESSAGE)
@@ -119,10 +119,10 @@ async def authorize_user(security_scopes: SecurityScopes, token: str = Depends(o
         return None
 
 
-async def authorize(scopes, token):
+def authorize(scopes, token):
     """Determines if the Access Token is valid
     """
-    rsa_key = await get_rsa_key(token)
+    rsa_key = get_rsa_key(token)
     if rsa_key:
         try:
             user = jwt.decode(
@@ -140,13 +140,13 @@ async def authorize(scopes, token):
                 raise HTTPException(
                     status_code=401, detail=c.AUTH_FAILED_MESSAGE)
         except jwt.ExpiredSignatureError:
-            await get_rsa_key_auth0(token)
+            get_rsa_key_auth0(token)
             raise HTTPException(status_code=401, detail=c.AUTH_FAILED_MESSAGE)
         except jwt.JWTClaimsError:
-            await get_rsa_key_auth0(token)
+            get_rsa_key_auth0(token)
             raise HTTPException(status_code=401, detail=c.AUTH_FAILED_MESSAGE)
         except Exception:
-            await get_rsa_key_auth0(token)
+            get_rsa_key_auth0(token)
             raise HTTPException(status_code=401, detail=c.AUTH_FAILED_MESSAGE)
-    await get_rsa_key_auth0(token)
+    get_rsa_key_auth0(token)
     raise HTTPException(status_code=401, detail=c.AUTH_FAILED_MESSAGE)

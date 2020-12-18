@@ -62,7 +62,7 @@ async def formatted_email_message(first_name, token, to_email):
     }
 
     template_name = get_config_val('notifications.result_template')
-    html_content = await render_template(template_name, **template_vars)
+    html_content = render_template(template_name, **template_vars)
 
     email_message = {
         'from_email': from_email,
@@ -78,7 +78,7 @@ async def formatted_email_message(first_name, token, to_email):
 @router.post("/sendsms", dependencies=[Security(authorize_user, scopes=[p.SENDSMS])])
 async def api_cc_send_sms(CCSendSMSRequest: CCSendSMSRequest):
     try:
-        await send_sms(
+        send_sms(
             CCSendSMSRequest.to_number,
             formatted_sms_message(
                 CCSendSMSRequest.first_name,
@@ -96,7 +96,7 @@ async def api_cc_send_email(CCSendEmailRequest: CCSendEmailRequest):
     try:
         email = formatted_email_message(
             CCSendEmailRequest.first_name, CCSendEmailRequest.token, CCSendEmailRequest.to_email)
-        await send_email(email["from_email"], email["from_name"],
+        send_email(email["from_email"], email["from_name"],
                          email["to_email"], email["subject"], email["html_content"])
         return {STATUS: SUCCESS}
 
@@ -107,11 +107,11 @@ async def api_cc_send_email(CCSendEmailRequest: CCSendEmailRequest):
 @router.post("/sms_email_notify", dependencies=[Security(authorize_user, scopes=[p.SMS_EMAIL_NOTIFY])])
 async def api_cc_send_sms_email(CCSendNotiRequest: CCSendNotiRequest):
     try:
-        email = await formatted_email_message(
+        email = formatted_email_message(
             CCSendNotiRequest.first_name, CCSendNotiRequest.token, CCSendNotiRequest.to_email)
-        await send_email(email["from_email"], email["from_name"],
+        send_email(email["from_email"], email["from_name"],
                          email["to_email"], email["subject"], email["html_content"])
-        await send_sms(CCSendNotiRequest.to_number, formatted_sms_message(
+        send_sms(CCSendNotiRequest.to_number, formatted_sms_message(
             CCSendNotiRequest.first_name, CCSendNotiRequest.token))
         return {STATUS: SUCCESS}
 
@@ -122,7 +122,7 @@ async def api_cc_send_sms_email(CCSendNotiRequest: CCSendNotiRequest):
 @router.post("/outbound_result_status", dependencies=[Security(authorize_user, scopes=[p.OUTBOUND_RESULT_STATUS])])
 async def outbound_result_status(CCOutboundResultStatusRequest: CCOutboundResultStatusRequest):
     try:
-        await cc_update_outbound_call_status(
+        cc_update_outbound_call_status(
             CCOutboundResultStatusRequest.test_id,
             CCOutboundResultStatusRequest.first_name,
             CCOutboundResultStatusRequest.test_date,
