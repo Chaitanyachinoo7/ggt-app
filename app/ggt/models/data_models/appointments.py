@@ -396,18 +396,32 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
     #    return False
 
     try:
-        sql = """
-            UPDATE appointments
-            SET
-                {} = NOW(),
-                update_dt = NOW(),
-                vial_id = %s,
-                status = %s
-            WHERE
-                id = %s
-            """.format(__get_mapped_dt_field(status))
+        if vial_id:
+            sql = """
+                UPDATE appointments
+                SET
+                    {} = NOW(),
+                    update_dt = NOW(),
+                    vial_id = %s,
+                    status = %s
+                WHERE
+                    id = %s
+                """.format(__get_mapped_dt_field(status))
 
-        vals = (vial_id, status, appointment.id)
+            vals = (vial_id, status, appointment.id)
+
+        else:
+            sql = """
+                UPDATE appointments
+                SET
+                    {} = NOW(),
+                    update_dt = NOW(),
+                    status = %s
+                WHERE
+                    id = %s
+                """.format(__get_mapped_dt_field(status))
+
+            vals = (status, appointment.id)
 
         usuccess = exec_update(sql, vals)
         if usuccess and (status == c.APPOINTMENT_STATUS_TEST_COMPLETED or status == c.APPOINTMENT_STATUS_VIAL_SCANNED):

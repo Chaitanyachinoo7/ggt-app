@@ -6,7 +6,7 @@ env: DEV
 
 server:
   host: 0.0.0.0
-  port: 5000
+  port: 8888
 
 origins: 
   - https://gogettested.com
@@ -85,6 +85,7 @@ google:
   maps:
     api_key: AIzaSyAf7kDO2y7Hz7HYb3LHqvXimqJQcA6X8DQ
     base_url: https://maps.googleapis.com/maps/api/staticmap
+    geo_url: https://maps.googleapis.com/maps/api/geocode/json
     zoom_level: 10
     map_type: roadmap
     thumbnail_size: 110x110
