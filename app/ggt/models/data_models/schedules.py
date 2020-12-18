@@ -30,7 +30,7 @@ from ggt.models.data_models.data_types import (
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-async def create_schedule_entry(location_id, start_dt, end_dt, duration, status):
+def create_schedule_entry(location_id, start_dt, end_dt, duration, status):
     try:
         sql = """
             INSERT INTO schedules 
@@ -55,7 +55,7 @@ async def create_schedule_entry(location_id, start_dt, end_dt, duration, status)
         return None
 
 
-async def get_schedule_generation_rules_by_location_id(location_id):
+def get_schedule_generation_rules_by_location_id(location_id):
     try:
         sql = """
             SELECT 
@@ -100,7 +100,7 @@ async def get_schedule_generation_rules_by_location_id(location_id):
         return None
 
 
-async def add_schedule_generation_rule(data):
+def add_schedule_generation_rule(data):
     try:
         sql = """
         INSERT INTO schedule_generation_rules
@@ -155,7 +155,7 @@ async def add_schedule_generation_rule(data):
         return None
 
 
-async def update_schedule_generation_rule(data):
+def update_schedule_generation_rule(data):
     try:
         sql = """
         UPDATE schedule_generation_rules
@@ -209,7 +209,7 @@ async def update_schedule_generation_rule(data):
         return None
 
 
-async def delete_schedule_entries_by_location_id(location_id):
+def delete_schedule_entries_by_location_id(location_id):
     try:
         sql = """
         DELETE FROM 
@@ -232,7 +232,7 @@ async def delete_schedule_entries_by_location_id(location_id):
         return None
 
 
-async def trim_schedule_generation_rules_start_dt(location_id, new_dt):
+def trim_schedule_generation_rules_start_dt(location_id, new_dt):
     try:
         sql = """
         UPDATE schedule_generation_rules
@@ -255,7 +255,7 @@ async def trim_schedule_generation_rules_start_dt(location_id, new_dt):
         return None
 
 
-async def delete_schedule_entries_by_location_id_for_date(location_id, date_str):
+def delete_schedule_entries_by_location_id_for_date(location_id, date_str):
     try:
         sql = """
         DELETE FROM schedules 
@@ -278,7 +278,7 @@ async def delete_schedule_entries_by_location_id_for_date(location_id, date_str)
         return None
 
 
-async def delete_schedule_generation_rule(id):
+def delete_schedule_generation_rule(id):
     try:
         sql = """
         DELETE FROM 
@@ -298,7 +298,7 @@ async def delete_schedule_generation_rule(id):
         return None
 
 
-async def get_available_dates(group_code):
+def get_available_dates(group_code):
     try:
         sql = """
         SELECT DISTINCT
@@ -330,11 +330,11 @@ async def get_available_dates(group_code):
         return None
 
 
-async def get_all_available_dtl(group_code):
+def get_all_available_dtl(group_code):
     return await __get_all_available_dtl(group_code)
 
 
-async def get_available_locations(date_str, group_code):
+def get_available_locations(date_str, group_code):
     today = date.today().strftime("%Y-%m-%d")
     if date_str == today:
         return await __get_available_locations_for_current_day(group_code)
@@ -342,7 +342,7 @@ async def get_available_locations(date_str, group_code):
         return await __get_available_locations_beyond_current_day(date_str, group_code)
 
 
-async def get_available_locations_near_lat_lng(lat, lng, radius, date_str, group_code):
+def get_available_locations_near_lat_lng(lat, lng, radius, date_str, group_code):
     today = date.today().strftime("%Y-%m-%d")
     if date_str == today:
         return await __get_available_locations_for_current_day_near_lat_lng(lat, lng, radius, group_code)
@@ -350,7 +350,7 @@ async def get_available_locations_near_lat_lng(lat, lng, radius, date_str, group
         return await __get_available_locations_beyond_current_day_near_lat_lng(lat, lng, radius, date_str, group_code)
 
 
-async def get_processing_averages_by_location():
+def get_processing_averages_by_location():
     try:
         sql = """
             SELECT 
@@ -378,7 +378,7 @@ async def get_processing_averages_by_location():
         return None
 
 
-async def get_available_times(location_id, date):
+def get_available_times(location_id, date):
     try:
         sql = """
             SELECT DISTINCT 
@@ -417,7 +417,7 @@ async def get_available_times(location_id, date):
         return None
 
 
-async def get_slot_information(slot_id):
+def get_slot_information(slot_id):
     try:
         sql = """
             SELECT 
@@ -466,7 +466,7 @@ async def get_slot_information(slot_id):
         return None
 
 
-async def update_slot_information(slot_id, appointment_id):
+def update_slot_information(slot_id, appointment_id):
     try:
         sql = """
             UPDATE 
@@ -491,7 +491,7 @@ async def update_slot_information(slot_id, appointment_id):
         return None
 
 
-async def add_schedule_entries(rows):
+def add_schedule_entries(rows):
     try:
         sql = """
             INSERT INTO 
@@ -512,7 +512,7 @@ async def add_schedule_entries(rows):
         print(c.ERROR, err)
 
 
-async def get_slots_matching_dt_list(dt_list, location_id):
+def get_slots_matching_dt_list(dt_list, location_id):
     slot_list = []
     try:
         format_strings = ','.join(['%s'] * len(dt_list))
@@ -561,7 +561,7 @@ async def get_slots_matching_dt_list(dt_list, location_id):
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
-async def __get_available_locations_beyond_current_day(date_str, group_code):
+def __get_available_locations_beyond_current_day(date_str, group_code):
     try:
         sql1 = """
             SELECT 
@@ -715,7 +715,7 @@ async def __get_available_locations_beyond_current_day(date_str, group_code):
         return None
 
 
-async def __get_available_locations_for_current_day(group_code):
+def __get_available_locations_for_current_day(group_code):
     try:
         sql1 = """
         SELECT 
@@ -863,7 +863,7 @@ async def __get_available_locations_for_current_day(group_code):
         return None
 
 
-async def __get_available_locations_beyond_current_day_near_lat_lng(lat, lng, radius, date_str, group_code):
+def __get_available_locations_beyond_current_day_near_lat_lng(lat, lng, radius, date_str, group_code):
     try:
         sql = """
             SELECT 
@@ -948,7 +948,7 @@ async def __get_available_locations_beyond_current_day_near_lat_lng(lat, lng, ra
         return None
 
 
-async def __get_available_locations_for_current_day_near_lat_lng(lat, lng, radius, group_code):
+def __get_available_locations_for_current_day_near_lat_lng(lat, lng, radius, group_code):
     try:
         sql = """
             SELECT 
@@ -1038,7 +1038,7 @@ async def __get_available_locations_for_current_day_near_lat_lng(lat, lng, radiu
 
 
 # TODO: [GGT-195]-HIGH add available catalog
-async def __get_all_available_dtl(group_code):
+def __get_all_available_dtl(group_code):
     try:
         sql1 = """
         SELECT 

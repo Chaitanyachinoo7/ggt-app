@@ -17,33 +17,33 @@ from ggt.models.data_models.providers import get_provider_processing_list, provi
 ########################################################################################################
 
 
-async def bp_get_billing_list(offset, status, from_dt, to_dt, limit, sort, pre_consulted,
+def bp_get_billing_list(offset, status, from_dt, to_dt, limit, sort, pre_consulted,
                               provider_reviewed, test_status, appointment_status):
     return await get_billing_list(offset, status, from_dt, to_dt, limit, sort, pre_consulted, provider_reviewed,
                                   test_status, appointment_status)
 
 
-async def bp_update_billing_status(appointment_id):
+def bp_update_billing_status(appointment_id):
     return await update_billing_status(appointment_id)
 
 
-async def bp_create_insurance_record(record):
+def bp_create_insurance_record(record):
     return await create_insurance_record(record)
 
 
-async def bp_update_insurance_record(record):
+def bp_update_insurance_record(record):
     return await update_insurance_record(record)
 
 
-async def bp_validate_insurance_record(record):
+def bp_validate_insurance_record(record):
     return await validate_insurance_record(record)
 
 
-async def bp_delete_insurance_record(record):
+def bp_delete_insurance_record(record):
     return await delete_insurance_record(record)
 
 
-async def bp_download_billing_list(offset, limit):
+def bp_download_billing_list(offset, limit):
     _offset = offset
     _limit = 500
     factor = int(limit/500)
@@ -67,7 +67,7 @@ async def bp_download_billing_list(offset, limit):
         yield string
 
 
-async def bp_image_from_bucket(image_id):
+def bp_image_from_bucket(image_id):
     insurance_cards_bucket_name = get_config_val('gcp.insurance_cards_bucket_name')
     blob = await get_file_blob(insurance_cards_bucket_name, image_id)
     if blob:
@@ -77,7 +77,7 @@ async def bp_image_from_bucket(image_id):
         yield blob.download_as_bytes()
 
 
-async def bp_report_from_bucket(image_id):
+def bp_report_from_bucket(image_id):
     lab_reports_bucket_name = get_config_val('gcp.lab_reports_bucket_name')
     blob = await get_file_blob(lab_reports_bucket_name, image_id)
     if blob:

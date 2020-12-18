@@ -18,7 +18,7 @@ from ggt.lib.utils import (
 session_id = generate_session_id()
 local_outbound_file_path = '/tmp'
 
-async def task_process_outbound_lab_reports():
+def task_process_outbound_lab_reports():
     print('\n\n************************************************\n\n')
     log_generic(
         type=c.INFO,
@@ -51,7 +51,7 @@ async def task_process_outbound_lab_reports():
     print('\n\n************************************************\n\n')
 
 
-async def create_outbound_file(reports):
+def create_outbound_file(reports):
     filename = "ggt-outbound-{}.csv".format(
         datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S")
     )
@@ -145,7 +145,7 @@ def __get_formatted_row(report):
     return formatted_row
 
 
-async def get_reports_ready_to_transmit():
+def get_reports_ready_to_transmit():
     sql = """SELECT 
     k.Lab,
     k.Patient_Last_Name,
@@ -185,7 +185,7 @@ WHERE
     return read_rows(sql, )
 
 
-async def upload_file_to_ftp(filename, local_file_path):
+def upload_file_to_ftp(filename, local_file_path):
     status = False
     try:
         hostname = cfg('vendors.kdhe.hostname')
@@ -222,7 +222,7 @@ async def upload_file_to_ftp(filename, local_file_path):
     return status
 
 
-async def list_ftp_files():
+def list_ftp_files():
     hostname = cfg('vendors.kdhe.hostname')
     username = cfg('vendors.kdhe.username')
     password = cfg('vendors.kdhe.password')
@@ -257,7 +257,7 @@ async def list_ftp_files():
         ftp_client.close()
 
 
-async def delete_ftp_files():
+def delete_ftp_files():
     hostname = cfg('vendors.kdhe.hostname')
     username = cfg('vendors.kdhe.username')
     password = cfg('vendors.kdhe.password')
@@ -295,7 +295,7 @@ async def delete_ftp_files():
         ftp_client.close()
 
 
-async def update_to_with_lab_status(reports):
+def update_to_with_lab_status(reports):
     list_of_ids = []
     for report in reports:
         list_of_ids.append(report['Accession_Number'])

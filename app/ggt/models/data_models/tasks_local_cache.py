@@ -13,7 +13,7 @@ import ggt.lib.constants as c
 sqlite_db = get_config_val('databases.sqlite.tasks_sqlite_db')
 
 
-async def init_local_cache():
+def init_local_cache():
     print('Initializing Local Cache -- {}'.format(sqlite_db))
     try:
         conn = sqlite3.connect(sqlite_db)
@@ -62,7 +62,7 @@ async def init_local_cache():
         conn.close()
 
 
-async def add_to_lab_test_records_cache(rec):
+def add_to_lab_test_records_cache(rec):
     result = False
     try:
         conn = sqlite3.connect(sqlite_db)
@@ -99,14 +99,14 @@ async def add_to_lab_test_records_cache(rec):
     return result
 
 
-async def add_to_csv_pdf_sync_cache(rec, source='csv'):
+def add_to_csv_pdf_sync_cache(rec, source='csv'):
     if await is_present_in_csv_pdf_sync_cache(str(rec['requisition_id'])):
         await update_csv_pdf_sync_cache(rec, source)
     else:
         await insert_into_csv_pdf_sync_cache(rec, source)
 
 
-async def insert_into_csv_pdf_sync_cache(rec, source):
+def insert_into_csv_pdf_sync_cache(rec, source):
     result = False
     try:
         conn = sqlite3.connect(sqlite_db)
@@ -153,7 +153,7 @@ async def insert_into_csv_pdf_sync_cache(rec, source):
     return result
 
 
-async def update_csv_pdf_sync_cache(rec, source='csv'):
+def update_csv_pdf_sync_cache(rec, source='csv'):
     result = False
     try:
         conn = sqlite3.connect(sqlite_db)
@@ -212,7 +212,7 @@ async def update_csv_pdf_sync_cache(rec, source='csv'):
     return result
 
 
-async def is_present_in_csv_pdf_sync_cache(requisition_id):
+def is_present_in_csv_pdf_sync_cache(requisition_id):
     status = False
     try:
         conn = sqlite3.connect(sqlite_db)
@@ -239,7 +239,7 @@ async def is_present_in_csv_pdf_sync_cache(requisition_id):
     return status
 
 
-async def get_order_number_by_requisition_id(requisition_id):
+def get_order_number_by_requisition_id(requisition_id):
     result = None
     try:
         conn = sqlite3.connect(sqlite_db)
@@ -267,7 +267,7 @@ async def get_order_number_by_requisition_id(requisition_id):
     return result
 
 
-async def get_all_lab_records_from_cache():
+def get_all_lab_records_from_cache():
     result = False
     try:
         conn = sqlite3.connect(sqlite_db)
@@ -292,7 +292,7 @@ async def get_all_lab_records_from_cache():
     return result
 
 
-async def add_to_all_inbound_files_cache(filename):
+def add_to_all_inbound_files_cache(filename):
     try:
         conn = sqlite3.connect(sqlite_db)
         cur = conn.cursor()
@@ -318,7 +318,7 @@ async def add_to_all_inbound_files_cache(filename):
     return True
 
 
-async def file_exists_in_all_inbound_files_cache(filename):
+def file_exists_in_all_inbound_files_cache(filename):
     row = []
     try:
         conn = sqlite3.connect(sqlite_db)
@@ -352,7 +352,7 @@ async def file_exists_in_all_inbound_files_cache(filename):
 '''adds to cache if remote storage indicated that the file exists there'''
 
 
-async def add_to_files_in_remote_storage_cache(filename):
+def add_to_files_in_remote_storage_cache(filename):
     result = False
     try:
         conn = sqlite3.connect(sqlite_db)
@@ -380,7 +380,7 @@ async def add_to_files_in_remote_storage_cache(filename):
     return result
 
 
-async def file_exists_in_files_in_remote_storage_cache(filename):
+def file_exists_in_files_in_remote_storage_cache(filename):
     result = False
     try:
         conn = sqlite3.connect(sqlite_db)

@@ -32,7 +32,7 @@ local_outbound_file_path = cfg('vendors.healthtrackrx_outbound.local_outbound_fi
 outbound_file_prefix = cfg('vendors.healthtrackrx_outbound.outbound_file_prefix')
 local_insurance_card_file_path = cfg('vendors.healthtrackrx_outbound.local_insurance_card_file_path')
 
-async def task_process_outbound_lab_orders():
+def task_process_outbound_lab_orders():
     print('\n\n************************************************\n\n')
     log_generic(
         type=c.INFO,
@@ -67,7 +67,7 @@ async def task_process_outbound_lab_orders():
     print('\n\n************************************************\n\n')
 
 
-async def upload_insurance_files_from_db(orders):
+def upload_insurance_files_from_db(orders):
     try:
         print('converting insurance image files to PDF')
         file_buffer = []
@@ -93,7 +93,7 @@ async def upload_insurance_files_from_db(orders):
         print(err)
 
 
-async def upload_insurance_files_from_gstore(orders):
+def upload_insurance_files_from_gstore(orders):
     try:
         print('converting insurance image files to PDF')
         file_buffer = []
@@ -120,7 +120,7 @@ async def upload_insurance_files_from_gstore(orders):
         print(err)
 
 
-async def get_insurance_photo_base64(appointment_id):
+def get_insurance_photo_base64(appointment_id):
     sql = """
     SELECT 
         q.insurance_photo
@@ -137,7 +137,7 @@ async def get_insurance_photo_base64(appointment_id):
     return row['insurance_photo']
 
 
-async def create_outbound_file(orders):
+def create_outbound_file(orders):
     filename = "{}-{}.csv".format(
         outbound_file_prefix,
         datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S")
@@ -236,7 +236,7 @@ def __get_formatted_row(order):
     return formatted_row
 
 
-async def get_orders_ready_to_transmit():
+def get_orders_ready_to_transmit():
     #Move completed records from Appointments to Test Samples
     #if not await exec_sp('create_test_samples_records_for_completed_appointments'):
     #    raise Exception('Unable to move completed Appointments to Tests')
@@ -337,7 +337,7 @@ async def get_orders_ready_to_transmit():
     return read_rows(sql,)
 
 
-async def upload_file_list_to_ftp(file_list):
+def upload_file_list_to_ftp(file_list):
     try:
         hostname = cfg('vendors.healthtrackrx_outbound.hostname')
         username = cfg('vendors.healthtrackrx_outbound.username')
@@ -374,7 +374,7 @@ async def upload_file_list_to_ftp(file_list):
 
 
 
-async def upload_file_to_ftp(filename, local_file_path):
+def upload_file_to_ftp(filename, local_file_path):
     try:
         hostname = cfg('vendors.healthtrackrx_outbound.hostname')
         username = cfg('vendors.healthtrackrx_outbound.username')
@@ -406,7 +406,7 @@ async def upload_file_to_ftp(filename, local_file_path):
         ftp_client.close()
 
 
-async def update_to_with_lab_status(orders):
+def update_to_with_lab_status(orders):
     list_of_ids = []
     for order in orders:
         list_of_ids.append(order['client_order_number'])

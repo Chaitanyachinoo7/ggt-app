@@ -19,7 +19,7 @@ import ggt.lib.constants as c
 
 #TODO: read the params from Config files
 
-async def task_populate_location_thumbnails():
+def task_populate_location_thumbnails():
     print('\n\n********************task_populate_location_thumbnails****************************\n\n')
 
     sql = """
@@ -57,7 +57,7 @@ async def task_populate_location_thumbnails():
     print('\n\n************************************************\n\n')
 
 
-async def update_location_thumbnails(location_id, encoded_image):
+def update_location_thumbnails(location_id, encoded_image):
     sql = """
         UPDATE 
             locations
@@ -72,7 +72,7 @@ async def update_location_thumbnails(location_id, encoded_image):
 
 
 
-async def task_populate_gps_coordinates():
+def task_populate_gps_coordinates():
     print('\n\n********************task_populate_gps_coordinates****************************\n\n')
 
     sql = """
@@ -130,7 +130,7 @@ async def task_populate_gps_coordinates():
 
 
 
-async def update_gps_coordinates(location_id, lat, lng):
+def update_gps_coordinates(location_id, lat, lng):
     sql = """
         UPDATE 
             locations

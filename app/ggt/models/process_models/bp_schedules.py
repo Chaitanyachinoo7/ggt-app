@@ -39,7 +39,7 @@ from ggt.lib.maps import (
 ########################################################################################################
 
 
-async def bp_get_schedule_dates_available(group_code):
+def bp_get_schedule_dates_available(group_code):
     try:
         group_code = normalize_group_code(group_code)
         rows = await get_available_dates(group_code)
@@ -75,7 +75,7 @@ async def bp_get_schedule_dates_available(group_code):
         )
 
 
-async def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: float, radius: int = None, date_str: str = None, group_code: str = None):
+def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: float, radius: int = None, date_str: str = None, group_code: str = None):
     if not radius:
         radius = 100
 
@@ -164,7 +164,7 @@ async def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: floa
     }
 
 
-async def bp_get_schedule_locations_available(date, group_code=c.DEFAULT_GROUP_CODE):
+def bp_get_schedule_locations_available(date, group_code=c.DEFAULT_GROUP_CODE):
     group_code = normalize_group_code(group_code)
     dtl_list = await get_available_locations(date, group_code)
     available_locations = []
@@ -235,7 +235,7 @@ async def bp_get_schedule_locations_available(date, group_code=c.DEFAULT_GROUP_C
     }
 
 
-async def bp_get_all_available_locations_and_times(group_code=c.DEFAULT_GROUP_CODE):
+def bp_get_all_available_locations_and_times(group_code=c.DEFAULT_GROUP_CODE):
     if not group_code:
         group_code = c.DEFAULT_GROUP_CODE
     group_code = normalize_group_code(group_code)
@@ -248,7 +248,7 @@ async def bp_get_all_available_locations_and_times(group_code=c.DEFAULT_GROUP_CO
     }
 
 
-async def bp_get_schedule_times_available(location_id, date):
+def bp_get_schedule_times_available(location_id, date):
     rows = await get_available_times(location_id, date)
     available_times = []
     try:
@@ -277,7 +277,7 @@ async def bp_get_schedule_times_available(location_id, date):
     }
 
 
-async def bp_generate_all_schedules():
+def bp_generate_all_schedules():
     try:
         locations = await get_all_locations()
         for location in locations:
@@ -295,7 +295,7 @@ async def bp_generate_all_schedules():
     return False
 
 
-async def bp_delete_schedule(location_id):
+def bp_delete_schedule(location_id):
     try:
         return await delete_schedule_entries_by_location_id(location_id)
 
@@ -310,7 +310,7 @@ async def bp_delete_schedule(location_id):
     return False
 
 
-async def bp_delete_schedule_for_date(location_id, date_str):
+def bp_delete_schedule_for_date(location_id, date_str):
     try:
         return await delete_schedule_entries_by_location_id_for_date(location_id, date_str)
 
@@ -326,7 +326,7 @@ async def bp_delete_schedule_for_date(location_id, date_str):
     return False
 
 
-async def bp_generate_full_schedule(location_id):
+def bp_generate_full_schedule(location_id):
     try:
         print('START schedule generation / location id: {} / at: {}'.format(
             location_id, datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
@@ -359,7 +359,7 @@ async def bp_generate_full_schedule(location_id):
     return False
 
 
-async def bp_add_schedule_generation_rule(data):
+def bp_add_schedule_generation_rule(data):
     try:
         # Zero out the seconds and hours for dt fields
         data.local_start_time = data.local_start_time.replace(second=0)
@@ -382,7 +382,7 @@ async def bp_add_schedule_generation_rule(data):
     return False
 
 
-async def bp_update_schedule_generation_rule(data):
+def bp_update_schedule_generation_rule(data):
     try:
         # Zero out the seconds and hours for dt fields
         data.local_start_time = data.local_start_time.replace(second=0)
@@ -405,7 +405,7 @@ async def bp_update_schedule_generation_rule(data):
     return False
 
 
-async def bp_delete_schedule_generation_rule(id):
+def bp_delete_schedule_generation_rule(id):
     try:
         return await delete_schedule_generation_rule(id)
 
@@ -420,7 +420,7 @@ async def bp_delete_schedule_generation_rule(id):
     return False
 
 
-async def bp_get_schedule_generation_rules(location_id):
+def bp_get_schedule_generation_rules(location_id):
     try:
         return await get_schedule_generation_rules_by_location_id(location_id)
 
@@ -439,7 +439,7 @@ async def bp_get_schedule_generation_rules(location_id):
 ########################################################################################################
 
 
-async def __process_schedule_rule(rule):
+def __process_schedule_rule(rule):
     try:
         location_id = rule['location_id']
         rule_type = rule['rule_type']
@@ -511,7 +511,7 @@ def __get_valid_days(row):
     }
 
 
-async def __remove_reserved_slots(rows, location_id):
+def __remove_reserved_slots(rows, location_id):
     try:
         generated_dt_counts = {}  # counts map
         generated_dt_list = []  # flat list

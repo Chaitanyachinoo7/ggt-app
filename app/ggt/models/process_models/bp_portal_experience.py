@@ -40,15 +40,15 @@ import ggt.lib.constants as c
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-async def bp_cc_search_details_by_name_and_dob(last_name, dob):
+def bp_cc_search_details_by_name_and_dob(last_name, dob):
     return await search_details_by_name_and_dob(last_name, dob)
 
 
-async def bp_cc_view_test_details(test_id):
+def bp_cc_view_test_details(test_id):
     return await get_test_details(test_id)
 
 
-async def bp_get_user_role(email):
+def bp_get_user_role(email):
     try:
         user = await get_user_by_email(email)
         return user['role']
@@ -63,7 +63,7 @@ async def bp_get_user_role(email):
         )
 
 
-async def bp_get_all_test_results():
+def bp_get_all_test_results():
     try:
         return await get_all_test_results()
 
@@ -76,7 +76,7 @@ async def bp_get_all_test_results():
         # return await False
 
 
-async def bp_get_general_search_results(first_name, middle_name, last_name, dob, phone_number, email, appointment_id,
+def bp_get_general_search_results(first_name, middle_name, last_name, dob, phone_number, email, appointment_id,
                                         group_code, appointment_date, location_id, vial_id='', sort_field="register_dt", sort_type="desc"):
     try:
         if appointment_date != '':
@@ -93,7 +93,7 @@ async def bp_get_general_search_results(first_name, middle_name, last_name, dob,
         )
 
 
-async def bp_create_group(group):
+def bp_create_group(group):
     try:
         _id = await create_group(group)
         if _id is None:
@@ -107,7 +107,7 @@ async def bp_create_group(group):
         )
 
 
-async def bp_update_group(group):
+def bp_update_group(group):
     try:
         updated = await update_group(group)
         if updated:
@@ -121,7 +121,7 @@ async def bp_update_group(group):
         )
 
 
-async def bp_create_location(location):
+def bp_create_location(location):
     try:
         l = await create_location(location)
         if l is None:
@@ -156,7 +156,7 @@ async def bp_create_location(location):
         )
 
 
-async def bp_assign_group(req):
+def bp_assign_group(req):
     try:
         return await assign_group(req)
 
@@ -168,7 +168,7 @@ async def bp_assign_group(req):
         )
 
 
-async def bp_assign_service(req):
+def bp_assign_service(req):
     try:
         return await assign_service(req)
 
@@ -180,7 +180,7 @@ async def bp_assign_service(req):
         )
 
 
-async def bp_remove_group(req):
+def bp_remove_group(req):
     try:
         return await remove_group(req)
 
@@ -192,7 +192,7 @@ async def bp_remove_group(req):
         )
 
 
-async def bp_get_locations():
+def bp_get_locations():
     try:
         return await get_all_locations_without_thumbnail()
 
@@ -204,7 +204,7 @@ async def bp_get_locations():
         )
 
 
-async def bp_remove_service(req):
+def bp_remove_service(req):
     try:
         return await remove_service(req)
 
@@ -216,7 +216,7 @@ async def bp_remove_service(req):
         )
 
 
-async def bp_update_location(location):
+def bp_update_location(location):
     try:
         location_id = location.id
         await update_location(location)
@@ -251,7 +251,7 @@ async def bp_update_location(location):
         )
 
 
-async def bp_get_all_groups():
+def bp_get_all_groups():
     try:
         return await get_all_groups()
 
@@ -263,7 +263,7 @@ async def bp_get_all_groups():
         )
 
 
-async def bp_get_states():
+def bp_get_states():
     try:
         return await get_states()
     except Exception as err:
@@ -274,7 +274,7 @@ async def bp_get_states():
         )
 
 
-async def bp_get_all_services():
+def bp_get_all_services():
     try:
         return await get_all_services()
 
@@ -286,7 +286,7 @@ async def bp_get_all_services():
         )
 
 
-async def bp_get_location_search_results(account, group_code, site_code, location_name):
+def bp_get_location_search_results(account, group_code, site_code, location_name):
     try:
         return await search_locations(account, group_code, site_code, location_name)
 
@@ -298,7 +298,7 @@ async def bp_get_location_search_results(account, group_code, site_code, locatio
         )
 
 
-async def bp_create_test_sample_from_appointment(appointment_id):
+def bp_create_test_sample_from_appointment(appointment_id):
     try:
         return await create_test_sample_from_appointment(appointment_id)
 
@@ -310,7 +310,7 @@ async def bp_create_test_sample_from_appointment(appointment_id):
         )
 
 
-async def bp_record_label_scan(appointment_id):
+def bp_record_label_scan(appointment_id):
     try:
         return await record_label_scan(appointment_id)
 

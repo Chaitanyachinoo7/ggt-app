@@ -36,7 +36,7 @@ def _task_process_sms_queue():
 '''
 
 
-async def task_process_sms_queue():
+def task_process_sms_queue():
     print('\n\n********************task_process_SMS_queue****************************\n\n')
 
     batch_size = 100
@@ -53,7 +53,7 @@ async def task_process_sms_queue():
     print('\n\n************************************************\n\n')
 
 
-async def __batch_process_sms_queue(batch_size=100):
+def __batch_process_sms_queue(batch_size=100):
     sql = """
     SELECT * 
     FROM sms_notification_queue 
@@ -82,7 +82,7 @@ async def __batch_process_sms_queue(batch_size=100):
                 await update_sms_status_to_retry(_id)
 
 
-async def update_sms_status_to_processed(id):
+def update_sms_status_to_processed(id):
     sql = """
         UPDATE sms_notification_queue
         SET
@@ -94,7 +94,7 @@ async def update_sms_status_to_processed(id):
     exec_update(sql, vals)
 
 
-async def update_sms_status_to_retry(id):
+def update_sms_status_to_retry(id):
     sql = """
         UPDATE sms_notification_queue
         SET
@@ -106,7 +106,7 @@ async def update_sms_status_to_retry(id):
     exec_update(sql, vals)
 
 
-async def update_sms_status_to_error(id):
+def update_sms_status_to_error(id):
     sql = """
         UPDATE sms_notification_queue
         SET

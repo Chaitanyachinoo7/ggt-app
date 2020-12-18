@@ -19,53 +19,53 @@ from ggt.models.process_models.bp_care_provider_experience import (
 # [Public] functions
 ########################################################################################################
 
-async def get_billing_list(billing_request):
+def get_billing_list(billing_request):
     return y_response(
-        await bp_get_billing_list(billing_request.offset,
-                                  billing_request.status,
-                                  billing_request.from_dt,
-                                  billing_request.to_dt,
-                                  billing_request.limit,
-                                  billing_request.sort,
-                                  billing_request.pre_consultation,
-                                  billing_request.provider_reviewed,
-                                  billing_request.test_status,
-                                  billing_request.appointment_status
-                                  )
+        bp_get_billing_list(billing_request.offset,
+                            billing_request.status,
+                            billing_request.from_dt,
+                            billing_request.to_dt,
+                            billing_request.limit,
+                            billing_request.sort,
+                            billing_request.pre_consultation,
+                            billing_request.provider_reviewed,
+                            billing_request.test_status,
+                            billing_request.appointment_status
+                            )
     )
 
 
-async def update_billing_status(billing_request):
+def update_billing_status(billing_request):
     return x_response(
-        await bp_update_billing_status(billing_request.appointment_id)
+        bp_update_billing_status(billing_request.appointment_id)
     )
 
 
-async def create_insurance_record(record):
+def create_insurance_record(record):
     return y_response(
-        await bp_create_insurance_record(record)
+        bp_create_insurance_record(record)
     )
 
 
-async def update_insurance_record(record):
+def update_insurance_record(record):
     return y_response(
-        await bp_update_insurance_record(record)
+        bp_update_insurance_record(record)
     )
 
 
-async def validate_insurance_record(record):
+def validate_insurance_record(record):
     return y_response(
-        await bp_validate_insurance_record(record)
+        bp_validate_insurance_record(record)
     )
 
 
-async def delete_insurance_record(record):
+def delete_insurance_record(record):
     return y_response(
-        await bp_delete_insurance_record(record)
+        bp_delete_insurance_record(record)
     )
 
 
-async def download_billing_list(offset, limit):
+def download_billing_list(offset, limit):
     return StreamingResponse(
         bp_download_billing_list(offset, limit),
         media_type="text/csv",
@@ -75,18 +75,18 @@ async def download_billing_list(offset, limit):
     )
 
 
-async def get_image_from_bucket(image_id):
+def get_image_from_bucket(image_id):
     return StreamingResponse(bp_image_from_bucket(image_id),
                              media_type="image/png",
                              headers={
                                  'Content-Disposition': 'inline; filename="insurance_card.png"'
-                             }
-                             )
+    }
+    )
 
 
-async def get_report_from_bucket(report_id):
+def get_report_from_bucket(report_id):
     return StreamingResponse(
-        await bp_report_from_bucket(report_id),
+        bp_report_from_bucket(report_id),
         media_type="application/pdf",
         headers={
             'Content-Disposition': 'filename="report.pdf"'

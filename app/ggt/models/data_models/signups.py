@@ -25,7 +25,7 @@ from ggt.models.data_models.data_types import (
 ########################################################################################################
 
 
-async def create_pending_signup_record(phone_number, otp, token=None, ip=None, device_data=None, status='pending'):
+def create_pending_signup_record(phone_number, otp, token=None, ip=None, device_data=None, status='pending'):
     try:
         sql = """
         INSERT INTO signups 
@@ -64,7 +64,7 @@ async def create_pending_signup_record(phone_number, otp, token=None, ip=None, d
         return None
 
 
-async def get_signup_record(id):
+def get_signup_record(id):
     try:
         sql = """
         SELECT * 
@@ -86,7 +86,7 @@ async def get_signup_record(id):
         return None
 
 
-async def get_signup_record_by_phone_otp(phone_number, otp):
+def get_signup_record_by_phone_otp(phone_number, otp):
     try:
         sql = """
         SELECT token 
@@ -113,7 +113,7 @@ async def get_signup_record_by_phone_otp(phone_number, otp):
         return None
 
 
-async def get_signup_record_by_token(token):
+def get_signup_record_by_token(token):
     try:
         sql = """
         SELECT * 
@@ -135,7 +135,7 @@ async def get_signup_record_by_token(token):
         return None
 
 
-async def update_signup_record(id):
+def update_signup_record(id):
     try:
         sql = """
         UPDATE signups 
@@ -158,7 +158,7 @@ async def update_signup_record(id):
         return None
 
 
-async def get_group_info(group_code: str) -> GgtThirdPartyGroup:
+def get_group_info(group_code: str) -> GgtThirdPartyGroup:
     group_info: GgtThirdPartyGroup = None
     try:
         sql = """

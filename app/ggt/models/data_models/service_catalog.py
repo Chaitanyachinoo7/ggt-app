@@ -34,7 +34,7 @@ from ggt.models.data_models.data_types import (
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-async def get_all_services():
+def get_all_services():
     try:
         sql = "SELECT * FROM services_catalog"
         return replica_read_rows(sql)

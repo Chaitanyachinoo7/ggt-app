@@ -133,7 +133,7 @@ def test_get_get_available_times_2():
 
 
 @pytest.mark.asyncio
-async def test_get_appointment_results():
+def test_get_appointment_results():
     sql = """SELECT * FROM detailed_test_results
                 ORDER by test_id DESC
                 LIMIT 1"""

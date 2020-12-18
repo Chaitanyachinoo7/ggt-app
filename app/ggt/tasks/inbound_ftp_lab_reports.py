@@ -72,7 +72,7 @@ local_download_path = cfg('vendors.healthtrackrx_inbound.local_download_path')
 # Copy renamed PDF lab reports to GCP
 
 
-async def task_process_inbound_lab_reports():
+def task_process_inbound_lab_reports():
     start = time.time()
     print_header(
         '\n\n******************Inbound file processing [Start]******************************\n\n')
@@ -136,7 +136,7 @@ def init_ftp_connection():
 '''
 
 
-async def clean_downloads_folder():
+def clean_downloads_folder():
     print('cleaning up downloads folder')
     try:
         files = glob.glob("{}/*".format(local_download_path))
@@ -151,7 +151,7 @@ async def clean_downloads_folder():
         )
 
 
-async def download_ftp_files():
+def download_ftp_files():
     print_ok2('Connecting to FTP server...')
     try:
         ssh_client = paramiko.SSHClient()
@@ -182,7 +182,7 @@ async def download_ftp_files():
         ftp_client.close()
 
 
-async def copy_files_to_local(ftp_client, directory_list, remote_folder):
+def copy_files_to_local(ftp_client, directory_list, remote_folder):
     try:
         for dir in directory_list:
             remote_dir_path = "{}/{}".format(remote_folder, dir)
@@ -241,14 +241,14 @@ async def copy_files_to_local(ftp_client, directory_list, remote_folder):
         )
 
 
-async def prep_local_downloads_dir(remote_dir_path):
+def prep_local_downloads_dir(remote_dir_path):
     newpath = "{}/{}".format(local_download_path, remote_dir_path)
     if not os.path.exists(newpath):
         os.makedirs(newpath)
     return newpath
 
 
-async def download_and_cleanup(ftp_client, filename, remote_dir_path, cache_hits, cache_misses, download_errors):
+def download_and_cleanup(ftp_client, filename, remote_dir_path, cache_hits, cache_misses, download_errors):
     local_downloads_dir = await prep_local_downloads_dir(remote_dir_path)
     if await file_exists_in_all_inbound_files_cache(filename):
         cache_hits += 1
@@ -293,7 +293,7 @@ async def download_and_cleanup(ftp_client, filename, remote_dir_path, cache_hits
     return cache_hits, cache_misses, download_errors
 
 
-async def ftp_move_file(ftp_client, old_path, new_path):
+def ftp_move_file(ftp_client, old_path, new_path):
     dir_path, file_name = os.path.split(new_path.rstrip('/'))
 
     try:
@@ -305,7 +305,7 @@ async def ftp_move_file(ftp_client, old_path, new_path):
     ftp_client.rename(old_path, new_path)
 
 
-async def ftp_create_dir_path(ftp_client, dir_path):
+def ftp_create_dir_path(ftp_client, dir_path):
     # Test if sub directories to the remote path exists. If not recursively create them
     dir_chain = dir_path.split('/')
     sub_dir_path = ''
@@ -318,7 +318,7 @@ async def ftp_create_dir_path(ftp_client, dir_path):
             ftp_client.mkdir(sub_dir_path)
 
 
-async def get_remote_directories_and_files(ftp_client, remote_folder):
+def get_remote_directories_and_files(ftp_client, remote_folder):
     file_list = []
     dir_list = []
 
@@ -344,7 +344,7 @@ async def get_remote_directories_and_files(ftp_client, remote_folder):
     return dir_list, file_list
 
 
-async def get_remote_directory_list(ftp_client, paths, remote_folder):
+def get_remote_directory_list(ftp_client, paths, remote_folder):
     directories = ['']
     for path in paths:
         try:
@@ -358,7 +358,7 @@ async def get_remote_directory_list(ftp_client, paths, remote_folder):
     return directories
 
 
-async def parse_csv_files():
+def parse_csv_files():
     try:
         file_list = glob.iglob(
             '{}/**/*.csv'.format(local_download_path), recursive=True)
@@ -384,7 +384,7 @@ async def parse_csv_files():
         print(err)
 
 
-async def parse_csv_file(file_path):
+def parse_csv_file(file_path):
     with open(file_path) as csvfile:
         reader = csv.DictReader(lower_first(csvfile))
         for row in reader:
@@ -395,7 +395,7 @@ async def parse_csv_file(file_path):
                 print("err:", err)
 
 
-async def load_data_from_remote_db_to_cache():
+def load_data_from_remote_db_to_cache():
     sql = """
         SELECT * 
         FROM healthtrackrx_inbound_data 
@@ -415,7 +415,7 @@ async def load_data_from_remote_db_to_cache():
     print_ok2('{} 100%            '.format(PROGRESS_LABEL))
 
 
-async def upload_pdf_lab_reports():
+def upload_pdf_lab_reports():
     print('uploading PDF lab reports')
     try:
         file_count = 0
@@ -475,7 +475,7 @@ async def upload_pdf_lab_reports():
         print(err)
 
 
-async def upload_all_inbound_files_to_central_storage():
+def upload_all_inbound_files_to_central_storage():
     try:
         file_count = 0
         for local_file_path in glob.iglob('{}/**/*'.format(local_download_path), recursive=True):
@@ -521,7 +521,7 @@ async def upload_all_inbound_files_to_central_storage():
         print(err)
 
 
-async def generate_destination_filename(file_path):
+def generate_destination_filename(file_path):
     filename = None
     requisition_id = None
     order_number = None
@@ -548,7 +548,7 @@ async def generate_destination_filename(file_path):
     return requisition_id, order_number, filename
 
 
-async def append_to_processing_summary(txt):
+def append_to_processing_summary(txt):
     # append mode
     f = open(
         "/Users/suresh/ggt-tasks/process_summary/ggt-inbound-processing-summary.txt", "a")
@@ -556,7 +556,7 @@ async def append_to_processing_summary(txt):
     f.close()
 
 
-async def add_to_healthtrackrx_inbound_data_table():
+def add_to_healthtrackrx_inbound_data_table():
     print('syncing cached healthtrackrx_inbound_data to remote DB')
     rows = await get_all_lab_records_from_cache()
     try:
@@ -572,7 +572,7 @@ async def add_to_healthtrackrx_inbound_data_table():
         print("err:", err)
 
 
-async def update_test_samples_with_results():
+def update_test_samples_with_results():
     print('updating test results in remote DB')
     sql = """
         UPDATE test_samples

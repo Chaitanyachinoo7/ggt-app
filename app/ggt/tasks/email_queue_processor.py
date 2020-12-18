@@ -22,7 +22,7 @@ from ggt.lib.email import send_email, render_template
 import ggt.lib.constants as c
 
 
-async def task_process_email_queue():
+def task_process_email_queue():
     print('\n\n********************task_process_email_queue****************************\n\n')
 
     batch_size = 100
@@ -39,7 +39,7 @@ async def task_process_email_queue():
     print('\n\n************************************************\n\n')
 
 
-async def __batch_process_email_queue(batch_size=100):
+def __batch_process_email_queue(batch_size=100):
     sql = """
     SELECT * FROM email_notification_queue 
     WHERE status 
@@ -69,7 +69,7 @@ async def __batch_process_email_queue(batch_size=100):
                 await update_email_status_to_retry(_id)
 
 
-async def update_email_status_to_processed(id):
+def update_email_status_to_processed(id):
     sql = """
         UPDATE email_notification_queue
         SET
@@ -81,7 +81,7 @@ async def update_email_status_to_processed(id):
     exec_update(sql, vals)
 
 
-async def update_email_status_to_retry(id):
+def update_email_status_to_retry(id):
     sql = """
         UPDATE email_notification_queue
         SET
@@ -93,7 +93,7 @@ async def update_email_status_to_retry(id):
     exec_update(sql, vals)
 
 
-async def update_email_status_to_error(id):
+def update_email_status_to_error(id):
     sql = """
         UPDATE email_notification_queue
         SET

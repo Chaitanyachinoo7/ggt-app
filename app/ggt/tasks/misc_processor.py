@@ -46,7 +46,7 @@ local_outbound_file_path = cfg('vendors.healthtrackrx_outbound.local_outbound_fi
 outbound_file_prefix = cfg('vendors.healthtrackrx_outbound.outbound_file_prefix')
 local_insurance_card_file_path = cfg('vendors.healthtrackrx_outbound.local_insurance_card_file_path')
 
-async def task_process_misc():
+def task_process_misc():
     print('\n\n************************************************\n\n')
     log_generic(
         type=c.INFO,
@@ -73,7 +73,7 @@ async def task_process_misc():
 
 
 
-async def upload_insurance_files_from_gstore():
+def upload_insurance_files_from_gstore():
     try:
         print('converting insurance image files to PDF')
         file_buffer = []
@@ -137,7 +137,7 @@ def upload_file_list_to_ftp(file_list):
         ftp_client.close()
 
 
-async def process_sms_notifications():
+def process_sms_notifications():
     rows = await get_appointments()
     data = []
     for row in rows:
@@ -149,7 +149,7 @@ async def process_sms_notifications():
     await batch_enqueue_sms_notifications(data)
 
 
-async def process_email_notifications():
+def process_email_notifications():
     rows = await get_appointments()
     data = []
 
@@ -164,7 +164,7 @@ async def process_email_notifications():
     await batch_enqueue_email_notifications(data)
 
 
-async def formatted_email_message(row):
+def formatted_email_message(row):
     from_email = cfg('notifications.from_email')
     from_name = cfg('notifications.from_name')
     subject = "{}, Your Appointment has changed".format(row['first_name'])
@@ -187,7 +187,7 @@ async def formatted_email_message(row):
     return email_message
 
 
-async def batch_enqueue_email_notifications(data):
+def batch_enqueue_email_notifications(data):
     try:
         sql = """
             INSERT INTO email_notification_queue
@@ -203,7 +203,7 @@ async def batch_enqueue_email_notifications(data):
         return False
 
 
-async def batch_enqueue_sms_notifications(data):
+def batch_enqueue_sms_notifications(data):
     try:
         sql = """
             INSERT INTO sms_notification_queue
@@ -217,7 +217,7 @@ async def batch_enqueue_sms_notifications(data):
         print("err:", err)
 
 
-async def get_appointments():
+def get_appointments():
     try:
         sql = """
         SELECT 
@@ -238,7 +238,7 @@ async def get_appointments():
         print(err)
 
 
-async def prepare_sms_text(appointment):
+def prepare_sms_text(appointment):
     return """Hi {}, we’ve had to close the testing location where you have registered for your COVID-19 test. We apologize for the inconvenience. 
 
 Please visit GoGetTested.com and register for another appointment at a convenient location. Thank you for choosing GoGetTested.
@@ -247,7 +247,7 @@ Reply STOP to cancel msgs
     """.format(appointment["first_name"])
 
 
-async def sync_appointments_with_schedule_slots():
+def sync_appointments_with_schedule_slots():
     sql = """
         SELECT 
             id, scheduled_dt, location_id
@@ -296,7 +296,7 @@ async def sync_appointments_with_schedule_slots():
             )
 
 
-async def upload_insurance_images_to_gcp():
+def upload_insurance_images_to_gcp():
     limit = 500000
     increment = 1000
     start = random.randint(0, 100000)
@@ -341,7 +341,7 @@ async def upload_insurance_images_to_gcp():
         print(err)
 
 
-async def upload_insurance_images_to_gcp_with_small_table():
+def upload_insurance_images_to_gcp_with_small_table():
     print('starting...')
     try:
         sql = """
@@ -382,7 +382,7 @@ async def upload_insurance_images_to_gcp_with_small_table():
         print(err)
 
 
-async def remove_image_from_questionnnaires_table(id):
+def remove_image_from_questionnnaires_table(id):
     try:
         sql = """
         UPDATE patient_questionnaires 

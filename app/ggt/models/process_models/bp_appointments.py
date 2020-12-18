@@ -34,7 +34,7 @@ from ggt.lib.sys_log import (write_syslog)
 ########################################################################################################
 
 
-async def bp_get_appointment_info(appointment_id, dob):
+def bp_get_appointment_info(appointment_id, dob):
     try:
         appointment: GgtAppointment = await get_appointment(appointment_id)
         if dob != 'allowdoboverride' and appointment.patient.dob.strftime("%Y%m%d") != dob:
@@ -67,7 +67,7 @@ async def bp_get_appointment_info(appointment_id, dob):
     return False
 
 
-async def bp_appointment_update(appointment_id: int, action: str, workstation_id: int, vial_id: str = None):
+def bp_appointment_update(appointment_id: int, action: str, workstation_id: int, vial_id: str = None):
     try:
         appointment: GgtAppointment = await get_appointment(appointment_id)
 
@@ -167,7 +167,7 @@ def __next_action(appointment, pre_labeled=False):
 
 
 # TODO: [GGT-80] Move copy to CMS
-async def __send_test_complete_sms(appointment):
+def __send_test_complete_sms(appointment):
     message = "" \
         "Hi {}, thank you for getting tested with GoGetTested.com. Your COVID-19 test results will be available in 48-96hours. " \
         "If you have any questions, please visit GoGetTested.com Reply STOP to cancel msgs".format(
@@ -182,7 +182,7 @@ async def __send_test_complete_sms(appointment):
     return await send_sms(appointment.patient.phone_number, message)
 
 
-async def __appointment_begin_test(appointment, workstation_id=1):
+def __appointment_begin_test(appointment, workstation_id=1):
     await update_appointment_with_test_start(appointment)
 
     if __is_pre_labeled(appointment, workstation_id):
@@ -191,12 +191,12 @@ async def __appointment_begin_test(appointment, workstation_id=1):
     return await __send_label_to_printer(appointment.id, workstation_id)
 
 
-async def __appointment_reprint_label(appointment, workstation_id=1):
+def __appointment_reprint_label(appointment, workstation_id=1):
     return await __send_label_to_printer(appointment.id, workstation_id)
 
 
 # TODO: [GGT-86] Refactor, decouple integration code
-async def __send_label_to_printer(appointment_id, queue_id):
+def __send_label_to_printer(appointment_id, queue_id):
     try:
         appointment: GgtAppointment = await get_appointment(appointment_id)
         date_text = appointment.scheduled_dt.strftime(

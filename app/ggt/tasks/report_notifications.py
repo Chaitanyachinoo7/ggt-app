@@ -25,7 +25,7 @@ import ggt.lib.constants as c
 session_id = generate_session_id()
 
 
-async def task_schedule_result_notifications_and_followups():
+def task_schedule_result_notifications_and_followups():
     print('\n\n************************************************\n\n')
     print('create_result_notification_campaign')
     await create_result_notification_campaign()
@@ -39,7 +39,7 @@ async def task_schedule_result_notifications_and_followups():
     print('\n\n************************************************\n\n')
 
 
-async def create_result_notification_campaign():
+def create_result_notification_campaign():
     sql = """
     INSERT INTO result_notification_campaigns
         (test_id,
@@ -87,7 +87,7 @@ async def create_result_notification_campaign():
         info='COMPLETED - Creating result notification campaign')
 
 
-async def schedule_positive_followups():
+def schedule_positive_followups():
     sql = """
     INSERT INTO positive_result_followup_queue
         (test_id,
@@ -133,7 +133,7 @@ async def schedule_positive_followups():
         info='COMPLETED - Scheduling Positive Report Followup sessions')
 
 
-async def schedule_notifications_using_sms():
+def schedule_notifications_using_sms():
     sql = """
         SELECT * FROM result_notification_campaigns
         WHERE overall_status = 'scheduled'
@@ -162,7 +162,7 @@ async def schedule_notifications_using_sms():
     )
 
 
-async def schedule_notifications_using_email():
+def schedule_notifications_using_email():
     batch_size = 100
     sql = """
         SELECT count(*) as total
@@ -178,7 +178,7 @@ async def schedule_notifications_using_email():
         await __batch_schedule_notifications_using_email(batch_size)
 
 
-async def __batch_schedule_notifications_using_email(batch_size=100):
+def __batch_schedule_notifications_using_email(batch_size=100):
     sql = """
         SELECT * 
         FROM result_notification_campaigns 
@@ -208,7 +208,7 @@ async def __batch_schedule_notifications_using_email(batch_size=100):
             str(test_id_list).strip('[]')
         )
 
-async def formatted_email_message(row):
+def formatted_email_message(row):
     base_url = cfg('base_url')
     from_email = cfg('notifications.from_email')
     from_name = cfg('notifications.from_name')
@@ -233,7 +233,7 @@ async def formatted_email_message(row):
     return email_message
 
 
-async def add_to_healthtrackrx_inbound_data_table():
+def add_to_healthtrackrx_inbound_data_table():
     rows = await get_all_lab_records_from_cache()
     try:
         sql = """
@@ -256,7 +256,7 @@ def formatted_sms_message(first_name, token):
 
 
 # TODO: Bulk insert into Table instead of 1 query at a time
-async def add_to_sms_queue(phone_number, message):
+def add_to_sms_queue(phone_number, message):
     sql = """
         INSERT INTO sms_notification_queue
         (to_number,message)
@@ -278,7 +278,7 @@ async def add_to_sms_queue(phone_number, message):
 
 
 # TODO: complete this
-async def batch_update_notification_queue_status_for_email(test_id_list):
+def batch_update_notification_queue_status_for_email(test_id_list):
     try:
         sql = """
             UPDATE result_notification_campaigns
@@ -296,7 +296,7 @@ async def batch_update_notification_queue_status_for_email(test_id_list):
         print("err:", err)
 
 
-async def update_notification_queue_status_to_pending(test_id):
+def update_notification_queue_status_to_pending(test_id):
     try:
         sql = """
             UPDATE result_notification_campaigns
@@ -312,7 +312,7 @@ async def update_notification_queue_status_to_pending(test_id):
         print("err:", err)
 
 
-async def batch_enqueue_sms_notifications(data):
+def batch_enqueue_sms_notifications(data):
     try:
         sql = """
             INSERT INTO sms_notification_queue
@@ -326,7 +326,7 @@ async def batch_enqueue_sms_notifications(data):
         print("err:", err)
 
 
-async def batch_enqueue_email_notifications(data):
+def batch_enqueue_email_notifications(data):
     try:
         sql = """
             INSERT INTO email_notification_queue
@@ -342,7 +342,7 @@ async def batch_enqueue_email_notifications(data):
         return False
 
 
-async def batch_update_notification_queue_status_to_pending(test_id_list):
+def batch_update_notification_queue_status_to_pending(test_id_list):
     sql = """
         UPDATE result_notification_campaigns
         SET

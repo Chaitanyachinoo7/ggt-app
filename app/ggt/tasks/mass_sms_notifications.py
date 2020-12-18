@@ -28,7 +28,7 @@ relocate_template = get_config_val('notifications.relocate_template')
 reschedule_template = get_config_val('notifications.reschedule_template')
 
 
-async def notify_patients(req):
+def notify_patients(req):
     location_id = req.location_id
     req_type = req.type
     start_dt = req.start_dt
@@ -75,7 +75,7 @@ async def notify_patients(req):
         )
 
 
-async def get_email_body(data, req_type):
+def get_email_body(data, req_type):
     if req_type == NotificationEnum.relocate:
         return get_relocate_email_body(data)
     if req_type == NotificationEnum.reschedule:
@@ -83,7 +83,7 @@ async def get_email_body(data, req_type):
     return None
 
 
-async def get_sms_body(data, req_type):
+def get_sms_body(data, req_type):
     if req_type == NotificationEnum.relocate:
         return get_relocate_sms_body(data)
     if req_type == NotificationEnum.reschedule:
@@ -91,7 +91,7 @@ async def get_sms_body(data, req_type):
     return None
 
 
-async def get_reschedule_sms_body(data):
+def get_reschedule_sms_body(data):
     try:
 
         scheduled_dt = str(data['scheduled_dt'])
@@ -132,7 +132,7 @@ async def get_reschedule_sms_body(data):
         return None
 
 
-async def get_relocate_sms_body(data):
+def get_relocate_sms_body(data):
     try:
 
         scheduled_dt = str(data['scheduled_dt'])
@@ -174,7 +174,7 @@ async def get_relocate_sms_body(data):
         return None
 
 
-async def get_reschedule_email_body(data):
+def get_reschedule_email_body(data):
     try:
 
         scheduled_dt = str(data['scheduled_dt'])
@@ -213,7 +213,7 @@ async def get_reschedule_email_body(data):
         return None
 
 
-async def get_relocate_email_body(data):
+def get_relocate_email_body(data):
     try:
 
         scheduled_dt = str(data['scheduled_dt'])
@@ -252,7 +252,7 @@ async def get_relocate_email_body(data):
         return None
 
 
-async def update_appointments(data):
+def update_appointments(data):
     sql = """UPDATE appointments 
              SET 
                 status = %s
@@ -261,7 +261,7 @@ async def update_appointments(data):
     return exec_batch_execute(sql, data)
 
 
-async def get_notify_patients(location_id, next_location_id, start_dt, end_dt):
+def get_notify_patients(location_id, next_location_id, start_dt, end_dt):
     sql = """SELECT 
     p.phone_number,
     p.email,
