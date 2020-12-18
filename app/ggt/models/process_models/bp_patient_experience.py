@@ -571,7 +571,7 @@ def __is_valid_token(token: str) -> bool:
         if token.startswith("NOVERIFY"):
             return True
         else:
-            return gnup_record_by_token(token)
+            return get_signup_record_by_token(token)
 
     except Exception as err:
         log_generic(
