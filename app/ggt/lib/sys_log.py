@@ -12,7 +12,7 @@ from ggt.lib.db import (exec_insert)
 ########################################################################################################
 
 
-async def write_syslog(event, log_type, payload):
+def write_syslog(event, log_type, payload):
     return __insert_record_syslog(event, log_type, payload)
 
 ########################################################################################################
@@ -20,11 +20,11 @@ async def write_syslog(event, log_type, payload):
 ########################################################################################################
 
 
-async def __insert_record_syslog(event, log_type, payload):
+def __insert_record_syslog(event, log_type, payload):
     try:
         sql = "INSERT INTO system_log (event, type, payload) VALUES (%s, %s, %s)"
         val = (event, log_type, payload)
-        return await exec_insert(sql, val)
+        return exec_insert(sql, val)
 
     except Exception as err:
         log_generic(

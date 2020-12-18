@@ -28,7 +28,7 @@ relocate_template = get_config_val('notifications.relocate_template')
 reschedule_template = get_config_val('notifications.reschedule_template')
 
 
-async def notify_patients(req):
+def notify_patients(req):
     location_id = req.location_id
     req_type = req.type
     start_dt = req.start_dt
@@ -38,14 +38,14 @@ async def notify_patients(req):
     if req_type == NotificationEnum.relocate:
         next_location_id = req.next_location_id
 
-    patients = await get_notify_patients(location_id, next_location_id, start_dt, end_dt)
+    patients = get_notify_patients(location_id, next_location_id, start_dt, end_dt)
     reschedule_list = []
     email_list = []
     sms_list = []
     try:
         for p in patients:
-            email = await get_email_body(p, req_type)
-            sms = await get_sms_body(p, req_type)
+            email = get_email_body(p, req_type)
+            sms = get_sms_body(p, req_type)
 
             if email is not None:
                 email_list.append((
@@ -75,7 +75,7 @@ async def notify_patients(req):
         )
 
 
-async def get_email_body(data, req_type):
+def get_email_body(data, req_type):
     if req_type == NotificationEnum.relocate:
         return get_relocate_email_body(data)
     if req_type == NotificationEnum.reschedule:
@@ -83,7 +83,7 @@ async def get_email_body(data, req_type):
     return None
 
 
-async def get_sms_body(data, req_type):
+def get_sms_body(data, req_type):
     if req_type == NotificationEnum.relocate:
         return get_relocate_sms_body(data)
     if req_type == NotificationEnum.reschedule:
@@ -91,7 +91,7 @@ async def get_sms_body(data, req_type):
     return None
 
 
-async def get_reschedule_sms_body(data):
+def get_reschedule_sms_body(data):
     try:
 
         scheduled_dt = str(data['scheduled_dt'])
@@ -132,7 +132,7 @@ async def get_reschedule_sms_body(data):
         return None
 
 
-async def get_relocate_sms_body(data):
+def get_relocate_sms_body(data):
     try:
 
         scheduled_dt = str(data['scheduled_dt'])
@@ -174,7 +174,7 @@ async def get_relocate_sms_body(data):
         return None
 
 
-async def get_reschedule_email_body(data):
+def get_reschedule_email_body(data):
     try:
 
         scheduled_dt = str(data['scheduled_dt'])
@@ -194,7 +194,7 @@ async def get_reschedule_email_body(data):
                                                           data['new_addr2'] if data['new_addr2'] else '',
                                                           data['new_addr3'] if data['new_addr3'] else '')
         }
-        html_content = await render_template(reschedule_template, **template_vars)
+        html_content = render_template(reschedule_template, **template_vars)
         email_message = {
             'from_email': from_email,
             'from_name': from_name,
@@ -213,7 +213,7 @@ async def get_reschedule_email_body(data):
         return None
 
 
-async def get_relocate_email_body(data):
+def get_relocate_email_body(data):
     try:
 
         scheduled_dt = str(data['scheduled_dt'])
@@ -233,7 +233,7 @@ async def get_relocate_email_body(data):
                                                           data['new_addr2'] if data['new_addr2'] else '',
                                                           data['new_addr3'] if data['new_addr3'] else '')
         }
-        html_content = await render_template(relocate_template, **template_vars)
+        html_content = render_template(relocate_template, **template_vars)
         email_message = {
             'from_email': from_email,
             'from_name': from_name,
@@ -252,16 +252,16 @@ async def get_relocate_email_body(data):
         return None
 
 
-async def update_appointments(data):
+def update_appointments(data):
     sql = """UPDATE appointments 
              SET 
                 status = %s
              WHERE
                 id = %s;"""
-    return await exec_batch_execute(sql, data)
+    return exec_batch_execute(sql, data)
 
 
-async def get_notify_patients(location_id, next_location_id, start_dt, end_dt):
+def get_notify_patients(location_id, next_location_id, start_dt, end_dt):
     sql = """SELECT 
     p.phone_number,
     p.email,
@@ -279,4 +279,4 @@ FROM
     locations l
             WHERE a.scheduled_dt >= '{}' AND a.scheduled_dt <= '{}' AND a.location_id = {} 
             AND l.id = {};""".format(start_dt, end_dt, location_id, next_location_id)
-    return await replica_read_rows(sql)
+    return replica_read_rows(sql)

@@ -34,10 +34,10 @@ from ggt.lib.constants import (
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-async def get_all_printer_hubs():
+def get_all_printer_hubs():
     try:
         sql = "SELECT * FROM workstations"
-        return await replica_read_rows(sql)
+        return replica_read_rows(sql)
 
     except Exception as err:
         log_generic(
@@ -48,24 +48,24 @@ async def get_all_printer_hubs():
         return None
 
 
-async def create_print_job(workstation_id, appointment_id):
-    if await __enqueue(workstation_id, appointment_id):
+def create_print_job(workstation_id, appointment_id):
+    if __enqueue(workstation_id, appointment_id):
         return True
 
     return False
 
 
-async def get_next_print_job(workstation_id, workstation_token):
-    next_print_job = await __peek(workstation_id, workstation_token)
+def get_next_print_job(workstation_id, workstation_token):
+    next_print_job = __peek(workstation_id, workstation_token)
     if next_print_job:
-        await __dequeue(next_print_job['id'])
+        __dequeue(next_print_job['id'])
 
 
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
 
-async def __enqueue(workstation_id, appointment_id):
+def __enqueue(workstation_id, appointment_id):
     try:
         sql = """
                 INSERT INTO label_print_queue 
@@ -74,7 +74,7 @@ async def __enqueue(workstation_id, appointment_id):
                     (%s, %s)
             """
         vals = (workstation_id, appointment_id)
-        return await exec_insert(sql, vals)
+        return exec_insert(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -85,7 +85,7 @@ async def __enqueue(workstation_id, appointment_id):
         return None
 
 
-async def __dequeue(print_job_id):
+def __dequeue(print_job_id):
     try:
         sql = """
                 UPDATE 
@@ -97,7 +97,7 @@ async def __dequeue(print_job_id):
                     id = %s
             """
         vals = (print_job_id,)
-        return await exec_update(sql, vals)
+        return exec_update(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -108,7 +108,7 @@ async def __dequeue(print_job_id):
         return None
 
 
-async def __peek(workstation_id, workstation_token):
+def __peek(workstation_id, workstation_token):
     try:
         sql = """
                 SELECT 
@@ -134,7 +134,7 @@ async def __peek(workstation_id, workstation_token):
                 LIMIT 1
             """
         vals = (workstation_id, workstation_token)
-        return await read_row(sql, vals)
+        return read_row(sql, vals)
 
     except Exception as err:
         log_generic(

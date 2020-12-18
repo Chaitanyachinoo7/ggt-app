@@ -34,7 +34,7 @@ from ggt.lib.constants import (
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-async def get_sms_stats_by_date(date):
+def get_sms_stats_by_date(date):
     where_statement = "1=1"
     if date != 'all':
         where_statement = "{} and `date(create_dt)` = '{}'".format(where_statement, date)
@@ -46,7 +46,7 @@ async def get_sms_stats_by_date(date):
                         sms_notification_counts_by_day
                  WHERE
                         {}""".format(where_statement)
-        return await read_rows(sql)
+        return read_rows(sql)
 
     except Exception as err:
         log_generic(
@@ -57,7 +57,7 @@ async def get_sms_stats_by_date(date):
         return None
 
 
-async def get_email_stats_by_date(date):
+def get_email_stats_by_date(date):
     where_statement = "1=1"
     if date != 'all':
         where_statement = "{} and `date(create_dt)` = '{}'".format(where_statement, date)
@@ -69,7 +69,7 @@ async def get_email_stats_by_date(date):
                         email_notification_counts_by_day
                  WHERE
                         {}""".format(where_statement)
-        return await read_rows(sql)
+        return read_rows(sql)
 
     except Exception as err:
         log_generic(
@@ -80,10 +80,10 @@ async def get_email_stats_by_date(date):
         return None
 
 
-async def get_stats_today():
+def get_stats_today():
     try:
         sql = """SELECT * FROM todays_location_stats_with_totals_test"""
-        return await read_rows(sql)
+        return read_rows(sql)
 
     except Exception as err:
         log_generic(
@@ -94,10 +94,10 @@ async def get_stats_today():
         return None
 
 
-async def aging_samples_with_lab_by_ship_date():
+def aging_samples_with_lab_by_ship_date():
     try:
         sql = """SELECT * FROM aging_samples_with_lab_stats_by_ship_date"""
-        return await read_rows(sql)
+        return read_rows(sql)
 
     except Exception as err:
         log_generic(
@@ -108,7 +108,7 @@ async def aging_samples_with_lab_by_ship_date():
         return None
 
 
-async def get_stats_by_date(date):
+def get_stats_by_date(date):
     try:
         sql = """  SELECT 
                     location_stats_for_dates.location_id AS location_id,
@@ -193,7 +193,7 @@ async def get_stats_by_date(date):
                         ORDER BY l.name) AS location_stats_for_dates;
                         """
         vals = (date, date, date, date, date, date)
-        return await replica_read_rows(sql, vals)
+        return replica_read_rows(sql, vals)
 
     except Exception as err:
         log_generic(

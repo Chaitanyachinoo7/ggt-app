@@ -29,7 +29,7 @@ from ggt.models.data_models.data_types import (
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-async def get_location_by_id(location_id):
+def get_location_by_id(location_id):
     try:
         sql = """
             SELECT 
@@ -70,7 +70,7 @@ async def get_location_by_id(location_id):
             LIMIT 1
         """
         vals = (location_id,)
-        row = await replica_read_row(sql, vals)
+        row = replica_read_row(sql, vals)
         return __map_row_to_location(row)
 
     except Exception as err:
@@ -83,7 +83,7 @@ async def get_location_by_id(location_id):
         return None
 
 
-async def get_services_available_for_location(location_id):
+def get_services_available_for_location(location_id):
     try:
         sql = """
             SELECT 
@@ -102,7 +102,7 @@ async def get_services_available_for_location(location_id):
                 location_id = %s
         """
         vals = (location_id,)
-        rows = await replica_read_rows(sql, vals)
+        rows = replica_read_rows(sql, vals)
         return __map_rows_to_services_list(rows)
 
     except Exception as err:
@@ -115,10 +115,10 @@ async def get_services_available_for_location(location_id):
         return None
 
 
-async def get_states():
+def get_states():
     try:
         sql = "SELECT * FROM states WHERE active = 1;"
-        return await replica_read_rows(sql)
+        return replica_read_rows(sql)
 
     except Exception as err:
         log_generic(
@@ -129,7 +129,7 @@ async def get_states():
         return None
 
 
-async def get_all_locations_without_thumbnail():
+def get_all_locations_without_thumbnail():
     try:
         sql = """SELECT 
                     l.id,
@@ -181,7 +181,7 @@ async def get_all_locations_without_thumbnail():
                     groups g ON gm.group_id = g.id
                     group by gm.location_id) gp on l.id = gp.location_id
             """
-        return await replica_read_rows(sql)
+        return replica_read_rows(sql)
 
     except Exception as err:
         log_generic(
@@ -192,10 +192,10 @@ async def get_all_locations_without_thumbnail():
         return None
 
 
-async def get_all_locations():
+def get_all_locations():
     try:
         sql = "SELECT * FROM locations"
-        return await replica_read_rows(sql)
+        return replica_read_rows(sql)
 
     except Exception as err:
         log_generic(
@@ -206,7 +206,7 @@ async def get_all_locations():
         return None
 
 
-async def search_locations(account, group_code, site_code, location_name, id=None):
+def search_locations(account, group_code, site_code, location_name, id=None):
     try:
         where_conditions = ''
         if account != '':
@@ -285,7 +285,7 @@ async def search_locations(account, group_code, site_code, location_name, id=Non
                         ORDER BY l.id DESC
                         LIMIT {}
         """.format(where_conditions, limit)
-        res = await replica_read_rows(sql)
+        res = replica_read_rows(sql)
         return __process_location_search(res)
 
     except Exception as err:
@@ -297,7 +297,7 @@ async def search_locations(account, group_code, site_code, location_name, id=Non
         return None
 
 
-async def create_location(location):
+def create_location(location):
     try:
         sql = """
                INSERT INTO locations
@@ -362,7 +362,7 @@ async def create_location(location):
             location.open_hours,
             location.is_external
         )
-        location_id = await exec_insert(sql, vals)
+        location_id = exec_insert(sql, vals)
 
         site_code = 'GGT{}{}'.format(location.st, location_id)
         
@@ -379,7 +379,7 @@ async def create_location(location):
                 WHERE id = %s"""
 
         vals_2 = (site_code, geo['lat'], geo['lng'], location_id)
-        update = await exec_update(sql_2, vals_2)
+        update = exec_update(sql_2, vals_2)
         if update:
             return {'location_id': location_id, 'site_code': site_code}
         else:
@@ -394,7 +394,7 @@ async def create_location(location):
         return None
 
 
-async def assign_group(req):
+def assign_group(req):
     try:
         sql = """
                INSERT INTO group_codes_to_locations_mapping
@@ -408,7 +408,7 @@ async def assign_group(req):
             req.group_id,
             req.location_id
         )
-        map_id = await exec_insert(sql, vals)
+        map_id = exec_insert(sql, vals)
         return map_id
 
     except Exception as err:
@@ -442,7 +442,7 @@ def assign_all_groups(vals):
         return None
 
 
-async def assign_service(req):
+def assign_service(req):
     try:
         sql = """
                INSERT INTO services_to_locations_mapping
@@ -456,7 +456,7 @@ async def assign_service(req):
             req.location_id,
             req.service_id
         )
-        map_id = await exec_insert(sql, vals)
+        map_id = exec_insert(sql, vals)
         return map_id
 
     except Exception as err:
@@ -490,7 +490,7 @@ def assign_all_services(vals):
         return None
 
 
-async def remove_group(req):
+def remove_group(req):
     try:
         sql = """
                DELETE FROM group_codes_to_locations_mapping WHERE group_id = %s AND location_id = %s
@@ -499,7 +499,7 @@ async def remove_group(req):
             req.group_id,
             req.location_id
         )
-        deleted = await exec_delete(sql, vals)
+        deleted = exec_delete(sql, vals)
         return deleted
 
     except Exception as err:
@@ -511,7 +511,7 @@ async def remove_group(req):
         return None
 
 
-async def remove_all_group(location_id):
+def remove_all_group(location_id):
     try:
         sql = """
                DELETE FROM group_codes_to_locations_mapping WHERE location_id = %s
@@ -519,7 +519,7 @@ async def remove_all_group(location_id):
         vals = (
             location_id,
         )
-        deleted = await exec_delete(sql, vals)
+        deleted = exec_delete(sql, vals)
         return deleted
 
     except Exception as err:
@@ -531,7 +531,7 @@ async def remove_all_group(location_id):
         return None
 
 
-async def remove_service(req):
+def remove_service(req):
     try:
         sql = """
                DELETE FROM services_to_locations_mapping WHERE service_id = %s AND location_id = %s
@@ -540,7 +540,7 @@ async def remove_service(req):
             req.service_id,
             req.location_id
         )
-        deleted = await exec_delete(sql, vals)
+        deleted = exec_delete(sql, vals)
         return deleted
 
     except Exception as err:
@@ -552,7 +552,7 @@ async def remove_service(req):
         return None
 
 
-async def remove_all_service(location_id):
+def remove_all_service(location_id):
     try:
         sql = """
                DELETE FROM services_to_locations_mapping WHERE location_id = %s
@@ -560,7 +560,7 @@ async def remove_all_service(location_id):
         vals = (
             location_id,
         )
-        deleted = await exec_delete(sql, vals)
+        deleted = exec_delete(sql, vals)
         return deleted
 
     except Exception as err:
@@ -572,7 +572,7 @@ async def remove_all_service(location_id):
         return None
 
 
-async def update_location(location):
+def update_location(location):
     try:
         sql = """
                UPDATE locations SET
@@ -611,7 +611,7 @@ async def update_location(location):
             location.is_external,
             location.id
         )
-        updated = await exec_update(sql, vals)
+        updated = exec_update(sql, vals)
         return updated
 
     except Exception as err:

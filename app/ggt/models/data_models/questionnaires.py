@@ -29,7 +29,7 @@ from ggt.lib.constants import (
 ########################################################################################################
 
 # TODO: isPatient?
-async def create_patient_questionnaire(booking_req):
+def create_patient_questionnaire(booking_req):
     try:
         sql = """
         INSERT INTO 
@@ -122,7 +122,7 @@ async def create_patient_questionnaire(booking_req):
             booking_req.flu_screen_egg_allergy
         )
 
-        questionnaire_id = await exec_insert(sql, vals)
+        questionnaire_id = exec_insert(sql, vals)
         return questionnaire_id 
 
     except Exception as err:

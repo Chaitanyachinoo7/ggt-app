@@ -42,9 +42,9 @@ def test_create_location():
 
 
 @pytest.mark.asyncio
-async def test_group_update():
+def test_group_update():
     group_code = group['group_code']
-    id = await get_group_id_by_code(group_code)
+    id = get_group_id_by_code(group_code)
     _update = group
     _update['id'] = id
     _update['account'] = "TEST ACCOUNT 2"
@@ -58,19 +58,19 @@ async def test_group_update():
     print(r)
     assert response.status_code == 200
     assert r['status'] == 'success'
-    await delete_group_by_code(group_code)
+    delete_group_by_code(group_code)
 
 
-async def get_group_id_by_code(code):
+def get_group_id_by_code(code):
     sql = """SELECT * FROM groups WHERE group_code = %s"""
     vals = (code,)
-    _group = await read_rows(sql, vals)
+    _group = read_rows(sql, vals)
     return _group[0]['id']
 
 
-async def delete_group_by_code(code):
+def delete_group_by_code(code):
     sql = """DELETE FROM groups WHERE group_code = %s"""
     vals = (code,)
-    return await exec_delete(sql, vals)
+    return exec_delete(sql, vals)
 
 

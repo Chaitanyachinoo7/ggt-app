@@ -30,7 +30,7 @@ from ggt.models.data_models.data_types import (
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-async def create_schedule_entry(location_id, start_dt, end_dt, duration, status):
+def create_schedule_entry(location_id, start_dt, end_dt, duration, status):
     try:
         sql = """
             INSERT INTO schedules 
@@ -39,7 +39,7 @@ async def create_schedule_entry(location_id, start_dt, end_dt, duration, status)
                 (%s, %s, %s, %s, %s)
         """
         vals = (location_id, start_dt, end_dt, duration, status)
-        return await exec_insert(sql, vals)
+        return exec_insert(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -55,7 +55,7 @@ async def create_schedule_entry(location_id, start_dt, end_dt, duration, status)
         return None
 
 
-async def get_schedule_generation_rules_by_location_id(location_id):
+def get_schedule_generation_rules_by_location_id(location_id):
     try:
         sql = """
             SELECT 
@@ -88,7 +88,7 @@ async def get_schedule_generation_rules_by_location_id(location_id):
 
         """
         vals = (location_id,)
-        return await read_rows(sql, vals)
+        return read_rows(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -100,7 +100,7 @@ async def get_schedule_generation_rules_by_location_id(location_id):
         return None
 
 
-async def add_schedule_generation_rule(data):
+def add_schedule_generation_rule(data):
     try:
         sql = """
         INSERT INTO schedule_generation_rules
@@ -141,7 +141,7 @@ async def add_schedule_generation_rule(data):
             data.active_local_start_dt,
             data.active_local_end_dt)
 
-        if await exec_insert(sql, vals):
+        if exec_insert(sql, vals):
             return True
         else:
             return False
@@ -155,7 +155,7 @@ async def add_schedule_generation_rule(data):
         return None
 
 
-async def update_schedule_generation_rule(data):
+def update_schedule_generation_rule(data):
     try:
         sql = """
         UPDATE schedule_generation_rules
@@ -198,7 +198,7 @@ async def update_schedule_generation_rule(data):
             data.id
         )
 
-        return await exec_update(sql, vals)
+        return exec_update(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -209,7 +209,7 @@ async def update_schedule_generation_rule(data):
         return None
 
 
-async def delete_schedule_entries_by_location_id(location_id):
+def delete_schedule_entries_by_location_id(location_id):
     try:
         sql = """
         DELETE FROM 
@@ -220,7 +220,7 @@ async def delete_schedule_entries_by_location_id(location_id):
             AND id <> 0
         """
         vals = (location_id,)
-        return await exec_delete(sql, vals)
+        return exec_delete(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -232,7 +232,7 @@ async def delete_schedule_entries_by_location_id(location_id):
         return None
 
 
-async def trim_schedule_generation_rules_start_dt(location_id, new_dt):
+def trim_schedule_generation_rules_start_dt(location_id, new_dt):
     try:
         sql = """
         UPDATE schedule_generation_rules
@@ -243,7 +243,7 @@ async def trim_schedule_generation_rules_start_dt(location_id, new_dt):
             AND id <> 0 AND DATEDIFF(%s , active_local_start_dt) > 2
         """
         vals = (new_dt, location_id, new_dt)
-        return await exec_update(sql, vals)
+        return exec_update(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -255,7 +255,7 @@ async def trim_schedule_generation_rules_start_dt(location_id, new_dt):
         return None
 
 
-async def delete_schedule_entries_by_location_id_for_date(location_id, date_str):
+def delete_schedule_entries_by_location_id_for_date(location_id, date_str):
     try:
         sql = """
         DELETE FROM schedules 
@@ -265,7 +265,7 @@ async def delete_schedule_entries_by_location_id_for_date(location_id, date_str)
             AND id <> 0
         """
         vals = (location_id, date_str)
-        return await exec_delete(sql, vals)
+        return exec_delete(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -278,7 +278,7 @@ async def delete_schedule_entries_by_location_id_for_date(location_id, date_str)
         return None
 
 
-async def delete_schedule_generation_rule(id):
+def delete_schedule_generation_rule(id):
     try:
         sql = """
         DELETE FROM 
@@ -287,7 +287,7 @@ async def delete_schedule_generation_rule(id):
             id = %s
         """
         vals = (id,)
-        return await exec_delete(sql, vals)
+        return exec_delete(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -298,7 +298,7 @@ async def delete_schedule_generation_rule(id):
         return None
 
 
-async def get_available_dates(group_code):
+def get_available_dates(group_code):
     try:
         sql = """
         SELECT DISTINCT
@@ -319,7 +319,7 @@ async def get_available_dates(group_code):
         ORDER BY DATE(start_dt)
         """
         vals = (group_code,)
-        return await replica_read_rows(sql, vals)
+        return replica_read_rows(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -330,27 +330,27 @@ async def get_available_dates(group_code):
         return None
 
 
-async def get_all_available_dtl(group_code):
-    return await __get_all_available_dtl(group_code)
+def get_all_available_dtl(group_code):
+    return __get_all_available_dtl(group_code)
 
 
-async def get_available_locations(date_str, group_code):
+def get_available_locations(date_str, group_code):
     today = date.today().strftime("%Y-%m-%d")
     if date_str == today:
-        return await __get_available_locations_for_current_day(group_code)
+        return __get_available_locations_for_current_day(group_code)
     else:
-        return await __get_available_locations_beyond_current_day(date_str, group_code)
+        return __get_available_locations_beyond_current_day(date_str, group_code)
 
 
-async def get_available_locations_near_lat_lng(lat, lng, radius, date_str, group_code):
+def get_available_locations_near_lat_lng(lat, lng, radius, date_str, group_code):
     today = date.today().strftime("%Y-%m-%d")
     if date_str == today:
-        return await __get_available_locations_for_current_day_near_lat_lng(lat, lng, radius, group_code)
+        return __get_available_locations_for_current_day_near_lat_lng(lat, lng, radius, group_code)
     else:
-        return await __get_available_locations_beyond_current_day_near_lat_lng(lat, lng, radius, date_str, group_code)
+        return __get_available_locations_beyond_current_day_near_lat_lng(lat, lng, radius, date_str, group_code)
 
 
-async def get_processing_averages_by_location():
+def get_processing_averages_by_location():
     try:
         sql = """
             SELECT 
@@ -367,7 +367,7 @@ async def get_processing_averages_by_location():
             GROUP BY dtrwl.location_id
         """
         # ORDER BY l.city
-        return await replica_read_rows(sql)
+        return replica_read_rows(sql)
 
     except Exception as err:
         log_generic(
@@ -378,7 +378,7 @@ async def get_processing_averages_by_location():
         return None
 
 
-async def get_available_times(location_id, date):
+def get_available_times(location_id, date):
     try:
         sql = """
             SELECT DISTINCT 
@@ -406,7 +406,7 @@ async def get_available_times(location_id, date):
             info='looking_up_available_times'
         )
         '''
-        return await replica_read_rows(sql, vals)
+        return replica_read_rows(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -417,7 +417,7 @@ async def get_available_times(location_id, date):
         return None
 
 
-async def get_slot_information(slot_id):
+def get_slot_information(slot_id):
     try:
         sql = """
             SELECT 
@@ -435,7 +435,7 @@ async def get_slot_information(slot_id):
         """
         vals = (slot_id,)
 
-        row = await replica_read_row(sql, vals)
+        row = replica_read_row(sql, vals)
         slot = GgtScheduleSlot()
         slot.id = row['id']
         slot.location_id = row['location_id']
@@ -466,7 +466,7 @@ async def get_slot_information(slot_id):
         return None
 
 
-async def update_slot_information(slot_id, appointment_id):
+def update_slot_information(slot_id, appointment_id):
     try:
         sql = """
             UPDATE 
@@ -478,7 +478,7 @@ async def update_slot_information(slot_id, appointment_id):
                 id = %s
         """
         vals = (appointment_id, slot_id)
-        return await exec_update(sql, vals)
+        return exec_update(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -491,7 +491,7 @@ async def update_slot_information(slot_id, appointment_id):
         return None
 
 
-async def add_schedule_entries(rows):
+def add_schedule_entries(rows):
     try:
         sql = """
             INSERT INTO 
@@ -506,13 +506,13 @@ async def add_schedule_entries(rows):
                 )
             VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
-        return await exec_batch_execute(sql, rows)
+        return exec_batch_execute(sql, rows)
 
     except Exception as err:
         print(c.ERROR, err)
 
 
-async def get_slots_matching_dt_list(dt_list, location_id):
+def get_slots_matching_dt_list(dt_list, location_id):
     slot_list = []
     try:
         format_strings = ','.join(['%s'] * len(dt_list))
@@ -535,7 +535,7 @@ async def get_slots_matching_dt_list(dt_list, location_id):
 
         vals = tuple(dt_list)
 
-        rows = await replica_read_rows(sql, vals)
+        rows = replica_read_rows(sql, vals)
         if rows:
             for row in rows:
                 slot = GgtScheduleSlot()
@@ -561,7 +561,7 @@ async def get_slots_matching_dt_list(dt_list, location_id):
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
-async def __get_available_locations_beyond_current_day(date_str, group_code):
+def __get_available_locations_beyond_current_day(date_str, group_code):
     try:
         sql1 = """
             SELECT 
@@ -643,10 +643,7 @@ async def __get_available_locations_beyond_current_day(date_str, group_code):
                 c.copay_amount,
                 c.insurance_amount,
                 nd.first_date_available AS first_date_time_available,
-                (CASE
-                    WHEN (pt.average_processing_time IS NULL) THEN 48
-                    ELSE pt.average_processing_time
-                END) AS average_processing_time,
+                '48' AS average_processing_time,
                 COUNT(DISTINCT (s.start_dt)) AS slot_count
             FROM
                 schedules s
@@ -654,8 +651,6 @@ async def __get_available_locations_beyond_current_day(date_str, group_code):
                 locations l ON s.location_id = l.id
                     LEFT JOIN
                 schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
-                    LEFT JOIN
-                average_processing_times_for_last_5_days pt ON (pt.location_id = s.location_id)
                     LEFT JOIN
                 services_to_locations_mapping m ON (m.location_id = s.location_id)
                     LEFT JOIN
@@ -672,7 +667,7 @@ async def __get_available_locations_beyond_current_day(date_str, group_code):
                             groups g ON (g.id = m.group_id)
                         WHERE
                             g.group_code = %s)
-            GROUP BY c.id, nd.location_id , pt.average_processing_time
+            GROUP BY c.id, nd.location_id
             ORDER BY l.st, l.city
         """
         vals = (date_str, group_code)
@@ -689,7 +684,7 @@ async def __get_available_locations_beyond_current_day(date_str, group_code):
 
         try:
             return __map_rows_to_dtl_list(
-                await replica_read_rows(sql1, vals)
+                replica_read_rows(sql1, vals)
             )
         except Exception as err:
             print('Query1 Failed. Using Query2')
@@ -701,7 +696,7 @@ async def __get_available_locations_beyond_current_day(date_str, group_code):
                 error=err
             )
             return __map_rows_to_dtl_list(
-                await replica_read_rows(sql2, vals)
+                replica_read_rows(sql2, vals)
             )
 
     except Exception as err:
@@ -715,7 +710,7 @@ async def __get_available_locations_beyond_current_day(date_str, group_code):
         return None
 
 
-async def __get_available_locations_for_current_day(group_code):
+def __get_available_locations_for_current_day(group_code):
     try:
         sql1 = """
         SELECT 
@@ -806,8 +801,6 @@ async def __get_available_locations_for_current_day(group_code):
                 LEFT JOIN
             schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
                 LEFT JOIN
-            average_processing_times_for_last_5_days pt ON (pt.location_id = s.location_id)
-                LEFT JOIN
             services_to_locations_mapping m ON (m.location_id = s.location_id)
                 LEFT JOIN
             services_catalog c ON (c.id = m.service_id)
@@ -823,7 +816,7 @@ async def __get_available_locations_for_current_day(group_code):
                         groups g ON (g.id = m.group_id)
                     WHERE
                         g.group_code = %s)
-        GROUP BY c.id, nd.location_id , pt.average_processing_time
+        GROUP BY c.id, nd.location_id
         ORDER BY l.st, l.city
         """
         vals = (group_code,)
@@ -839,7 +832,7 @@ async def __get_available_locations_for_current_day(group_code):
 
         try:
             return __map_rows_to_dtl_list(
-                await replica_read_rows(sql1, vals)
+                replica_read_rows(sql1, vals)
             )
         except Exception as err:
             print('Query1 Failed. Using Query2')
@@ -850,7 +843,7 @@ async def __get_available_locations_for_current_day(group_code):
                 error=err
             )
             return __map_rows_to_dtl_list(
-                await replica_read_rows(sql2, vals)
+                replica_read_rows(sql2, vals)
             )
 
     except Exception as err:
@@ -863,7 +856,7 @@ async def __get_available_locations_for_current_day(group_code):
         return None
 
 
-async def __get_available_locations_beyond_current_day_near_lat_lng(lat, lng, radius, date_str, group_code):
+def __get_available_locations_beyond_current_day_near_lat_lng(lat, lng, radius, date_str, group_code):
     try:
         sql = """
             SELECT 
@@ -934,7 +927,7 @@ async def __get_available_locations_beyond_current_day_near_lat_lng(lat, lng, ra
         '''
 
         return __map_rows_to_dtl_list(
-            await read_rows(sql, vals)
+            read_rows(sql, vals)
         )
 
     except Exception as err:
@@ -948,7 +941,7 @@ async def __get_available_locations_beyond_current_day_near_lat_lng(lat, lng, ra
         return None
 
 
-async def __get_available_locations_for_current_day_near_lat_lng(lat, lng, radius, group_code):
+def __get_available_locations_for_current_day_near_lat_lng(lat, lng, radius, group_code):
     try:
         sql = """
             SELECT 
@@ -1024,7 +1017,7 @@ async def __get_available_locations_for_current_day_near_lat_lng(lat, lng, radiu
         )
         '''
         return __map_rows_to_dtl_list(
-            await replica_read_rows(sql, vals)
+            replica_read_rows(sql, vals)
         )
 
     except Exception as err:
@@ -1038,7 +1031,7 @@ async def __get_available_locations_for_current_day_near_lat_lng(lat, lng, radiu
 
 
 # TODO: [GGT-195]-HIGH add available catalog
-async def __get_all_available_dtl(group_code):
+def __get_all_available_dtl(group_code):
     try:
         sql1 = """
         SELECT 
@@ -1160,7 +1153,7 @@ async def __get_all_available_dtl(group_code):
 
         try:
             return __map_rows_to_dtl_list(
-                await replica_read_rows(sql2, vals)
+                replica_read_rows(sql2, vals)
             )
         except Exception as err:
             print('Query1 Failed. Using Query2')
@@ -1171,7 +1164,7 @@ async def __get_all_available_dtl(group_code):
                 error=err
             )
             return __map_rows_to_dtl_list(
-                await replica_read_rows(sql2, vals)
+                replica_read_rows(sql2, vals)
             )
 
     except Exception as err:
