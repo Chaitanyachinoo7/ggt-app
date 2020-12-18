@@ -836,11 +836,7 @@ def __get_available_locations_for_current_day(group_code):
 
         try:
             return __map_rows_to_dtl_list(
-<<<<<<< HEAD
                 replica_read_rows(sql1, vals)
-=======
-                await replica_read_rows(sql2, vals)
->>>>>>> dev2
             )
         except Exception as err:
             print('Query1 Failed. Using Query2')
