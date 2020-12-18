@@ -36,24 +36,24 @@ def _task_process_sms_queue():
 '''
 
 
-async def task_process_sms_queue():
+def task_process_sms_queue():
     print('\n\n********************task_process_SMS_queue****************************\n\n')
 
     batch_size = 100
     sql = """
         SELECT count(*) as total FROM sms_notification_queue where status IN ('pending','retry')
     """
-    row = await replica_read_row(sql,)
+    row = replica_read_row(sql,)
     total_count = row['total']
     limit = math.ceil(total_count/batch_size)
 
     for _ in range(limit):
-        await __batch_process_sms_queue(batch_size)
+        __batch_process_sms_queue(batch_size)
 
     print('\n\n************************************************\n\n')
 
 
-async def __batch_process_sms_queue(batch_size=100):
+def __batch_process_sms_queue(batch_size=100):
     sql = """
     SELECT * 
     FROM sms_notification_queue 
@@ -62,7 +62,7 @@ async def __batch_process_sms_queue(batch_size=100):
     ORDER BY ID DESC
     LIMIT {}
     """.format(batch_size)
-    rows = await replica_read_rows(sql)
+    rows = replica_read_rows(sql)
 
     for row in rows:
         _id = row['id']
@@ -71,18 +71,18 @@ async def __batch_process_sms_queue(batch_size=100):
         message = row['message']
 
         if status == 'retry':
-            if await send_sms(to_number, message):
-                await update_sms_status_to_processed(_id)
+            if send_sms(to_number, message):
+                update_sms_status_to_processed(_id)
             else:
-                await update_sms_status_to_error(_id)
+                update_sms_status_to_error(_id)
         else:
-            if await send_sms(to_number, message):
-                await update_sms_status_to_processed(_id)
+            if send_sms(to_number, message):
+                update_sms_status_to_processed(_id)
             else:
-                await update_sms_status_to_retry(_id)
+                update_sms_status_to_retry(_id)
 
 
-async def update_sms_status_to_processed(id):
+def update_sms_status_to_processed(id):
     sql = """
         UPDATE sms_notification_queue
         SET
@@ -91,10 +91,10 @@ async def update_sms_status_to_processed(id):
         WHERE `id` = %s
     """
     vals = (id,)
-    await exec_update(sql, vals)
+    exec_update(sql, vals)
 
 
-async def update_sms_status_to_retry(id):
+def update_sms_status_to_retry(id):
     sql = """
         UPDATE sms_notification_queue
         SET
@@ -103,10 +103,10 @@ async def update_sms_status_to_retry(id):
         WHERE `id` = %s
     """
     vals = (id,)
-    await exec_update(sql, vals)
+    exec_update(sql, vals)
 
 
-async def update_sms_status_to_error(id):
+def update_sms_status_to_error(id):
     sql = """
         UPDATE sms_notification_queue
         SET
@@ -115,4 +115,4 @@ async def update_sms_status_to_error(id):
         WHERE `id` = %s
     """
     vals = (id,)
-    await exec_update(sql, vals)
+    exec_update(sql, vals)

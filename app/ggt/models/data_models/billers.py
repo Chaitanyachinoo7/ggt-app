@@ -23,7 +23,7 @@ from ggt.models.data_models.data_types import BillingStatusEnum, TestResultsEnum
 from ggt.models.data_models.providers import process_consultations
 
 
-async def get_billing_list(offset, status=None, from_dt=None, to_dt=None,
+def get_billing_list(offset, status=None, from_dt=None, to_dt=None,
                            limit=20, sort='DESC', pre_consulted='any', provider_reviewed='any', test_status='any',
                            appointment_status='any'):
     try:
@@ -254,7 +254,7 @@ FROM
         ORDER BY register_dt {}
         LIMIT {}  offset {};
         """.format(where_conditions, sort, limit, offset)
-        rows = await replica_read_rows(sql)
+        rows = replica_read_rows(sql)
         return __process_billing_response(rows)
 
     except Exception as err:
@@ -266,7 +266,7 @@ FROM
         return None
 
 
-async def update_billing_status(appointment_id):
+def update_billing_status(appointment_id):
     try:
         sql = """UPDATE appointments
                   SET
@@ -281,7 +281,7 @@ async def update_billing_status(appointment_id):
             appointment_id,
             pending
         )
-        updated = await exec_update(sql, vals)
+        updated = exec_update(sql, vals)
         return updated
 
     except Exception as err:
@@ -293,7 +293,7 @@ async def update_billing_status(appointment_id):
         return None
 
 
-async def create_insurance_record(insurance_record):
+def create_insurance_record(insurance_record):
     try:
         sql = """INSERT INTO `insurance_info`
             (
@@ -309,7 +309,7 @@ async def create_insurance_record(insurance_record):
                 insurance_record.group_number,
                 insurance_record.member_number,
                 insurance_record.validated)
-        res = await exec_insert(sql, vals)
+        res = exec_insert(sql, vals)
         return res
 
     except Exception as err:
@@ -319,7 +319,7 @@ async def create_insurance_record(insurance_record):
             error=err)
 
 
-async def update_insurance_record(insurance_record):
+def update_insurance_record(insurance_record):
     try:
         sql = """UPDATE `insurance_info` 
                     SET
@@ -334,7 +334,7 @@ async def update_insurance_record(insurance_record):
             insurance_record.member_number,
             insurance_record.validated,
             insurance_record.id)
-        res = await exec_update(sql, vals)
+        res = exec_update(sql, vals)
         return res
 
     except Exception as err:
@@ -344,14 +344,14 @@ async def update_insurance_record(insurance_record):
             error=err)
 
 
-async def validate_insurance_record(insurance_record):
+def validate_insurance_record(insurance_record):
     try:
         sql = """UPDATE `insurance_info` 
                 SET
                     `validated` = 1
                  WHERE `id` = %s"""
         vals = (insurance_record.id,)
-        res = await exec_update(sql, vals)
+        res = exec_update(sql, vals)
         return res
 
     except Exception as err:
@@ -361,12 +361,12 @@ async def validate_insurance_record(insurance_record):
             error=err)
 
 
-async def delete_insurance_record(insurance_record):
+def delete_insurance_record(insurance_record):
     try:
         sql = """DELETE FROM `insurance_info` 
                  WHERE `id` = %s"""
         vals = (insurance_record.id,)
-        res = await exec_update(sql, vals)
+        res = exec_update(sql, vals)
         return res
 
     except Exception as err:

@@ -72,7 +72,7 @@ local_download_path = cfg('vendors.healthtrackrx_inbound.local_download_path')
 # Copy renamed PDF lab reports to GCP
 
 
-async def task_process_inbound_lab_reports():
+def task_process_inbound_lab_reports():
     start = time.time()
     print_header(
         '\n\n******************Inbound file processing [Start]******************************\n\n')
@@ -86,13 +86,13 @@ async def task_process_inbound_lab_reports():
     # load_data_from_remote_db_to_cache()
 
     # clean_downloads_folder()
-    #await download_ftp_files()
-    #await parse_csv_files()
+    #download_ftp_files()
+    parse_csv_files()
 
-    await add_to_healthtrackrx_inbound_data_table()
-    await update_test_samples_with_results()
-    await upload_pdf_lab_reports()
-    await upload_all_inbound_files_to_central_storage()
+    add_to_healthtrackrx_inbound_data_table()
+    update_test_samples_with_results()
+    upload_pdf_lab_reports()
+    upload_all_inbound_files_to_central_storage()
 
     log_generic(
         type=c.INFO,
@@ -136,7 +136,7 @@ def init_ftp_connection():
 '''
 
 
-async def clean_downloads_folder():
+def clean_downloads_folder():
     print('cleaning up downloads folder')
     try:
         files = glob.glob("{}/*".format(local_download_path))
@@ -151,7 +151,7 @@ async def clean_downloads_folder():
         )
 
 
-async def download_ftp_files():
+def download_ftp_files():
     print_ok2('Connecting to FTP server...')
     try:
         ssh_client = paramiko.SSHClient()
@@ -167,8 +167,8 @@ async def download_ftp_files():
         ftp_client.chdir(remote_downloads_folder)
 
         paths = ftp_client.listdir()
-        directory_list = await get_remote_directory_list(ftp_client, paths, remote_downloads_folder)
-        await copy_files_to_local(ftp_client, directory_list, remote_downloads_folder)
+        directory_list = get_remote_directory_list(ftp_client, paths, remote_downloads_folder)
+        copy_files_to_local(ftp_client, directory_list, remote_downloads_folder)
         ftp_client.close()
 
     except Exception as err:
@@ -182,7 +182,7 @@ async def download_ftp_files():
         ftp_client.close()
 
 
-async def copy_files_to_local(ftp_client, directory_list, remote_folder):
+def copy_files_to_local(ftp_client, directory_list, remote_folder):
     try:
         for dir in directory_list:
             remote_dir_path = "{}/{}".format(remote_folder, dir)
@@ -191,7 +191,7 @@ async def copy_files_to_local(ftp_client, directory_list, remote_folder):
             cache_misses = 0
             download_errors = 0
             try:
-                dir_list, file_list = await get_remote_directories_and_files(ftp_client, remote_dir_path)
+                dir_list, file_list = get_remote_directories_and_files(ftp_client, remote_dir_path)
 
                 file_count = len(file_list)
                 i = 0
@@ -204,7 +204,7 @@ async def copy_files_to_local(ftp_client, directory_list, remote_folder):
 
                     total_files += 1
                     try:
-                        cache_hits, cache_misses, download_errors = await download_and_cleanup(
+                        cache_hits, cache_misses, download_errors = download_and_cleanup(
                             ftp_client, filename, remote_dir_path, cache_hits, cache_misses, download_errors)
 
                     except Exception as err:
@@ -241,22 +241,22 @@ async def copy_files_to_local(ftp_client, directory_list, remote_folder):
         )
 
 
-async def prep_local_downloads_dir(remote_dir_path):
+def prep_local_downloads_dir(remote_dir_path):
     newpath = "{}/{}".format(local_download_path, remote_dir_path)
     if not os.path.exists(newpath):
         os.makedirs(newpath)
     return newpath
 
 
-async def download_and_cleanup(ftp_client, filename, remote_dir_path, cache_hits, cache_misses, download_errors):
-    local_downloads_dir = await prep_local_downloads_dir(remote_dir_path)
-    if await file_exists_in_all_inbound_files_cache(filename):
+def download_and_cleanup(ftp_client, filename, remote_dir_path, cache_hits, cache_misses, download_errors):
+    local_downloads_dir = prep_local_downloads_dir(remote_dir_path)
+    if file_exists_in_all_inbound_files_cache(filename):
         cache_hits += 1
         old_path = '{}/{}'.format(remote_dir_path, filename).replace('//', '/')
         new_path = '{}{}/{}'.format('/backups/processed',
                                     remote_dir_path, filename).replace('//', '/')
         print('Archiving FTP file {}'.format(old_path))
-        ########await ftp_move_file(ftp_client, old_path, new_path)  # Archive file
+        ########ftp_move_file(ftp_client, old_path, new_path)  # Archive file
 
     else:
         cache_misses += 1
@@ -265,7 +265,7 @@ async def download_and_cleanup(ftp_client, filename, remote_dir_path, cache_hits
         if path.exists(local_path):
             print("file {} exists".format(local_path))
             if os.stat(local_path).st_size > 0:
-                await add_to_all_inbound_files_cache(filename)
+                add_to_all_inbound_files_cache(filename)
             else:
                 print_error(
                     'Deleting empty downloaded file : {}'.format(local_path))
@@ -281,7 +281,7 @@ async def download_and_cleanup(ftp_client, filename, remote_dir_path, cache_hits
                     'Error downloading from FTP —— {}'.format(filename))
 
             if os.stat(local_path).st_size > 0:
-                await add_to_all_inbound_files_cache(filename)
+                add_to_all_inbound_files_cache(filename)
             else:
                 print_error(
                     'Deleting empty downloaded file : {}'.format(local_path))
@@ -293,7 +293,7 @@ async def download_and_cleanup(ftp_client, filename, remote_dir_path, cache_hits
     return cache_hits, cache_misses, download_errors
 
 
-async def ftp_move_file(ftp_client, old_path, new_path):
+def ftp_move_file(ftp_client, old_path, new_path):
     dir_path, file_name = os.path.split(new_path.rstrip('/'))
 
     try:
@@ -307,7 +307,7 @@ async def ftp_move_file(ftp_client, old_path, new_path):
         print_error('ftp move failed: {}'.format(err))
 
 
-async def ftp_create_dir_path(ftp_client, dir_path):
+def ftp_create_dir_path(ftp_client, dir_path):
     # Test if sub directories to the remote path exists. If not recursively create them
     dir_chain = dir_path.split('/')
     sub_dir_path = ''
@@ -320,7 +320,7 @@ async def ftp_create_dir_path(ftp_client, dir_path):
             ftp_client.mkdir(sub_dir_path)
 
 
-async def get_remote_directories_and_files(ftp_client, remote_folder):
+def get_remote_directories_and_files(ftp_client, remote_folder):
     file_list = []
     dir_list = []
 
@@ -346,7 +346,7 @@ async def get_remote_directories_and_files(ftp_client, remote_folder):
     return dir_list, file_list
 
 
-async def get_remote_directory_list(ftp_client, paths, remote_folder):
+def get_remote_directory_list(ftp_client, paths, remote_folder):
     directories = ['']
     for path in paths:
         try:
@@ -360,7 +360,7 @@ async def get_remote_directory_list(ftp_client, paths, remote_folder):
     return directories
 
 
-async def parse_csv_files():
+def parse_csv_files():
     try:
         file_list = glob.iglob(
             '{}/**/*.csv'.format(local_download_path), recursive=True)
@@ -378,7 +378,7 @@ async def parse_csv_files():
             i += 1
             p = i/file_count*100
             print_progress_bar_message('Parsing CSV files {:.1f}%'.format(p))
-            await parse_csv_file(filename)
+            parse_csv_file(filename)
 
         print_ok2('{} 100%            '.format(PROGRESS_LABEL))
 
@@ -386,23 +386,23 @@ async def parse_csv_files():
         print(err)
 
 
-async def parse_csv_file(file_path):
+def parse_csv_file(file_path):
     with open(file_path) as csvfile:
         reader = csv.DictReader(lower_first(csvfile))
         for row in reader:
             try:
-                await add_to_lab_test_records_cache(row)
-                await add_to_csv_pdf_sync_cache(row)
+                add_to_lab_test_records_cache(row)
+                add_to_csv_pdf_sync_cache(row)
             except Exception as err:
                 print("err:", err)
 
 
-async def load_data_from_remote_db_to_cache():
+def load_data_from_remote_db_to_cache():
     sql = """
         SELECT * 
         FROM healthtrackrx_inbound_data 
         """
-    rows = await read_rows(sql)
+    rows = read_rows(sql)
 
     row_count = len(rows)
     i = 0
@@ -417,7 +417,7 @@ async def load_data_from_remote_db_to_cache():
     print_ok2('{} 100%            '.format(PROGRESS_LABEL))
 
 
-async def upload_pdf_lab_reports():
+def upload_pdf_lab_reports():
     print('uploading PDF lab reports')
     try:
         file_count = 0
@@ -436,8 +436,8 @@ async def upload_pdf_lab_reports():
                 if os.stat(local_file_path).st_size == 0:
                     raise ValueError('Empty File')
 
-                __requisition_id, __order_number, __destination_filename = await generate_destination_filename(local_file_path)
-                await add_to_csv_pdf_sync_cache(
+                __requisition_id, __order_number, __destination_filename = generate_destination_filename(local_file_path)
+                add_to_csv_pdf_sync_cache(
                     {'requisition_id': __requisition_id}, 
                     'pdf'
                 )
@@ -445,12 +445,12 @@ async def upload_pdf_lab_reports():
                 shutil.copyfile(
                     local_file_path, '{}/{}'.format(local_backups_path, __destination_filename))
                 if __destination_filename:
-                    if await file_exists_in_files_in_remote_storage_cache(__destination_filename):
+                    if file_exists_in_files_in_remote_storage_cache(__destination_filename):
                         #print_ok2('cache hit: {}'.format(__destination_filename))
                         pass
                     else:
                         if __order_number:
-                            upload_status = await upload_lab_report(
+                            upload_status = upload_lab_report(
                                 local_file_path,
                                 __destination_filename
                             )
@@ -463,7 +463,7 @@ async def upload_pdf_lab_reports():
                             else:
                                 print('pdf_lab_report exists at destination... adding to local cache: {} ==> {}'.format(
                                     local_file_path, __destination_filename))
-                                await add_to_files_in_remote_storage_cache(
+                                add_to_files_in_remote_storage_cache(
                                     __destination_filename)
                         else:
                             print_ok2('Lab report upload skipped for rejected lab test')
@@ -477,7 +477,7 @@ async def upload_pdf_lab_reports():
         print(err)
 
 
-async def upload_all_inbound_files_to_central_storage():
+def upload_all_inbound_files_to_central_storage():
     try:
         file_count = 0
         for local_file_path in glob.iglob('{}/**/*'.format(local_download_path), recursive=True):
@@ -496,7 +496,7 @@ async def upload_all_inbound_files_to_central_storage():
                 if os.stat(local_file_path).st_size == 0:
                     raise ValueError('Empty File')
 
-                if await file_exists_in_files_in_remote_storage_cache(filename):
+                if file_exists_in_files_in_remote_storage_cache(filename):
                     #print('cache hit: ', filename)
                     pass
                 else:
@@ -504,7 +504,7 @@ async def upload_all_inbound_files_to_central_storage():
                         #print('Skipping uploading Directory {}'.format(local_file_path))
                         pass
                     else:
-                        upload_status = await upload_to_all_inbound_files(local_file_path, filename)
+                        upload_status = upload_to_all_inbound_files(local_file_path, filename)
                         if upload_status is None:
                             print_error(
                                 'Error Uploading.... {}'.format(filename))
@@ -513,7 +513,7 @@ async def upload_all_inbound_files_to_central_storage():
                             pass
                         else:
                             #print('file exists... adding to local cache: {}'.format(filename))
-                            await add_to_files_in_remote_storage_cache(filename)
+                            add_to_files_in_remote_storage_cache(filename)
             except Exception as err:
                 print('Error uploading {}'.format(filename))
 
@@ -523,7 +523,7 @@ async def upload_all_inbound_files_to_central_storage():
         print(err)
 
 
-async def generate_destination_filename(file_path):
+def generate_destination_filename(file_path):
     filename = None
     requisition_id = None
     order_number = None
@@ -537,7 +537,7 @@ async def generate_destination_filename(file_path):
             #print_warning('Skipping reject file: {}'.format(filename))
             pass
         else:
-            order_number = await get_order_number_by_requisition_id(requisition_id)
+            order_number = get_order_number_by_requisition_id(requisition_id)
             if order_number:
                 filename = '{}.pdf'.format(order_number)
             else:
@@ -550,7 +550,7 @@ async def generate_destination_filename(file_path):
     return requisition_id, order_number, filename
 
 
-async def append_to_processing_summary(txt):
+def append_to_processing_summary(txt):
     # append mode
     f = open(
         "/Users/suresh/ggt-tasks/process_summary/ggt-inbound-processing-summary.txt", "a")
@@ -558,9 +558,9 @@ async def append_to_processing_summary(txt):
     f.close()
 
 
-async def add_to_healthtrackrx_inbound_data_table():
+def add_to_healthtrackrx_inbound_data_table():
     print('syncing cached healthtrackrx_inbound_data to remote DB')
-    rows = await get_all_lab_records_from_cache()
+    rows = get_all_lab_records_from_cache()
     try:
         sql = """
             INSERT INTO healthtrackrx_inbound_data
@@ -574,7 +574,7 @@ async def add_to_healthtrackrx_inbound_data_table():
         print_error('Critical ERROR: {}'.format(err))
 
 
-async def update_test_samples_with_results():
+def update_test_samples_with_results():
     print('updating test results in remote DB')
     sql = """
         UPDATE test_samples
@@ -594,7 +594,7 @@ async def update_test_samples_with_results():
                 AND test_samples.id = healthtrackrx_inbound_data.order_number
         """
     vals = ()
-    await exec_update(sql, vals)
+    exec_update(sql, vals)
 
 
 def extract_filename(file_path):

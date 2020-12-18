@@ -24,7 +24,7 @@ from ggt.lib.db import (
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-async def create_test_sample_from_appointment(appointment_id):
+def create_test_sample_from_appointment(appointment_id):
     try:
         sql = """
             INSERT ignore INTO test_samples
@@ -57,7 +57,7 @@ async def create_test_sample_from_appointment(appointment_id):
             id = %s;
         """
         vals = (appointment_id,)
-        return await exec_insert(sql, vals)
+        return exec_insert(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -69,7 +69,7 @@ async def create_test_sample_from_appointment(appointment_id):
         return None
 
 
-async def record_label_scan(appointment_id):
+def record_label_scan(appointment_id):
     try:
         sql = """
             UPDATE test_samples 
@@ -81,7 +81,7 @@ async def record_label_scan(appointment_id):
 
         vals = (appointment_id,)
         
-        return await exec_update(sql, vals)
+        return exec_update(sql, vals)
 
     except Exception as err:
         log_generic(

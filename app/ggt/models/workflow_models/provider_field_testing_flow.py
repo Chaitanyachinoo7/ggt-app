@@ -1,4 +1,4 @@
-from aiocache import cached
+from cachetools import cached, LRUCache, TTLCache
 
 from ggt.lib.utils import (
     x_response
@@ -45,37 +45,37 @@ def printer_queue_check(printer_id, printer_token):
 '''
 
 
-@cached(ttl=600)
-async def provider_get_workstations():
+@cached(cache=TTLCache(maxsize=1024, ttl=600))
+def provider_get_workstations():
     return x_response(
-        await bp_provider_get_workstations()
+        bp_provider_get_workstations()
     )
 
 
-async def provider_lookup_appointment(appointment_id):
+@cached(cache=TTLCache(maxsize=1024, ttl=60))
+def provider_lookup_appointment(appointment_id):
     return x_response(
-        await bp_get_appointment_info(appointment_id, 'allowdoboverride')
+        bp_get_appointment_info(appointment_id, 'allowdoboverride')
     )
 
 
-async def provider_update_appointment(appointment_id, action, workstation_id, vial_id):
+def provider_update_appointment(appointment_id, action, workstation_id, vial_id):
     return x_response(
-        await bp_appointment_update(appointment_id, action, workstation_id, vial_id)
+        bp_appointment_update(appointment_id, action, workstation_id, vial_id)
     )
 
 
-async def scan_label(appointment_id):
+def scan_label(appointment_id):
     # TODO add to sys log, multiple scans can happen, keeps only latest scan
     bp_create_test_sample_from_appointment(appointment_id)
     return x_response(
-        await bp_record_label_scan(appointment_id)
+        bp_record_label_scan(appointment_id)
     )
 
 
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
-
 
 def is_authenticated(auth_token):
     return auth_token == ADMIN_TOKEN

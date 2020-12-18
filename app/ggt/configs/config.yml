@@ -1,8 +1,9 @@
 app_name: COVID-19 Testing
-app_version: 1.1
+app_version: 1.2
 log_level: DEBUG
 base_url: https://start.GoGetTested.com
 env: DEV
+
 
 server:
   host: 0.0.0.0
