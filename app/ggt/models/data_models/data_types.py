@@ -761,6 +761,32 @@ class GgtBooking(BaseModel):
     total_cost: int = None
     billed_amount: int = None
 
+    #language: str = None
+    #science37: 
+
+'''
+class Science37(BaseModel):
+    "science37": {
+		"participate": true,
+		"consent": true,
+		"preExistingConditions": true,
+		"symptoms": {
+			"fever": true,
+			"chills": true,
+			"muscle_pain": true,
+			"joint_pain": true,
+			"headache": true,
+			"fatigue": true,
+			"cough": true,
+			"sore_throat": true,
+			"nasal_congestion": true,
+			"nausea": true,
+			"vomiting": true,
+			"diarrhea": true,
+			"no_symptoms": true
+		}
+	},
+'''
 
 class GgtAppointment(BaseModel):
     id: int = None
@@ -830,6 +856,7 @@ class AuthError(Exception):
 class GgtCustomField(BaseModel):
     name: str = None
     label: str = None
+    required: bool = False
 
 
 class GgtThirdPartyGroup(BaseModel):
