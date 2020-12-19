@@ -218,7 +218,8 @@ def __map_row_to_group(row) -> GgtThirdPartyGroup:
                 g.additional_fields.append(
                     GgtCustomField(
                         name=field_vals[0].replace('"', ''),
-                        label=field_vals[1].replace('"', '')
+                        label=field_vals[1].replace('"', ''),
+                        required=field_vals[2].replace('"', '')
                     )
                 )
 
