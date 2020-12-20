@@ -368,7 +368,7 @@ def process_consultations(tasks):
         appointment_id = task['appointment_id']
         task['insurance_card_url'] = '/billing/image/{}.png'.format(
             appointment_id)
-        task['test_report_url'] = 'x/billing/report/{}.pdf'.format(
+        task['test_report_url'] = '/billing/report/{}.pdf'.format(
             appointment_id)
         consultation = {
             "consultation_id": consultation_id,
