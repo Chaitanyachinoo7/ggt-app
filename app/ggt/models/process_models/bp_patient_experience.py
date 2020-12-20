@@ -281,7 +281,7 @@ def bp_finalize_payment(appointment_id: int, wp_receipt_token: str):
 
 def bp_get_test_result(token: str, dob: str):
     try:
-        lab_result = st_result_by_token(token)
+        lab_result = get_test_result_by_token(token)
 
         if lab_result:
             patient_dob_us = lab_result['dob'].strftime("%m%d%Y")
@@ -297,7 +297,7 @@ def bp_get_test_result(token: str, dob: str):
                 result = 'Unknown'
 
             try:
-                url = mporary_lab_report_url('{}.pdf'.format(test_id))
+                url = get_temporary_lab_report_url('{}.pdf'.format(test_id))
             except Exception as err:
                 url = ''
 
