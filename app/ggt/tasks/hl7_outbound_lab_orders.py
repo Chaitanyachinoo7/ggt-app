@@ -40,7 +40,7 @@ local_insurance_card_file_path = cfg(
     'vendors.healthtrackrx_outbound.local_insurance_card_file_path')
 
 
-def task_process_outbound_lab_orders():
+def task_process_hl7_lab_orders():
     print('\n\n************************************************\n\n')
     log_generic(
         type=c.INFO,
@@ -48,20 +48,21 @@ def task_process_outbound_lab_orders():
         task_session_id=session_id,
         info='Begin Processing outbound HL7 Lab Orders')
 
-    print('looking up ready to transmit orders')
+    #print('looking up ready to transmit orders')
     orders = get_orders_ready_to_transmit()
 
-    upload_insurance_files_from_gstore(orders)
+    # upload_insurance_files_from_gstore(orders)
 
     if len(orders) > 0:
         print('generating outbound file')
-        filename, local_file_path = create_outbound_file(orders)
+        #filename, local_file_path = create_outbound_file(orders)
+        create_outbound_files(orders)
 
-        print('uploading file to FTP server')
-        upload_file_to_ftp(filename, local_file_path)
+        #print('uploading file to FTP server')
+        # upload_file_to_ftp(filename, local_file_path)
 
-        print('marking records to "with_lab" status')
-        update_to_with_lab_status(orders)
+        #print('marking records to "with_lab" status')
+        # update_to_with_lab_status(orders)
     else:
         print('no orders to process')
 
@@ -71,6 +72,7 @@ def task_process_outbound_lab_orders():
         task_session_id=session_id,
         info='End Processing outbound Lab Reports')
     print('\n\n************************************************\n\n')
+
 
 
 def upload_insurance_files_from_gstore(orders):
@@ -160,7 +162,7 @@ def __get_pid(order):
 def __get_pv1(order):
     return PV1(
         pv1_1_set_id=1,
-        pv1_3_assigned_patient_location='',
+        pv1_3_assigned_patient_location=order['st'],
         # Physician NPI^Provider Last Name^Provider First name
         pv1_7_attending_doctor='{}^{}^{}'.format(order['physician_npi'], 'Khan', 'Samad'),
         pv1_20_financial_class=order['bill']
@@ -410,10 +412,10 @@ def get_orders_ready_to_transmit():
                 ELSE 'Unknown'
             END) AS race,
             (CASE
-                WHEN (p.ethnicity = 'true') THEN '2135-2'
-                WHEN (p.ethnicity = 'false') THEN '2186-5'
-                WHEN (p.ethnicity = 'hispanic_latino_spanish') THEN '2135-2'
-                ELSE 'Unknown'
+                WHEN (p.ethnicity = 'true') THEN 'H'
+                WHEN (p.ethnicity = 'false') THEN 'N'
+                WHEN (p.ethnicity = 'hispanic_latino_spanish') THEN 'H'
+                ELSE 'U'
             END) AS ethnicity,
             REPLACE(p.addr1, ',', '') AS addr1,
             (CASE
