@@ -66,8 +66,7 @@ def bp_image_from_bucket(image_id):
     if blob:
         yield blob.download_as_bytes()
     else:
-        blob = get_file_blob(insurance_cards_bucket_name, 'card.png')
-        yield blob.download_as_bytes()
+        return None
 
 
 def bp_report_from_bucket(image_id):
@@ -76,6 +75,6 @@ def bp_report_from_bucket(image_id):
     if blob:
         yield blob.download_as_bytes()
     else:
-        yield "No report found"
+        return None
 
 
