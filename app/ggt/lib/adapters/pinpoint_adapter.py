@@ -8,7 +8,6 @@ from ggt.lib.utils import (
 
 
 def send_pinpoint_message(recipient_number, message, sender_number="+12315986677", sender_id="GoGetTested"):
-    print("using pinpoint")
     # The AWS Region that you want to use to send the message. For a list of
     # AWS Regions where the Amazon Pinpoint API is available, see
     # https://docs.aws.amazon.com/pinpoint/latest/apireference/
@@ -21,8 +20,7 @@ def send_pinpoint_message(recipient_number, message, sender_number="+12315986677
 
     # The recipient's phone number.  For best results, you should specify the
     # phone number in E.164 format.
-    # destinationNumber = recipient_number
-    destinationNumber = "+14372309014"
+    destinationNumber = recipient_number
 
     # The content of the SMS message.
     #message = message
