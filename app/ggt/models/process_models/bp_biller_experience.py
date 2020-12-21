@@ -1,15 +1,8 @@
 from ggt.lib.storage import get_file_blob
-from ggt.lib.constants import (
-    ERROR
-)
 from ggt.lib.utils import (
-    log_generic,
-    whoami, get_config_val)
+    get_config_val)
 from ggt.models.data_models.billers import get_billing_list, update_billing_status, create_insurance_record, \
     update_insurance_record, validate_insurance_record, delete_insurance_record
-from ggt.models.data_models.providers import get_provider_processing_list, provider_lock_task, \
-    create_patient_test_consultation, update_consultation_note, provider_complete_task, \
-    provider_rollback_to_pending_task
 
 
 ########################################################################################################
@@ -73,8 +66,7 @@ def bp_image_from_bucket(image_id):
     if blob:
         yield blob.download_as_bytes()
     else:
-        blob = get_file_blob(insurance_cards_bucket_name, 'card.png')
-        yield blob.download_as_bytes()
+        return None
 
 
 def bp_report_from_bucket(image_id):
@@ -83,6 +75,6 @@ def bp_report_from_bucket(image_id):
     if blob:
         yield blob.download_as_bytes()
     else:
-        yield "No report found"
+        return None
 
 

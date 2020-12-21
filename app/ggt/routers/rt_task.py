@@ -159,7 +159,7 @@ async def reminder_sms():
     return {STATUS: SUCCESS}
 
 
-@router.post("/server_public_ip", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+@router.get("/server_public_ip", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_get_my_ip():
     r = requests.get('http://curlmyip.org/')
     return {"my_ip": r.text}

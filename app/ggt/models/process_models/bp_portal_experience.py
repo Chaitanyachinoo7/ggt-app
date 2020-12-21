@@ -1,40 +1,31 @@
 from datetime import datetime
 
+import ggt.lib.constants as c
 from ggt.lib.utils import (
     log_generic,
     whoami)
-from ggt.models.data_models.groups import get_all_groups, create_group, update_group, get_group_by_id
-from ggt.models.data_models.providers import get_provider_processing_list, provider_lock_task, \
-    create_patient_test_consultation, update_consultation_note, provider_complete_task, \
-    provider_rollback_to_pending_task
-from ggt.models.data_models.service_catalog import get_all_services
-
-from ggt.models.data_models.users import (
-    get_user_by_email
-)
-
 from ggt.models.data_models.clinical_test_results import (
     get_all_test_results,
     search_details_by_name_and_dob,
     get_test_details
 )
-
 from ggt.models.data_models.clinical_test_sample import (
     create_test_sample_from_appointment,
     record_label_scan
 )
-
 from ggt.models.data_models.generic_search_result import (
     find_patients
 )
-
+from ggt.models.data_models.groups import get_all_groups, create_group, update_group, get_group_by_id
 from ggt.models.data_models.locations import (
     search_locations,
     create_location, update_location, assign_group, remove_group, assign_service, remove_service,
     get_all_locations_without_thumbnail, assign_all_groups, assign_all_services, remove_all_group, remove_all_service,
     get_states)
-
-import ggt.lib.constants as c
+from ggt.models.data_models.service_catalog import get_all_services
+from ggt.models.data_models.users import (
+    get_user_by_email
+)
 
 
 ########################################################################################################
