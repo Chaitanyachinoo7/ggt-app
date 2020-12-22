@@ -7,8 +7,6 @@ import paramiko
 import base64
 from PIL import Image
 
-import s3fs
-
 from ggt.lib.utils import (
     get_config_val as cfg,
     log_generic,
