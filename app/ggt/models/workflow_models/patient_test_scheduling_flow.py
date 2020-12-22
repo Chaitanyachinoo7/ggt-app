@@ -67,7 +67,7 @@ def validate_phone_number(phone_number, otp):
     )
 
 
-@cached(cache=TTLCache(maxsize=1024, ttl=60))
+@cached(cache=TTLCache(maxsize=1024, ttl=300))
 def get_schedule_dates_available(group_code=c.DEFAULT_GROUP_CODE):
     return x_response(
         bp_get_schedule_dates_available(
@@ -76,7 +76,7 @@ def get_schedule_dates_available(group_code=c.DEFAULT_GROUP_CODE):
     )
 
 
-@cached(cache=TTLCache(maxsize=1024, ttl=60))
+@cached(cache=TTLCache(maxsize=1024, ttl=300))
 def get_schedule_locations_available(group_code, date):
     return x_response(
         bp_get_schedule_locations_available(
@@ -86,7 +86,7 @@ def get_schedule_locations_available(group_code, date):
     )
 
 
-@cached(cache=TTLCache(maxsize=1024, ttl=60))
+@cached(cache=TTLCache(maxsize=1024, ttl=180))
 def get_schedule_locations_available_near_lat_lng(date, group_code, lat, lng, radius):
     return x_response(
         bp_get_schedule_locations_available_near_lat_lng(
@@ -99,7 +99,7 @@ def get_schedule_locations_available_near_lat_lng(date, group_code, lat, lng, ra
     )
 
 
-@cached(cache=TTLCache(maxsize=1024, ttl=60))
+@cached(cache=TTLCache(maxsize=1024, ttl=120))
 def get_all_available_locations_and_times(group_code):
     return x_response(
         bp_get_all_available_locations_and_times(group_code)

@@ -70,35 +70,37 @@ def bp_get_appointment_info(appointment_id, dob):
 
 
 def bp_appointment_update(appointment_id: int, action: str, workstation_id: int, vial_id: str = None):
+    usuccess = False
     try:
         appointment: GgtAppointment = get_appointment(appointment_id)
 
         if action == c.APPOINTMENT_ACTION_CHECK_IN:
-            update_appointment_with_checkin(appointment)
+            usuccess = update_appointment_with_checkin(appointment)
 
         elif action == c.APPOINTMENT_ACTION_START_TEST:
-            __appointment_begin_test(appointment, workstation_id)
+            usuccess = __appointment_begin_test(appointment, workstation_id)
 
         elif action == c.APPOINTMENT_ACTION_SCAN_VIAL:
-            update_appointment_with_scan_vial(appointment, vial_id)
+            usuccess = update_appointment_with_scan_vial(appointment, vial_id)
 
         elif action == c.APPOINTMENT_ACTION_END_TEST:
-            update_appointment_with_test_completed(appointment)
-            __send_test_complete_sms(appointment)
+            if update_appointment_with_test_completed(appointment):
+                __send_test_complete_sms(appointment)
 
         elif action == c.APPOINTMENT_ACTION_REPRINT:
-            __appointment_reprint_label(appointment, workstation_id)
+            usuccess = __appointment_reprint_label(appointment, workstation_id)
 
         # TODO: This allows the start_test to be invoked twice (print the label twice). And every other action only to be invoked once.
         # essentially works by waiting to catch the appointment status update in the next round
         # Ideally, this should be handled at the printer label processor
-        if action != c.APPOINTMENT_ACTION_START_TEST or __is_pre_labeled(appointment, workstation_id):
+        if usuccess and (action != c.APPOINTMENT_ACTION_START_TEST or __is_pre_labeled(appointment, workstation_id)):
             appointment: GgtAppointment = get_appointment(appointment_id)
 
-        return {
-            'appointment_id': appointment.id,
-            'next_action': __next_action(appointment, __is_pre_labeled(appointment, workstation_id)),
-        }
+        if usuccess:
+            return {
+                'appointment_id': appointment.id,
+                'next_action': __next_action(appointment, __is_pre_labeled(appointment, workstation_id)),
+            }
 
     except Exception as err:
         log_generic(
