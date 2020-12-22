@@ -15,7 +15,8 @@ from ggt.models.process_models.bp_patient_experience import (
     bp_validate_phone_number,
     bp_finalize_booking,
     bp_finalize_payment,
-    bp_get_test_result
+    bp_get_test_result,
+    bp_get_wellpay_insurance_eligibility
 )
 
 from ggt.models.process_models.bp_schedules import (
@@ -261,3 +262,7 @@ def __map_to_booking_req(finalize_registration_request):
         )
 
     return b
+
+
+def insurance_eligibility(insurance_eligibility_request):
+    return bp_get_wellpay_insurance_eligibility(insurance_eligibility_request)

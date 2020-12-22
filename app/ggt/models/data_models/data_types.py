@@ -682,7 +682,6 @@ class GgtDateTimeLocation(BaseModel):
     open_hours: str = None
 
 
-
 class GgtBooking(BaseModel):
     token: str = None
     gender: str = None
@@ -762,7 +761,8 @@ class GgtBooking(BaseModel):
     billed_amount: int = None
 
     #language: str = None
-    #science37: 
+    # science37:
+
 
 '''
 class Science37(BaseModel):
@@ -787,6 +787,7 @@ class Science37(BaseModel):
 		}
 	},
 '''
+
 
 class GgtAppointment(BaseModel):
     id: int = None
@@ -960,3 +961,26 @@ class InsuranceCardResponse(BaseModel):
     subsriber_id: str
     group_id: str
     effective_date: str
+
+
+class InsuranceEligibilityRequest(BaseModel):
+    first_name: str = None
+    last_name: str = None
+    phone_number: str = None
+    email: str = None
+    dob: str = None
+    addr1: str = None
+    city: str = None
+    state: str = None
+    zip_code: str = None
+    external_account_id: str = None
+    insurance_group_name: str = None
+    insurance_id_number: str = None
+    insurance_claim_office_number: str = None
+    insurance_plan_name: str = None
+    patient_relationship_to_subscriber: str = None
+    insurance_company: str = None
+    insurance_plan_type: str = None
+    insurance_payer_id: str = None
+    insurance_group_number: str = None
+    level: str = None
