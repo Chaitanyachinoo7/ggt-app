@@ -391,11 +391,12 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
     vial_id = None if vial_id == '' else vial_id
     usuccess = False
 
-    #Check if a vial has already been assigned, if so, don't allow update to proceed
-    #if appointment.vial_id and vial_id: 
-    #    return False
-
     try:
+        #Check if a vial has already been assigned, if so, don't allow update to proceed
+        if appointment.vial_id and vial_id: 
+            return usuccess
+
+
         if vial_id:
             sql = """
                 UPDATE appointments
@@ -478,6 +479,8 @@ def __map_row_to_appointment(row: dict) -> GgtAppointment:
         a.check_in_dt = row['check_in_dt']
         a.test_start_dt = row['test_start_dt']
         a.test_end_dt = row['test_end_dt']
+
+        a.vial_id = row['vial_id']
 
         a.wp_customer_info_id = row['wp_customer_info_id']
         a.total_cost = row['total_cost']

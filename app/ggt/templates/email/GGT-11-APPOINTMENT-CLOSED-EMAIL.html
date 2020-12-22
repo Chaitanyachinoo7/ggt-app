@@ -1,0 +1,95 @@
+{% extends "email-layout-1.html" %}
+
+{% block preview_text %}
+
+{{first_name}}, Important information regarding your recent Covid-19 Test
+
+{% endblock %}
+
+{% block content %}
+
+<!-- BEGIN MODULE: Transactional 21 -->
+<table width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation">
+    <tbody>
+        <tr>
+            <td height="8" style="font-size: 1px; line-height: 1px;">&nbsp;</td>
+        </tr>
+    </tbody>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
+    <tbody>
+        <tr>
+            <td class="pc-sm-p-30-10 pc-xs-p-25-0" bgcolor="#ffffff"
+                style="padding: 40px 20px; background: #ffffff; border-radius: 8px" valign="top">
+                <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
+                    <tbody>
+
+                        <tr>
+                            <td style="line-height: 1px; font-size: 1px;" height="15">&nbsp;</td>
+                        </tr>
+                    </tbody>
+                    <tbody>
+                        <tr>
+                            <td class="pc-sm-fs-30 pc-fb-font"
+                                style="font-family: 'Open Sans', Helvetica, Arial, sans-serif; font-size: 36px; font-weight: 800; line-height: 46px; letter-spacing: -0.6px; color: #151515; padding: 0 20px"
+                                valign="top">Hi {{first_name}}, Important information regarding your recent Covid-19 Test</td>
+                        </tr>
+                        <tr>
+                            <td style="line-height: 1px; font-size: 1px;" height="15">&nbsp;</td>
+                        </tr>
+                    </tbody>
+                    <tbody>
+                        <tr>
+                            <td class="pc-sm-fs-18 pc-xs-fs-16 pc-fb-font"
+                                style="font-family: 'Open Sans', Helvetica, Arial, sans-serif; font-size: 20px; line-height: 30px; letter-spacing: -0.2px; color: #3f3f3f; padding: 0 20px"
+                                valign="top">We regret to inform you samples that were collected on Saturday 12/19/2020, from the GoGetTested site of New Mt. Zion in Topeka, were stolen at the end of the day from a locked, sample pickup box. Your information was not compromised as no identifiable personal health information was on any of the samples. 
+                                <br><br>
+                                We apologize for the inconvenience this may cause. Please schedule another appointment to retest as quickly as possible, so that you may get your results back as quickly as possible. Thank you. 
+                                <br><br>
+                                <table>
+                                    <tbody>
+                                      <tr>
+                                        <td style="padding: 5px 10px;" valign="top">
+                                          <table border="0" cellpadding="0" cellspacing="0" role="presentation">
+                                            <tbody>
+                                              <tr>
+                                                <td style="border-radius: 8px; padding: 14px 19px; background-color: #01821a;"
+                                                  bgcolor="#1595E7" valign="top" align="center">
+                                                  <a class="pc-fb-font" href="https://start.gogettested.com"
+                                                    style="text-decoration: none; word-break: break-word; line-height: 24px; letter-spacing: -0.2px; font-family: 'Open Sans', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 500; color: #ffffff; display: block">Schedule Appointment</a>
+                                                </td>
+                                              </tr>
+                                            </tbody>
+                                          </table>
+                                        </td>
+                                      </tr>
+                                    </tbody>
+                                  </table>
+                                <br>
+                                <br>Stay Safe,
+                                <br><br>GoGetTested.com Support Team<br><br><em>This
+                                    is an automated message. Please do not reply to this email, as this email address is
+                                    not monitored.</em></td>
+                        </tr>
+                        <tr>
+                            <td style="line-height: 1px; font-size: 1px;" height="30">&nbsp;</td>
+                        </tr>
+                    </tbody>
+                    <tbody>
+                        <tr>
+                            <td style="padding: 0 20px;" valign="top">
+                                <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+    </tbody>
+</table>
+<!-- END MODULE: Transactional 21 -->
+
+{% endblock %}

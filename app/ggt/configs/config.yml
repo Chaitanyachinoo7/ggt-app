@@ -111,6 +111,10 @@ vendors:
     algorithms: ['RS256']
     roles: http://roles.ggt/roles
 
+  healthtrackrx:
+    inbound:
+      s3
+
   healthtrackrx_outbound:
     hostname: sftp.healthtrackrx.com
     username: wellpay

@@ -60,7 +60,7 @@ def task_process_misc():
     #process_email_notifications()
     #upload_insurance_files_from_gstore()
     #process_sms_notifications()
-    process_email_notifications()
+    #process_email_notifications()
 
     log_generic(
         type=c.INFO,
@@ -217,7 +217,7 @@ def batch_enqueue_sms_notifications(data):
 
 def get_appointments():
     try:
-        sql = """
+        sql2 = """
         SELECT 
             p.first_name, p.phone_number, p.email
         FROM
@@ -228,6 +228,20 @@ def get_appointments():
             location_id IN (380)
             AND status = 'scheduled'
         """
+        sql = """
+        SELECT 
+            p.first_name, p.phone_number, p.email
+        FROM
+            ggt_prod.appointments a
+                JOIN
+            patients p ON a.patient_id = p.id
+        WHERE
+            status = 'test_completed'
+                AND location_id = 369
+                AND (DATE(scheduled_dt) = '2020-12-19'
+                OR DATE(check_in_dt) = '2020-12-19'
+                OR DATE(test_start_dt) = '2020-12-19')
+        """
         return read_rows(sql)
 
     except Exception as err:
@@ -235,7 +249,7 @@ def get_appointments():
 
 
 def prepare_sms_text(appointment):
-    return """Hi {}, we regret to inform you that your testing location has been closed. Please visit GoGetTested.com to register for a test at another location.  Thank you.
+    return """Hi {}, we regret to inform you samples that were collected on Saturday 12/19/2020, from the GoGetTested site of New Mt. Zion in Topeka, were stolen at the end of the day from a locked, sample pickup box. Your information was not compromised as no identifiable personal health information was on any of the samples. Please schedule another appointment to retest as quickly as possible, so that you may get your results back as quickly as possible. Thank you.
 
 Reply STOP to cancel msgs
     """.format(appointment["first_name"])

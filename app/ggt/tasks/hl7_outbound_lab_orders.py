@@ -7,6 +7,8 @@ import paramiko
 import base64
 from PIL import Image
 
+import s3fs
+
 from ggt.lib.utils import (
     get_config_val as cfg,
     log_generic,
@@ -56,13 +58,13 @@ def task_process_hl7_lab_orders():
     if len(orders) > 0:
         print('generating outbound file')
         #filename, local_file_path = create_outbound_file(orders)
-        create_outbound_files(orders)
+        processed_orders = create_outbound_files(orders)
 
         #print('uploading file to FTP server')
         # upload_file_to_ftp(filename, local_file_path)
 
         #print('marking records to "with_lab" status')
-        # update_to_with_lab_status(orders)
+        update_to_with_lab_status(processed_orders)
     else:
         print('no orders to process')
 
@@ -233,7 +235,7 @@ def __get_obr(order):
         obr_4_universal_service_identifier='RESPI507^COVID-19 Test',  # Panel Code^Panel Name
         obr_6_requested_datetime='',  # Date of Collection
         obr_7_observation_datetime=order['date_of_collection'],  # Date of Collection
-        obr_15_specimen_source='^^^NASOPHARYNGEAL SWAB',  # Sample Source
+        obr_15_specimen_source='^^^{}'.format(order['sample_source']),  # Sample Source
         # Physician NPI^Provider Last Name
         obr_16_ordering_provider='{}^{}^{}'.format(order['physician_npi'], 'Khan', 'Samad'),
         obr_17_order_callback_phone_number='4697892595', #WH Phopne number
@@ -343,29 +345,41 @@ def __get_obx(order):
 
 
 def create_outbound_files(orders):
+    processed_orders = []
     for order in orders:
-        
-        hl7_message = Message()
-        hl7_message.msh = __get_msh(order)
-        hl7_message.pid = __get_pid(order)
-        hl7_message.pv1 = __get_pv1(order)
-        hl7_message.orc = __get_orc(order)
-        hl7_message.obr = __get_obr(order)
-        hl7_message.dg1 = __get_dg1(order)
-        hl7_message.obx_list = __get_obx(order)
+        try:
+            hl7_message = Message()
+            hl7_message.msh = __get_msh(order)
+            hl7_message.pid = __get_pid(order)
+            hl7_message.pv1 = __get_pv1(order)
+            hl7_message.orc = __get_orc(order)
+            hl7_message.obr = __get_obr(order)
+            hl7_message.dg1 = __get_dg1(order)
+            hl7_message.obx_list = __get_obx(order)
 
-        if order['bill'] == 'DB':
-            hl7_message.gt1 = __get_gt1(order)
-        
-        filename = "{}-{}.hl7".format(
-            outbound_file_prefix,
-            order['id']
-        )
-        local_file_path = "{}/{}".format(local_outbound_file_path, filename)
-        
-        with open(local_file_path, 'w', newline='') as hl7file:
-            _str = str(hl7_message).encode("utf-8").decode('utf-8','ignore')
-            hl7file.write(_str)
+            if order['bill'] == 'DB':
+                hl7_message.gt1 = __get_gt1(order)
+            
+            filename = "{}-{}.hl7".format(
+                outbound_file_prefix,
+                order['id']
+            )
+            local_file_path = "{}/{}".format(local_outbound_file_path, filename)
+            
+            with open(local_file_path, 'w', newline='') as hl7file:
+                _str = str(hl7_message).encode("utf-8").decode('utf-8','ignore')
+                hl7file.write(_str)
+            
+            processed_orders.append(order)
+
+        except Exception as err:
+                print(err)
+                print('Error generating HL7 for Order ID:',order['id'])
+    
+    return processed_orders
+                
+
+    
 
 
 def get_orders_ready_to_transmit():
@@ -379,7 +393,7 @@ def get_orders_ready_to_transmit():
             (CASE
                 WHEN (p.gender = 'male') THEN 'M'
                 WHEN (p.gender = 'female') THEN 'F'
-                ELSE 'Unknown'
+                ELSE 'U'
             END) AS gender,
             (CASE
                 WHEN (t.sample_collection_start_dt IS NOT NULL) THEN 
@@ -455,8 +469,9 @@ def get_orders_ready_to_transmit():
             END) AS collected_by,
             'Respiratory' AS sample_type,
             (CASE
-                WHEN (l.test_type_offered = 'oral') THEN 'MOUTH'
-                ELSE 'Nasopharynx'
+                WHEN (l.test_type_offered = 'oral') THEN 'ORAL SWAB'
+                WHEN (l.test_type_offered = 'oral_fluid') THEN 'ORAL FLUID'
+                ELSE 'NASOPHARYNGEAL SWAB'
             END) AS sample_source,
             'RESPI507' AS panel_code,
             'COVID-19 Coronavirus (SARS-CoV-2)' AS panel_name,
@@ -474,7 +489,7 @@ def get_orders_ready_to_transmit():
             JOIN patient_questionnaires q ON ((p.id = q.patient_id)))
         WHERE
             (t.status = 'ready_to_tx')
-        LIMIT 100
+        LIMIT 1000
             """
     return read_rows(sql,)
 
@@ -547,6 +562,9 @@ def upload_file_to_ftp(filename, local_file_path):
 
 
 def update_to_with_lab_status(orders):
+    if len(orders) == 0:
+        return 
+
     list_of_ids = []
     for order in orders:
         list_of_ids.append(order['client_order_number'])
