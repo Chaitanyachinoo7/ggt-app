@@ -802,6 +802,8 @@ class GgtAppointment(BaseModel):
     patient_id: int = None
     patient_questionnaire_id: int = None
 
+    vial_id: str = None
+
     wp_receipt_token: str = None
     wp_customer_info_id: int = None
     total_cost: float = None

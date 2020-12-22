@@ -27,7 +27,7 @@ from ggt.models.data_models.data_types import (
 ########################################################################################################
 
 
-def get_provider_processing_list(offset, consultation_status, consultation_notes, positive_call, limit=20):
+def get_provider_processing_list_db(offset, consultation_status, consultation_notes, positive_call, limit=20, test_id=None):
     try:
         where_conditions = '1=1'
         # where_conditions = '(TO_DAYS(NOW()) - TO_DAYS(t.create_dt)) <= 25'
@@ -52,6 +52,9 @@ def get_provider_processing_list(offset, consultation_status, consultation_notes
         if positive_call == PositiveCall.already_called:
             where_conditions = "{} AND t.test_result ='pos' AND t.consultation_status = '{}'".format(
                 where_conditions, ConsultationStatusEnum.completed)
+        if test_id is not None:
+            where_conditions = "{} AND t.id = {}".format(
+                where_conditions, test_id)
 
         sql = """SELECT 
             p.id AS patient_id,
@@ -368,7 +371,7 @@ def process_consultations(tasks):
         appointment_id = task['appointment_id']
         task['insurance_card_url'] = '/billing/image/{}.png'.format(
             appointment_id)
-        task['test_report_url'] = 'x/billing/report/{}.pdf'.format(
+        task['test_report_url'] = '/billing/report/{}.pdf'.format(
             appointment_id)
         consultation = {
             "consultation_id": consultation_id,
