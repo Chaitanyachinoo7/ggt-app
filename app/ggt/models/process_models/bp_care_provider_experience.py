@@ -5,7 +5,7 @@ from ggt.lib.constants import (
 from ggt.lib.utils import (
     log_generic,
     whoami)
-from ggt.models.data_models.providers import get_provider_processing_list, provider_lock_task, \
+from ggt.models.data_models.providers import get_provider_processing_list_db, provider_lock_task, \
     create_patient_test_consultation, update_consultation_note, provider_complete_task, \
     provider_rollback_to_pending_task
 
@@ -20,7 +20,7 @@ def bp_get_provider_processing_list(offset, consultation_status, consultation_no
         if not offset:
             offset = 0
 
-        return get_provider_processing_list(offset, consultation_status, consultation_notes, positive_call, limit)
+        return get_provider_processing_list_db(offset, consultation_status, consultation_notes, positive_call, limit)
 
     except Exception as err:
         log_generic(

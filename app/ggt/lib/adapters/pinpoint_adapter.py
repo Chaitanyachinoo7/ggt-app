@@ -6,12 +6,8 @@ from ggt.lib.utils import (
     whoami
 )
 
-def send_pinpoint_message(
-        sender_number="+18013867767", 
-        sender_id="MySenderID", 
-        recipient_number="+18018602474", 
-        message="Test"):
 
+def send_pinpoint_message(recipient_number, message, sender_number="+12315986677", sender_id="GoGetTested"):
     # The AWS Region that you want to use to send the message. For a list of
     # AWS Regions where the Amazon Pinpoint API is available, see
     # https://docs.aws.amazon.com/pinpoint/latest/apireference/
@@ -32,7 +28,7 @@ def send_pinpoint_message(
     # The Amazon Pinpoint project/application ID to use when you send this message.
     # Make sure that the SMS channel is enabled for the project or application
     # that you choose.
-    applicationId = "a8ac26c313a6407385ca0846d72b0d28"
+    applicationId = "9deafc4984fc4dc8ad67d007a3672283"
 
     # The type of SMS message that you want to send. If you plan to send
     # time-sensitive content, specify TRANSACTIONAL. If you plan to send
@@ -40,7 +36,7 @@ def send_pinpoint_message(
     messageType = "TRANSACTIONAL"
 
     # The registered keyword associated with the originating short code.
-    registeredKeyword = "myKeyword"
+    # registeredKeyword = "myKeyword"
 
     # The sender ID to use when sending the message. Support for sender ID
     # varies by country or region. For more information, see
@@ -50,8 +46,8 @@ def send_pinpoint_message(
     # Create a new client and specify a region.
     client = boto3.client(
         'pinpoint',
-        aws_access_key_id=ACCESS_KEY,
-        aws_secret_access_key=SECRET_KEY,
+        aws_access_key_id=get_config_val('aws.access_key_id'),
+        aws_secret_access_key=get_config_val('aws.secret_access_key'),
         region_name=region)
     try:
         response = client.send_messages(
@@ -65,7 +61,7 @@ def send_pinpoint_message(
                 'MessageConfiguration': {
                     'SMSMessage': {
                         'Body': message,
-                        'Keyword': registeredKeyword,
+                        # 'Keyword': registeredKeyword,
                         'MessageType': messageType,
                         'OriginationNumber': originationNumber,
                         'SenderId': senderId
@@ -75,8 +71,10 @@ def send_pinpoint_message(
         )
 
     except ClientError as e:
-        print(e.response[ERROR]['Message'])
+        print(e)
+        return False
     else:
-        print("Message sent! Message ID: "
-                + response['MessageResponse']['Result'][destinationNumber]['MessageId'])
-
+        # print("Message sent! Message ID: "
+        #       + response['MessageResponse']['Result'][destinationNumber]['MessageId'])
+        print(response)
+        return True
