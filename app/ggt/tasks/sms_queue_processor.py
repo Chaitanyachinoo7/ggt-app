@@ -69,14 +69,14 @@ def __batch_process_sms_queue(batch_size=100):
         status = row['status']
         to_number = row['to_number']
         message = row['message']
-
+        priority = row['priority']
         if status == 'retry':
-            if send_sms(to_number, message):
+            if send_sms(to_number, message,priority):
                 update_sms_status_to_processed(_id)
             else:
                 update_sms_status_to_error(_id)
         else:
-            if send_sms(to_number, message):
+            if send_sms(to_number, message, priority):
                 update_sms_status_to_processed(_id)
             else:
                 update_sms_status_to_retry(_id)
