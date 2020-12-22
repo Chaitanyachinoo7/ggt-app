@@ -36,7 +36,7 @@ from ggt.tasks.locations_processor import task_populate_location_thumbnails
 from ggt.tasks.locations_processor import task_populate_gps_coordinates
 from ggt.tasks.misc_processor import task_process_misc
 from ggt.tasks.outbound_lab_orders import task_process_outbound_lab_orders
-#from ggt.tasks.hl7_outbound_lab_orders import task_process_hl7_lab_orders
+from ggt.tasks.hl7_outbound_lab_orders import task_process_hl7_lab_orders
 from ggt.tasks.report_notifications import task_schedule_result_notifications_and_followups
 from ggt.tasks.sms_queue_processor import task_process_sms_queue
 

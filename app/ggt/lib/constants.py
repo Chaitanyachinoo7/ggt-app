@@ -32,7 +32,7 @@ CONTACT_CENTER_RT_TAG = 'Contact Center App'
 PRINTER_HUB_RT_TAG = 'Printer Hub'
 REPORT_RT_TAG = 'Reporting'
 CARE_PROVIDER_RT_TAG = 'Care Provider'
-BILLING_RT_TAG = 'Biller App'
+BILLING_RT_TAG = 'Billing App'
 
 #API Prefixes
 CLINICAL_PROVIDER_PATH_PREFIX = '/api/provider'

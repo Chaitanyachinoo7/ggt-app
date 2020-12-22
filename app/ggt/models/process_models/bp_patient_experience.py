@@ -323,7 +323,7 @@ def bp_get_test_result(token: str, dob: str):
 
 def bp_has_appointments(phone_number: str, dob: str) -> bool:
     try:
-        if pointment_count_by_phone_dob(phone_number, dob) > 0:
+        if get_appointment_count_by_phone_dob(phone_number, dob) > 0:
             log_generic(
                 type=c.INFO,
                 phone_number=phone_number,
