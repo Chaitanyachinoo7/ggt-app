@@ -26,23 +26,23 @@ pipelines:
             - aws ecs update-service --region us-west-2 --cluster portal-prod-us-west-2-cluster --service portal-prod-us-west-2-service --force-new-deployment
 
     dev:
-      - step:
-          name: DEV Testing
-          image: python:3.7.9
-          caches:
-            - pip
-          artifacts:
-            - pytest-logs.txt
-          script:
-            - cp app/ggt/configs/config-dev.yml app/ggt/configs/config.yml
-            - cp app/ggt/configs/log-config-dev.yml app/ggt/configs/log-config.yml
-            - cp app/ggt/configs/gcp-service-account-dev.json app/ggt/configs/gcp-service-account.json
-            - apt-get update && apt-get -y install gcc
-            - pip install pipenv
-            - pipenv lock --requirements
-            - pipenv lock --requirements > app/requirements.txt
-            - pip install --no-cache-dir -r app/requirements.txt
-            - pytest -vs
+#      - step:
+#          name: DEV Testing
+#          image: python:3.7.9
+#          caches:
+#            - pip
+#          artifacts:
+#            - pytest-logs.txt
+#          script:
+#            - cp app/ggt/configs/config-dev.yml app/ggt/configs/config.yml
+#            - cp app/ggt/configs/log-config-dev.yml app/ggt/configs/log-config.yml
+#            - cp app/ggt/configs/gcp-service-account-dev.json app/ggt/configs/gcp-service-account.json
+#            - apt-get update && apt-get -y install gcc
+#            - pip install pipenv
+#            - pipenv lock --requirements
+#            - pipenv lock --requirements > app/requirements.txt
+#            - pip install --no-cache-dir -r app/requirements.txt
+#            - pytest -vs
       - step:
           name: Development Deployment
           deployment: staging
@@ -60,6 +60,8 @@ pipelines:
             - docker tag ggt-api:dev 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:dev
             - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:dev
             - aws ecs update-service --region us-east-2 --cluster ggt-api-dev --service ggt-api-dev --force-new-deployment
+            - aws ecs update-service --region us-east-2 --cluster pfe-prod-us-east-2-cluster --service pfe-prod-us-east-2-service --force-new-deployment
+
 
     qa:
       - step:
