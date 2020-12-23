@@ -23,7 +23,7 @@ pipelines:
             - docker tag ggt-api:latest 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:latest
             - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:latest
             - aws ecs update-service --region us-east-2 --cluster ggt-api --service ggt-api-1 --force-new-deployment
-            - aws ecs update-service --region us-west-2 --cluster portal-prod-us-west-2-cluster --service portal-prod-us-west-2-service --force-new-deployment
+            - aws ecs update-service --region us-west-2 --cluster pfe-prod-us-west-2-cluster --service pfe-prod-us-west-2-service --force-new-deployment
 
     dev:
       - step:
