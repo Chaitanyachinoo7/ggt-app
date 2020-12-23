@@ -113,10 +113,10 @@ pipelines:
             - aws configure set aws_access_key_id "${AWS_KEY}"
             - aws configure set aws_secret_access_key "${AWS_SECRET}"
             - aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 135292740376.dkr.ecr.us-east-2.amazonaws.com
-            - docker build -t ggt-api:dev2 .
-            - docker tag ggt-api:dev2 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:dev2
-            - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:dev2
-            - aws ecs update-service --region us-east-2 --cluster pfe-prod-us-east-2-cluster --service pfe-prod-us-east-2-service --force-new-deployment
+            - docker build -t ggt-api:portal .
+            - docker tag ggt-api:portal 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:portal
+            - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:portal
+            - aws ecs update-service --region us-east-2 --cluster portal-prod-us-east-2-cluster --service portal-prod-us-east-2-service --force-new-deployment
 
 
     production-portal:
