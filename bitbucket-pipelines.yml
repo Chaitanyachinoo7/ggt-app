@@ -117,7 +117,7 @@ pipelines:
             - docker tag ggt-api:portal 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:portal
             - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:portal
             - #aws ecs update-service --region us-east-2 --cluster ggt-api --service ggt-api-portal --force-new-deployment
-            - aws ecs update-service --region us-west-2 --cluster portal-prod-us-west-2-cluster --service portal-prod-us-west-2-service --force-new-deployment
+            - aws ecs update-service --region us-east-2 --cluster portal-prod-us-east-2-cluster --service portal-prod-us-east-2-service --force-new-deployment
 
     production-ops:
       - step:
@@ -136,7 +136,7 @@ pipelines:
             - docker build -t ggt-api:ops .
             - docker tag ggt-api:ops 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:ops
             - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:ops
-            - aws ecs update-service --region us-west-2 --cluster ops-prod-us-west-2-cluster --service ops-prod-us-west-2-service --force-new-deployment
+            - aws ecs update-service --region us-east-2 --cluster ops-prod-us-east-2-cluster --service ops-prod-us-east-2-service --force-new-deployment
             - #aws ecs update-service --region us-east-2 --cluster ggt-api --service ggt-api-ops --force-new-deployment
 
 
