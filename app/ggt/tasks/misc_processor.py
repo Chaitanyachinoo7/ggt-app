@@ -405,3 +405,6 @@ def remove_image_from_questionnnaires_table(id):
 
     except Exception as err:
         print(err)
+
+
+    
