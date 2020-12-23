@@ -14,6 +14,10 @@ from ggt.lib.utils import (
     whoami
 )
 
+from ggt.lib.adapters.s3_adapter import (
+    write_text_file
+)
+
 from ggt.lib.db import (
     exec_insert,
     exec_update,
@@ -48,11 +52,20 @@ def task_process_hl7_lab_orders():
         task_session_id=session_id,
         info='Begin Processing outbound HL7 Lab Orders')
 
+    while True:
+        orders = get_orders_ready_to_transmit(100)
+        if len(orders) > 0:
+            processed_orders = create_outbound_files(orders)
+            update_to_with_lab_status(processed_orders)
+            print('--------------------------')
+        else:
+            break
+
     #print('looking up ready to transmit orders')
-    orders = get_orders_ready_to_transmit()
+    #orders = get_orders_ready_to_transmit(100)
 
     # upload_insurance_files_from_gstore(orders)
-
+    '''
     if len(orders) > 0:
         print('generating outbound file')
         #filename, local_file_path = create_outbound_file(orders)
@@ -65,13 +78,14 @@ def task_process_hl7_lab_orders():
         update_to_with_lab_status(processed_orders)
     else:
         print('no orders to process')
-
+    '''
     log_generic(
         type=c.INFO,
         function=whoami(),
         task_session_id=session_id,
         info='End Processing outbound Lab Reports')
     print('\n\n************************************************\n\n')
+
 
 
 
@@ -162,7 +176,7 @@ def __get_pid(order):
 def __get_pv1(order):
     return PV1(
         pv1_1_set_id=1,
-        pv1_3_assigned_patient_location=order['st'],
+        pv1_3_assigned_patient_location=order['test_location_st'],
         # Physician NPI^Provider Last Name^Provider First name
         pv1_7_attending_doctor='{}^{}^{}'.format(order['physician_npi'], 'Khan', 'Samad'),
         pv1_20_financial_class=order['bill']
@@ -364,10 +378,13 @@ def create_outbound_files(orders):
             )
             local_file_path = "{}/{}".format(local_outbound_file_path, filename)
             
+            '''
             with open(local_file_path, 'w', newline='') as hl7file:
                 _str = str(hl7_message).encode("utf-8").decode('utf-8','ignore')
                 hl7file.write(_str)
-            
+            '''
+            write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8','ignore'))
+
             processed_orders.append(order)
 
         except Exception as err:
@@ -379,8 +396,17 @@ def create_outbound_files(orders):
 
     
 
+def write_to_s3(filename, body):
+    bucket_name = 'ggt-sftp'
+    prefix = 'healthtrackrx_merth/prod/orders/'
+    if write_text_file(bucket_name, prefix+filename, body):
+        print('success {}'.format(bucket_name+prefix+filename))
+    else:
+        print('FAILED {}'.format(bucket_name+prefix+filename))
 
-def get_orders_ready_to_transmit():
+
+
+def get_orders_ready_to_transmit(limit=100):
     sql = """
         SELECT 
             t.id AS id,
@@ -479,7 +505,8 @@ def get_orders_ready_to_transmit():
             'Unknown' AS is_hospitalized,
             'Unknown' AS is_in_icu,
             'Unknown' AS is_congregate_resident,
-            'Unknown' AS is_pregnant
+            'Unknown' AS is_pregnant,
+            l.st as test_location_st
         FROM
             (((test_samples t
             JOIN patients p ON ((t.patient_id = p.id)))
@@ -487,8 +514,8 @@ def get_orders_ready_to_transmit():
             JOIN patient_questionnaires q ON ((p.id = q.patient_id)))
         WHERE
             (t.status = 'ready_to_tx')
-        LIMIT 1000
-            """
+        LIMIT {}
+            """.format(limit)
     return read_rows(sql,)
 
 
