@@ -4,6 +4,7 @@ from ggt.lib.utils import (
     x_response,
     y_response
 )
+from ggt.models.data_models.providers import get_provider_processing_list_db
 
 from ggt.models.process_models.bp_care_provider_experience import (
     bp_get_provider_processing_list, bp_lock_provider_task, bp_create_patient_test_consultation,
@@ -41,9 +42,10 @@ def provider_complete_task(complete_task):
     updated = bp_provider_complete_task(complete_task.test_id)
 
     if updated:
-        return x_response(bp_update_consultation_note(complete_task.consultation_id, complete_task.note,
-                                                      complete_task.consultation_type_code,
-                                                      complete_task.resolution_code))
+        bp_update_consultation_note(complete_task.consultation_id, complete_task.note,
+                                    complete_task.consultation_type_code,
+                                    complete_task.resolution_code)
+        return y_response(get_provider_processing_list_db(0, 'any', 'any', 'any', 1, complete_task.test_id))
     else:
         return y_response(None)
 

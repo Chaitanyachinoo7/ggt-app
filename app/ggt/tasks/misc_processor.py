@@ -57,12 +57,10 @@ def task_process_misc():
     # upload_insurance_images_to_gcp()
     # sync_appointments_with_schedule_slots()
     # upload_insurance_images_to_gcp_with_small_table()
-    # process_email_notifications()
+    #process_email_notifications()
     #upload_insurance_files_from_gstore()
-
-    #upload_insurance_files_from_gstore()
-    process_sms_notifications()
-    process_email_notifications()
+    #process_sms_notifications()
+    #process_email_notifications()
 
     log_generic(
         type=c.INFO,
@@ -167,13 +165,13 @@ def process_email_notifications():
 def formatted_email_message(row):
     from_email = cfg('notifications.from_email')
     from_name = cfg('notifications.from_name')
-    subject = "{}, Your Appointment has changed".format(row['first_name'])
+    subject = "{}, IMPORTANT: Your Covid-19 Testing location Closed".format(row['first_name'])
 
     template_vars = {
         "first_name": row['first_name']
     }
 
-    template_name = 'GGT-9-APPOINTMENT-DELAYED-EMAIL.html'
+    template_name = 'GGT-10-APPOINTMENT-CLOSED-EMAIL.html'
     html_content = render_template(template_name, **template_vars)
 
     email_message = {
@@ -219,7 +217,7 @@ def batch_enqueue_sms_notifications(data):
 
 def get_appointments():
     try:
-        sql = """
+        sql2 = """
         SELECT 
             p.first_name, p.phone_number, p.email
         FROM
@@ -227,10 +225,22 @@ def get_appointments():
                 JOIN
             patients p ON a.patient_id = p.id
         WHERE
-            location_id IN ('274','276','278','316','328','330','340','344','346','348','350','352','359','360','361','362','363','364','365','366','367','368','369','370','371','372','373','380','381','382','2383','2384','2385','2397','2399','2405','2406')
-                AND( ( scheduled_dt > '2020-12-15' AND scheduled_dt < '2020-12-15 11:00:00')
-                OR ( scheduled_dt > '2020-12-15 16:00:00' AND scheduled_dt < '2020-12-16'))
-                AND status = 'scheduled'
+            location_id IN (380)
+            AND status = 'scheduled'
+        """
+        sql = """
+        SELECT 
+            p.first_name, p.phone_number, p.email
+        FROM
+            ggt_prod.appointments a
+                JOIN
+            patients p ON a.patient_id = p.id
+        WHERE
+            status = 'test_completed'
+                AND location_id = 369
+                AND (DATE(scheduled_dt) = '2020-12-19'
+                OR DATE(check_in_dt) = '2020-12-19'
+                OR DATE(test_start_dt) = '2020-12-19')
         """
         return read_rows(sql)
 
@@ -239,7 +249,7 @@ def get_appointments():
 
 
 def prepare_sms_text(appointment):
-    return """Hi {}, due to inclement weather, your COVID-19 testing location will have a delayed start to 10:30am and an early closure at 4:30pm. If your appointment is impacted because of this change, please visit GoGetTested.com to register for a new apppointment. We apologize for the inconvenience this may cause.
+    return """Hi {}, we regret to inform you samples that were collected on Saturday 12/19/2020, from the GoGetTested site of New Mt. Zion in Topeka, were stolen at the end of the day from a locked, sample pickup box. Your information was not compromised as no identifiable personal health information was on any of the samples. Please schedule another appointment to retest as quickly as possible, so that you may get your results back as quickly as possible. Thank you.
 
 Reply STOP to cancel msgs
     """.format(appointment["first_name"])
@@ -395,3 +405,6 @@ def remove_image_from_questionnnaires_table(id):
 
     except Exception as err:
         print(err)
+
+
+    
