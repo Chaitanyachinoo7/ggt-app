@@ -23,26 +23,26 @@ pipelines:
             - docker tag ggt-api:latest 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:latest
             - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:latest
             - aws ecs update-service --region us-east-2 --cluster ggt-api --service ggt-api-1 --force-new-deployment
-            - aws ecs update-service --region us-west-2 --cluster portal-prod-us-west-2-cluster --service portal-prod-us-west-2-service --force-new-deployment
+            - aws ecs update-service --region us-east-2 --cluster pfe-prod-us-east-2-cluster --service pfe-prod-us-east-2-service --force-new-deployment
 
     dev:
-#      - step:
-#          name: DEV Testing
-#          image: python:3.7.9
-#          caches:
-#            - pip
-#          artifacts:
-#            - pytest-logs.txt
-#          script:
-#            - cp app/ggt/configs/config-dev.yml app/ggt/configs/config.yml
-#            - cp app/ggt/configs/log-config-dev.yml app/ggt/configs/log-config.yml
-#            - cp app/ggt/configs/gcp-service-account-dev.json app/ggt/configs/gcp-service-account.json
-#            - apt-get update && apt-get -y install gcc
-#            - pip install pipenv
-#            - pipenv lock --requirements
-#            - pipenv lock --requirements > app/requirements.txt
-#            - pip install --no-cache-dir -r app/requirements.txt
-#            - pytest -vs
+      - step:
+          name: DEV Testing
+          image: python:3.7.9
+          caches:
+            - pip
+          artifacts:
+            - pytest-logs.txt
+          script:
+            - cp app/ggt/configs/config-dev.yml app/ggt/configs/config.yml
+            - cp app/ggt/configs/log-config-dev.yml app/ggt/configs/log-config.yml
+            - cp app/ggt/configs/gcp-service-account-dev.json app/ggt/configs/gcp-service-account.json
+            - apt-get update && apt-get -y install gcc
+            - pip install pipenv
+            - pipenv lock --requirements
+            - pipenv lock --requirements > app/requirements.txt
+            - pip install --no-cache-dir -r app/requirements.txt
+            - pytest -vs
       - step:
           name: Development Deployment
           deployment: staging
@@ -60,8 +60,6 @@ pipelines:
             - docker tag ggt-api:dev 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:dev
             - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:dev
             - aws ecs update-service --region us-east-2 --cluster ggt-api-dev --service ggt-api-dev --force-new-deployment
-            - aws ecs update-service --region us-east-2 --cluster pfe-prod-us-east-2-cluster --service pfe-prod-us-east-2-service --force-new-deployment
-
 
     qa:
       - step:
@@ -101,10 +99,11 @@ pipelines:
             - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:dev2
             - aws ecs update-service --region us-east-2 --cluster ggt-api-dev --service ggt-api-dev2 --force-new-deployment
 
+
     production-portal:
       - step:
           name: PROD PORTAL Deployment
-          deployment: staging
+          deployment: production-portal
           caches:
             - docker
           script:
@@ -118,13 +117,13 @@ pipelines:
             - docker build -t ggt-api:portal .
             - docker tag ggt-api:portal 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:portal
             - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:portal
+            - aws ecs update-service --region us-east-2 --cluster portal-prod-us-east-2-cluster --service portal-prod-us-east-2-service --force-new-deployment
             - #aws ecs update-service --region us-east-2 --cluster ggt-api --service ggt-api-portal --force-new-deployment
-            - aws ecs update-service --region us-west-2 --cluster portal-prod-us-west-2-cluster --service portal-prod-us-west-2-service --force-new-deployment
 
     production-ops:
       - step:
           name: PROD OPS Deployment
-          deployment: staging
+          deployment: production-ops
           caches:
             - docker
           script:
@@ -138,7 +137,7 @@ pipelines:
             - docker build -t ggt-api:ops .
             - docker tag ggt-api:ops 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:ops
             - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:ops
-            - aws ecs update-service --region us-west-2 --cluster ops-prod-us-west-2-cluster --service ops-prod-us-west-2-service --force-new-deployment
+            - aws ecs update-service --region us-east-2 --cluster ops-prod-us-east-2-cluster --service ops-prod-us-east-2-service --force-new-deployment
             - #aws ecs update-service --region us-east-2 --cluster ggt-api --service ggt-api-ops --force-new-deployment
 
 
