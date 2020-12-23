@@ -597,9 +597,9 @@ def __get_available_locations_beyond_current_day(date_str, group_code):
                     JOIN
                 locations l ON s.location_id = l.id
                     LEFT JOIN
-                schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
+                cache_schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
                     LEFT JOIN
-                average_processing_times_for_last_5_days pt ON (pt.location_id = s.location_id)
+                cache_location_average_processing_times pt ON (pt.location_id = s.location_id)
                     LEFT JOIN
                 services_to_locations_mapping m ON (m.location_id = s.location_id)
                     LEFT JOIN
@@ -650,7 +650,7 @@ def __get_available_locations_beyond_current_day(date_str, group_code):
                     JOIN
                 locations l ON s.location_id = l.id
                     LEFT JOIN
-                schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
+                cache_schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
                     LEFT JOIN
                 services_to_locations_mapping m ON (m.location_id = s.location_id)
                     LEFT JOIN
@@ -746,9 +746,9 @@ def __get_available_locations_for_current_day(group_code):
                 JOIN
             locations l ON s.location_id = l.id
                 LEFT JOIN
-            schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
-                LEFT JOIN
-            average_processing_times_for_last_5_days pt ON (pt.location_id = s.location_id)
+            cache_schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
+                    LEFT JOIN
+            cache_location_average_processing_times pt ON (pt.location_id = s.location_id)
                 LEFT JOIN
             services_to_locations_mapping m ON (m.location_id = s.location_id)
                 LEFT JOIN
@@ -799,7 +799,7 @@ def __get_available_locations_for_current_day(group_code):
                 JOIN
             locations l ON s.location_id = l.id
                 LEFT JOIN
-            schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
+            cache_schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
                 LEFT JOIN
             services_to_locations_mapping m ON (m.location_id = s.location_id)
                 LEFT JOIN
@@ -893,9 +893,9 @@ def __get_available_locations_beyond_current_day_near_lat_lng(lat, lng, radius, 
                     JOIN
                 locations l ON s.location_id = l.id
                     LEFT JOIN
-                schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
+                cache_schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
                     LEFT JOIN
-                average_processing_times_for_last_5_days pt ON (pt.location_id = s.location_id)
+                cache_location_average_processing_times pt ON (pt.location_id = s.location_id)
                     LEFT JOIN
                 services_to_locations_mapping m ON (m.location_id = s.location_id)
                     LEFT JOIN
@@ -985,9 +985,9 @@ def __get_available_locations_for_current_day_near_lat_lng(lat, lng, radius, gro
                     JOIN
                 locations l ON s.location_id = l.id
                     LEFT JOIN
-                schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
+                cache_schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
                     LEFT JOIN
-                average_processing_times_for_last_5_days pt ON (pt.location_id = s.location_id)
+                cache_location_average_processing_times pt ON (pt.location_id = s.location_id)
                     LEFT JOIN
                 services_to_locations_mapping m ON (m.location_id = s.location_id)
                     LEFT JOIN
@@ -1067,9 +1067,9 @@ def __get_all_available_dtl(group_code):
                 JOIN
             locations l ON s.location_id = l.id
                 LEFT JOIN
-            schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
-                LEFT JOIN
-            average_processing_times_for_last_5_days pt ON (pt.location_id = s.location_id)
+            cache_schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
+                    LEFT JOIN
+            cache_location_average_processing_times pt ON (pt.location_id = s.location_id)
                 LEFT JOIN
             services_to_locations_mapping m ON (m.location_id = s.location_id)
                 LEFT JOIN
@@ -1121,7 +1121,7 @@ def __get_all_available_dtl(group_code):
                 JOIN
             locations l ON s.location_id = l.id
                 LEFT JOIN
-            schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
+            cache_schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
                 LEFT JOIN
             services_to_locations_mapping m ON (m.location_id = s.location_id)
                 LEFT JOIN
