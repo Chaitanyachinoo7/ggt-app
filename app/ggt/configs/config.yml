@@ -120,7 +120,7 @@ vendors:
     remote_insurance_images_path: /insurance_files
     remote_backups_path: /backups
     remote_processed_orders_path: /processed_order_files
-    local_download_path: /Users/suresh/ggt-tasks/downloads
+    local_download_path: /Users/suresh/ggt-tasks/downloads/healthtrackrx/Reports
     local_outbound_file_path: /Users/suresh/ggt-tasks/outbound
     local_insurance_card_file_path: /Users/suresh/ggt-tasks/insurance_images
     local_process_summary_path: /Users/suresh/ggt-tasks/process_summary
@@ -136,7 +136,7 @@ vendors:
     remote_insurance_images_path: /ggt-sftp/healthtrackrx/insurance_files
     remote_backups_path: /ggt-sftp/healthtrackrx/backups
     remote_processed_orders_path: /ggt-sftp/healthtrackrx/processed_order_files
-    local_download_path: /Users/suresh/ggt-tasks/downloads/ggt-sftp/healthtrackrx
+    local_download_path: /Users/suresh/ggt-tasks/downloads/healthtrackrx/Reports
     local_outbound_file_path: /Users/suresh/ggt-tasks/outbound
     local_insurance_card_file_path: /Users/suresh/ggt-tasks/insurance_images
     local_process_summary_path: /Users/suresh/ggt-tasks/process_summary
