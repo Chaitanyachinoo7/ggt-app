@@ -76,22 +76,11 @@ def download_billing_list(offset, limit):
 
 
 def get_image_from_bucket(image_id):
-    return StreamingResponse(bp_image_from_bucket(image_id),
-                            media_type="image/png",
-                            headers={
-                                 'Content-Disposition': 'inline; filename="insurance_card.png"'
-                            }
-    )
+    return bp_image_from_bucket(image_id)
 
 
 def get_report_from_bucket(report_id):
-    return StreamingResponse(
-        bp_report_from_bucket(report_id),
-        media_type="application/pdf",
-        headers={
-            'Content-Disposition': 'filename="report.pdf"'
-        }
-    )
+    return bp_report_from_bucket(report_id)
 
 ########################################################################################################
 # [Protected] functions

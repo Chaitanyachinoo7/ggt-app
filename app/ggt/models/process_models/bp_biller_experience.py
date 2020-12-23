@@ -1,3 +1,6 @@
+from fastapi import HTTPException
+from starlette.responses import StreamingResponse
+
 from ggt.lib.storage import get_file_blob
 from ggt.lib.utils import (
     get_config_val)
@@ -11,9 +14,9 @@ from ggt.models.data_models.billers import get_billing_list, update_billing_stat
 
 
 def bp_get_billing_list(offset, status, from_dt, to_dt, limit, sort, pre_consulted,
-                              provider_reviewed, test_status, appointment_status):
+                        provider_reviewed, test_status, appointment_status):
     return get_billing_list(offset, status, from_dt, to_dt, limit, sort, pre_consulted, provider_reviewed,
-                                  test_status, appointment_status)
+                            test_status, appointment_status)
 
 
 def bp_update_billing_status(appointment_id):
@@ -39,7 +42,7 @@ def bp_delete_insurance_record(record):
 def bp_download_billing_list(offset, limit):
     _offset = offset
     _limit = 500
-    factor = int(limit/500)
+    factor = int(limit / 500)
     reminder = limit % 500
     temp = factor + 1 if reminder == 0 else factor + 2
     for x in range(1, temp):
@@ -63,18 +66,36 @@ def bp_download_billing_list(offset, limit):
 def bp_image_from_bucket(image_id):
     insurance_cards_bucket_name = get_config_val('gcp.insurance_cards_bucket_name')
     blob = get_file_blob(insurance_cards_bucket_name, image_id)
+
+    def get_image(b):
+        yield b.download_as_bytes()
+
     if blob:
-        yield blob.download_as_bytes()
+        return StreamingResponse(get_image(blob),
+                                 media_type="image/png",
+                                 headers={
+                                     'Content-Disposition': 'inline; filename="insurance_card.png"'
+                                 }
+                                 )
+
     else:
-        return None
+        raise HTTPException(status_code=404, detail='Image not found')
 
 
 def bp_report_from_bucket(image_id):
     lab_reports_bucket_name = get_config_val('gcp.lab_reports_bucket_name')
     blob = get_file_blob(lab_reports_bucket_name, image_id)
+
+    def get_report(b):
+        yield b.download_as_bytes()
+
     if blob:
-        yield blob.download_as_bytes()
+        return StreamingResponse(
+            get_report(blob),
+            media_type="application/pdf",
+            headers={
+                'Content-Disposition': 'filename="report.pdf"'
+            }
+        )
     else:
-        return None
-
-
+        raise HTTPException(status_code=404, detail='Report not found')
