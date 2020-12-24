@@ -191,7 +191,7 @@ async def reminder_sms():
     return {STATUS: SUCCESS}
 
 
-@router.get("/app_info", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+@router.get("/app_info_v2", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_app_info():
     r = requests.get('http://curlmyip.org/')
     return {
