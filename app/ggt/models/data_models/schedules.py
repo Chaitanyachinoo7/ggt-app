@@ -858,7 +858,7 @@ def __get_available_locations_for_current_day(group_code):
 
 def __get_available_locations_beyond_current_day_near_lat_lng(lat, lng, radius, date_str, group_code):
     try:
-        sql = """
+        sql_old = """
             SELECT 
                 s.location_id,
                 l.name AS name,
@@ -914,6 +914,45 @@ def __get_available_locations_beyond_current_day_near_lat_lng(lat, lng, radius, 
                     g.group_code = %s)
             GROUP BY c.id, nd.location_id , pt.average_processing_time
             ORDER BY distance
+        """
+
+        sql = """
+            SELECT 
+                location_id,
+                name,
+                addr1,
+                addr2,
+                city,
+                st,
+                zip,
+                lat,
+                lng,
+                (3963 * ACOS(COS(RADIANS(%s)) * COS(RADIANS(lat)) * COS(RADIANS(lng) - RADIANS(%s)) + SIN(RADIANS(%s)) * SIN(RADIANS(lat)))) AS distance,
+                image_thumbnail,
+                billing_type,
+                collect_insurance_info,
+                allow_insurance_skip,
+                collect_upfront_payment,
+                service_id,
+                service_code,
+                service_name,
+                price,
+                selfpay_amount,
+                copay_amount,
+                insurance_amount,
+                first_date_time_available,
+                slot_count,
+                accepts_bookings,
+                accepts_walkins,
+                operator,
+                phone_number,
+                website,
+                open_hours,
+                is_external
+            FROM
+                cache_location_search_base_view
+            WHERE
+                (3963 * ACOS(COS(RADIANS(%s)) * COS(RADIANS(lat)) * COS(RADIANS(lng) - RADIANS(%s)) + SIN(RADIANS(%s)) * SIN(RADIANS(lat)))) < %s
         """
         vals = (lat, lng, lat, lat, lng, lat, radius, date_str, group_code)
 

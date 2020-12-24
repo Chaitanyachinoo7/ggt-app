@@ -37,6 +37,7 @@ from ggt.tasks.locations_processor import task_populate_gps_coordinates
 from ggt.tasks.misc_processor import task_process_misc
 from ggt.tasks.outbound_lab_orders import task_process_outbound_lab_orders
 from ggt.tasks.hl7_outbound_lab_orders import task_process_hl7_lab_orders
+from ggt.tasks.CRL_outbound_lab_orders import task_process_crl_lab_orders
 from ggt.tasks.report_notifications import task_schedule_result_notifications_and_followups
 from ggt.tasks.sms_queue_processor import task_process_sms_queue
 
@@ -64,7 +65,7 @@ async def api_process_outbound_lab_orders(background_tasks: BackgroundTasks):
     }
 
 
-@router.post("/process_process_hl7_lab_orders", dependencies=[Security(authorize_user, scopes=[p.PROCESS_PROCESS_OUTBOUND_LAB_ORDERS])])
+@router.post("/process_hl7_lab_orders", dependencies=[Security(authorize_user, scopes=[p.PROCESS_PROCESS_OUTBOUND_LAB_ORDERS])])
 async def api_process_hl7_lab_orders(background_tasks: BackgroundTasks):
     background_tasks.add_task(task_process_hl7_lab_orders)
     return {
@@ -73,8 +74,20 @@ async def api_process_hl7_lab_orders(background_tasks: BackgroundTasks):
     }
 
 
-@router.post("/archive_processed_notifications", dependencies=[Security(authorize_user,
-                                                                        scopes=[p.ARCHIVE_PROCESSED_NOTIFICATIONS])])
+@router.post("/process_crl_lab_orders", dependencies=[Security(authorize_user, scopes=[p.PROCESS_PROCESS_OUTBOUND_LAB_ORDERS])])
+async def api_process_crl_lab_orders(background_tasks: BackgroundTasks):
+    background_tasks.add_task(task_process_crl_lab_orders)
+    return {
+        STATUS: SUCCESS,
+        DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
+    }
+
+
+
+
+
+
+@router.post("/archive_processed_notifications", dependencies=[Security(authorize_user,                                                                        scopes=[p.ARCHIVE_PROCESSED_NOTIFICATIONS])])
 async def api_archive_processed_notifications(background_tasks: BackgroundTasks):
     background_tasks.add_task(archive_processed_notifications)
     return {
@@ -100,11 +113,35 @@ async def api_process_voice_queue(background_tasks: BackgroundTasks):
         DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
     }
 
-
+'''
 @router.post("/process_email_queue", dependencies=[Security(authorize_user, scopes=[p.PROCESS_EMAIL_QUEUE])])
 async def api_process_email_queue():
     task_process_email_queue()
     return {STATUS: SUCCESS}
+
+
+
+@router.post("/process_sms_queue", dependencies=[Security(authorize_user, scopes=[p.PROCESS_SMS_QUEUE])])
+async def api_process_sms_queue():
+    task_process_sms_queue()
+    return {STATUS: SUCCESS}
+'''
+@router.post("/process_email_queue", dependencies=[Security(authorize_user, scopes=[p.PROCESS_EMAIL_QUEUE])])
+async def api_process_email_queue(background_tasks: BackgroundTasks):
+    background_tasks.add_task(task_process_email_queue)
+    return {
+        STATUS: SUCCESS,
+        DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
+    }
+
+@router.post("/process_sms_queue", dependencies=[Security(authorize_user, scopes=[p.PROCESS_SMS_QUEUE])])
+async def api_process_sms_queue(background_tasks: BackgroundTasks):
+    background_tasks.add_task(task_process_sms_queue)
+    return {
+        STATUS: SUCCESS,
+        DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
+    }
+
 
 
 @router.post("/notify_patients_relocate", dependencies=[Security(authorize_user, scopes=[p.NOTIFY_PATIENTS])])
@@ -124,11 +161,6 @@ async def api_notify_patients(request: PatientRescheduleNotificationRequest, bac
         DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
     }
 
-
-@router.post("/process_sms_queue", dependencies=[Security(authorize_user, scopes=[p.PROCESS_SMS_QUEUE])])
-async def api_process_sms_queue():
-    task_process_sms_queue()
-    return {STATUS: SUCCESS}
 
 
 @router.post("/populate_location_thumbnails", dependencies=[Security(authorize_user, scopes=[p.POPULATE_LOCATION_THUMBNAILS])])

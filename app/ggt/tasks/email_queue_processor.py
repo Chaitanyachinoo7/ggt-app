@@ -44,7 +44,7 @@ def __batch_process_email_queue(batch_size=100):
     SELECT * FROM email_notification_queue 
     WHERE status 
         IN ('pending','retry') 
-    ORDER BY ID
+    ORDER BY ID DESC
     LIMIT {}
     """.format(batch_size)
     rows = read_rows(sql)

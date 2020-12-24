@@ -165,13 +165,13 @@ def process_email_notifications():
 def formatted_email_message(row):
     from_email = cfg('notifications.from_email')
     from_name = cfg('notifications.from_name')
-    subject = "{}, IMPORTANT: Your Covid-19 Testing location Closed".format(row['first_name'])
+    subject = "{}, IMPORTANT: update about your recent Covid-19 Test".format(row['first_name'])
 
     template_vars = {
         "first_name": row['first_name']
     }
 
-    template_name = 'GGT-10-APPOINTMENT-CLOSED-EMAIL.html'
+    template_name = 'GGT-13-RESULT-DELAYED-EMAIL.html'
     html_content = render_template(template_name, **template_vars)
 
     email_message = {
@@ -228,7 +228,7 @@ def get_appointments():
             location_id IN (380)
             AND status = 'scheduled'
         """
-        sql = """
+        sql3 = """
         SELECT 
             p.first_name, p.phone_number, p.email
         FROM
@@ -242,6 +242,37 @@ def get_appointments():
                 OR DATE(check_in_dt) = '2020-12-19'
                 OR DATE(test_start_dt) = '2020-12-19')
         """
+
+        sql4 = """
+        SELECT 
+            p.first_name, p.phone_number, p.email
+        FROM
+            ggt_prod.appointments a
+                JOIN
+            patients p ON a.patient_id = p.id
+        WHERE
+            status = 'scheduled'
+            AND location_id IN (2414, 2417)
+            AND scheduled_dt > '2020-12-23'
+            AND scheduled_dt < '2020-12-24'
+        """
+
+        sql = """
+        SELECT 
+            p.first_name, p.phone_number, p.email
+        FROM
+            test_samples t
+            JOIN
+                    patients p ON t.patient_id = p.id
+        WHERE
+            t.status = 'with_lab'
+                AND t.create_dt < '2020-12-23'
+        LIMIT 22000,4000
+
+
+        """
+
+
         return read_rows(sql)
 
     except Exception as err:
@@ -249,9 +280,7 @@ def get_appointments():
 
 
 def prepare_sms_text(appointment):
-    return """Hi {}, we regret to inform you samples that were collected on Saturday 12/19/2020, from the GoGetTested site of New Mt. Zion in Topeka, were stolen at the end of the day from a locked, sample pickup box. Your information was not compromised as no identifiable personal health information was on any of the samples. Please schedule another appointment to retest as quickly as possible, so that you may get your results back as quickly as possible. Thank you.
-
-Reply STOP to cancel msgs
+    return """Hi {}, Thank you for choosing to take your COVID-19 test with GoGetTested. We are experiencing a higher than normal surge in testing and resulting because of the rise in cases during this holiday season. This may cause longer than expected result times. Our lab partners are working hard to process results as fast as possible, and results might not be available until Friday. We apologize foe the inconvenience and appreciate your patience with us as we continue to offer testing services.
     """.format(appointment["first_name"])
 
 
