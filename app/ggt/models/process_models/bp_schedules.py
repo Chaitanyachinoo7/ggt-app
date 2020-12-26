@@ -121,7 +121,7 @@ def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: float, rad
                     'collect_insurance_info': dtl.location.collect_insurance_info,
                     'allow_insurance_skip': dtl.location.allow_insurance_skip,
                     'collect_upfront_payment': dtl.location.collect_upfront_payment,
-                    'next_test_date': dtl.first_date_time_available.strftime("%a, %-d %b %Y @ %-I:%M %p"),
+                    'next_test_date': dtl.first_date_time_available.strftime("%a, %-d %b %Y @ %-I:%M %p") if dtl.first_date_time_available else None,
                     'wait_time_mins': '< 10m',
                     'result_time_hours': '{}h'.format(dtl.average_processing_time),
                     'slots_available': dtl.slot_count*8,
