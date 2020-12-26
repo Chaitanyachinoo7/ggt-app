@@ -335,15 +335,11 @@ def get_all_available_dtl(group_code):
 
 
 def get_available_locations(date_str, group_code):
-    today = date.today().strftime("%Y-%m-%d")
-    if date_str == today:
-        return __get_available_locations_for_current_day(group_code)
-    else:
-        return __get_available_locations_beyond_current_day(date_str, group_code)
+    return __get_available_locations_by_date_near_lat_lng(32.779167, 96.808891, 100000, date_str, group_code, True)
 
 
-def get_available_locations_near_lat_lng(lat, lng, radius, date_str, group_code):
-    return __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, group_code)
+def get_available_locations_near_lat_lng(lat, lng, radius, date_str, group_code, map_thumbnail=False):
+    return __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, group_code, map_thumbnail)
 
 
 def get_processing_averages_by_location():
@@ -557,303 +553,9 @@ def get_slots_matching_dt_list(dt_list, location_id):
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
-def __get_available_locations_beyond_current_day(date_str, group_code):
+def __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, group_code, map_thumbnail):
     try:
-        sql1 = """
-            SELECT 
-                nd.location_id,
-                l.name AS name,
-                l.addr1 AS addr1,
-                l.addr2 AS addr2,
-                l.city AS city,
-                l.st AS st,
-                l.zip AS zip,
-                l.lat AS lat,
-                l.lng AS lng,
-                l.image_thumbnail,
-                l.billing_type,
-                l.collect_insurance_info,
-                l.allow_insurance_skip,
-                l.collect_upfront_payment,
-                c.id AS service_id,
-                c.service_code,
-                c.service_name,
-                c.price,
-                c.selfpay_amount,
-                c.copay_amount,
-                c.insurance_amount,
-                nd.first_date_available AS first_date_time_available,
-                (CASE
-                    WHEN (pt.average_processing_time IS NULL) THEN 48
-                    ELSE pt.average_processing_time
-                END) AS average_processing_time,
-                COUNT(DISTINCT (s.start_dt)) AS slot_count
-            FROM
-                schedules s
-                    JOIN
-                locations l ON s.location_id = l.id
-                    LEFT JOIN
-                cache_schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
-                    LEFT JOIN
-                cache_location_average_processing_times pt ON (pt.location_id = s.location_id)
-                    LEFT JOIN
-                services_to_locations_mapping m ON (m.location_id = s.location_id)
-                    LEFT JOIN
-                services_catalog c ON (c.id = m.service_id)
-            WHERE
-                1 AND DATE(s.start_dt) = %s
-                    AND s.status = 'available'
-                    AND s.location_id IN (
-                        SELECT 
-                            m.location_id
-                        FROM
-                            group_codes_to_locations_mapping m
-                                INNER JOIN
-                            groups g ON (g.id = m.group_id)
-                        WHERE
-                            g.group_code = %s)
-            GROUP BY c.id, nd.location_id , pt.average_processing_time
-            ORDER BY l.st, l.city
-        """
-        sql2 = """
-            SELECT 
-                nd.location_id,
-                l.name AS name,
-                l.addr1 AS addr1,
-                l.addr2 AS addr2,
-                l.city AS city,
-                l.st AS st,
-                l.zip AS zip,
-                l.lat AS lat,
-                l.lng AS lng,
-                l.image_thumbnail,
-                l.billing_type,
-                l.collect_insurance_info,
-                l.allow_insurance_skip,
-                l.collect_upfront_payment,
-                c.id AS service_id,
-                c.service_code,
-                c.service_name,
-                c.price,
-                c.selfpay_amount,
-                c.copay_amount,
-                c.insurance_amount,
-                nd.first_date_available AS first_date_time_available,
-                '48' AS average_processing_time,
-                COUNT(DISTINCT (s.start_dt)) AS slot_count
-            FROM
-                schedules s
-                    JOIN
-                locations l ON s.location_id = l.id
-                    LEFT JOIN
-                cache_schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
-                    LEFT JOIN
-                services_to_locations_mapping m ON (m.location_id = s.location_id)
-                    LEFT JOIN
-                services_catalog c ON (c.id = m.service_id)
-            WHERE
-                1 AND DATE(s.start_dt) = %s
-                    AND s.status = 'available'
-                    AND s.location_id IN (
-                        SELECT 
-                            m.location_id
-                        FROM
-                            group_codes_to_locations_mapping m
-                                INNER JOIN
-                            groups g ON (g.id = m.group_id)
-                        WHERE
-                            g.group_code = %s)
-            GROUP BY c.id, nd.location_id
-            ORDER BY l.st, l.city
-        """
-        vals = (date_str, group_code)
-
-        '''
-        log_generic(
-            type=c.INFO,
-            function=whoami(),
-            group_code=group_code,
-            date=date_str,
-            info='looking_up_available_locations_beyond_current_day'
-        )
-        '''
-
-        try:
-            return __map_rows_to_dtl_list(
-                replica_read_rows(sql1, vals)
-            )
-        except Exception as err:
-            print('Query1 Failed. Using Query2')
-            log_generic(
-                type=c.ERROR,
-                function=whoami(),
-                group_code=group_code,
-                date=date_str,
-                error=err
-            )
-            return __map_rows_to_dtl_list(
-                replica_read_rows(sql2, vals)
-            )
-
-    except Exception as err:
-        log_generic(
-            type=c.ERROR,
-            function=whoami(),
-            group_code=group_code,
-            date=date_str,
-            error=err
-        )
-        return None
-
-
-def __get_available_locations_for_current_day(group_code):
-    try:
-        sql1 = """
-        SELECT 
-            nd.location_id,
-            l.name AS name,
-            l.addr1 AS addr1,
-            l.addr2 AS addr2,
-            l.city AS city,
-            l.st AS st,
-            l.zip AS zip,
-            l.lat AS lat,
-            l.lng AS lng,
-            l.image_thumbnail,
-            l.billing_type,
-            l.collect_insurance_info,
-            l.allow_insurance_skip,
-            l.collect_upfront_payment,
-            c.id AS service_id,
-            c.service_code,
-            c.service_name,
-            c.price,
-            c.selfpay_amount,
-            c.copay_amount,
-            c.insurance_amount,
-            nd.first_date_available AS first_date_time_available,
-            (CASE
-                WHEN (pt.average_processing_time IS NULL) THEN 48
-                ELSE pt.average_processing_time
-            END) AS average_processing_time,
-            COUNT(DISTINCT (s.start_dt)) AS slot_count
-        FROM
-            schedules s
-                JOIN
-            locations l ON s.location_id = l.id
-                LEFT JOIN
-            cache_schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
-                    LEFT JOIN
-            cache_location_average_processing_times pt ON (pt.location_id = s.location_id)
-                LEFT JOIN
-            services_to_locations_mapping m ON (m.location_id = s.location_id)
-                LEFT JOIN
-            services_catalog c ON (c.id = m.service_id)
-        WHERE
-            DATE(nd.first_date_available) = DATE(s.start_dt)
-                AND s.status = 'available'
-                AND s.location_id IN (
-                    SELECT 
-                        m.location_id
-                    FROM
-                        group_codes_to_locations_mapping m
-                            INNER JOIN
-                        groups g ON (g.id = m.group_id)
-                    WHERE
-                        g.group_code = %s)
-        GROUP BY c.id, nd.location_id , pt.average_processing_time
-        ORDER BY l.st, l.city
-        """
-        sql2 = """
-        SELECT 
-            nd.location_id,
-            l.name AS name,
-            l.addr1 AS addr1,
-            l.addr2 AS addr2,
-            l.city AS city,
-            l.st AS st,
-            l.zip AS zip,
-            l.lat AS lat,
-            l.lng AS lng,
-            l.image_thumbnail,
-            l.billing_type,
-            l.collect_insurance_info,
-            l.allow_insurance_skip,
-            l.collect_upfront_payment,    
-            c.id AS service_id,
-            c.service_code,
-            c.service_name,
-            c.price,
-            c.selfpay_amount,
-            c.copay_amount,
-            c.insurance_amount,        
-            nd.first_date_available AS first_date_time_available,
-            '48' AS average_processing_time,
-            COUNT(DISTINCT (s.start_dt)) AS slot_count
-        FROM
-            schedules s
-                JOIN
-            locations l ON s.location_id = l.id
-                LEFT JOIN
-            cache_schedule_next_available_location_and_date nd ON (nd.location_id = s.location_id)
-                LEFT JOIN
-            services_to_locations_mapping m ON (m.location_id = s.location_id)
-                LEFT JOIN
-            services_catalog c ON (c.id = m.service_id)
-        WHERE
-            DATE(nd.first_date_available) = DATE(s.start_dt)
-                AND s.status = 'available'
-                AND s.location_id IN (
-                    SELECT 
-                        m.location_id
-                    FROM
-                        group_codes_to_locations_mapping m
-                            INNER JOIN
-                        groups g ON (g.id = m.group_id)
-                    WHERE
-                        g.group_code = %s)
-        GROUP BY c.id, nd.location_id
-        ORDER BY l.st, l.city
-        """
-        vals = (group_code,)
-
-        '''
-        log_generic(
-            type=c.INFO,
-            function=whoami(),
-            group_code=group_code,
-            info='looking_up_available_locations_for_current_day'
-        )
-        '''
-
-        try:
-            return __map_rows_to_dtl_list(
-                replica_read_rows(sql1, vals)
-            )
-        except Exception as err:
-            print('Query1 Failed. Using Query2')
-            log_generic(
-                type=c.ERROR,
-                function=whoami(),
-                group_code=group_code,
-                error=err
-            )
-            return __map_rows_to_dtl_list(
-                replica_read_rows(sql2, vals)
-            )
-
-    except Exception as err:
-        log_generic(
-            type=c.ERROR,
-            function=whoami(),
-            group_code=group_code,
-            error=err
-        )
-        return None
-
-
-def __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, group_code):
-    try:
+        map_thumbnail_field = 'l.image_thumbnail,' if map_thumbnail else "'' as image_thumbnail,"
         sql = """
         SELECT 
             l.id AS location_id,
@@ -866,7 +568,7 @@ def __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, g
             l.lat,
             l.lng,
             (3963 * ACOS(COS(RADIANS(%s)) * COS(RADIANS(l.lat)) * COS(RADIANS(l.lng) - RADIANS(%s)) + SIN(RADIANS(%s)) * SIN(RADIANS(l.lat)))) AS distance,
-            l.image_thumbnail,
+            {}
             l.billing_type,
             l.collect_insurance_info,
             l.allow_insurance_skip,
@@ -914,7 +616,8 @@ def __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, g
                 WHERE
                     g.group_code = %s)
         ORDER BY distance    
-        """
+        """.format(map_thumbnail_field)
+        
         vals = (lat, lng, lat, lat, lng, lat, radius, date_str, group_code)
 
         '''

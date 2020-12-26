@@ -104,12 +104,6 @@ def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: float, rad
                 dtl.location.zip
             )
 
-            if dtl.location.image_thumbnail:
-                map_thumbnail = 'data:image/jpeg;base64,{}'.format(
-                    dtl.location.image_thumbnail)
-            else:
-                map_thumbnail = get_map_thumbnail_url(location_text)
-
             available_locations.append(
                 {
                     'id': dtl.location.id,
@@ -126,7 +120,6 @@ def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: float, rad
                     'result_time_hours': '{}h'.format(dtl.average_processing_time),
                     'slots_available': dtl.slot_count,
                     'type': 'public',
-                    'map_thumbnail': map_thumbnail,
                     'services_available': dtl.location.services_available,
                     'distance': dtl.distance,
                     'external': dtl.is_external,
