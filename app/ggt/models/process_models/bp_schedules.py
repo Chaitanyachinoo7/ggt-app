@@ -124,7 +124,7 @@ def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: float, rad
                     'next_test_date': dtl.first_date_time_available.strftime("%a, %-d %b %Y @ %-I:%M %p") if dtl.first_date_time_available else None,
                     'wait_time_mins': '< 10m',
                     'result_time_hours': '{}h'.format(dtl.average_processing_time),
-                    'slots_available': dtl.slot_count*8,
+                    'slots_available': dtl.slot_count,
                     'type': 'public',
                     'map_thumbnail': map_thumbnail,
                     'services_available': dtl.location.services_available,
