@@ -80,3 +80,49 @@ In Dev or Prod:
 Launch cloudshell
 `gsutil cp "gs://ggt-db-exports/Cloud_SQL_Export_2020-11-17 (15:49:58).sql" gs://ggt-dev-db-exports/`
 In Dev "import" file to Cloud SQL instance
+
+
+
+Aurora MYSQL Events:
+Update Parameter Group to enable // Events = On, and restart nodes
+
+Ref# https://medium.com/@buddhi.amigo/scheduled-events-with-aws-aurora-part-1-99f4e18d1658
+
+Create Simple Event:
+========================
+DELIMITER ;;
+CREATE EVENT `basic_scheduled_event` 
+ON SCHEDULE EVERY 1 DAY
+DO BEGIN
+  # Add the business logic here.
+END;
+;;
+DELIMITER ;
+
+Create Threadsafe Event:
+========================
+DELIMITER ;;
+CREATE EVENT `advance_scheduled_event` 
+ON SCHEDULE EVERY 2 SECOND 
+DO BEGIN
+  DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+  BEGIN
+   DO RELEASE_LOCK('advance_scheduled_event');
+  END;
+  IF GET_LOCK('advance_scheduled_event', 0) THEN
+   # Add the business logic here.
+  END IF;
+  DO RELEASE_LOCK('advance_scheduled_event');
+END;
+;;
+DELIMITER ;
+
+View Events:
+========================
+`SHOW EVENTS`
+
+Delete Event:
+========================
+`DROP EVENT IF EXISTS basic_scheduled_event`
+
+
