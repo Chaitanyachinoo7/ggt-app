@@ -617,10 +617,11 @@ def __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, g
                     groups g ON (g.id = glm.group_id)
                 WHERE
                     g.group_code = %s)
+        GROUP BY l.id
         ORDER BY distance    
         """.format(map_thumbnail_field)
 
-        vals = (lat, lng, lat, lat, lng, lat, radius, date_str, group_code)
+        vals = (lat, lng, lat, lat, lng, lat, radius, group_code)
 
         return __map_rows_to_dtl_list(
             read_rows(sql, vals)
