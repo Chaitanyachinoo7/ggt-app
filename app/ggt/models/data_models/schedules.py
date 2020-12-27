@@ -580,7 +580,7 @@ def __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, g
             c.selfpay_amount,
             c.copay_amount,
             c.insurance_amount,
-            smc.first_available_slot AS first_date_time_available,
+            MIN(smc.first_available_slot) AS first_date_time_available,
             smc.available_slots_count AS slot_count,
             (CASE
                 WHEN (lmc.average_processing_time IS NULL) THEN 48
@@ -603,10 +603,12 @@ def __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, g
             schedules_metrics_cache smc ON (smc.location_id = l.id)
                 LEFT JOIN
             locations_metrics_cache lmc ON (lmc.location_id = l.id)
-        WHERE
-            l.status = 'enabled'
+        WHERE   
+            1=1
+                AND l.status = 'enabled'
+                AND smc.first_available_slot IS NOT NULL
+                AND smc.first_available_slot >= CONVERT_TZ(NOW(), '+00:00', '-06:00')
                 AND (3963 * ACOS(COS(RADIANS(%s)) * COS(RADIANS(l.lat)) * COS(RADIANS(l.lng) - RADIANS(%s)) + SIN(RADIANS(%s)) * SIN(RADIANS(l.lat)))) < %s
-                AND smc.local_scheduled_date = DATE(%s)
                 AND l.id IN (SELECT 
                     glm.location_id
                 FROM
