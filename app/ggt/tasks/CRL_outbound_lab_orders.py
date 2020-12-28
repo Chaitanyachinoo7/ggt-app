@@ -91,10 +91,10 @@ def make_api_request(order):
             }
         },
         "labAccount": {
-            "client": "ABC",
-            "region": "DEFG",
-            "ref1": "12345678",
-            "ref2": "98765432"
+            "client": "CRL",
+            "region": "EMCT",
+            "ref1": "",
+            "ref2": ""
         },
         "recipient": {
             "firstName": order['first_name'],
@@ -170,21 +170,21 @@ def get_orders_ready_to_transmit(limit=100):
                     DATE_FORMAT(CONVERT_TZ(t.sample_collection_start_dt,
                             '+00:00',
                             '-06:00'),
-                    '%Y%m%d')
+                    '%Y-%m-%d %H:%m:%s.000')
                 WHEN (t.sample_collection_end_dt IS NOT NULL) THEN 
                     DATE_FORMAT(CONVERT_TZ(t.sample_collection_end_dt,
                             '+00:00',
                             '-06:00'),
-                    '%Y%m%d')
+                    '%Y-%m-%d %H:%m:%s.000')
                 WHEN (t.pre_ship_label_scan_dt IS NOT NULL) THEN 
                     DATE_FORMAT(CONVERT_TZ(t.pre_ship_label_scan_dt,
                             '+00:00',
                             '-06:00'),
-                    '%Y%m%d')
+                    '%Y-%m-%d %H:%m:%s.000')
                 ELSE DATE_FORMAT(CONVERT_TZ(NOW(),
                             '+00:00',
                             '-06:00'),
-                    '%Y%m%d')
+                    '%Y-%m-%d %H:%m:%s.000')
             END) AS date_of_collection,
             (CASE
                 WHEN (p.race = 'race_american_indian') THEN 'American Indian or Alaska Native'
@@ -196,10 +196,10 @@ def get_orders_ready_to_transmit(limit=100):
                 ELSE 'Unknown/undetermined'
             END) AS race,
             (CASE
-                WHEN (p.ethnicity = 'true') THEN 'H'
-                WHEN (p.ethnicity = 'false') THEN 'N'
-                WHEN (p.ethnicity = 'hispanic_latino_spanish') THEN 'H'
-                ELSE 'Unknown'
+                WHEN (p.ethnicity = 'true') THEN 'Hispanic or Latino'
+                WHEN (p.ethnicity = 'false') THEN 'Not Hispanic or Latino'
+                WHEN (p.ethnicity = 'hispanic_latino_spanish') THEN 'Hispanic or Latino'
+                ELSE 'Not Hispanic or Latino'
             END) AS ethnicity,
             REPLACE(p.addr1, ',', '') AS addr1,
             (CASE
