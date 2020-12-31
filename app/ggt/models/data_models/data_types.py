@@ -150,6 +150,8 @@ class TestResultsEnum(str, Enum):
     pos = 'pos'
     neg = 'neg'
     inconclusive = 'inconclusive'
+    rejected = 'rejected'
+    cancelled = 'cancelled'
 
 
 class ProviderProcessListRequest(BaseModel):

@@ -606,6 +606,7 @@ def __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, g
         WHERE   
             1=1
                 AND l.status = 'enabled'
+                AND smc.available_slots_count > 0
                 AND smc.first_available_slot IS NOT NULL
                 AND smc.first_available_slot >= CONVERT_TZ(NOW(), '+00:00', '-06:00')
                 AND (3963 * ACOS(COS(RADIANS(%s)) * COS(RADIANS(l.lat)) * COS(RADIANS(l.lng) - RADIANS(%s)) + SIN(RADIANS(%s)) * SIN(RADIANS(l.lat)))) < %s
@@ -688,6 +689,7 @@ def __get_all_available_dtl(group_code):
             locations_metrics_cache lmc ON (lmc.location_id = l.id)
         WHERE
             l.status = 'enabled'
+                AND smc.available_slots_count > 0
                 AND smc.local_scheduled_date >= CONVERT_TZ(NOW(), '+00:00', '-06:00')
                 AND l.id IN (SELECT 
                     glm.location_id
