@@ -8,6 +8,10 @@ env: DEV
 server:
   host: 0.0.0.0
   port: 8888
+  inbound_processor_port: 5010
+  outbound_processor_port: 5020
+  email_queue_processor_port: 5030
+  sms_queue_processor_port: 5040
 
 origins: 
   - https://gogettested.com

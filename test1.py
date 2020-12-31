@@ -1,3 +1,23 @@
+
+
+import pdfplumber
+
+with pdfplumber.open("/Users/suresh/ggt-tasks/backups/requisitionReport-2956972-353806-20201210070110-68696.pdf") as pdf:
+    is_reject_report = False
+    reject_reason = ''
+    first_page = pdf.pages[0]
+    print(first_page.extract_text(x_tolerance=3, y_tolerance=3))
+    for line in first_page.extract_text(x_tolerance=3, y_tolerance=3).splitlines():
+        if line.startswith('Rejection Report'):
+            is_reject_report=True
+        if line.startswith('Comments:'):
+            reject_reason = line.replace('Comments:','').strip()
+    
+    print(is_reject_report, reject_reason)
+
+    
+
+
 from twilio.rest import Client
 sms_list = [['+19793133161999', '403597'],
             ['+19793133161999', '403541']]
@@ -87,7 +107,6 @@ def hl7_test():
     hl7.ORM_O01_PATIENT.pid.pid_2 = "475421"
     hl7.ORM_O01_PATIENT.pid.pid_3 = "A-10001"
     hl7.ORM_O01_PATIENT.pid.pid_5 = "B-10001"
-    hl7.ORM_O01_PATIENT.pid.
     hl7.ORM_O01_PATIENT.pid.pid_6 = "DOE^JOHN"
 
     # ORC
@@ -97,7 +116,7 @@ def hl7_test():
 
     # OBR
     # We must explicitly add the OBR segment, then populate fields
-    hl7.
+
     #hl7.ORM_O01_ORDER.ORM_O01_ORDER_DETAIL.ORM_O01_OBSERVATION.ORM_O01_ORDER_CHOICE.add_segment("OBR")
     #hl7.ORM_O01_ORDER.ORM_O01_ORDER_DETAIL.ORM_O01_OBSERVATION.ORM_O01_ORDER_CHOICE.OBR.obr_2 = "1"
     #hl7.ORM_O01_ORDER.ORM_O01_ORDER_DETAIL.ORM_O01_OBSERVATION.ORM_O01_ORDER_CHOICE.OBR.obr_3 = "2"
@@ -112,4 +131,6 @@ def hl7_test():
     print("\n\n HL7 Message : \n\n", hl7.value)
     print("\n\n")
 
-hl7_test()
+#hl7_test()
+
+

@@ -5,7 +5,9 @@ import datetime
 import time
 import paramiko
 import base64
-import json
+import requests
+from requests.auth import HTTPBasicAuth
+import ujson
 from PIL import Image
 
 from ggt.lib.utils import (
@@ -64,7 +66,7 @@ def create_outbound_files(orders):
 
         except Exception as err:
             print(err)
-            print('Error generating HL7 for Order ID:', order['id'])
+            print('Error generating HL7 for CRL/Order ID:', order['id'])
 
     return processed_orders
 
@@ -112,44 +114,76 @@ def make_api_request(order):
             },
             "ethnicity": order['ethnicity'],
             "race": order['race'],
-        },
-        "symptomQuestions": [{
-            "question": "Is this the patient's first COVID-19 test?",
-            "answer": order['is_first_test']
-        },
-            {
-            "question": "Is the patient employed in healthcare with direct patient contact?",
-            "answer": order['is_healthcare_employee']
-        },
-            {
-            "question": "Is the patient exhibiting symptoms as defined by the CDC?",
-            "answer": order['is_cdc_symptomatic']
-        },
-            {
-            "question": "When was first sign of symptoms? (Blank if no or unknown)",
-            "answer": order['is_cdc_symptomatic']
-        },
-            {
-            "question": "Has the patient been hospalized?|",
-            "answer": order['is_hospitalized']
-        },
-            {
-            "question": "Has the patient been hospalized in the ICU?",
-            "answer": order['is_in_icu']
-        },
-            {
-            "question": "Does the patient reside in congregate care (nursing home, group home, etc.)?",
-            "answer": order['is_congregate_resident']
-        },
-            {
-            "question": "Is the patient pregnant?",
-            "answer": order['is_pregnant']
-        }
-        ]
+        } 
     }
 
-    json_object = json.dumps(payload, indent = 4)   
-    print(json_object)  
+    '''
+    "symptomQuestions": [{
+        "question": "Is this the patient's first COVID-19 test?",
+        "answer": order['is_first_test']
+    },
+        {
+        "question": "Is the patient employed in healthcare with direct patient contact?",
+        "answer": order['is_healthcare_employee']
+    },
+        {
+        "question": "Is the patient exhibiting symptoms as defined by the CDC?",
+        "answer": order['is_cdc_symptomatic']
+    },
+        {
+        "question": "When was first sign of symptoms? (Blank if no or unknown)",
+        "answer": order['is_cdc_symptomatic']
+    },
+        {
+        "question": "Has the patient been hospalized?|",
+        "answer": order['is_hospitalized']
+    },
+        {
+        "question": "Has the patient been hospalized in the ICU?",
+        "answer": order['is_in_icu']
+    },
+        {
+        "question": "Does the patient reside in congregate care (nursing home, group home, etc.)?",
+        "answer": order['is_congregate_resident']
+    },
+        {
+        "question": "Is the patient pregnant?",
+        "answer": order['is_pregnant']
+    }
+    ]
+    '''
+    invoke_post(payload)
+
+
+def invoke_post(payload):
+    auth_user = 'WELLHEALTH'
+    auth_password = '38cvZtg4v8'
+    
+    base_url = 'https://api-stage.crlclear.com'
+    resource_path = '/order'
+
+    try:
+        url = '{}{}'.format(base_url, resource_path)
+        auth = HTTPBasicAuth(auth_user, auth_password)
+        headers = {}
+        r = requests.post(url, auth=auth, headers=headers, json=payload)
+        #response = r.json()
+
+        if r.status_code == 200 or r.status_code == 201:
+            print('success')
+        else:
+            print('error', r.text)
+            json_object = ujson.dumps(payload, indent = 4)   
+            print(json_object)  
+
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+
 
 
 def get_orders_ready_to_transmit(limit=100):
@@ -260,6 +294,7 @@ def get_orders_ready_to_transmit(limit=100):
             JOIN patient_questionnaires q ON ((p.id = q.patient_id)))
         WHERE
             (t.status = 'ready_to_tx')
+            AND t.id IN (929894 , 929857, 929862, 930899, 929875)
         LIMIT {}
             """.format(limit)
     return read_rows(sql,)
