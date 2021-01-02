@@ -561,10 +561,9 @@ def add_to_healthtrackrx_inbound_data_table():
     rows = get_all_lab_records_from_cache()
     try:
         sql = """
-            INSERT INTO healthtrackrx_inbound_data
+            INSERT IGNORE INTO healthtrackrx_inbound_data
                 (requisition_id, order_number, first_name, last_name, dob, assay_name, status, result)
             VALUES (%s,%s,%s,%s, %s,%s,%s,%s)
-            ON DUPLICATE KEY UPDATE requisition_id=requisition_id
         """
         exec_batch_execute(sql, rows)
 

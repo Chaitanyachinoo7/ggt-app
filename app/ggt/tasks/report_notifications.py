@@ -29,10 +29,16 @@ def task_schedule_result_notifications_and_followups():
     print('\n\n************************************************\n\n')
     print('create_result_notification_campaign')
     create_result_notification_campaign()
-    print('schedule_notifications_using_sms')
-    schedule_notifications_using_sms()
-    print('schedule_notifications_using_email')
-    schedule_notifications_using_email()
+    print('schedule_result_notifications_using_sms')
+    schedule_result_notifications_using_sms()
+    print('schedule_result_notifications_using_email')
+    schedule_result_notifications_using_email()
+
+    #print('schedule_rejects_notifications_using_sms')
+    #schedule_rejects_notifications_using_sms()
+    #print('schedule_rejects_notifications_using_email')
+    #schedule_rejects_notifications_using_email()
+
     print('schedule_positive_followups')
     schedule_positive_followups()
 
@@ -49,7 +55,8 @@ def create_result_notification_campaign():
         email,
         first_name,
         last_name,
-        dob)
+        dob,
+        message_type)
 
     SELECT 
         test_samples.id AS test_id,
@@ -59,13 +66,61 @@ def create_result_notification_campaign():
         patients.email AS email,
         patients.first_name AS first_name,
         patients.last_name AS last_name,
-        patients.dob AS dob
+        patients.dob AS dob,
+        'result'
     FROM
         (test_samples
         JOIN patients ON ((patients.id = test_samples.patient_id)))
     WHERE
         test_samples.test_result IS NOT NULL
-            AND test_samples.status <> 'final'
+            AND test_samples.status = 'lab_result_received'
+    """
+    vals = ()
+
+    log_generic(
+        type=c.INFO,
+        function=whoami(),
+        task_session_id=session_id,
+        info='BEGIN - Creating result notification campaign')
+
+    exec_insert(sql, vals)
+
+    log_generic(
+        type=c.INFO,
+        function=whoami(),
+        task_session_id=session_id,
+        info='COMPLETED - Creating result notification campaign')
+
+
+
+def create_rejects_notification_campaign():
+    sql = """
+    INSERT IGNORE INTO result_notification_campaigns
+        (test_id,
+        patient_id,
+        token,
+        phone_number,
+        email,
+        first_name,
+        last_name,
+        dob,
+        message_type)
+
+    SELECT 
+        test_samples.id AS test_id,
+        test_samples.patient_id AS patient_id,
+        patients.token AS token,
+        patients.phone_number AS phone_number,
+        patients.email AS email,
+        patients.first_name AS first_name,
+        patients.last_name AS last_name,
+        patients.dob AS dob,
+        'reject'
+    FROM
+        (test_samples
+        JOIN patients ON ((patients.id = test_samples.patient_id)))
+    WHERE
+        test_samples.status = 'rejected'
     """
     vals = ()
 
@@ -130,10 +185,15 @@ def schedule_positive_followups():
         info='COMPLETED - Scheduling Positive Report Followup sessions')
 
 
-def schedule_notifications_using_sms():
+def schedule_result_notifications_using_sms():
     sql = """
-        SELECT * FROM result_notification_campaigns
-        WHERE overall_status = 'scheduled'
+        SELECT 
+            *
+        FROM
+            result_notification_campaigns
+        WHERE
+            overall_status = 'scheduled'
+                AND message_type = 'result'
     """
     rows = replica_read_rows(sql)
 
@@ -147,7 +207,7 @@ def schedule_notifications_using_sms():
         token = row['token']
         phone_number = row['phone_number']
         data.append(
-            (phone_number, formatted_sms_message(first_name, token))
+            (phone_number, formatted_result_sms_message(first_name, token))
         )
         test_id_list.append(
             test_id
@@ -159,28 +219,30 @@ def schedule_notifications_using_sms():
     )
 
 
-def schedule_notifications_using_email():
+def schedule_result_notifications_using_email():
     batch_size = 100
     sql = """
         SELECT count(*) as total
         FROM result_notification_campaigns 
         WHERE overall_status <> 'final_notified' 
             AND (email_sent is NULL OR email_sent = 0)
+            AND message_type = 'result'
     """
     row = replica_read_row(sql,)
     total_count = row['total']
     limit = math.ceil(total_count/batch_size)
     
     for _ in range(limit):
-        __batch_schedule_notifications_using_email(batch_size)
+        __batch_schedule_result_notifications_using_email(batch_size)
 
 
-def __batch_schedule_notifications_using_email(batch_size=100):
+def __batch_schedule_result_notifications_using_email(batch_size=100):
     sql = """
         SELECT * 
         FROM result_notification_campaigns 
         WHERE overall_status <> 'final_notified' 
             AND (email_sent is NULL OR email_sent = 0)
+            AND message_type = 'result'
         LIMIT {}
     """.format(batch_size)
     rows = replica_read_rows(sql)
@@ -190,7 +252,7 @@ def __batch_schedule_notifications_using_email(batch_size=100):
 
     for row in rows:
         test_id = row['test_id']
-        email = formatted_email_message(row)
+        email = formatted_result_email_message(row)
 
         data.append(
             (email['from_email'], email['from_name'],
@@ -205,7 +267,7 @@ def __batch_schedule_notifications_using_email(batch_size=100):
             str(test_id_list).strip('[]')
         )
 
-def formatted_email_message(row):
+def formatted_result_email_message(row):
     base_url = cfg('base_url')
     from_email = cfg('notifications.from_email')
     from_name = cfg('notifications.from_name')
@@ -245,7 +307,7 @@ def add_to_healthtrackrx_inbound_data_table():
         print("err:", err)
 
 
-def formatted_sms_message(first_name, token):
+def formatted_result_sms_message(first_name, token):
     base_url = cfg('base_url')
     return "Hi {}, your COVID-19 test results are ready. " \
            "Follow this link to view {}/r/{} reply STOP to cancel msgs".format(
