@@ -1,0 +1,151 @@
+from ggt.lib.adapters.auth0_adapter import create_user_in_auth0, delete_user_in_auth0, get_role_ids, remove_roles, \
+    assign_roles, get_user_in_auth0
+from ggt.lib.adapters.auth0_config import META_KEY, ORGANIZATION_KEY
+from ggt.lib.constants import ERROR
+from ggt.lib.utils import log_generic, whoami
+from ggt.models.data_models.data_types import CreateAuth0User, UserRolesEnum, DbOrgRequestStatusEnum
+from ggt.models.data_models.management import create_new_organisation_request, list_org_requests, process_org_request, \
+    get_org_request_user, create_new_organisation, create_new_user, delete_user, update_user_role, get_user_by_ext_id, \
+    list_user
+
+
+def bp_create_new_organisation_request(req):
+    try:
+        return create_new_organisation_request(req)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def bp_list_org_requests(req):
+    try:
+        return list_org_requests(req)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def bp_process_org_request(req, user):
+    try:
+        if process_org_request(req, user) is not None:
+            res = get_org_request_user(req.id)
+
+            if req.status == DbOrgRequestStatusEnum.accepted:
+                if res is not None and len(res) > 0:
+                    data = res
+                    _user = CreateAuth0User(
+                        organization_id=req.id,
+                        role=[UserRolesEnum.org_admin],
+                        email=data['email'],
+                        given_name=data['given_name'],
+                        family_name=data['family_name'],
+                        name=data['name'],
+                        nickname=data['nick_name'],
+                    )
+                    auth_user = create_user_in_auth0(_user, req.id)
+                    if auth_user:
+                        create_new_organisation(data, auth_user['id'])
+                        _x = get_user_in_auth0(auth_user['id']).json()
+                        create_new_user(_x, [UserRolesEnum.org_admin])
+                        #TODO Notify user with email
+                        return {"auth_user": auth_user, "org_id": req.id}
+            if req.status == DbOrgRequestStatusEnum.rejected:
+                #TODO Notify user with email
+                return {"status": "rejected"}
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def bp_create_user(user, is_org_owner=False, owner=None):
+    try:
+        if is_org_owner:
+            organization_id = user.organization_id
+        else:
+            if owner is None:
+                return None
+            organization_id = owner[META_KEY][ORGANIZATION_KEY] if owner[META_KEY] else None
+        if organization_id is None:
+            return None
+        auth_user = create_user_in_auth0(user, organization_id)
+        _user = get_user_in_auth0(auth_user['id']).json()
+        if create_new_user(_user, user.role) is not None:
+            return _user
+        else:
+            return None
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def bp_delete_user(user):
+    try:
+        if delete_user_in_auth0(user) is None:
+            return None
+        return delete_user(user.ext_user_id)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def bp_update_user_role(user):
+    try:
+        current_role_ids = get_role_ids(user.current_role)
+        new_role_ids = get_role_ids(user.new_role)
+        user_id = user.ext_user_id
+        if remove_roles(user_id, current_role_ids) is None:
+            return None
+        if assign_roles(user_id, new_role_ids) is None:
+            return None
+        return update_user_role(user_id, user.new_role)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def bp_user_profile(user):
+    try:
+        return get_user_by_ext_id(user['sub'])
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def bp_list_user(req, user):
+    try:
+        return list_user(req, user)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None

@@ -63,10 +63,11 @@ def update_ggt_users(ggt_users):
             given_name,
             name,
             picture,
-            external_id
+            external_id,
+            organisation_id
         )    
             VALUES
-        (%s, %s, %s, %s, %s, %s, %s);
+        (%s, %s, %s, %s, %s, %s, %s, %s);
 """
     # exec_batch_execute(sql, ggt_users) # Insert many throws errors with INSERT IGNORE
     for user in ggt_users:
@@ -83,7 +84,8 @@ def task_populate_users(existing_users):
         user['given_name'] if 'given_name' in user.keys() else "",
         user['name'] if 'name' in user.keys() else "",
         user['picture'] if 'picture' in user.keys() else "",
-        user['user_id']
+        user['user_id'],
+        user['user_metadata']['organization'] if user['user_metadata']['organization'] else 1
     ], users))
     update_ggt_users(filtered_users)
 
