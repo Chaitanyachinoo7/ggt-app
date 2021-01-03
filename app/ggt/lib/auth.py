@@ -95,10 +95,7 @@ def get_rsa_key_auth0(token):
         return rsa_key
 
     except JWTError:
-        raise AuthError({
-            "code": "invalid_header",
-            c.DESCRIPTION: "Unable to find appropriate key"
-        }, 401)
+        raise HTTPException(status_code=401, detail="Unable to find appropriate key")
 
 
 def authorize_user(security_scopes: SecurityScopes, token: str = Depends(oauth2_scheme)):
