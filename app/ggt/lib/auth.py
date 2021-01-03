@@ -100,13 +100,13 @@ def get_rsa_key_auth0(token):
             "jsonurl": jsonurl
         }
 
-        x = ujson.dumps(x)
+        print(x)
         log_generic(
             type=c.ERROR,
             function=whoami(),
             error=err
         )
-        raise HTTPException(status_code=401, detail="Unable to find appropriate key {}".format(x))
+        raise HTTPException(status_code=401, detail="Unable to find appropriate key")
 
 
 def authorize_user(security_scopes: SecurityScopes, token: str = Depends(oauth2_scheme)):
