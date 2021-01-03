@@ -23,7 +23,7 @@ from ggt.routers import (
     rt_printer_hub,
     rt_care_provider,
     rt_billing,
-    rt_reporting
+    rt_reporting, rt_management
 )
 
 app_init()
@@ -132,7 +132,7 @@ app.include_router(
 )
 
 #############################################################
-# rt_reporting                    #
+# rt_reporting                                              #
 #############################################################
 app.include_router(
     rt_reporting.router,
@@ -140,6 +140,18 @@ app.include_router(
     tags=[c.REPORT_RT_TAG],
     responses={404: {c.DESCRIPTION: c.NOT_FOUND}},
 )
+
+
+#############################################################
+# rt_management                                             #
+#############################################################
+app.include_router(
+    rt_management.router,
+    prefix=c.MANAGEMENT_PATH_PREFIX,
+    tags=[c.MANAGEMENT_RT_TAG],
+    responses={404: {c.DESCRIPTION: c.NOT_FOUND}},
+)
+
 
 if __name__ == '__main__':
     uvicorn.run(

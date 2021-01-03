@@ -1,7 +1,7 @@
 import ujson
 import os
 import urllib.request as urllib2
-
+import ssl
 from fastapi import Depends, Request, HTTPException
 from fastapi.security import SecurityScopes
 from google.auth.transport import requests
@@ -74,7 +74,7 @@ def get_rsa_key(token):
 
 def get_rsa_key_auth0(token):
     jsonurl = urllib2.urlopen(
-        "https://" + get_config_val('vendors.auth0.auth0_domain') + "/.well-known/jwks.json")
+        "https://" + get_config_val('vendors.auth0.auth0_domain') + "/.well-known/jwks.json", context=ssl._create_unverified_context())
     jwks = ujson.loads(jsonurl.read())
 
     try:
@@ -135,7 +135,7 @@ def authorize(scopes, token):
             )
 
             if len(list(set(user['permissions']).intersection(scopes))) > 0:
-                return True
+                return user
             else:
                 raise HTTPException(
                     status_code=401, detail=c.AUTH_FAILED_MESSAGE)
