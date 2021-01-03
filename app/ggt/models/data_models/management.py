@@ -214,6 +214,7 @@ def get_user_by_ext_id(user_id):
 
 def list_user(req, user):
     try:
+        print('USER--------------------------------', user)
         if user is None:
             return None
         organisation_id = user[META_KEY][ORGANIZATION_KEY] if user[META_KEY] else None
