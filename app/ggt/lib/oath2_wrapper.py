@@ -22,9 +22,9 @@ class GgtOAuth2PasswordBearer(OAuth2):
     def __call__(self, request: Request) -> Optional[str]:
         authorization: str = request.headers.get("Authorization")
         scheme, param = get_authorization_scheme_param(authorization)
-        print("##################################GgtOAuth2PasswordBearer###################################")
-        print(scheme)
-        print(param)
+        # print("##################################GgtOAuth2PasswordBearer###################################")
+        # print(scheme)
+        # print(param)
         if not authorization or scheme.lower() != "bearer":
             return None
         return param
