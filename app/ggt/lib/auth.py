@@ -94,8 +94,19 @@ def get_rsa_key_auth0(token):
 
         return rsa_key
 
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Unable to find appropriate key")
+    except JWTError as err:
+        x = {
+            "token": token,
+            "jsonurl": jsonurl
+        }
+
+        x = ujson.dumps(x)
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        raise HTTPException(status_code=401, detail="Unable to find appropriate key {}".format(x))
 
 
 def authorize_user(security_scopes: SecurityScopes, token: str = Depends(oauth2_scheme)):
