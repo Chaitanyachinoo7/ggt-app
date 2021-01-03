@@ -214,17 +214,23 @@ def get_user_by_ext_id(user_id):
 
 def list_user(req, user):
     try:
-        print('USER--------------------------------', user)
+
         if user is None:
             return None
         organisation_id = user[META_KEY][ORGANIZATION_KEY] if user[META_KEY] else None
         if organisation_id is None:
             return None
+        where_statement = "organisation_id = {}".format(organisation_id)
+        if req.role != "":
+            where_statement = "{} AND roles LIKE '%{}%'".format(where_statement, req.role)
+        if req.name != "":
+            where_statement = "{} AND name LIKE '%{}%'".format(where_statement, req.name)
+        if req.email != "":
+            where_statement = "{} AND email LIKE '%{}%'".format(where_statement, req.email)
         sql = """SELECT * FROM ggt_users
                     WHERE
-                    organisation_id = %s"""
-        vals = (organisation_id,)
-        return read_rows(sql, vals)
+                    {}""".format(where_statement)
+        return read_rows(sql)
 
     except Exception as err:
         log_generic(

@@ -52,9 +52,9 @@ async def api_user_profile(user=Security(authorize_user, scopes=[p.CREATE_LOCATI
     return user_profile(user)
 
 
-@router.get("/list_users")
-async def api_list_users(user=Security(authorize_user, scopes=[p.CREATE_LOCATION])):
-    return list_user('', user)
+@router.post("/list_users")
+async def api_list_users(req: FilterUser, user=Security(authorize_user, scopes=[p.CREATE_LOCATION])):
+    return list_user(req, user)
 
 #
 # @router.post("/update_org_owner", dependencies=[Security(authorize_user, scopes=['ANONYMOUS'])])

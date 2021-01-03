@@ -1033,3 +1033,5 @@ class ProcessOrgRequests(BaseModel):
 
 class FilterUser(BaseModel):
     role: str
+    name: str
+    email: str

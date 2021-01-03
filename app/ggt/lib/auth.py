@@ -66,8 +66,6 @@ def get_rsa_key(token):
         return ujson.loads(os.environ.get('RSA_KEY'))
 
     else:
-        print("##################################get_rsa_key###################################")
-        print(token)
         rsa_key = get_rsa_key_auth0(token)
         return rsa_key
 
@@ -120,8 +118,6 @@ def authorize_user(security_scopes: SecurityScopes, token: str = Depends(oauth2_
             return True
         elif token is not None:
             auth = authorize(scopes, token)
-            print("##################################authorize_user###################################")
-            print(token)
             return auth
         else:
             raise HTTPException(status_code=401, detail=c.AUTH_FAILED_MESSAGE)
@@ -134,8 +130,6 @@ def authorize_user(security_scopes: SecurityScopes, token: str = Depends(oauth2_
 def authorize(scopes, token):
     """Determines if the Access Token is valid
     """
-    print("##################################authorize###################################")
-    print(token)
     rsa_key = get_rsa_key(token)
     if rsa_key:
         try:
