@@ -74,7 +74,7 @@ def get_rsa_key(token):
 
 def get_rsa_key_auth0(token):
     jsonurl = urllib2.urlopen(
-        "https://" + get_config_val('vendors.auth0.auth0_domain') + "/.well-known/jwks.json", context=ssl._create_unverified_context())
+        "https://" + get_config_val('vendors.auth0.auth0_domain') + "/.well-known/jwks.json")
     jwks = ujson.loads(jsonurl.read())
 
     try:
