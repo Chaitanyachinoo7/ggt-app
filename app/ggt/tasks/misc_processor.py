@@ -60,7 +60,7 @@ def task_process_misc():
     #process_email_notifications()
     #upload_insurance_files_from_gstore()
     process_sms_notifications()
-    process_email_notifications()
+    #process_email_notifications()
 
     log_generic(
         type=c.INFO,
@@ -388,11 +388,10 @@ def get_appointments():
                 JOIN
             patients p ON a.patient_id = p.id
         WHERE
-            location_id IN (318,375,236,78)
-                AND scheduled_dt > '2020-12-31 00:00:00'
-                AND scheduled_dt <  '2021-01-01 00:00:00'
+            location_id IN (2423)
+                AND scheduled_dt > '2021-01-04 00:00:00'
+                AND scheduled_dt <  '2021-01-05 00:00:00'
                 AND status = 'scheduled'
-
         """
         
         return read_rows(sql)
@@ -402,7 +401,7 @@ def get_appointments():
 
 
 def prepare_sms_text(appointment):
-    return """Hi {}, due to inclement weather, the testing location where you have registered will be closed on 12/31. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to register for a new appointment.
+    return """Hi {}, due to inclement weather, your testing location is closed today. Please visit GoGetTested.com/Kansas and register for a new appointment. We apologize for the inconvenience.
     """.format(appointment["first_name"])
 
 

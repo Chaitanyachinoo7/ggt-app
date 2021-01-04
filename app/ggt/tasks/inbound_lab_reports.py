@@ -47,6 +47,10 @@ from ggt.models.data_models.tasks_local_cache import (
     add_to_csv_pdf_sync_cache
 )
 
+from ggt.lib.adapters.s3_adapter import (
+    archive_ftp_s3_file
+)
+
 import ggt.lib.constants as c
 
 session_id = generate_session_id()
@@ -93,6 +97,7 @@ def task_process_inbound_lab_reports():
     update_test_samples_with_results()
     upload_pdf_lab_reports()
     upload_all_inbound_files_to_central_storage()
+    #parse_report_comments()
 
     log_generic(
         type=c.INFO,
@@ -248,6 +253,11 @@ def prep_local_downloads_dir(remote_dir_path):
     return newpath
 
 
+def cleanup_s3():
+    pass
+
+
+
 def download_and_cleanup(ftp_client, filename, remote_dir_path, cache_hits, cache_misses, download_errors):
     local_downloads_dir = prep_local_downloads_dir(remote_dir_path)
     if file_exists_in_all_inbound_files_cache(filename):
@@ -375,12 +385,16 @@ def parse_csv_files():
         p = 0
         PROGRESS_LABEL = 'Parsing CSV files'
         for filename in file_list:
-            i += 1
-            p = i/file_count*100
-            print_progress_bar_message('Parsing CSV files {:.1f}%'.format(p))
-            parse_csv_file(filename)
+            try:
+                i += 1
+                p = i/file_count*100
+                print_progress_bar_message('Parsing CSV files {:.1f}%'.format(p))
+                parse_csv_file(filename)
+            except Exception as e:
+                print(e)
+                print_error('Error Parsing {}'.format(filename))
 
-        print_ok2('{} 100%            '.format(PROGRESS_LABEL))
+        print_ok2('{} 100%'.format(PROGRESS_LABEL))
 
     except Exception as err:
         print(err)
@@ -392,7 +406,8 @@ def parse_csv_file(file_path):
         for row in reader:
             try:
                 add_to_lab_test_records_cache(row)
-                add_to_csv_pdf_sync_cache(row)
+                add_to_csv_pdf_sync_cache(row)                    
+
             except Exception as err:
                 print("err:", err)
 
@@ -478,6 +493,46 @@ def upload_pdf_lab_reports():
         print(err)
 
 
+def parse_report_comments():
+    print('Parsing PDF lab reports')
+    try:
+        file_count = 0
+        for local_file_path in glob.iglob('{}/**/*.pdf'.format(local_download_path), recursive=True):
+            file_count += 1
+
+        i = 0
+        p = 0
+        PROGRESS_LABEL = 'Parsing PDF lab reports'
+        for local_file_path in glob.iglob('{}/**/*.pdf'.format(local_download_path), recursive=True):
+            i += 1
+            p = i/file_count*100
+            print_progress_bar_message('{} {:.1f}%'.format(PROGRESS_LABEL, p))
+
+            try:
+                if os.stat(local_file_path).st_size == 0:
+                    raise ValueError('Empty File')
+
+                __requisition_id, __order_number, __destination_filename = generate_destination_filename(local_file_path)
+
+                import pdfplumber
+                with pdfplumber.open(local_file_path) as pdf:
+                    first_page = pdf.pages[0]
+                    print(first_page.extract_text(x_tolerance=3, y_tolerance=3).splitlines())
+                    for line in first_page.extract_text(x_tolerance=3, y_tolerance=3).splitlines():
+                        if line.startswith('Rejection Report'):
+                            is_reject_report=True
+                        if line.startswith('Comments:'):
+                            reject_reason = line.replace('Comments:','').strip()
+                
+                            
+            except Exception as err:
+                print('Error uploading — {} — {}'.format(err, local_file_path))
+
+        print_ok2('{} 100%            '.format(PROGRESS_LABEL))
+
+    except Exception as err:
+        print(err)
+
 
 def handle_reject_report(pdf_report_path):
     import pdfplumber
@@ -486,6 +541,7 @@ def handle_reject_report(pdf_report_path):
         is_reject_report = False
         reject_reason = ''
         first_page = pdf.pages[0]
+        print(first_page.extract_text(x_tolerance=3, y_tolerance=3).splitlines())
         for line in first_page.extract_text(x_tolerance=3, y_tolerance=3).splitlines():
             if line.startswith('Rejection Report'):
                 is_reject_report=True
@@ -606,7 +662,12 @@ def update_test_samples_with_results():
                 WHEN (h.result = 'inconclusive') THEN 'inconclusive'
                 ELSE NULL
             END),
-            test_samples.status = 'lab_result_received',
+            test_samples.status = (CASE
+                WHEN (h.status = 'Approved') THEN 'lab_result_received'
+                WHEN (h.status = 'Resulted') THEN 'lab_result_received'
+                WHEN (h.status = 'Rejected') THEN 'rejected'
+                ELSE NULL
+            END),
             test_samples.update_dt = NOW()
         WHERE
             test_samples.test_result IS NULL
