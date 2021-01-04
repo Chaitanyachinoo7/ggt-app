@@ -59,7 +59,6 @@ def __batch_process_sms_queue(batch_size=100):
     FROM sms_notification_queue 
     WHERE status 
         IN ('pending','retry') 
-    ORDER BY ID DESC
     LIMIT {}
     """.format(batch_size)
     rows = replica_read_rows(sql)

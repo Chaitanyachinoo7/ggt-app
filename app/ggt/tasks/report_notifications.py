@@ -41,7 +41,7 @@ def task_schedule_result_notifications_and_followups():
 
 def create_result_notification_campaign():
     sql = """
-    INSERT INTO result_notification_campaigns
+    INSERT IGNORE INTO result_notification_campaigns
         (test_id,
         patient_id,
         token,
@@ -66,9 +66,6 @@ def create_result_notification_campaign():
     WHERE
         test_samples.test_result IS NOT NULL
             AND test_samples.status <> 'final'
-        
-    ON DUPLICATE KEY UPDATE test_id=test_id
-
     """
     vals = ()
 

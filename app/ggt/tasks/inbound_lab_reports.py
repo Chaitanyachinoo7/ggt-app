@@ -87,7 +87,7 @@ def task_process_inbound_lab_reports():
 
     # clean_downloads_folder()
     #download_ftp_files()
-    parse_csv_files()
+    #parse_csv_files()
 
     add_to_healthtrackrx_inbound_data_table()
     update_test_samples_with_results()
@@ -466,8 +466,9 @@ def upload_pdf_lab_reports():
                                 add_to_files_in_remote_storage_cache(
                                     __destination_filename)
                         else:
-                            print_ok2('Lab report upload skipped for rejected lab test')
-                            pass
+                            #print_ok2('Lab report upload skipped for rejected lab test')
+                            handle_reject_report(local_file_path)
+                            
             except Exception as err:
                 print('Error uploading — {} — {}'.format(err, local_file_path))
 
@@ -475,6 +476,23 @@ def upload_pdf_lab_reports():
 
     except Exception as err:
         print(err)
+
+
+
+def handle_reject_report(pdf_report_path):
+    import pdfplumber
+
+    with pdfplumber.open(pdf_report_path) as pdf:
+        is_reject_report = False
+        reject_reason = ''
+        first_page = pdf.pages[0]
+        for line in first_page.extract_text(x_tolerance=3, y_tolerance=3).splitlines():
+            if line.startswith('Rejection Report'):
+                is_reject_report=True
+            if line.startswith('Comments:'):
+                reject_reason = line.replace('Comments:','').strip()
+        
+        print(is_reject_report, reject_reason)
 
 
 def upload_all_inbound_files_to_central_storage():
@@ -579,19 +597,20 @@ def update_test_samples_with_results():
     sql = """
         UPDATE test_samples
                 INNER JOIN
-            healthtrackrx_inbound_data ON (test_samples.id = healthtrackrx_inbound_data.order_number) 
+            healthtrackrx_inbound_data h ON (test_samples.id = h.order_number) 
         SET 
             test_samples.lab_result_receive_dt = NOW(),
             test_samples.test_result = (CASE
-                WHEN (healthtrackrx_inbound_data.result = 'Negative') THEN 'neg'
-                WHEN (healthtrackrx_inbound_data.result = 'Positive') THEN 'pos'
-                ELSE 'inconclusive'
+                WHEN (h.result = 'Negative') THEN 'neg'
+                WHEN (h.result = 'Positive') THEN 'pos'
+                WHEN (h.result = 'inconclusive') THEN 'inconclusive'
+                ELSE NULL
             END),
             test_samples.status = 'lab_result_received',
             test_samples.update_dt = NOW()
         WHERE
             test_samples.test_result IS NULL
-                AND test_samples.id = healthtrackrx_inbound_data.order_number
+                AND test_samples.id = h.order_number
         """
     vals = ()
     exec_update(sql, vals)

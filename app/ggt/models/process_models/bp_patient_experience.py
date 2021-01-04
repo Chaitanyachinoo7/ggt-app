@@ -442,7 +442,7 @@ def __send_qrcode_sms(appointment: GgtAppointment):
                             message.replace('\t', ''))
 
         followup_message = "" \
-            "Please bring this QR code, and an Acceptable ID when you arrive at the test. " \
+            "Please arrive 15 minutes prior to your appointment. Bring this QR code, and an Acceptable ID when you arrive at the test. " \
             "We will scan the QR code to check you in for testing. Please, no eating or drinking at least 15 minutes prior to testing as this may impact your test results."
         result_2 = send_sms(appointment.patient.phone_number, followup_message)
 
