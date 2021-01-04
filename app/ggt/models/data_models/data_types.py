@@ -962,3 +962,76 @@ class InsuranceCardResponse(BaseModel):
     subsriber_id: str
     group_id: str
     effective_date: str
+
+
+class UserRolesEnum(str, Enum):
+    billing_admin = 'billing_admin'
+    care_provider = 'care_provider'
+    clinical_provider = 'clinical_provider'
+    customer_contact = 'customer_contact'
+    site_admin = 'site_admin'
+    super_admin = 'super_admin'
+    org_admin = 'org_admin'
+    ggt = 'ggt_admin'
+
+    #org_admin
+
+
+class CreateAuth0User(BaseModel):
+    organization_id: str = None
+    role: List[UserRolesEnum]
+    email: str
+    given_name: str = None
+    family_name: str = None
+    name: str = None
+    nickname: str = None
+    blocked: bool = False
+    email_verified: bool = False
+
+
+class UpdateAuth0User(BaseModel):
+    ext_user_id: str
+    current_role: List[UserRolesEnum]
+    new_role: List[UserRolesEnum]
+
+
+class DeleteAuth0User(BaseModel):
+    ext_user_id: str
+
+
+class CreateNewOrganization(BaseModel):
+    org_name: str
+    email: str
+    given_name: str = None
+    family_name: str = None
+    name: str = None
+    nickname: str = None
+
+
+class OrgRequestStatusEnum(str, Enum):
+    pending = 'pending'
+    accepted = 'accepted'
+    rejected = 'rejected'
+    any = ''
+
+
+class DbOrgRequestStatusEnum(str, Enum):
+    pending = 'pending'
+    accepted = 'accepted'
+    rejected = 'rejected'
+
+
+class ListOrgRequests(BaseModel):
+    status: OrgRequestStatusEnum
+
+
+class ProcessOrgRequests(BaseModel):
+    id: int
+    status: DbOrgRequestStatusEnum
+    comment: str
+
+
+class FilterUser(BaseModel):
+    role: str
+    name: str
+    email: str

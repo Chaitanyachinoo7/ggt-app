@@ -7,7 +7,7 @@ from ggt.lib.utils import (
     whoami)
 from ggt.models.data_models.providers import get_provider_processing_list_db, provider_lock_task, \
     create_patient_test_consultation, update_consultation_note, provider_complete_task, \
-    provider_rollback_to_pending_task
+    provider_rollback_to_pending_task, _get_provider_processing_list_db
 
 
 ########################################################################################################
@@ -21,6 +21,19 @@ def bp_get_provider_processing_list(offset, consultation_status, consultation_no
             offset = 0
 
         return get_provider_processing_list_db(offset, consultation_status, consultation_notes, positive_call, limit)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+
+
+@cached(cache=TTLCache(maxsize=1024, ttl=10))
+def _bp_get_provider_processing_list():
+    try:
+        return _get_provider_processing_list_db()
 
     except Exception as err:
         log_generic(

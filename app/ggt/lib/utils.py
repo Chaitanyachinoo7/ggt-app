@@ -11,6 +11,7 @@ import pyotp
 
 import google.cloud.logging
 #import googlecloudprofiler
+import random
 
 from ggt.configs.config_loader import cfg
 import ggt.lib.constants as c
@@ -226,3 +227,9 @@ def is_site_admin(user: User):
 def is_contact_center(user: User):
     return (user and user.roles) and (get_config_val('app.roles.contact_center') in ujson.loads(user.roles))
 
+def get_random_password():
+    chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@£$%^&*().,?0123456789'
+    password = ''
+    for c in range(20):
+        password += random.choice(chars)
+    return password
