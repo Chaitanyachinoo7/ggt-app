@@ -194,8 +194,30 @@ def get_provider_processing_list_db(offset, consultation_status, consultation_no
         return None
 
 
-def _get_provider_processing_list_db():
+def _get_provider_processing_list_db(offset, consultation_status, consultation_notes, positive_call, limit, start_date, end_date):
     try:
+        where_conditions = "t.create_dt >= '{}' AND t.create_dt <= '{}'".format(start_date, end_date)
+        if consultation_status != ConsultationStatusEnum.any:
+            if consultation_status == ConsultationStatusEnum.pending:
+                where_conditions = "{} AND ( t.consultation_status = '{}' OR t.consultation_status is null)".format(
+                    where_conditions, consultation_status)
+            else:
+                where_conditions = "{} AND t.consultation_status = '{}'".format(
+                    where_conditions, consultation_status)
+        if consultation_notes == ConsultationNotesEnum.with_notes:
+            where_conditions = "{} AND c.notes is not null".format(
+                where_conditions)
+        if consultation_notes == ConsultationNotesEnum.without_notes:
+            where_conditions = "{} AND c.notes is null".format(
+                where_conditions)
+        if positive_call == PositiveCall.must_call:
+            where_conditions = "{} AND t.test_result = 'pos' AND (t.consultation_status is null OR " \
+                               "t.consultation_status = " \
+                               "'{}')".format(where_conditions,
+                                              ConsultationStatusEnum.pending)
+        if positive_call == PositiveCall.already_called:
+            where_conditions = "{} AND t.test_result ='pos' AND t.consultation_status = '{}'".format(
+                where_conditions, ConsultationStatusEnum.completed)
         sql = """SELECT 
     p.id AS patient_id,
     p.first_name AS first_name,
@@ -315,7 +337,10 @@ FROM
     patient_consultations c ON a.id = c.appointment_id
         LEFT JOIN
     ggt_users u ON u.external_id = c.provider_external_id
-LIMIT 20"""
+    WHERE
+        {}
+    ORDER BY t.create_dt ASC 
+    LIMIT {} OFFSET {}""".format(where_conditions, limit, offset)
         rows = replica_read_rows(sql)
         return process_consultations(rows)
 

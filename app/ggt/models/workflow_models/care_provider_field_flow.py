@@ -23,9 +23,11 @@ def get_provider_processing_list(provide_request):
     )
 
 
-def _get_provider_processing_list():
+def _get_provider_processing_list(provide_request):
     return y_response(
-        _bp_get_provider_processing_list()
+        _bp_get_provider_processing_list(provide_request.offset, provide_request.consultation_status,
+                                         provide_request.consultation_notes, provide_request.positive_call,
+                                         provide_request.limit, provide_request.start_date, provide_request.end_date)
     )
 
 

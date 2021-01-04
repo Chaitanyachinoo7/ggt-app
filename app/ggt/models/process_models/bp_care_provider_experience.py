@@ -31,9 +31,11 @@ def bp_get_provider_processing_list(offset, consultation_status, consultation_no
 
 
 @cached(cache=TTLCache(maxsize=1024, ttl=10))
-def _bp_get_provider_processing_list():
+def _bp_get_provider_processing_list(offset, consultation_status, consultation_notes, positive_call, limit, start_date, end_date):
     try:
-        return _get_provider_processing_list_db()
+        start_date = "{} 00:00:00".format(start_date)
+        end_date = "{} 23:59:59".format(end_date)
+        return _get_provider_processing_list_db(offset, consultation_status, consultation_notes, positive_call, limit, start_date, end_date)
 
     except Exception as err:
         log_generic(

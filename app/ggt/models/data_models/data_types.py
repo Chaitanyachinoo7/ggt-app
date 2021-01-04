@@ -157,6 +157,8 @@ class TestResultsEnum(str, Enum):
 class ProviderProcessListRequest(BaseModel):
     limit: Optional[int] = 20
     offset: int
+    start_date: str
+    end_date: str
     consultation_status: Optional[ConsultationStatusEnum] = None
     consultation_notes: Optional[ConsultationNotesEnum] = None
     positive_call: Optional[PositiveCall] = None
