@@ -583,9 +583,13 @@ def update_test_samples_with_results():
             test_samples.test_result = (CASE
                 WHEN (healthtrackrx_inbound_data.result = 'Negative') THEN 'neg'
                 WHEN (healthtrackrx_inbound_data.result = 'Positive') THEN 'pos'
-                ELSE 'inconclusive'
+                ELSE NULL
             END),
-            test_samples.status = 'lab_result_received',
+            test_samples.status = (CASE
+                WHEN (healthtrackrx_inbound_data.status IN ('Approved' , 'Resulted')) THEN 'lab_result_received'
+                WHEN (healthtrackrx_inbound_data.status = 'Rejected') THEN 'rejected'
+                ELSE NULL
+            END),
             test_samples.update_dt = NOW()
         WHERE
             test_samples.test_result IS NULL

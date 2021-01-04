@@ -1,7 +1,7 @@
 import ujson
 import os
 import urllib.request as urllib2
-
+import ssl
 from fastapi import Depends, Request, HTTPException
 from fastapi.security import SecurityScopes
 from google.auth.transport import requests
@@ -74,7 +74,8 @@ def get_rsa_key(token):
 
 def get_rsa_key_auth0(token):
     jsonurl = urllib2.urlopen(
-        "https://" + get_config_val('vendors.auth0.auth0_domain') + "/.well-known/jwks.json")
+        "https://" + get_config_val('vendors.auth0.auth0_domain') + "/.well-known/jwks.json",
+        context=ssl._create_unverified_context())
     jwks = ujson.loads(jsonurl.read())
 
     try:
@@ -94,16 +95,23 @@ def get_rsa_key_auth0(token):
 
         return rsa_key
 
-    except JWTError:
-        raise AuthError({
-            "code": "invalid_header",
-            c.DESCRIPTION: "Unable to find appropriate key"
-        }, 401)
+    except JWTError as err:
+        x = {
+            "token": token,
+            "jsonurl": "https://" + get_config_val('vendors.auth0.auth0_domain') + "/.well-known/jwks.json"
+        }
+        print(x)
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        raise HTTPException(status_code=401, detail="Unable to find appropriate key {}".format(ujson.dumps(x)))
 
 
 def authorize_user(security_scopes: SecurityScopes, token: str = Depends(oauth2_scheme)):
-    if (get_config_val('env') == 'DEV'):  # Allow auth override for dev
-        return True
+    # if (get_config_val('env') == 'DEV'):  # Allow auth override for dev
+    #     return True
     try:
         scopes = security_scopes.scopes
         if p.ANONYMOUS in scopes:
@@ -135,7 +143,7 @@ def authorize(scopes, token):
             )
 
             if len(list(set(user['permissions']).intersection(scopes))) > 0:
-                return True
+                return user
             else:
                 raise HTTPException(
                     status_code=401, detail=c.AUTH_FAILED_MESSAGE)

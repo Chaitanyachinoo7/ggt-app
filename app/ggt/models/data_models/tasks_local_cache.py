@@ -275,7 +275,7 @@ def get_all_lab_records_from_cache():
         cur.execute('''
                     SELECT *
                     FROM lab_test_records
-                    WHERE status IN ('Approved', 'Resulted')
+                    WHERE status IN ('Approved', 'Resulted', 'Rejected')
                 ''')
         rows = cur.fetchall()
         result = rows

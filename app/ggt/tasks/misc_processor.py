@@ -165,13 +165,13 @@ def process_email_notifications():
 def formatted_email_message(row):
     from_email = cfg('notifications.from_email')
     from_name = cfg('notifications.from_name')
-    subject = "{}, IMPORTANT: update about your recent Covid-19 Test".format(row['first_name'])
+    subject = "Hi {}, An important update regarding your recent COVID-19 Test".format(row['first_name'])
 
     template_vars = {
         "first_name": row['first_name']
     }
 
-    template_name = 'GGT-13-RESULT-DELAYED-EMAIL.html'
+    template_name = 'GGT-15-RETEST.html'
     html_content = render_template(template_name, **template_vars)
 
     email_message = {
@@ -228,7 +228,7 @@ def get_appointments():
             location_id IN (380)
             AND status = 'scheduled'
         """
-        sql3 = """
+        sql5 = """
         SELECT 
             p.first_name, p.phone_number, p.email
         FROM
@@ -236,11 +236,9 @@ def get_appointments():
                 JOIN
             patients p ON a.patient_id = p.id
         WHERE
-            status = 'test_completed'
-                AND location_id = 369
-                AND (DATE(scheduled_dt) = '2020-12-19'
-                OR DATE(check_in_dt) = '2020-12-19'
-                OR DATE(test_start_dt) = '2020-12-19')
+            status = 'scheduled'
+                AND location_id = 2445
+                AND scheduled_dt > '2020-12-28'
         """
 
         sql4 = """
@@ -257,7 +255,7 @@ def get_appointments():
             AND scheduled_dt < '2020-12-24'
         """
 
-        sql = """
+        sql5 = """
         SELECT 
             p.first_name, p.phone_number, p.email
         FROM
@@ -268,11 +266,120 @@ def get_appointments():
             t.status = 'with_lab'
                 AND t.create_dt < '2020-12-23'
         LIMIT 22000,4000
+        """
 
+        sql6 = """
+        SELECT 
+            p.first_name, p.phone_number, p.email
+        FROM
+            appointments a
+                JOIN
+            patients p ON a.patient_id = p.id
+        WHERE
+            location_id IN (2420 , 2446,
+                276,
+                2448,
+                274,
+                344,
+                2451,
+                370,
+                361,
+                360,
+                372,
+                2414,
+                2417,
+                2421,
+                367,
+                2397,
+                364,
+                366,
+                2458,
+                350,
+                369,
+                2416,
+                2452,
+                382)
+                AND scheduled_dt > '2020-12-29 00:00:00'
+                AND scheduled_dt <  '2020-12-29 11:30:00'
+                AND status = 'scheduled'
+        """
+
+        sql7 = """
+        SELECT 
+            p.first_name, p.phone_number, p.email
+        FROM
+            appointments a
+                JOIN
+            patients p ON a.patient_id = p.id
+        WHERE
+            location_id IN (2420 , 2446,
+                2423,
+                344,
+                370,
+                361,
+                360,
+                2418,
+                2415,
+                414,
+                417,
+                2422,
+                367,
+                399,
+                350,
+                369,
+                416,
+                2421)
+                AND scheduled_dt > '2020-12-29 00:00:00'
+                AND scheduled_dt < '2020-12-30 00:00:00'
+                AND status = 'scheduled'
+        """
+
+        sql8 = """
+        SELECT 
+            p.first_name, p.phone_number, p.email
+        FROM
+            appointments a
+                JOIN
+            patients p ON a.patient_id = p.id
+                JOIN
+            test_samples t ON t.id = a.id
+        WHERE
+            t.test_result = 'inconclusive'
+                AND t.lab_electronic_submission_dt > '2020-12-20'
 
         """
 
+        sql9 = """
+        SELECT 
+            p.first_name, p.phone_number, p.email
+        FROM
+            appointments a
+                JOIN
+            patients p ON a.patient_id = p.id
+        WHERE
+            location_id IN (222, 266, 272)
+            AND status = 'scheduled'
+            AND scheduled_dt > '2020-12-31 00:00:00'
+            AND scheduled_dt <  '2021-01-01 00:00:00'
+        """
 
+        sql = """
+        SELECT 
+            p.first_name, p.phone_number, p.email
+        FROM
+            appointments a
+                JOIN
+            patients p ON a.patient_id = p.id
+                JOIN
+            test_samples t ON t.id = a.id
+        WHERE
+            a.location_id IN (2421)
+                AND t.status <> 'lab_result_received'
+                AND a.status = 'test_completed'
+                AND a.test_start_dt > '2020-12-28 00:00:00'
+                AND a.test_start_dt < '2021-12-29 00:00:00'
+        """
+        
         return read_rows(sql)
 
     except Exception as err:
@@ -280,7 +387,7 @@ def get_appointments():
 
 
 def prepare_sms_text(appointment):
-    return """Hi {}, Thank you for choosing to take your COVID-19 test with GoGetTested. We are experiencing a higher than normal surge in testing and resulting because of the rise in cases during this holiday season. This may cause longer than expected result times. Our lab partners are working hard to process results as fast as possible, and results might not be available until Friday. We apologize foe the inconvenience and appreciate your patience with us as we continue to offer testing services.
+    return """Hi {}, we regret to inform you that our lab partner was not able to return a COVID-19 test result from the sample provided. Though rare, these instances can happen for multiple reasons including an insufficient saliva sample provided, a loose vial leaking in transport, or an inconclusive lab result. We encourage you to visit GoGetTested.com and register for another test as soon as possible.
     """.format(appointment["first_name"])
 
 

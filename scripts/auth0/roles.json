@@ -23,6 +23,10 @@
 		{
 			"name": "customer_contact",
 			"description": "Users with this role are allowed to access all the APIs related to customer care services."
+		},
+		{
+			"name": "org_admin",
+			"description": "Users with this role are allowed to access all the APIs related to org management"
 		}
 	]
 }
