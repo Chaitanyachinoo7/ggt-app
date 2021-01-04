@@ -8,7 +8,8 @@ from ggt.models.data_models.providers import get_provider_processing_list_db
 
 from ggt.models.process_models.bp_care_provider_experience import (
     bp_get_provider_processing_list, bp_lock_provider_task, bp_create_patient_test_consultation,
-    bp_update_consultation_note, bp_provider_complete_task, bp_provider_rollback_to_pending_task, bp_call_patient)
+    bp_update_consultation_note, bp_provider_complete_task, bp_provider_rollback_to_pending_task, bp_call_patient,
+    _bp_get_provider_processing_list)
 
 
 ########################################################################################################
@@ -19,6 +20,12 @@ def get_provider_processing_list(provide_request):
         bp_get_provider_processing_list(provide_request.offset, provide_request.consultation_status,
                                         provide_request.consultation_notes, provide_request.positive_call,
                                         provide_request.limit)
+    )
+
+
+def _get_provider_processing_list():
+    return y_response(
+        _bp_get_provider_processing_list()
     )
 
 

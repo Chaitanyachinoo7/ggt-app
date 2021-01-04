@@ -6,7 +6,7 @@ from ggt.models.data_models.data_types import (
     UpdateProviderTask, CompleteNoteReq, CallReq)
 from ggt.models.workflow_models.care_provider_field_flow import (
     get_provider_processing_list, lock_provider_task, update_consultation_note, provider_complete_task,
-    provider_rollback_to_pending_task, call_patient)
+    provider_rollback_to_pending_task, call_patient, _get_provider_processing_list)
 
 router = APIRouter()
 
@@ -34,3 +34,8 @@ async def api_lock_provider_task(lock_request: LockProviderTask):
 @router.post("/get_provider_processing_list", dependencies=[Security(authorize_user, scopes=[p.GET_PROVIDER_PROCESSING_LIST])])
 async def api_get_provider_processing_list(provide_request: ProviderProcessListRequest):
     return get_provider_processing_list(provide_request)
+
+
+@router.get("/get_provider_processing_list", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def _api_get_provider_processing_list():
+    return _get_provider_processing_list()
