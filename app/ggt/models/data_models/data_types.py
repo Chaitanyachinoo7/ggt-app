@@ -272,6 +272,7 @@ class FinalizeRegistrationRequest(BaseModel):
     phone_number: str = None
     token: str = None
     isPatient: bool = None
+    ggd_waitlist: Optional[bool] = True
     gender: str = None
     race: str = None
     ethnicity: str = None
