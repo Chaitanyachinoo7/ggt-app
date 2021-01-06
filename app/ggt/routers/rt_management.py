@@ -1,13 +1,14 @@
 from fastapi import (
     APIRouter,
-    Security
+    Security,
+    Request
 )
 
 from ggt.lib.auth import authorize_user
 from ggt.models.data_models.data_types import PermissionsEnum as p, CreateAuth0User, DeleteAuth0User, UpdateAuth0User, \
     CreateNewOrganization, ListOrgRequests, ProcessOrgRequests, FilterUser
 from ggt.models.workflow_models.management_work_flow import create_user, delete_user, update_user_role, user_profile, \
-    create_new_organisation_request, list_org_requests, process_org_request, list_user
+    create_new_organisation_request, list_org_requests, process_org_request, list_user, password_change_ticket
 
 router = APIRouter()
 
@@ -55,6 +56,11 @@ async def api_user_profile(user=Security(authorize_user, scopes=[p.CREATE_LOCATI
 @router.get("/list_users")
 async def api_list_users(user=Security(authorize_user, scopes=[p.CREATE_LOCATION])):
     return list_user('', user)
+
+
+@router.get("/password_change_ticket")
+async def api_password_change_ticket(req: Request, user=Security(authorize_user, scopes=[p.CREATE_LOCATION])):
+    return password_change_ticket(req, user)
 
 #
 # @router.post("/update_org_owner", dependencies=[Security(authorize_user, scopes=['ANONYMOUS'])])

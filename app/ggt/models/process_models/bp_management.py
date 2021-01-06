@@ -1,5 +1,5 @@
 from ggt.lib.adapters.auth0_adapter import create_user_in_auth0, delete_user_in_auth0, get_role_ids, remove_roles, \
-    assign_roles, get_user_in_auth0
+    assign_roles, get_user_in_auth0, create_password_change_ticket
 from ggt.lib.adapters.auth0_config import META_KEY, ORGANIZATION_KEY
 from ggt.lib.constants import ERROR
 from ggt.lib.utils import log_generic, whoami
@@ -142,6 +142,18 @@ def bp_user_profile(user):
 def bp_list_user(req, user):
     try:
         return list_user(req, user)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def bp_password_change_ticket(req, user):
+    try:
+        return create_password_change_ticket(req, user)
     except Exception as err:
         log_generic(
             type=ERROR,
