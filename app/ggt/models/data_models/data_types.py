@@ -991,6 +991,20 @@ class CreateAuth0User(BaseModel):
     email_verified: bool = False
 
 
+class UpdateAuth0UserInfo(BaseModel):
+    ext_id: str
+    email: str
+    given_name: str
+    family_name: str
+    name: str
+    nickname: str
+
+
+class UpdateAuth0UserState(BaseModel):
+    ext_id: str
+    is_active: bool
+
+
 class UpdateAuth0User(BaseModel):
     ext_user_id: str
     current_role: List[UserRolesEnum]
