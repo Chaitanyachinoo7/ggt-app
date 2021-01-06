@@ -29,7 +29,7 @@ from ggt.models.data_models.signups import (
 
 from ggt.models.data_models.patients import (
     create_patient_record,
-    get_patient_by_token
+    get_patient_by_token, add_to_ggd_waiting_queue
 )
 
 from ggt.models.data_models.questionnaires import (
@@ -203,6 +203,25 @@ def bp_validate_phone_number(phone_number: str, otp: str):
     return False
 
 
+def bp_add_to_ggd_waiting_queue(patient_id):
+    try:
+        return add_to_ggd_waiting_queue(patient_id)
+        log_generic(
+            type=c.INFO,
+            patient_id=patient_id,
+            function=whoami()
+        )
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            patient_id=patient_id,
+            function=whoami(),
+            error=err
+        )
+
+    return False
+
+
 def bp_finalize_booking(booking_req: GgtBooking):
     appointment: GgtAppointment = None
     status_message = None
@@ -212,7 +231,8 @@ def bp_finalize_booking(booking_req: GgtBooking):
 
         # create patient
         _patient = __extract_patient_from_booking_req(booking_req)
-        booking_req.patient_id = create_patient_record(_patient)
+        patient_id = create_patient_record(_patient)
+        booking_req.patient_id = patient_id
         if not booking_req.patient_id:
             raise ValueError('Invalid Patient ID')
 
@@ -255,7 +275,7 @@ def bp_finalize_booking(booking_req: GgtBooking):
             error=err
         )
 
-    return appointment, status_message
+    return appointment, status_message, patient_id
 
 
 def bp_finalize_payment(appointment_id: int, wp_receipt_token: str):
