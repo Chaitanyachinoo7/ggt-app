@@ -59,7 +59,7 @@ def task_process_misc():
     # upload_insurance_images_to_gcp_with_small_table()
     #process_email_notifications()
     #upload_insurance_files_from_gstore()
-    #process_sms_notifications()
+    process_sms_notifications()
     #process_email_notifications()
 
     log_generic(
@@ -165,13 +165,13 @@ def process_email_notifications():
 def formatted_email_message(row):
     from_email = cfg('notifications.from_email')
     from_name = cfg('notifications.from_name')
-    subject = "Hi {}, An important update regarding your recent COVID-19 Test".format(row['first_name'])
+    subject = "IMPORTANT: {}, Your Covid-19 Testing location has closed due to inclement weather".format(row['first_name'])
 
     template_vars = {
         "first_name": row['first_name']
     }
 
-    template_name = 'GGT-15-RETEST.html'
+    template_name = 'GGT-14-APPOINTMENT-WEATHER-CLOSING-EMAIL.html'
     html_content = render_template(template_name, **template_vars)
 
     email_message = {
@@ -363,7 +363,7 @@ def get_appointments():
             AND scheduled_dt <  '2021-01-01 00:00:00'
         """
 
-        sql = """
+        sql10 = """
         SELECT 
             p.first_name, p.phone_number, p.email
         FROM
@@ -379,6 +379,20 @@ def get_appointments():
                 AND a.test_start_dt > '2020-12-28 00:00:00'
                 AND a.test_start_dt < '2021-12-29 00:00:00'
         """
+
+        sql = """
+        SELECT 
+            p.first_name, p.phone_number, p.email
+        FROM
+            appointments a
+                JOIN
+            patients p ON a.patient_id = p.id
+        WHERE
+            location_id IN (2423)
+                AND scheduled_dt > '2021-01-04 00:00:00'
+                AND scheduled_dt <  '2021-01-05 00:00:00'
+                AND status = 'scheduled'
+        """
         
         return read_rows(sql)
 
@@ -387,7 +401,7 @@ def get_appointments():
 
 
 def prepare_sms_text(appointment):
-    return """Hi {}, we regret to inform you that our lab partner was not able to return a COVID-19 test result from the sample provided. Though rare, these instances can happen for multiple reasons including an insufficient saliva sample provided, a loose vial leaking in transport, or an inconclusive lab result. We encourage you to visit GoGetTested.com and register for another test as soon as possible.
+    return """Hi {}, due to inclement weather, your testing location is closed today. Please visit GoGetTested.com/Kansas and register for a new appointment. We apologize for the inconvenience.
     """.format(appointment["first_name"])
 
 

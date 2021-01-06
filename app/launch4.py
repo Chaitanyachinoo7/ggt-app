@@ -1,5 +1,5 @@
 import uvicorn
-import main
+from main import app
 
 from ggt.lib.utils import (
     get_config_val as cfg
