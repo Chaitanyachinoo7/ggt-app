@@ -104,12 +104,6 @@ def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: float, rad
                 dtl.location.zip
             )
 
-            if dtl.location.image_thumbnail:
-                map_thumbnail = 'data:image/jpeg;base64,{}'.format(
-                    dtl.location.image_thumbnail)
-            else:
-                map_thumbnail = get_map_thumbnail_url(location_text)
-
             available_locations.append(
                 {
                     'id': dtl.location.id,
@@ -121,12 +115,11 @@ def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: float, rad
                     'collect_insurance_info': dtl.location.collect_insurance_info,
                     'allow_insurance_skip': dtl.location.allow_insurance_skip,
                     'collect_upfront_payment': dtl.location.collect_upfront_payment,
-                    'next_test_date': dtl.first_date_time_available.strftime("%a, %-d %b %Y @ %-I:%M %p"),
+                    'next_test_date': dtl.first_date_time_available.strftime("%a, %-d %b %Y @ %-I:%M %p") if dtl.first_date_time_available else None,
                     'wait_time_mins': '< 10m',
                     'result_time_hours': '{}h'.format(dtl.average_processing_time),
-                    'slots_available': dtl.slot_count*8,
+                    'slots_available': dtl.slot_count,
                     'type': 'public',
-                    'map_thumbnail': map_thumbnail,
                     'services_available': dtl.location.services_available,
                     'distance': dtl.distance,
                     'external': dtl.is_external,
@@ -595,7 +588,7 @@ def __map_dtl_list_to_available_locations(dtl_list):
                     'collect_insurance_info': dtl.location.collect_insurance_info,
                     'allow_insurance_skip': dtl.location.allow_insurance_skip,
                     'collect_upfront_payment': dtl.location.collect_upfront_payment,
-                    'next_test_date': dtl.first_date_time_available.strftime("%a, %-d %b %Y @ %-I:%M %p"),
+                    'next_test_date': dtl.first_date_time_available.strftime("%a, %-d %b %Y @ %-I:%M %p") if dtl.first_date_time_available else None,
                     'wait_time_mins': '< 10m',
                     'result_time_hours': '{}h'.format(dtl.average_processing_time),
                     'slots_available': dtl.slot_count*8,

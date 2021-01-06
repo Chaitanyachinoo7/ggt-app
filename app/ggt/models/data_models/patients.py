@@ -90,6 +90,27 @@ def create_patient_record(patient):
         return None
 
 
+def add_to_ggd_waiting_queue(patient_id):
+    try:
+        sql = """
+            INSERT INTO 
+                ggd_waiting_list (patient_id)
+            VALUES (%s)
+        """
+        vals = (patient_id,)
+        return exec_insert(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            vals=vals,
+            patient=patient_id,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 def get_patient(patient_id):
     try:
         sql = """

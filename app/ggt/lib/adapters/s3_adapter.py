@@ -53,7 +53,7 @@ def __boto_connect_session():
         return None
 
 
-def __boto_connect_resource(service, region_name='us-east-2'):
+def __boto_connect_resource(service, region_name='us-east-1'):
     try:
         boto_resource = boto3.resource(
             service_name=service,
@@ -106,47 +106,25 @@ def write_text_file(bucket, filename, body):
     except Exception as err:
         log_generic(
             type=ERROR,
-            queue_url=queue_url,
-            message=message,
             function=whoami(),
             error=err
         )
-        return False
+    
+    return False
 
 
-def move_file(source_file, destination_file):
+def archive_ftp_s3_file(file_name):
+    bucket_name = 'ggt-sftp-archive'
     try:
-        # Copy object A as object B
-        s3_resource.Object(“bucket_name”, “newpath/to/object_B.txt”).copy_from(
-            CopySource=”path/to/your/object_A.txt”)
-        # Delete the former object A
-        s3_resource.Object(“bucket_name”, “path/to/your/object_A.txt”).delete()
-
-        s3_client = __boto_connect()
-        s3_client.object()
-
-        response = __boto_connect().put_object(
-            Bucket=bucket_name,
-            Key=(directory_name+'/')
-        )
-        log_generic(
-            type=INFO,
-            bucket_name=bucket_name,
-            directory_name=directory_name,
-            function=whoami()
-        )
-        return True
+        resp = __boto_connect_client('s3').upload_file(file_name, bucket_name, file_name.replace('/Users/suresh/ggt-tasks/downloads/',''))
+        if resp:
+            return True
+        else:
+            return False
 
     except Exception as err:
         log_generic(
             type=ERROR,
-            queue_url=queue_url,
-            message=message,
             function=whoami(),
             error=err
         )
-        return False
-
-    s3_resource = boto3.resource(‘s3’)
-
-

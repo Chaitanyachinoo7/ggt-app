@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Security
 
+from cachetools import cached, LRUCache, TTLCache
+
 from ggt.lib.auth import authorize_user
 from ggt.models.data_models.data_types import (
     ValidateOtpRequest,
@@ -73,7 +75,8 @@ async def api_get_available_locations(group_code: str, date: str):
 @router.get("/get_locations_near_me/{lat}/{lng}/{radius}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 @router.get("/get_locations_near_me/{group_code}/{lat}/{lng}/{radius}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 @router.get("/get_locations_near_me/{group_code}/{date}/{lat}/{lng}/{radius}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
-async def api_get_available_locations(lat: float, lng: float, radius: int = None, group_code: str = None, date: str = None):
+@cached(cache=TTLCache(maxsize=1024, ttl=180))
+def api_get_available_locations(lat: float, lng: float, radius: int = None, group_code: str = None, date: str = None):
     # TODO: [GGT-194] temp fix until map zoom levels are in place
     radius = 100000
     return get_schedule_locations_available_near_lat_lng(date, group_code, lat, lng, radius)
@@ -142,6 +145,9 @@ async def api_verify_existing_patient(phone_number: str):
 
 @router.get("/lookup_appointments_by_phone/{phone_number}/{dob}")
 async def api_lookup_appointments_by_phone(phone_number: str, dob: str):
+    return {
+        'status': 'failed'
+    }
     return site_admin_general_search(
         '',
         '',
