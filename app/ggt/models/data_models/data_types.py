@@ -973,14 +973,7 @@ class InsuranceEligibilityRequest(BaseModel):
     city: str = None
     state: str = None
     zip_code: str = None
-    external_account_id: str = None
-    insurance_group_name: str = None
     insurance_id_number: str = None
-    insurance_claim_office_number: str = None
-    insurance_plan_name: str = None
-    patient_relationship_to_subscriber: str = None
-    insurance_company: str = None
-    insurance_plan_type: str = None
     insurance_payer_id: str = None
     insurance_group_number: str = None
     level: str = None

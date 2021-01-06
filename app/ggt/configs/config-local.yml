@@ -130,7 +130,7 @@ vendors:
     endpoint: https://api.getwellpay.com/api/public/v1
     auth_user: suresh@wellpay.com
     auth_password: y7f{=/$>VfRF$vqE
-
+    npi: 1780944496
   kdhe:
     hostname: sl64.endpoint.com
     username: sftpwellhealth

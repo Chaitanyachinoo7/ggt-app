@@ -9,7 +9,7 @@ server:
   host: 0.0.0.0
   port: 8888
 
-origins: 
+origins:
   - https://gogettested.com
   - https://schedule.gogettested.com
   - https://start.gogettested.com
@@ -47,7 +47,7 @@ gcp:
   notification_archive_bucket_name: ggt-notification-archive-dev
   enable_cloud_profiler: false
   enable_cloud_logger: false
-  cloud_logger_log_level: 3 # 0-error, 1-warning, 2-info, 3-debug. 
+  cloud_logger_log_level: 3 # 0-error, 1-warning, 2-info, 3-debug.
 
 databases:
   mysql:
@@ -63,7 +63,7 @@ databases:
 notifications:
   from_email: support@gogettested.com
   from_name: Go Get Tested
-  confirmation_subject: '{{first_name}}, Your Covid-19 test has been scheduled'
+  confirmation_subject: "{{first_name}}, Your Covid-19 test has been scheduled"
   result_subject: COVID-19 Testing Result Available
   appointment_reminder_sublect: GoGetTested COVID-19 Testing Appointment Reminder
   relocate_subject: COVID-19 Testing Appointment has Changed
@@ -77,7 +77,7 @@ notifications:
 twilio:
   account_sid: AC9cef9b4155030ee2683281ccc72d4001
   auth_token: 62ee76165984c54f91ee80aac9cb3f0e
-  from_number: '+18772802151'
+  from_number: "+18772802151"
 
 sendgrid:
   sendgrid_api_key: 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
@@ -108,7 +108,7 @@ vendors:
   auth0:
     auth0_domain: gogettested.us.auth0.com
     api_audience: https://role-base-auth.test/api
-    algorithms: ['RS256']
+    algorithms: ["RS256"]
     roles: http://roles.ggt/roles
 
   healthtrackrx_outbound:
@@ -147,6 +147,7 @@ vendors:
     endpoint: https://api-staging.getwellpay.com/api/public/v1
     auth_user: suresh@wellpay.com
     auth_password: 8,tp{Na{76<~@.>(
+    npi: 1780944496
 
   kdhe:
     hostname: sl64.endpoint.com
@@ -157,14 +158,14 @@ vendors:
 
   slack:
     slack_token: xoxb-my-bot-token
-    slack_channel: '#my-channel'
+    slack_channel: "#my-channel"
     slack_icon_url: https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTuGqps7ZafuzUsViFGIremEL2a3NR0KO0s0RTCMXmzmREJd5m4MA&s
     slack_user_name: Double Images Monitor
 
 pfe:
   signup:
-    special_phone_1: '+14158888888'
-    special_phone_2: '+14159999999'
-    special_phone_3: '4158888888'
-    special_phone_4: '4159999999'
-    override_otp_code: '000000'
+    special_phone_1: "+14158888888"
+    special_phone_2: "+14159999999"
+    special_phone_3: "4158888888"
+    special_phone_4: "4159999999"
+    override_otp_code: "000000"

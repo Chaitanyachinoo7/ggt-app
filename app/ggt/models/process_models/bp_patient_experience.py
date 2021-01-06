@@ -2,6 +2,7 @@ import requests
 from requests.auth import HTTPBasicAuth
 from cachetools import cached, LRUCache, TTLCache
 import ggt.lib.constants as c
+import datetime
 
 from ggt.lib.utils import (
     get_config_val as cfg,
@@ -840,12 +841,6 @@ def __create_wellpay_customer(wp_api_key, insurance_eligibility_request):
         print(response)
         return response['customer_id']
     except Exception as err:
-        # log_generic(
-        #     type=c.ERROR,
-        #     appointment="appointment",
-        #     function=whoami(),
-        #     error=err
-        # )
         print(err)
 
 
@@ -857,17 +852,12 @@ def __add_wellpay_customer_insurance(wp_api_key, insurance_eligibility_request, 
             'Authorization': 'Bearer {}'.format(wp_api_key),
             'Content-Type': 'application/json'
         }
+        print(url)
         payload = {
-            "insurance_group_name": insurance_eligibility_request.insurance_group_name,
             "insurance_id_number": insurance_eligibility_request.insurance_id_number,
-            "insurance_claim_office_number": insurance_eligibility_request.insurance_claim_office_number,
-            "insurance_plan_name": insurance_eligibility_request.insurance_plan_name,
-            "patient_relationship_to_subscriber": insurance_eligibility_request.patient_relationship_to_subscriber,
-            "insurance_company": insurance_eligibility_request.insurance_company,
-            "insurance_plan_type": insurance_eligibility_request.insurance_plan_type,
             "insurance_payer_id": insurance_eligibility_request.insurance_payer_id,
             "insurance_group_number": insurance_eligibility_request.insurance_group_number,
-            "level": insurance_eligibility_request.level,
+            "level": insurance_eligibility_request.level.lower(),
         }
 
         r = requests.post(url, headers=headers, json=payload)
@@ -876,12 +866,6 @@ def __add_wellpay_customer_insurance(wp_api_key, insurance_eligibility_request, 
         print(response)
         return True
     except Exception as err:
-        # log_generic(
-        #     type=c.ERROR,
-        #     appointment="appointment",
-        #     function=whoami(),
-        #     error=err
-        # )
         print(err)
 
 
@@ -893,19 +877,24 @@ def __add_wellpay_customer_insurance_eligibility(wp_api_key, insurance_eligibili
             'Authorization': 'Bearer {}'.format(wp_api_key),
             'Content-Type': 'application/json'
         }
+        print(url)
+        print(datetime.datetime.today().strftime('%Y-%m-%d'))
+        print(datetime.date.today()+ datetime.timedelta(days=10))
         payload = {
-            "services": ["String"],
-            "insurance_level": "String",
-            "as_of_date": "2021-10-10",
-            "to_date": "2021-10-10",
-            "place_of_service_code": "String",
-            "npi": "22244887999"
+            "services": [],
+            "insurance_level": insurance_eligibility_request.level.lower(),
+            "as_of_date": datetime.datetime.today().strftime('%Y-%m-%d'),
+            "to_date": (datetime.date.today()+ datetime.timedelta(days=10)).strftime('%Y-%m-%d'),
+            "place_of_service_code": "",
+            "npi": cfg('vendors.wellpay.npi')
         }
 
         r = requests.post(url, headers=headers, json=payload)
         print(payload)
+        print(headers)
+        print(r.json())
         if(r.status_code == 200):
-            return {"isEligible": True, "eligibility_request_id": r.json()['eligibility_request_id'], "error": None}
+            return {"isEligible": True, "eligibility_request_id": r.json()['request_id'], "error": None}
         return {"isEligible": False, "error": r.text}
     except Exception as err:
         print(err)
@@ -920,11 +909,12 @@ def __get_wellpay_customer_insurance_plans(wp_api_key, insurance_eligibility_req
             'Authorization': 'Bearer {}'.format(wp_api_key),
             'Content-Type': 'application/json'
         }
+        print(url)
         payload = {}
-        r = requests.post(url, headers=headers, json=payload)
+        r = requests.get(url, headers=headers, json=payload)
         print(payload)
         if(r.status_code == 200):
-            return {"isEligible": True, "benefits": r.json()['benefits'], "error": None}
+            return {"isEligible": True, "benefits": r.json(), "error": None}
         elif(r.status_code == 404):
             return {"isEligible": False, "benefits": None, "error": "Benefits not found"}
         return {"isEligible": False, "error": r.text}
