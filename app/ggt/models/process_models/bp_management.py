@@ -1,12 +1,12 @@
 from ggt.lib.adapters.auth0_adapter import create_user_in_auth0, delete_user_in_auth0, get_role_ids, remove_roles, \
-    assign_roles, get_user_in_auth0, create_password_change_ticket
+    assign_roles, get_user_in_auth0
 from ggt.lib.adapters.auth0_config import META_KEY, ORGANIZATION_KEY
 from ggt.lib.constants import ERROR
 from ggt.lib.utils import log_generic, whoami
 from ggt.models.data_models.data_types import CreateAuth0User, UserRolesEnum, DbOrgRequestStatusEnum
 from ggt.models.data_models.management import create_new_organisation_request, list_org_requests, process_org_request, \
     get_org_request_user, create_new_organisation, create_new_user, delete_user, update_user_role, get_user_by_ext_id, \
-    list_user
+    list_user, update_user, update_user_status
 
 
 def bp_create_new_organisation_request(req):
@@ -83,6 +83,48 @@ def bp_create_user(user, is_org_owner=False, owner=None):
         _user = get_user_in_auth0(auth_user['id']).json()
         if create_new_user(_user, user.role) is not None:
             return _user
+        else:
+            return None
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def bp_update_user(user):
+    try:
+        body = {
+            "email": user.email,
+            "given_name": user.given_name,
+            "family_name": user.family_name,
+            "name": user.name,
+            "nickname": user.nickname,
+        }
+        auth_user = update_user_in_auth0(body, user.ext_id)
+        if update_user(user) is not None:
+            return auth_user
+        else:
+            return None
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def bp_update_user_state(user):
+    try:
+        body = {
+            "blocked": not user.is_active
+        }
+        auth_user = update_user_in_auth0(body, user.ext_id)
+        if update_user_status(user) is not None:
+            return auth_user
         else:
             return None
     except Exception as err:

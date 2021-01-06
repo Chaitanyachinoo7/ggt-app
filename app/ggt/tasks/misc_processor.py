@@ -59,7 +59,7 @@ def task_process_misc():
     # upload_insurance_images_to_gcp_with_small_table()
     #process_email_notifications()
     #upload_insurance_files_from_gstore()
-    #process_sms_notifications()
+    process_sms_notifications()
     #process_email_notifications()
 
     log_generic(
@@ -165,13 +165,13 @@ def process_email_notifications():
 def formatted_email_message(row):
     from_email = cfg('notifications.from_email')
     from_name = cfg('notifications.from_name')
-    subject = "{}, IMPORTANT: update about your recent Covid-19 Test".format(row['first_name'])
+    subject = "IMPORTANT: {}, Your Covid-19 Testing location has closed due to inclement weather".format(row['first_name'])
 
     template_vars = {
         "first_name": row['first_name']
     }
 
-    template_name = 'GGT-13-RESULT-DELAYED-EMAIL.html'
+    template_name = 'GGT-14-APPOINTMENT-WEATHER-CLOSING-EMAIL.html'
     html_content = render_template(template_name, **template_vars)
 
     email_message = {
@@ -228,7 +228,7 @@ def get_appointments():
             location_id IN (380)
             AND status = 'scheduled'
         """
-        sql3 = """
+        sql5 = """
         SELECT 
             p.first_name, p.phone_number, p.email
         FROM
@@ -236,11 +236,9 @@ def get_appointments():
                 JOIN
             patients p ON a.patient_id = p.id
         WHERE
-            status = 'test_completed'
-                AND location_id = 369
-                AND (DATE(scheduled_dt) = '2020-12-19'
-                OR DATE(check_in_dt) = '2020-12-19'
-                OR DATE(test_start_dt) = '2020-12-19')
+            status = 'scheduled'
+                AND location_id = 2445
+                AND scheduled_dt > '2020-12-28'
         """
 
         sql4 = """
@@ -257,7 +255,7 @@ def get_appointments():
             AND scheduled_dt < '2020-12-24'
         """
 
-        sql = """
+        sql5 = """
         SELECT 
             p.first_name, p.phone_number, p.email
         FROM
@@ -268,11 +266,134 @@ def get_appointments():
             t.status = 'with_lab'
                 AND t.create_dt < '2020-12-23'
         LIMIT 22000,4000
+        """
 
+        sql6 = """
+        SELECT 
+            p.first_name, p.phone_number, p.email
+        FROM
+            appointments a
+                JOIN
+            patients p ON a.patient_id = p.id
+        WHERE
+            location_id IN (2420 , 2446,
+                276,
+                2448,
+                274,
+                344,
+                2451,
+                370,
+                361,
+                360,
+                372,
+                2414,
+                2417,
+                2421,
+                367,
+                2397,
+                364,
+                366,
+                2458,
+                350,
+                369,
+                2416,
+                2452,
+                382)
+                AND scheduled_dt > '2020-12-29 00:00:00'
+                AND scheduled_dt <  '2020-12-29 11:30:00'
+                AND status = 'scheduled'
+        """
+
+        sql7 = """
+        SELECT 
+            p.first_name, p.phone_number, p.email
+        FROM
+            appointments a
+                JOIN
+            patients p ON a.patient_id = p.id
+        WHERE
+            location_id IN (2420 , 2446,
+                2423,
+                344,
+                370,
+                361,
+                360,
+                2418,
+                2415,
+                414,
+                417,
+                2422,
+                367,
+                399,
+                350,
+                369,
+                416,
+                2421)
+                AND scheduled_dt > '2020-12-29 00:00:00'
+                AND scheduled_dt < '2020-12-30 00:00:00'
+                AND status = 'scheduled'
+        """
+
+        sql8 = """
+        SELECT 
+            p.first_name, p.phone_number, p.email
+        FROM
+            appointments a
+                JOIN
+            patients p ON a.patient_id = p.id
+                JOIN
+            test_samples t ON t.id = a.id
+        WHERE
+            t.test_result = 'inconclusive'
+                AND t.lab_electronic_submission_dt > '2020-12-20'
 
         """
 
+        sql9 = """
+        SELECT 
+            p.first_name, p.phone_number, p.email
+        FROM
+            appointments a
+                JOIN
+            patients p ON a.patient_id = p.id
+        WHERE
+            location_id IN (222, 266, 272)
+            AND status = 'scheduled'
+            AND scheduled_dt > '2020-12-31 00:00:00'
+            AND scheduled_dt <  '2021-01-01 00:00:00'
+        """
 
+        sql10 = """
+        SELECT 
+            p.first_name, p.phone_number, p.email
+        FROM
+            appointments a
+                JOIN
+            patients p ON a.patient_id = p.id
+                JOIN
+            test_samples t ON t.id = a.id
+        WHERE
+            a.location_id IN (2421)
+                AND t.status <> 'lab_result_received'
+                AND a.status = 'test_completed'
+                AND a.test_start_dt > '2020-12-28 00:00:00'
+                AND a.test_start_dt < '2021-12-29 00:00:00'
+        """
+
+        sql = """
+        SELECT 
+            p.first_name, p.phone_number, p.email
+        FROM
+            appointments a
+                JOIN
+            patients p ON a.patient_id = p.id
+        WHERE
+            location_id IN (2423)
+                AND scheduled_dt > '2021-01-04 00:00:00'
+                AND scheduled_dt <  '2021-01-05 00:00:00'
+                AND status = 'scheduled'
+        """
+        
         return read_rows(sql)
 
     except Exception as err:
@@ -280,7 +401,7 @@ def get_appointments():
 
 
 def prepare_sms_text(appointment):
-    return """Hi {}, Thank you for choosing to take your COVID-19 test with GoGetTested. We are experiencing a higher than normal surge in testing and resulting because of the rise in cases during this holiday season. This may cause longer than expected result times. Our lab partners are working hard to process results as fast as possible, and results might not be available until Friday. We apologize foe the inconvenience and appreciate your patience with us as we continue to offer testing services.
+    return """Hi {}, due to inclement weather, your testing location is closed today. Please visit GoGetTested.com/Kansas and register for a new appointment. We apologize for the inconvenience.
     """.format(appointment["first_name"])
 
 

@@ -2,7 +2,7 @@
 #
 # from gcloud import storage
 # import base64
-# import json
+# import ujson
 #
 # class InsuranceCard:
 #     def __init__(self, img_path=None, b64=None):

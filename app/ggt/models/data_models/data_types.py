@@ -150,11 +150,15 @@ class TestResultsEnum(str, Enum):
     pos = 'pos'
     neg = 'neg'
     inconclusive = 'inconclusive'
+    rejected = 'rejected'
+    cancelled = 'cancelled'
 
 
 class ProviderProcessListRequest(BaseModel):
     limit: Optional[int] = 20
     offset: int
+    start_date: str
+    end_date: str
     consultation_status: Optional[ConsultationStatusEnum] = None
     consultation_notes: Optional[ConsultationNotesEnum] = None
     positive_call: Optional[PositiveCall] = None
@@ -268,6 +272,7 @@ class FinalizeRegistrationRequest(BaseModel):
     phone_number: str = None
     token: str = None
     isPatient: bool = None
+    ggd_waitlist: Optional[bool] = True
     gender: str = None
     race: str = None
     ethnicity: str = None
@@ -987,6 +992,20 @@ class CreateAuth0User(BaseModel):
     email_verified: bool = False
 
 
+class UpdateAuth0UserInfo(BaseModel):
+    ext_id: str
+    email: str
+    given_name: str
+    family_name: str
+    name: str
+    nickname: str
+
+
+class UpdateAuth0UserState(BaseModel):
+    ext_id: str
+    is_active: bool
+
+
 class UpdateAuth0User(BaseModel):
     ext_user_id: str
     current_role: List[UserRolesEnum]
@@ -1031,3 +1050,5 @@ class ProcessOrgRequests(BaseModel):
 
 class FilterUser(BaseModel):
     role: str
+    name: str
+    email: str

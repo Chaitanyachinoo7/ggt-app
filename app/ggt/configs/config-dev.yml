@@ -8,6 +8,10 @@ default_timezone: CST
 server:
   host: 0.0.0.0
   port: 8888
+  inbound_processor_port: 5010
+  outbound_processor_port: 5020
+  email_queue_processor_port: 5030
+  sms_queue_processor_port: 5040
 
 origins: 
   - https://gogettested.com
@@ -49,13 +53,15 @@ gcp:
   enable_cloud_logger: false
   cloud_logger_log_level: 3 # 0-error, 1-warning, 2-info, 3-debug. 
 
+
 databases:
   mysql:
-    host: prod-ggt-aurora.cluster-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
-    read_replica_host: prod-ggt-aurora.cluster-ro-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+    host: ggt-dev-db.cluster-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+    read_replica_host: ggt-dev-db.cluster-ro-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
     username: admin
     password: hWMgl5Tfkqn30saQNp9M
     db: ggt_prod
+
 
   sqlite:
     tasks_sqlite_db: /Users/suresh/ggt-tasks/ggt_tasks_local_cache.db

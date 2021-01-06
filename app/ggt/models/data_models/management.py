@@ -111,6 +111,54 @@ def create_new_user(req, roles):
             error=err)
 
 
+def update_user(req):
+    try:
+        sql = """UPDATE ggt_users
+            SET
+            email = %s,
+            family_name = %s,
+            given_name = %s,
+            name = %s,
+            update_dt = NOW()  
+            WHERE 
+                external_id = %s """
+        vals = (
+            req.email,
+            req.family_name,
+            req.given_name,
+            req.name,
+            req.ext_id
+        )
+        return exec_update(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err)
+
+
+def update_user_status(req):
+    try:
+        sql = """UPDATE ggt_users
+            SET
+            is_active = %s,
+            update_dt = NOW()
+            WHERE 
+                external_id = %s """
+        vals = (
+            req.is_active,
+            req.ext_id
+        )
+        return exec_update(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err)
+
+
 def list_org_requests(req):
     try:
         where_statement = "1=1"
@@ -214,16 +262,23 @@ def get_user_by_ext_id(user_id):
 
 def list_user(req, user):
     try:
+
         if user is None:
             return None
         organisation_id = user[META_KEY][ORGANIZATION_KEY] if user[META_KEY] else None
         if organisation_id is None:
             return None
+        where_statement = "organisation_id = {}".format(organisation_id)
+        if req.role != "":
+            where_statement = "{} AND roles LIKE '%{}%'".format(where_statement, req.role)
+        if req.name != "":
+            where_statement = "{} AND name LIKE '%{}%'".format(where_statement, req.name)
+        if req.email != "":
+            where_statement = "{} AND email LIKE '%{}%'".format(where_statement, req.email)
         sql = """SELECT * FROM ggt_users
                     WHERE
-                    organisation_id = %s"""
-        vals = (organisation_id,)
-        return read_rows(sql, vals)
+                    {}""".format(where_statement)
+        return read_rows(sql)
 
     except Exception as err:
         log_generic(

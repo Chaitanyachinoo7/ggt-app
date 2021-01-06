@@ -74,7 +74,8 @@ def get_rsa_key(token):
 
 def get_rsa_key_auth0(token):
     jsonurl = urllib2.urlopen(
-        "https://" + get_config_val('vendors.auth0.auth0_domain') + "/.well-known/jwks.json", context=ssl._create_unverified_context())
+        "https://" + get_config_val('vendors.auth0.auth0_domain') + "/.well-known/jwks.json",
+        context=ssl._create_unverified_context())
     jwks = ujson.loads(jsonurl.read())
 
     try:
@@ -94,11 +95,18 @@ def get_rsa_key_auth0(token):
 
         return rsa_key
 
-    except JWTError:
-        raise AuthError({
-            "code": "invalid_header",
-            c.DESCRIPTION: "Unable to find appropriate key"
-        }, 401)
+    except JWTError as err:
+        x = {
+            "token": token,
+            "jsonurl": "https://" + get_config_val('vendors.auth0.auth0_domain') + "/.well-known/jwks.json"
+        }
+        print(x)
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        raise HTTPException(status_code=401, detail="Unable to find appropriate key {}".format(ujson.dumps(x)))
 
 
 def authorize_user(security_scopes: SecurityScopes, token: str = Depends(oauth2_scheme)):

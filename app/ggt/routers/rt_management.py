@@ -6,9 +6,9 @@ from fastapi import (
 
 from ggt.lib.auth import authorize_user
 from ggt.models.data_models.data_types import PermissionsEnum as p, CreateAuth0User, DeleteAuth0User, UpdateAuth0User, \
-    CreateNewOrganization, ListOrgRequests, ProcessOrgRequests, FilterUser
+    CreateNewOrganization, ListOrgRequests, ProcessOrgRequests, FilterUser, UpdateAuth0UserInfo, UpdateAuth0UserState
 from ggt.models.workflow_models.management_work_flow import create_user, delete_user, update_user_role, user_profile, \
-    create_new_organisation_request, list_org_requests, process_org_request, list_user, password_change_ticket
+    create_new_organisation_request, list_org_requests, process_org_request, list_user, update_user, password_change_ticket, update_user_state
 
 router = APIRouter()
 
@@ -38,6 +38,16 @@ async def api_create_user(req: CreateAuth0User, user=Security(authorize_user, sc
     return create_user(req, user)
 
 
+@router.post("/update_user")
+async def api_update_user(req: UpdateAuth0UserInfo, user=Security(authorize_user, scopes=[p.CREATE_LOCATION])):
+    return update_user(req)
+
+
+@router.post("/update_user_state")
+async def api_update_user_state(req: UpdateAuth0UserState, user=Security(authorize_user, scopes=[p.CREATE_LOCATION])):
+    return update_user_state(req)
+
+
 @router.post("/delete_user", dependencies=[Security(authorize_user, scopes=[p.CREATE_LOCATION])])
 async def api_delete_user(req: DeleteAuth0User):
     return delete_user(req)
@@ -53,9 +63,9 @@ async def api_user_profile(user=Security(authorize_user, scopes=[p.CREATE_LOCATI
     return user_profile(user)
 
 
-@router.get("/list_users")
-async def api_list_users(user=Security(authorize_user, scopes=[p.CREATE_LOCATION])):
-    return list_user('', user)
+@router.post("/list_users")
+async def api_list_users(req: FilterUser, user=Security(authorize_user, scopes=[p.CREATE_LOCATION])):
+    return list_user(req, user)
 
 
 @router.get("/password_change_ticket")
