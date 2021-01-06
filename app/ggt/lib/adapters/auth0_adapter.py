@@ -61,6 +61,23 @@ def create_user_in_auth0(user, organization_id):
         return None
 
 
+def update_user_in_auth0(body, ext_id):
+    try:
+        headers = get_management_api_req_headers()
+        body = json.dumps(body)
+        update_api = AUTH0_USER_UPDATE_API.format(ext_id)
+        r = requests.patch(update_api, data=body, headers=headers)
+        _user = r.json()
+        return {'user': _user}
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 def delete_user_in_auth0(user):
     try:
         headers = get_management_api_req_headers()

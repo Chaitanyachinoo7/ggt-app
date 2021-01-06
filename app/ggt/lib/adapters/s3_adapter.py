@@ -113,5 +113,18 @@ def write_text_file(bucket, filename, body):
     return False
 
 
+def archive_ftp_s3_file(file_name):
+    bucket_name = 'ggt-sftp-archive'
+    try:
+        resp = __boto_connect_client('s3').upload_file(file_name, bucket_name, file_name.replace('/Users/suresh/ggt-tasks/downloads/',''))
+        if resp:
+            return True
+        else:
+            return False
 
-
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
