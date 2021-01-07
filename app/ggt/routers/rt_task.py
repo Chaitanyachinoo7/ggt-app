@@ -44,16 +44,19 @@ from ggt.tasks.sms_queue_processor import task_process_sms_queue
 router = APIRouter()
 
 
-# TODO: With Cloud Run, consider Disabling Background Task. Ideally all asynchronous operations finish before
-#  delivering response
-
-@router.post("/process_inbound_lab_reports", dependencies=[Security(authorize_user, scopes=[p.PROCESS_INBOUND_LAB_REPORTS])])
-async def api_process_inbound_lab_reports(background_tasks: BackgroundTasks):
+@router.post("/background_process_inbound_lab_reports", dependencies=[Security(authorize_user, scopes=[p.PROCESS_INBOUND_LAB_REPORTS])])
+async def api_background_process_inbound_lab_reports(background_tasks: BackgroundTasks):
     background_tasks.add_task(task_process_inbound_lab_reports)
     return {
         STATUS: SUCCESS,
         DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
     }
+
+
+@router.post("/process_inbound_lab_reports", dependencies=[Security(authorize_user, scopes=[p.PROCESS_INBOUND_LAB_REPORTS])])
+async def api_process_inbound_lab_reports():
+    task_process_inbound_lab_reports()
+    return {STATUS: SUCCESS}
 
 
 @router.post("/process_process_outbound_lab_orders", dependencies=[Security(authorize_user, scopes=[p.PROCESS_PROCESS_OUTBOUND_LAB_ORDERS])])
@@ -83,11 +86,7 @@ async def api_process_crl_lab_orders(background_tasks: BackgroundTasks):
     }
 
 
-
-
-
-
-@router.post("/archive_processed_notifications", dependencies=[Security(authorize_user,                                                                        scopes=[p.ARCHIVE_PROCESSED_NOTIFICATIONS])])
+@router.post("/archive_processed_notifications", dependencies=[Security(authorize_user,  scopes=[p.ARCHIVE_PROCESSED_NOTIFICATIONS])])
 async def api_archive_processed_notifications(background_tasks: BackgroundTasks):
     background_tasks.add_task(archive_processed_notifications)
     return {
@@ -126,22 +125,24 @@ async def api_process_sms_queue():
     task_process_sms_queue()
     return {STATUS: SUCCESS}
 '''
-@router.post("/process_email_queue", dependencies=[Security(authorize_user, scopes=[p.PROCESS_EMAIL_QUEUE])])
-async def api_process_email_queue(background_tasks: BackgroundTasks):
-    background_tasks.add_task(task_process_email_queue)
+
+
+@router.get("/process_email_queue/{batch_size}/{offset}", dependencies=[Security(authorize_user, scopes=[p.PROCESS_EMAIL_QUEUE])])
+async def api_process_email_queue(background_tasks: BackgroundTasks, batch_size: int = 10000, offset: int = 0):
+    background_tasks.add_task(task_process_email_queue, batch_size, offset)
     return {
         STATUS: SUCCESS,
         DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
     }
 
-@router.post("/process_sms_queue", dependencies=[Security(authorize_user, scopes=[p.PROCESS_SMS_QUEUE])])
-async def api_process_sms_queue(background_tasks: BackgroundTasks):
-    background_tasks.add_task(task_process_sms_queue)
+
+@router.get("/process_sms_queue/{batch_size}/{offset}", dependencies=[Security(authorize_user, scopes=[p.PROCESS_SMS_QUEUE])])
+async def api_process_sms_queue(background_tasks: BackgroundTasks, batch_size: int = 10000, offset: int = 0):
+    background_tasks.add_task(task_process_sms_queue, batch_size, offset)
     return {
         STATUS: SUCCESS,
         DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
     }
-
 
 
 @router.post("/notify_patients_relocate", dependencies=[Security(authorize_user, scopes=[p.NOTIFY_PATIENTS])])
@@ -162,13 +163,14 @@ async def api_notify_patients(request: PatientRescheduleNotificationRequest, bac
     }
 
 
-
 @router.post("/populate_location_thumbnails", dependencies=[Security(authorize_user, scopes=[p.POPULATE_LOCATION_THUMBNAILS])])
 async def api_populate_location_thumbnails():
     task_populate_location_thumbnails()
     return {STATUS: SUCCESS}
 
 # TODO: [GGT-127] create security permission
+
+
 @router.post("/populate_gps_coordinates")
 async def api_process_sms_queue(request: Request):
     task_populate_gps_coordinates()

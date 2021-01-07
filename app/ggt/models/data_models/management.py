@@ -111,6 +111,54 @@ def create_new_user(req, roles):
             error=err)
 
 
+def update_user(req):
+    try:
+        sql = """UPDATE ggt_users
+            SET
+            email = %s,
+            family_name = %s,
+            given_name = %s,
+            name = %s,
+            update_dt = NOW()  
+            WHERE 
+                external_id = %s """
+        vals = (
+            req.email,
+            req.family_name,
+            req.given_name,
+            req.name,
+            req.ext_id
+        )
+        return exec_update(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err)
+
+
+def update_user_status(req):
+    try:
+        sql = """UPDATE ggt_users
+            SET
+            is_active = %s,
+            update_dt = NOW()
+            WHERE 
+                external_id = %s """
+        vals = (
+            req.is_active,
+            req.ext_id
+        )
+        return exec_update(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err)
+
+
 def list_org_requests(req):
     try:
         where_statement = "1=1"
