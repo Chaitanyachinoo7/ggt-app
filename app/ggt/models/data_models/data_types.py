@@ -272,6 +272,7 @@ class FinalizeRegistrationRequest(BaseModel):
     phone_number: str = None
     token: str = None
     isPatient: bool = None
+    ggd_waitlist: Optional[bool] = True
     gender: str = None
     race: str = None
     ethnicity: str = None
@@ -989,6 +990,20 @@ class CreateAuth0User(BaseModel):
     nickname: str = None
     blocked: bool = False
     email_verified: bool = False
+
+
+class UpdateAuth0UserInfo(BaseModel):
+    ext_id: str
+    email: str
+    given_name: str
+    family_name: str
+    name: str
+    nickname: str
+
+
+class UpdateAuth0UserState(BaseModel):
+    ext_id: str
+    is_active: bool
 
 
 class UpdateAuth0User(BaseModel):
