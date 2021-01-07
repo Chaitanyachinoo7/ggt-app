@@ -1052,3 +1052,10 @@ class FilterUser(BaseModel):
     role: str
     name: str
     email: str
+
+class StatusUpdatesRequest(BaseModel):
+    lab_code: str
+    requisition_id: str
+    order_id: str
+    status_code: str
+    remarks: str
