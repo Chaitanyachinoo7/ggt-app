@@ -95,7 +95,6 @@ def record_label_scan(appointment_id):
 
 def lab_status_update(lab_status_update_request):
     try:
-        print(lab_status_update_request)
         sql = """
                 INSERT INTO status_updates_ait
                 (

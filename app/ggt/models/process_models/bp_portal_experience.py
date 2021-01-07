@@ -315,7 +315,6 @@ def bp_record_label_scan(appointment_id):
 
 def bp_lab_status_update(lab_status_update_request):
     try:
-        print(lab_status_update_request)
         return lab_status_update(lab_status_update_request)
 
     except Exception as err:

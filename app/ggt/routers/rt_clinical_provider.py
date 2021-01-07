@@ -49,5 +49,4 @@ async def api_scan_label(scan_label_request: ScanLabelRequest):
 
 @router.post("/status_updates")
 def api_lab_status_updates(status_updates_request: StatusUpdatesRequest, api_key: APIKey = Depends(get_api_key)):
-    print(status_updates_request)
     return lab_status_update(status_updates_request)
