@@ -53,6 +53,14 @@ gcp:
   enable_cloud_logger: false
   cloud_logger_log_level: 3 # 0-error, 1-warning, 2-info, 3-debug. 
 
+# databases:
+#   mysql:
+#     host: ggt-dev-db.cluster-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+#     read_replica_host: ggt-dev-db.cluster-ro-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+#     username: admin
+#     password: hWMgl5Tfkqn30saQNp9M
+#     db: ggt_prod
+
 databases:
   mysql:
     host: prod-ggt-aurora.cluster-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
@@ -117,6 +125,9 @@ vendors:
     management_client_id: 6ok7VWNkeOA6An5sN30Jl9gHoH4oUT8j
     management_sectret: Rwx8-mby99m5O-2aR14JKgoim0VV0FJuO6sefpDxXjKiQ18mys4JWf2oAO6_5Mha
     connection: Username-Password-Authentication
+  auth:
+    api_key_name: x-api-key
+    api_key_value: f63e3e17-e10a-4f57-b7b5-08a40d4b0d6b
 
   healthtrackrx_outbound:
     hostname: sftp.healthtrackrx.com
@@ -154,7 +165,7 @@ vendors:
     endpoint: https://api.getwellpay.com/api/public/v1
     auth_user: suresh@wellpay.com
     auth_password: y7f{=/$>VfRF$vqE
-
+    npi: 1780944496
   kdhe:
     hostname: sl64.endpoint.com
     username: sftpwellhealth
