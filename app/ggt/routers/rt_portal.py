@@ -75,9 +75,9 @@ async def api_get_user_role(portal_user_role_request: PortalUserRoleRequest,
         }
 
 
-@router.post("/site-admin/create_location", dependencies=[Security(authorize_user, scopes=[p.CREATE_LOCATION])])
-async def api_create_location(location: GgtDbLocation):
-    return create_location(location)
+@router.post("/site-admin/create_location")
+async def api_create_location(location: GgtDbLocation, user=Security(authorize_user, scopes=[p.CREATE_LOCATION])):
+    return create_location(location, user)
 
 
 @router.get("/site-admin/get_states", dependencies=[Security(authorize_user, scopes=[p.CREATE_LOCATION])])
@@ -127,9 +127,9 @@ async def api_update_location(location: GgtUpdateLocation):
     return update_location(location)
 
 
-@router.get("/site-admin/get_all_groups", dependencies=[Security(authorize_user, scopes=[p.GET_ALL_GROUPS])])
-async def api_get_all_groups():
-    return get_all_groups()
+@router.get("/site-admin/get_all_groups")
+async def api_get_all_groups(user=Security(authorize_user, scopes=[p.GET_ALL_GROUPS])):
+    return get_all_groups(user)
 
 
 @router.get("/site-admin/get_all_services", dependencies=[Security(authorize_user, scopes=[p.GET_ALL_SERVICES])])
@@ -174,13 +174,15 @@ async def api_generate_all_schedules(background_tasks: BackgroundTasks):
     }
 
 
-@router.post("/site-admin/location_search", dependencies=[Security(authorize_user, scopes=[p.LOCATION_SEARCH])])
-async def api_site_admin_location_search(portal_location_search: PortalLocationSearchRequest):
+@router.post("/site-admin/location_search")
+async def api_site_admin_location_search(portal_location_search: PortalLocationSearchRequest, user=Security(authorize_user, scopes=[p.LOCATION_SEARCH])):
     return site_admin_location_search(
         portal_location_search.account,
         portal_location_search.group_code,
         portal_location_search.site_code,
-        portal_location_search.location_name
+        portal_location_search.location_name,
+        portal_location_search.st,
+        user
     )
 
 

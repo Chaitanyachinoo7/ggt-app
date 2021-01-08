@@ -110,8 +110,8 @@ def get_rsa_key_auth0(token):
 
 
 def authorize_user(security_scopes: SecurityScopes, token: str = Depends(oauth2_scheme)):
-    if (get_config_val('env') == 'DEV'):  # Allow auth override for dev
-        return True
+    # if (get_config_val('env') == 'DEV'):  # Allow auth override for dev
+    #     return True
     try:
         scopes = security_scopes.scopes
         if p.ANONYMOUS in scopes:

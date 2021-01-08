@@ -55,17 +55,17 @@ def site_admin_general_search(first_name, middle_name, last_name, dob, phone_num
 
 
 # @cached(cache=TTLCache(maxsize=1024, ttl=60))
-def site_admin_location_search(account, group_code, site_code, location_name):
+def site_admin_location_search(account, group_code, site_code, location_name, st, user):
     return y_response(
         bp_get_location_search_results(
-            account, group_code, site_code, location_name
+            account, group_code, site_code, location_name, st, user
         )
     )
 
 
-def create_location(location):
+def create_location(location, user):
     return y_response(
-        bp_create_location(location)
+        bp_create_location(location, user)
     )
 
 
@@ -123,9 +123,9 @@ def update_location(location):
     )
 
 
-def get_all_groups():
+def get_all_groups(user):
     return y_response(
-        bp_get_all_groups()
+        bp_get_all_groups(user)
     )
 
 

@@ -193,7 +193,7 @@ def create_password_change_ticket(req, user):
     try:
         headers = get_management_api_req_headers()
         body = {
-            "result_url": req.result_url,
+            "result_url": req.headers['origin'],
             "user_id": user['sub'],
             "ttl_sec": 2000,
             "mark_email_as_verified": False,

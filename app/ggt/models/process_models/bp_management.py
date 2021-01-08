@@ -1,12 +1,12 @@
 from ggt.lib.adapters.auth0_adapter import create_user_in_auth0, delete_user_in_auth0, get_role_ids, remove_roles, \
-    assign_roles, get_user_in_auth0
+    assign_roles, get_user_in_auth0, create_password_change_ticket, update_user_in_auth0
 from ggt.lib.adapters.auth0_config import META_KEY, ORGANIZATION_KEY
 from ggt.lib.constants import ERROR
 from ggt.lib.utils import log_generic, whoami
 from ggt.models.data_models.data_types import CreateAuth0User, UserRolesEnum, DbOrgRequestStatusEnum
 from ggt.models.data_models.management import create_new_organisation_request, list_org_requests, process_org_request, \
     get_org_request_user, create_new_organisation, create_new_user, delete_user, update_user_role, get_user_by_ext_id, \
-    list_user, update_user, update_user_status
+    list_user, update_user, update_user_status, list_organizations, change_org_status
 
 
 def bp_create_new_organisation_request(req):
@@ -184,6 +184,30 @@ def bp_user_profile(user):
 def bp_list_user(req, user):
     try:
         return list_user(req, user)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def bp_list_organizations(req, user):
+    try:
+        return list_organizations(req, user)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def bp_change_org_status(req, user):
+    try:
+        return change_org_status(req, user)
     except Exception as err:
         log_generic(
             type=ERROR,

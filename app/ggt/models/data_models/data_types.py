@@ -424,6 +424,7 @@ class PortalGeneralSearchRequest(BaseModel):
 class PortalLocationSearchRequest(BaseModel):
     account: str
     group_code: str
+    st: str
     site_code: str
     location_name: str
 
@@ -1052,3 +1053,12 @@ class FilterUser(BaseModel):
     role: str
     name: str
     email: str
+
+
+class FilterOrg(BaseModel):
+    name: str
+
+
+class ChangeOrgStatus(BaseModel):
+    id: str
+    is_active: bool

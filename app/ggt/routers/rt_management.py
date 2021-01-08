@@ -6,9 +6,11 @@ from fastapi import (
 
 from ggt.lib.auth import authorize_user
 from ggt.models.data_models.data_types import PermissionsEnum as p, CreateAuth0User, DeleteAuth0User, UpdateAuth0User, \
-    CreateNewOrganization, ListOrgRequests, ProcessOrgRequests, FilterUser, UpdateAuth0UserInfo, UpdateAuth0UserState
+    CreateNewOrganization, ListOrgRequests, ProcessOrgRequests, FilterUser, UpdateAuth0UserInfo, UpdateAuth0UserState, \
+    FilterOrg, ChangeOrgStatus
 from ggt.models.workflow_models.management_work_flow import create_user, delete_user, update_user_role, user_profile, \
-    create_new_organisation_request, list_org_requests, process_org_request, list_user, update_user, password_change_ticket, update_user_state
+    create_new_organisation_request, list_org_requests, process_org_request, list_user, update_user, \
+    password_change_ticket, update_user_state, list_organizations, change_org_status
 
 router = APIRouter()
 
@@ -66,6 +68,16 @@ async def api_user_profile(user=Security(authorize_user, scopes=[p.CREATE_LOCATI
 @router.post("/list_users")
 async def api_list_users(req: FilterUser, user=Security(authorize_user, scopes=[p.CREATE_LOCATION])):
     return list_user(req, user)
+
+
+@router.post("/list_organizations")
+async def api_list_organizations(req: FilterOrg, user=Security(authorize_user, scopes=[p.CREATE_LOCATION])):
+    return list_organizations(req, user)
+
+
+@router.post("/change_org_status")
+async def api_change_org_status(req: ChangeOrgStatus, user=Security(authorize_user, scopes=[p.CREATE_LOCATION])):
+    return change_org_status(req, user)
 
 
 @router.get("/password_change_ticket")

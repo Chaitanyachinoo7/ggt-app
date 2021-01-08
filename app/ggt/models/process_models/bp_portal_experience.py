@@ -112,9 +112,9 @@ def bp_update_group(group):
         )
 
 
-def bp_create_location(location):
+def bp_create_location(location, user):
     try:
-        l = create_location(location)
+        l = create_location(location, user)
         if l is None:
             return None
         location_id = l['location_id']
@@ -136,7 +136,7 @@ def bp_create_location(location):
             s_success = assign_all_services(tuple(location_services))
             if s_success is None or not s_success:
                 return None
-        _location = search_locations('', '', l['site_code'], '')
+        _location = search_locations('', '', l['site_code'], '', user)
         return _location
 
     except Exception as err:
@@ -242,9 +242,9 @@ def bp_update_location(location):
         )
 
 
-def bp_get_all_groups():
+def bp_get_all_groups(user):
     try:
-        return get_all_groups()
+        return get_all_groups(user)
 
     except Exception as err:
         log_generic(
@@ -277,9 +277,9 @@ def bp_get_all_services():
         )
 
 
-def bp_get_location_search_results(account, group_code, site_code, location_name):
+def bp_get_location_search_results(account, group_code, site_code, location_name, st, user):
     try:
-        return search_locations(account, group_code, site_code, location_name)
+        return search_locations(account, group_code, site_code, location_name, user, st=st)
 
     except Exception as err:
         log_generic(
