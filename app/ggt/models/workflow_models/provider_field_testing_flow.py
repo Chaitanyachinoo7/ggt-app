@@ -9,6 +9,7 @@ from ggt.models.process_models.bp_appointments import (
 )
 from ggt.models.process_models.bp_portal_experience import (
     bp_record_label_scan,
+    bp_lab_status_update,
     bp_create_test_sample_from_appointment)
 from ggt.models.process_models.bp_printers import (
     bp_provider_get_workstations
@@ -72,6 +73,10 @@ def scan_label(appointment_id):
         bp_record_label_scan(appointment_id)
     )
 
+def lab_status_update(lab_status_update_request):
+        return x_response(
+        bp_lab_status_update(lab_status_update_request)
+    )
 
 ########################################################################################################
 # [Protected] functions
