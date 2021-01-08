@@ -1062,3 +1062,25 @@ class FilterOrg(BaseModel):
 class ChangeOrgStatus(BaseModel):
     id: str
     is_active: bool
+
+class StatusUpdatesRequest(BaseModel):
+    lab_code: str
+    requisition_id: str
+    order_id: str
+    status_code: str
+    remarks: str
+
+class InsuranceEligibilityRequest(BaseModel):
+    first_name: str = None
+    last_name: str = None
+    phone_number: str = None
+    email: str = None
+    dob: str = None
+    addr1: str = None
+    city: str = None
+    state: str = None
+    zip_code: str = None
+    insurance_id_number: str = None
+    insurance_payer_id: str = None
+    insurance_group_number: str = None
+    level: str = None

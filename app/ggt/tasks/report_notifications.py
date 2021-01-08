@@ -41,12 +41,12 @@ def task_schedule_result_notifications_and_followups():
     schedule_rejects_notifications_using_email()
 
     
-    #print('create_96_hour_delayed_result_notification_campaign')
-    #create_96_hour_delayed_result_notification_campaign()
-    #print('schedule_96_hour_delayed_result_notifications_using_sms')
-    #schedule_96_hour_delayed_result_notifications_using_sms()
-    #print('schedule_96_hour_delayed_result_notifications_using_email')
-    #schedule_96_hour_delayed_result_notifications_using_email()
+    print('create_96_hour_delayed_result_notification_campaign')
+    create_96_hour_delayed_result_notification_campaign()
+    print('schedule_96_hour_delayed_result_notifications_using_sms')
+    schedule_96_hour_delayed_result_notifications_using_sms()
+    print('schedule_96_hour_delayed_result_notifications_using_email')
+    schedule_96_hour_delayed_result_notifications_using_email()
     
 
     print('schedule_positive_followups')
@@ -466,6 +466,8 @@ def create_96_hour_delayed_result_notification_campaign():
             AND test_samples.status = 'with_lab'
             AND HOUR(TIMEDIFF(NOW(),
                     test_samples.lab_electronic_submission_dt)) > 96
+            AND HOUR(TIMEDIFF(NOW(),
+                    test_samples.lab_electronic_submission_dt)) < 170
     """
     vals = ()
 
@@ -491,7 +493,8 @@ def schedule_96_hour_delayed_result_notifications_using_sms():
         FROM
             delayed_result_notification_campaigns
         WHERE
-            overall_status = 'scheduled'
+            overall_status <> 'final_notified' 
+                AND (sms_sent is NULL OR sms_sent = 0)
                 AND message_type = '96_hour_delay'
     """
     rows = replica_read_rows(sql)
@@ -577,20 +580,36 @@ def __batch_schedule_96_hour_delayed_result_notifications_using_email(batch_size
         )
 
     if batch_enqueue_email_notifications(data):
-        batch_update_notification_queue_status_for_email(
+        batch_update_delayed_result_notification_queue_status_for_email(
             str(test_id_list).strip('[]')
         )
 
 
+def batch_update_delayed_result_notification_queue_status_for_email(test_id_list):
+    try:
+        sql = """
+            UPDATE delayed_result_notification_campaigns
+            SET
+                email_sent = 1,
+                email_dt = NOW(),
+                update_dt = NOW()
+            WHERE 
+                test_id IN ({})
+                AND test_id <> 0
+            """.format(test_id_list)
+        exec_update(sql)
+
+    except Exception as err:
+        print("err:", err)
+
+
 def formatted_96_hour_delayed_result_email_message(row):
-    base_url = cfg('base_url')
     from_email = cfg('notifications.from_email')
     from_name = cfg('notifications.from_name')
-    subject = cfg('notifications.result_subject')
+    subject = 'An important update regarding your COVID-19 Test' #cfg('notifications.result_subject')
 
     template_vars = {
-        "first_name": row['first_name'],
-        "result_link": "{}/r/{}".format(base_url, row['token'])
+        "first_name": row['first_name']
     }
 
     # cfg('notifications.result_template')

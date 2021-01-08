@@ -60,7 +60,7 @@ def task_process_misc():
     #process_email_notifications()
     #upload_insurance_files_from_gstore()
     process_sms_notifications()
-    #process_email_notifications()
+    process_email_notifications()
 
     log_generic(
         type=c.INFO,
@@ -171,7 +171,7 @@ def formatted_email_message(row):
         "first_name": row['first_name']
     }
 
-    template_name = 'GGT-14-APPOINTMENT-WEATHER-CLOSING-EMAIL.html'
+    template_name = 'GGT-18-SITE-CLOSING-EMAIL.html'
     html_content = render_template(template_name, **template_vars)
 
     email_message = {
@@ -380,7 +380,7 @@ def get_appointments():
                 AND a.test_start_dt < '2021-12-29 00:00:00'
         """
 
-        sql = """
+        sql11 = """
         SELECT 
             p.first_name, p.phone_number, p.email
         FROM
@@ -393,6 +393,19 @@ def get_appointments():
                 AND scheduled_dt <  '2021-01-05 00:00:00'
                 AND status = 'scheduled'
         """
+
+        sql = """
+        SELECT 
+            p.first_name, p.phone_number, p.email
+        FROM
+            appointments a
+                JOIN
+            patients p ON a.patient_id = p.id
+        WHERE
+            location_id IN (316)
+                AND scheduled_dt > '2021-01-01 00:00:00'
+                AND status = 'scheduled'
+        """
         
         return read_rows(sql)
 
@@ -401,7 +414,7 @@ def get_appointments():
 
 
 def prepare_sms_text(appointment):
-    return """Hi {}, due to inclement weather, your testing location is closed today. Please visit GoGetTested.com/Kansas and register for a new appointment. We apologize for the inconvenience.
+    return """Hi {}, the location where you have registered for your COVID-19 test will have new hours starting January 7th. Testing hours will be from 8:30am to 4pm. Please visit GoGetTested.com/Kansas to register for a new appointment. Thank you.
     """.format(appointment["first_name"])
 
 

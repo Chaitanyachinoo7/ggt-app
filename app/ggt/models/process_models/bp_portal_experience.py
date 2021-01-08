@@ -11,7 +11,8 @@ from ggt.models.data_models.clinical_test_results import (
 )
 from ggt.models.data_models.clinical_test_sample import (
     create_test_sample_from_appointment,
-    record_label_scan
+    record_label_scan,
+    lab_status_update
 )
 from ggt.models.data_models.generic_search_result import (
     find_patients
@@ -44,7 +45,6 @@ def bp_get_user_role(email):
         user = get_user_by_email(email)
         return user['role']
 
-
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -68,13 +68,13 @@ def bp_get_all_test_results():
 
 
 def bp_get_general_search_results(first_name, middle_name, last_name, dob, phone_number, email, appointment_id,
-                                        group_code, appointment_date, location_id, vial_id='', sort_field="register_dt", sort_type="desc"):
+                                  group_code, appointment_date, location_id, vial_id='', sort_field="register_dt", sort_type="desc"):
     try:
         if appointment_date != '':
             appointment_date = datetime.strptime(appointment_date, "%m%d%Y")
 
         return find_patients(first_name, middle_name, last_name, dob, phone_number,
-                                   email, appointment_id, group_code, appointment_date, location_id, vial_id, sort_field, sort_type)
+                             email, appointment_id, group_code, appointment_date, location_id, vial_id, sort_field, sort_type)
 
     except Exception as err:
         log_generic(
@@ -304,6 +304,18 @@ def bp_create_test_sample_from_appointment(appointment_id):
 def bp_record_label_scan(appointment_id):
     try:
         return record_label_scan(appointment_id)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+
+
+def bp_lab_status_update(lab_status_update_request):
+    try:
+        return lab_status_update(lab_status_update_request)
 
     except Exception as err:
         log_generic(
