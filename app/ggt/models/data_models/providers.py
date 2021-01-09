@@ -218,7 +218,7 @@ def _get_provider_processing_list_db(offset, consultation_status, consultation_n
         if positive_call == PositiveCall.already_called:
             where_conditions = "{} AND t.test_result ='pos' AND t.consultation_status = '{}'".format(
                 where_conditions, ConsultationStatusEnum.completed)
-        sql = """SELECT 
+        sql = """SELECT
     p.id AS patient_id,
     p.first_name AS first_name,
     p.middle_name AS middle_name,

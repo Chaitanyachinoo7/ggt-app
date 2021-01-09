@@ -107,7 +107,7 @@ async def api_cc_send_email(CCSendEmailRequest: CCSendEmailRequest):
 @router.post("/sms_email_notify", dependencies=[Security(authorize_user, scopes=[p.SMS_EMAIL_NOTIFY])])
 async def api_cc_send_sms_email(CCSendNotiRequest: CCSendNotiRequest):
     try:
-        email = formatted_email_message(
+        email = await formatted_email_message(
             CCSendNotiRequest.first_name, CCSendNotiRequest.token, CCSendNotiRequest.to_email)
         send_email(email["from_email"], email["from_name"],
                          email["to_email"], email["subject"], email["html_content"])

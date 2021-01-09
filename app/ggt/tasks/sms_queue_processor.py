@@ -36,31 +36,38 @@ def _task_process_sms_queue():
 '''
 
 
-def task_process_sms_queue():
-    print('\n\n********************task_process_SMS_queue****************************\n\n')
+def task_process_sms_queue(batch_size=10000, offset=0):
+    print('********************task_process_SMS_queue****************************')
 
-    batch_size = 100
     sql = """
         SELECT count(*) as total FROM sms_notification_queue where status IN ('pending','retry')
     """
     row = replica_read_row(sql,)
     total_count = row['total']
-    limit = math.ceil(total_count/batch_size)
 
-    for _ in range(limit):
-        __batch_process_sms_queue(batch_size)
+    if batch_size < total_count:
+        total_count = batch_size
 
-    print('\n\n************************************************\n\n')
+    micro_batch_size = 50
+    batch_count = math.ceil(total_count/micro_batch_size)
+
+    for i in range(batch_count):
+        micro_offset = offset + (micro_batch_size * i)
+        __batch_process_sms_queue(micro_batch_size, micro_offset)
+
+    print('************************ END ************************\n\n')
 
 
-def __batch_process_sms_queue(batch_size=100):
+def __batch_process_sms_queue(micro_offset, micro_batch_size):
     sql = """
     SELECT * 
     FROM sms_notification_queue 
     WHERE status 
         IN ('pending','retry') 
-    LIMIT {}
-    """.format(batch_size)
+    ORDER BY create_dt ASC
+    LIMIT {},{}
+    """.format(micro_offset, micro_batch_size)
+
     rows = replica_read_rows(sql)
 
     for row in rows:
