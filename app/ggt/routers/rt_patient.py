@@ -10,7 +10,8 @@ from ggt.models.data_models.data_types import (
     FinalizePaymentRequest,
     LookupAppointmentRequest,
     VerifyExistingPatientRequest,
-    PermissionsEnum as p
+    PermissionsEnum as p,
+    InsuranceEligibilityRequest
 )
 
 from ggt.models.workflow_models.patient_portal_flow import (
@@ -29,7 +30,8 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
     get_schedule_locations_available_near_lat_lng,
     lookup_appointment,
     lookup_test_result,
-    get_all_available_locations_and_times
+    get_all_available_locations_and_times,
+    insurance_eligibility
 )
 
 # TODO: [GGT-193] Move this to a dedicated API
@@ -158,3 +160,8 @@ async def api_lookup_appointments_by_phone(phone_number: str, dob: str):
         '',
         ''
     )
+
+
+@router.post("/insurance_eligibility")
+def api_insurance_eligibility(req: InsuranceEligibilityRequest):
+    return insurance_eligibility(req)
