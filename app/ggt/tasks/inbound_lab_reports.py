@@ -44,7 +44,9 @@ from ggt.models.data_models.tasks_local_cache import (
     get_order_number_by_requisition_id,
     add_to_files_in_remote_storage_cache,
     file_exists_in_files_in_remote_storage_cache,
-    add_to_csv_pdf_sync_cache
+    add_to_csv_pdf_sync_cache,
+    add_to_csv_pdf_sync_cache_v2,
+    add_to_lab_test_records_cache_v2
 )
 
 from ggt.lib.adapters.s3_adapter import (
@@ -91,13 +93,18 @@ def task_process_inbound_lab_reports():
 
     # clean_downloads_folder()
     #download_ftp_files()
-    parse_csv_files()
+    #parse_csv_files()
 
+    #add_to_healthtrackrx_inbound_data_table()
+    #update_test_samples_with_results()
+    #upload_pdf_lab_reports()
+    process_pdf_results_for_lab_ait()
+    #parse_report_comments()
     add_to_healthtrackrx_inbound_data_table()
     update_test_samples_with_results()
-    upload_pdf_lab_reports()
+
     upload_all_inbound_files_to_central_storage()
-    #parse_report_comments()
+    
 
     log_generic(
         type=c.INFO,
@@ -432,6 +439,71 @@ def load_data_from_remote_db_to_cache():
     print_ok2('{} 100%            '.format(PROGRESS_LABEL))
 
 
+def process_pdf_results_for_lab_ait():
+    print('process_pdf_results_for_lab_ait')
+    try:
+        file_count = 0
+        for local_file_path in glob.iglob('{}/**/*.pdf'.format(local_download_path), recursive=True):
+            file_count += 1
+
+        i = 0
+        p = 0
+        PROGRESS_LABEL = 'Processing and uploading PDF lab reports'
+        for local_file_path in glob.iglob('{}/**/*.pdf'.format(local_download_path), recursive=True):
+            i += 1
+            p = i/file_count*100
+            print_progress_bar_message('{} {:.1f}%'.format(PROGRESS_LABEL, p))
+
+            try:
+                if os.stat(local_file_path).st_size == 0:
+                    raise ValueError('Empty File')
+
+                __requisition_id, __order_number, __test_result, __test_status, __destination_filename = extract_report_info(local_file_path)
+
+                #skip old format file
+                if not __requisition_id:
+                    continue
+
+                #proceed to process new format file
+                add_to_csv_pdf_sync_cache_v2(__requisition_id, __order_number, __test_result, __test_status)
+                add_to_lab_test_records_cache_v2(__requisition_id, __order_number, __test_result, __test_status)
+
+                if __destination_filename:
+                    shutil.copyfile(local_file_path, '{}/{}'.format(local_backups_path, __destination_filename))
+
+                    if file_exists_in_files_in_remote_storage_cache(__destination_filename):
+                        #print_ok2('cache hit: {}'.format(__destination_filename))
+                        pass
+                    else:
+                        if __order_number and __destination_filename:
+                            upload_status = upload_lab_report(
+                                local_file_path,
+                                __destination_filename
+                            )
+                            if upload_status is None:
+                                print('pdf_lab_report - Error Uploading.... {} ==> {}'.format(
+                                    local_file_path, __destination_filename))
+                            elif upload_status:
+                                print('pdf_lab_report - upload success {} ==> {}'.format(
+                                    local_file_path, __destination_filename))
+                            else:
+                                print('pdf_lab_report exists at destination... adding to local cache: {} ==> {}'.format(
+                                    local_file_path, __destination_filename))
+                                add_to_files_in_remote_storage_cache(
+                                    __destination_filename)
+                        else:
+                            #print_ok2('Lab report upload skipped for rejected lab test')
+                            handle_reject_report(local_file_path)
+                            
+            except Exception as err:
+                print('Error uploading — {} — {}'.format(err, local_file_path))
+
+        print_ok2('{} 100%            '.format(PROGRESS_LABEL))
+
+    except Exception as err:
+        print(err)
+
+
 def upload_pdf_lab_reports():
     print('uploading PDF lab reports')
     try:
@@ -595,6 +667,51 @@ def upload_all_inbound_files_to_central_storage():
 
     except Exception as err:
         print(err)
+
+
+
+
+
+#'ggt-tasks/downloads/healthtrackrx/Reports/3561603_967995_Negative.pdf'
+#'ggt-tasks/downloads/healthtrackrx/Reports/3560192_962060_Positive.pdf'
+#'ggt-tasks/downloads/healthtrackrx/Reports/3553760__Rejected.pdf'
+def extract_report_info(file_path):
+    filename = None
+    requisition_id = None
+    order_number = None
+    test_result = None
+    test_status = None
+
+    try:
+        arr = file_path.split('/')
+        filename = arr[len(arr)-1]
+
+        #ignore old format reports
+        if filename.startswith('Final-Report') or filename.startswith('requisitionReport') or filename.startswith('Preliminary-Report'):
+            return requisition_id, order_number, test_result, test_status, filename
+
+        filename_vars = filename.replace('.pdf','').split('_')
+        requisition_id = filename_vars[0]
+        order_number = filename_vars[1]
+        test_result = filename_vars[2]
+
+        if test_result == 'Negative' or test_result == 'Positive':
+            test_status = 'Approved'
+            filename = '{}.pdf'.format(order_number)
+        elif test_result == 'Rejected':
+            test_result = ''
+            filename = ''
+            test_status = 'Rejected'
+        else:
+            test_status =  None
+
+        return requisition_id, order_number, test_result, test_status, filename
+
+    except Exception as err:
+        print_error(err)
+
+    
+
 
 
 def generate_destination_filename(file_path):
