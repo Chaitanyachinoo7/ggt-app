@@ -84,7 +84,9 @@ twilio:
   account_sid: AC9cef9b4155030ee2683281ccc72d4001
   auth_token: 62ee76165984c54f91ee80aac9cb3f0e
   from_number: "+18772802151"
-
+  account_sid_short_code: ACa718334f24171c002bc3ee69c59aae9e
+  auth_token_short_code: e9a391c21722705f3c7902fcde7522a4
+  from_number_short_code: "80578"
 sendgrid:
   sendgrid_api_key: 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
 
