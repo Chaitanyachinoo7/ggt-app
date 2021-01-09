@@ -483,6 +483,12 @@ class SummaryByDate(BaseModel):
     date: str
 
 
+class UserActivity(BaseModel):
+    from_date: str
+    to_date: str
+    site_code: str
+
+
 class GenderEnum(str, Enum):
     male = 'male'
     female = 'female'
@@ -1054,6 +1060,12 @@ class FilterUser(BaseModel):
     name: str
     email: str
 
+class StatusUpdatesRequest(BaseModel):
+    lab_code: str
+    requisition_id: str
+    order_id: str
+    status_code: str
+    remarks: str
 
 class InsuranceEligibilityRequest(BaseModel):
     first_name: str = None

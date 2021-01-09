@@ -2,11 +2,13 @@ import ujson
 import os
 import urllib.request as urllib2
 import ssl
-from fastapi import Depends, Request, HTTPException
+from fastapi.security.api_key import APIKeyHeader, APIKey
+from fastapi import Depends, Request, HTTPException, Security, Depends
 from fastapi.security import SecurityScopes
 from google.auth.transport import requests
 from google.oauth2 import id_token
 from jose import jwt, JWTError
+from starlette.status import HTTP_403_FORBIDDEN
 
 import ggt.lib.constants as c
 
@@ -28,6 +30,8 @@ CLIENT_ID = "269165607649-ejpvn7ar1llub2e8tr6ur4ad2p1srucf.apps.googleuserconten
 # TODO: [GGT-82] read from config/DB as a single value of "tokenUrl" e.g. GgtOAuth2PasswordBearer(tokenUrl=get_config_val('vendors.auth0.auth0_domain'))
 oauth2_scheme = GgtOAuth2PasswordBearer(tokenUrl="https://" + get_config_val('vendors.auth0.auth0_domain') +
                                         "/oauth/token")
+api_key_header = APIKeyHeader(name=get_config_val(
+    'vendors.auth.api_key_name'), auto_error=False)
 
 
 # TODO: [GGT-84] read from config/DB
@@ -74,7 +78,9 @@ def get_rsa_key(token):
 
 def get_rsa_key_auth0(token):
     jsonurl = urllib2.urlopen(
-        "https://" + get_config_val('vendors.auth0.auth0_domain') + "/.well-known/jwks.json",
+        "https://" +
+        get_config_val('vendors.auth0.auth0_domain') +
+        "/.well-known/jwks.json",
         context=ssl._create_unverified_context())
     jwks = ujson.loads(jsonurl.read())
 
@@ -106,12 +112,13 @@ def get_rsa_key_auth0(token):
             function=whoami(),
             error=err
         )
-        raise HTTPException(status_code=401, detail="Unable to find appropriate key {}".format(ujson.dumps(x)))
+        raise HTTPException(
+            status_code=401, detail="Unable to find appropriate key {}".format(ujson.dumps(x)))
 
 
 def authorize_user(security_scopes: SecurityScopes, token: str = Depends(oauth2_scheme)):
-    if (get_config_val('env') == 'DEV'):  # Allow auth override for dev
-        return True
+    # if (get_config_val('env') == 'DEV'):  # Allow auth override for dev
+    #     return True
     try:
         scopes = security_scopes.scopes
         if p.ANONYMOUS in scopes:
@@ -158,3 +165,15 @@ def authorize(scopes, token):
             raise HTTPException(status_code=401, detail=c.AUTH_FAILED_MESSAGE)
     get_rsa_key_auth0(token)
     raise HTTPException(status_code=401, detail=c.AUTH_FAILED_MESSAGE)
+
+
+async def get_api_key(
+    api_key_header: str = Security(api_key_header),
+):
+
+    if api_key_header == get_config_val('vendors.auth.api_key_value'):
+        return api_key_header
+    else:
+        raise HTTPException(
+            status_code=HTTP_403_FORBIDDEN, detail=c.AUTH_FAILED_MESSAGE
+        )

@@ -94,6 +94,48 @@ def get_stats_today():
         return None
 
 
+def get_user_activity(req):
+    try:
+        where_statement = "1=1"
+        if req.from_date != "":
+            where_statement = "{} AND h.create_dt >= '{}".format(where_statement, req.from_date)
+        if req.to_date != "":
+            where_statement = "{} AND h.create_dt <= '{}".format(where_statement, req.to_date)
+        if req.site_code != "":
+            where_statement = "{} AND l.site_code = '{}".format(where_statement, req.site_code)
+        sql = """SELECT 
+                    h.id AS h_id,
+                    h.function AS function_name,
+                    h.status AS status,
+                    h.vial_id AS val_id,
+                    h.workstation_id AS workstation_id,
+                    h.create_dt AS create_dt,
+                    l.id AS location_id,
+                    l.site_code,
+                    u.email AS employee_email,
+                    u.given_name,
+                    u.family_name
+                FROM
+                    provider_appointment_activity_history h
+                        JOIN
+                    appointments a ON a.id = h.appointment_id
+                        LEFT JOIN
+                    locations l ON a.location_id = l.id
+                        LEFT JOIN
+                    ggt_users u ON u.external_id = h.provider_ext_id
+                WHERE
+                {}""".format(where_statement)
+        return read_rows(sql)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 def aging_samples_with_lab_by_ship_date():
     try:
         sql = """SELECT * FROM aging_samples_with_lab_stats_by_ship_date"""
