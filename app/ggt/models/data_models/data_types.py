@@ -483,6 +483,12 @@ class SummaryByDate(BaseModel):
     date: str
 
 
+class UserActivity(BaseModel):
+    from_date: str
+    to_date: str
+    site_code: str
+
+
 class GenderEnum(str, Enum):
     male = 'male'
     female = 'female'

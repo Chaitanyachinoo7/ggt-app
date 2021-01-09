@@ -99,8 +99,10 @@ def task_process_inbound_lab_reports():
     #update_test_samples_with_results()
     #upload_pdf_lab_reports()
     process_pdf_results_for_lab_ait()
+    process_pdf_results_for_lab_mawd()
     #parse_report_comments()
     add_to_healthtrackrx_inbound_data_table()
+    add_to_mawdpath_inbound_data_table()
     update_test_samples_with_results()
 
     upload_all_inbound_files_to_central_storage()
@@ -465,11 +467,76 @@ def process_pdf_results_for_lab_ait():
                     continue
 
                 #proceed to process new format file
-                add_to_csv_pdf_sync_cache_v2(__requisition_id, __order_number, __test_result, __test_status)
-                add_to_lab_test_records_cache_v2(__requisition_id, __order_number, __test_result, __test_status)
+                add_to_csv_pdf_sync_cache_v2(__requisition_id, __order_number, __test_result, __test_status, 'AIT')
+                add_to_lab_test_records_cache_v2(__requisition_id, __order_number, __test_result, __test_status, 'AIT')
 
                 if __destination_filename:
                     shutil.copyfile(local_file_path, '{}/{}'.format(local_backups_path, __destination_filename))
+
+                    if file_exists_in_files_in_remote_storage_cache(__destination_filename):
+                        #print_ok2('cache hit: {}'.format(__destination_filename))
+                        pass
+                    else:
+                        if __order_number and __destination_filename:
+                            upload_status = upload_lab_report(
+                                local_file_path,
+                                __destination_filename
+                            )
+                            if upload_status is None:
+                                print('pdf_lab_report - Error Uploading.... {} ==> {}'.format(
+                                    local_file_path, __destination_filename))
+                            elif upload_status:
+                                print('pdf_lab_report - upload success {} ==> {}'.format(
+                                    local_file_path, __destination_filename))
+                            else:
+                                print('pdf_lab_report exists at destination... adding to local cache: {} ==> {}'.format(
+                                    local_file_path, __destination_filename))
+                                add_to_files_in_remote_storage_cache(
+                                    __destination_filename)
+                        else:
+                            #print_ok2('Lab report upload skipped for rejected lab test')
+                            handle_reject_report(local_file_path)
+                            
+            except Exception as err:
+                print('Error uploading — {} — {}'.format(err, local_file_path))
+
+        print_ok2('{} 100%            '.format(PROGRESS_LABEL))
+
+    except Exception as err:
+        print(err)
+
+
+
+
+def process_pdf_results_for_lab_mawd():
+    print('process_pdf_results_for_lab_mawd')
+    #local_download_path = cfg('vendors.mawdpath.remote_downloads_folder.local_download_path')
+    local_download_path = '/Users/suresh/ggt-tasks/downloads/mawdpath/prod/results'
+    try:
+        file_count = 0
+        for local_file_path in glob.iglob('{}/**/*.pdf'.format(local_download_path), recursive=True):
+            file_count += 1
+
+        i = 0
+        p = 0
+        PROGRESS_LABEL = 'Processing and uploading PDF lab reports'
+        for local_file_path in glob.iglob('{}/**/*.pdf'.format(local_download_path), recursive=True):
+            i += 1
+            p = i/file_count*100
+            print_progress_bar_message('{} {:.1f}%'.format(PROGRESS_LABEL, p))
+
+            try:
+                if os.stat(local_file_path).st_size == 0:
+                    raise ValueError('Empty File')
+
+                #__requisition_id, __order_number, __test_result, __test_status, __destination_filename = extract_report_info(local_file_path)
+                __vial_id, __order_number, __test_result, __test_status, __destination_filename = extract_report_info_mawd(local_file_path)
+
+                add_to_csv_pdf_sync_cache_v2(__vial_id, __order_number, __test_result, __test_status, 'MAWD')
+                add_to_lab_test_records_cache_v2(__vial_id, __order_number, __test_result, __test_status, 'MAWD')
+
+                if __destination_filename:
+                    ######shutil.copyfile(local_file_path, '{}/{}'.format(local_backups_path, __destination_filename))
 
                     if file_exists_in_files_in_remote_storage_cache(__destination_filename):
                         #print_ok2('cache hit: {}'.format(__destination_filename))
@@ -711,7 +778,37 @@ def extract_report_info(file_path):
         print_error(err)
 
     
+def extract_report_info_mawd(file_path):
+    filename = None
+    vial_id = None
+    order_number = None
+    test_result = None
+    test_status = None
 
+    try:
+        arr = file_path.split('/')
+        filename = arr[len(arr)-1]
+
+        filename_vars = filename.replace('.pdf','').split('_')
+        order_number = filename_vars[0]
+        vial_id = filename_vars[1]
+        test_result = filename_vars[2]
+
+        if test_result == 'NOTDETECTED':
+            test_status = 'Approved'
+            test_result = 'Negative'
+            filename = '{}.pdf'.format(order_number)
+        elif test_result == 'DETECTED':
+            test_status = 'Approved'
+            test_result = 'Positive'
+            filename = '{}.pdf'.format(order_number)
+        else:
+            test_status =  None
+
+        return vial_id, order_number, test_result, test_status, filename
+
+    except Exception as err:
+        print_error(err)
 
 
 def generate_destination_filename(file_path):
@@ -751,12 +848,28 @@ def append_to_processing_summary(txt):
 
 def add_to_healthtrackrx_inbound_data_table():
     print('syncing cached healthtrackrx_inbound_data to remote DB')
-    rows = get_all_lab_records_from_cache()
+    rows = get_all_lab_records_from_cache('AIT')
     try:
         sql = """
             INSERT INTO healthtrackrx_inbound_data
                 (requisition_id, order_number, first_name, last_name, dob, assay_name, status, result)
-            VALUES (%s,%s,%s,%s, %s,%s,%s,%s)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+            ON DUPLICATE KEY UPDATE requisition_id=requisition_id
+        """
+        exec_batch_execute(sql, rows)
+
+    except Exception as err:
+        print_error('Critical ERROR: {}'.format(err))
+
+
+def add_to_mawdpath_inbound_data_table():
+    print('syncing cached mawdpath_inbound_data to remote DB')
+    rows = get_all_lab_records_from_cache('MAWD')
+    try:
+        sql = """
+            INSERT INTO mawdpath_inbound_data
+                (requisition_id, order_number, first_name, last_name, dob, assay_name, status, result)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
             ON DUPLICATE KEY UPDATE requisition_id=requisition_id
         """
         exec_batch_execute(sql, rows)
@@ -771,6 +884,32 @@ def update_test_samples_with_results():
         UPDATE test_samples
                 INNER JOIN
             healthtrackrx_inbound_data h ON (test_samples.id = h.order_number) 
+        SET 
+            test_samples.lab_result_receive_dt = NOW(),
+            test_samples.test_result = (CASE
+                WHEN (h.result = 'Negative') THEN 'neg'
+                WHEN (h.result = 'Positive') THEN 'pos'
+                WHEN (h.result = 'inconclusive') THEN 'inconclusive'
+                ELSE NULL
+            END),
+            test_samples.status = (CASE
+                WHEN (h.status = 'Approved') THEN 'lab_result_received'
+                WHEN (h.status = 'Resulted') THEN 'lab_result_received'
+                WHEN (h.status = 'Rejected') THEN 'rejected'
+                ELSE NULL
+            END),
+            test_samples.update_dt = NOW()
+        WHERE
+            test_samples.test_result IS NULL
+                AND test_samples.id = h.order_number
+        """
+    vals = ()
+    exec_update(sql, vals)
+
+    sql = """
+        UPDATE test_samples
+                INNER JOIN
+            mawdpath_inbound_data h ON (test_samples.id = h.order_number) 
         SET 
             test_samples.lab_result_receive_dt = NOW(),
             test_samples.test_result = (CASE

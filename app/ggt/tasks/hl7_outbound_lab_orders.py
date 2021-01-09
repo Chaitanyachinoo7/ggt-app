@@ -139,13 +139,22 @@ def get_insurance_photo_base64(appointment_id):
 def __get_msh(order):
     dt = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     cid = str(int(time.time()))
+
+    location_id = order['sample_collection_location_id']
+    if location_id == 2415:
+        lab_name = 'MAWD'
+    elif location_id == 2473:
+        pass #handled by other workers
+    else:
+        lab_name = 'AIT'
+
     return MSH(
         msh_1_field_separator='^~\&',
         msh_2_encoding_characters='',
         msh_3_sending_application='WELLHEALTH',
         msh_4_sending_facility=order['client_site_code'],
-        msh_5_receiving_application='AIT',
-        msh_6_receiving_facility='AIT',
+        msh_5_receiving_application=lab_name,
+        msh_6_receiving_facility=lab_name,
         msh_7_datetime_of_message=dt,
         msh_9_message_type='ORM^O01',
         msh_10_message_control_id=int(time.time()*1000),
@@ -383,7 +392,11 @@ def create_outbound_files(orders):
                 _str = str(hl7_message).encode("utf-8").decode('utf-8','ignore')
                 hl7file.write(_str)
             '''
-            write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8','ignore'))
+            
+            if order['sample_collection_location_id'] == 2415:
+                write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8','ignore'), 'mawdpath')
+            else:
+                write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8','ignore'), 'healthtrackrx_merth')
 
             processed_orders.append(order)
 
@@ -396,9 +409,9 @@ def create_outbound_files(orders):
 
     
 
-def write_to_s3(filename, body):
+def write_to_s3(filename, body, lab_folder_path):
     bucket_name = 'ggt-sftp'
-    prefix = 'healthtrackrx_merth/prod/orders/'
+    prefix = '{}/prod/orders/'.format(lab_folder_path)
     if write_text_file(bucket_name, prefix+filename, body):
         print('success {}'.format(bucket_name+prefix+filename))
     else:
@@ -506,7 +519,8 @@ def get_orders_ready_to_transmit(limit=100):
             'Unknown' AS is_in_icu,
             'Unknown' AS is_congregate_resident,
             'Unknown' AS is_pregnant,
-            l.st as test_location_st
+            l.st as test_location_st,
+            t.sample_collection_location_id
         FROM
             (((test_samples t
             JOIN patients p ON ((t.patient_id = p.id)))
