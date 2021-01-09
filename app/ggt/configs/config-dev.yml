@@ -155,6 +155,13 @@ vendors:
     local_backups_path: /Users/suresh/ggt-tasks/backups
     outbound_file_prefix: ggt-outbound
 
+  mawdpath:
+    inbound:
+      remote_downloads_folder: /ggt-sftp/mawdpath/results
+      remote_processed_orders_path: /ggt-sftp/mawdpath/results/archived
+    outbound:
+      outbound_file_prefix: ggt-outbound-mawd
+
   wellpay:
     endpoint: https://api-staging.getwellpay.com/api/public/v1
     auth_user: suresh@wellpay.com
