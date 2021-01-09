@@ -1,7 +1,8 @@
 import requests
 from requests.auth import HTTPBasicAuth
-
+from cachetools import cached, LRUCache, TTLCache
 import ggt.lib.constants as c
+import datetime
 
 from ggt.lib.utils import (
     get_config_val as cfg,
@@ -29,7 +30,7 @@ from ggt.models.data_models.signups import (
 
 from ggt.models.data_models.patients import (
     create_patient_record,
-    get_patient_by_token
+    get_patient_by_token, add_to_ggd_waiting_queue
 )
 
 from ggt.models.data_models.questionnaires import (
@@ -128,7 +129,8 @@ def bp_initiate_verification_flow(phone_number: str, with_otp: bool = True):
         otp_code, token = __create_pending_entry(phone_number)
 
         if otp_code is None:
-            raise ValueError('NO OTP / Cannot create Pending Phone Verification record')
+            raise ValueError(
+                'NO OTP / Cannot create Pending Phone Verification record')
 
         else:
             activation_url = "{}/{}/{}".format(
@@ -203,6 +205,25 @@ def bp_validate_phone_number(phone_number: str, otp: str):
     return False
 
 
+def bp_add_to_ggd_waiting_queue(patient_id):
+    try:
+        return add_to_ggd_waiting_queue(patient_id)
+        log_generic(
+            type=c.INFO,
+            patient_id=patient_id,
+            function=whoami()
+        )
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            patient_id=patient_id,
+            function=whoami(),
+            error=err
+        )
+
+    return False
+
+
 def bp_finalize_booking(booking_req: GgtBooking):
     appointment: GgtAppointment = None
     status_message = None
@@ -212,7 +233,8 @@ def bp_finalize_booking(booking_req: GgtBooking):
 
         # create patient
         _patient = __extract_patient_from_booking_req(booking_req)
-        booking_req.patient_id = create_patient_record(_patient)
+        patient_id = create_patient_record(_patient)
+        booking_req.patient_id = patient_id
         if not booking_req.patient_id:
             raise ValueError('Invalid Patient ID')
 
@@ -255,12 +277,12 @@ def bp_finalize_booking(booking_req: GgtBooking):
             error=err
         )
 
-    return appointment, status_message
+    return appointment, status_message, patient_id
 
 
 def bp_finalize_payment(appointment_id: int, wp_receipt_token: str):
     try:
-        appointment = pointment(appointment_id)
+        appointment = get_appointment(appointment_id)
         if appointment.wp_receipt_token == wp_receipt_token:
             update_appointment_with_confirmed_scheduled(appointment_id)
             __send_qrcode_sms(appointment)
@@ -343,6 +365,14 @@ def bp_has_appointments(phone_number: str, dob: str) -> bool:
 
     return False
 
+
+@cached(cache=TTLCache(maxsize=1024, ttl=14.5))
+def bp_get_wellpay_api_key():
+    return __get_wp_api_tokens()
+
+
+def bp_get_wellpay_insurance_eligibility(insurance_eligibility_request):
+    return __bp_get_wellpay_insurance_eligibility(insurance_eligibility_request)
 
 ########################################################################################################
 # [Protected] functions
@@ -442,7 +472,7 @@ def __send_qrcode_sms(appointment: GgtAppointment):
                             message.replace('\t', ''))
 
         followup_message = "" \
-            "Please bring this QR code, and an Acceptable ID when you arrive at the test. " \
+            "Please arrive 15 minutes prior to your appointment. Bring this QR code, and an Acceptable ID when you arrive at the test. " \
             "We will scan the QR code to check you in for testing. Please, no eating or drinking at least 15 minutes prior to testing as this may impact your test results."
         result_2 = send_sms(appointment.patient.phone_number, followup_message)
 
@@ -480,20 +510,20 @@ def __send_qrcode_email(appointment: GgtAppointment):
             "appointment_id": appointment.id,
             "dob": appointment.patient.dob.strftime('%Y%m%d'),
             "appointment_url": '{}/appointment/{}/{}'.format(
-                cfg('base_url'), 
-                appointment.id, 
+                cfg('base_url'),
+                appointment.id,
                 appointment.patient.dob.strftime('%Y%m%d')
             )
         }
 
         subject = render_from_string(
-            cfg('notifications.confirmation_subject'), 
+            cfg('notifications.confirmation_subject'),
             **template_vars
         )
-        
+
         template_name = cfg('notifications.confirmation_template')
         html_content = render_template(
-            template_name, 
+            template_name,
             **template_vars
         )
 
@@ -618,6 +648,7 @@ def __extract_patient_from_booking_req(booking_req: GgtBooking) -> GgtPatient:
     return None
 
 
+@cached(cache=TTLCache(maxsize=1024, ttl=14.5))
 def __get_wp_api_tokens():
     base_url = cfg('vendors.wellpay.endpoint')
     auth_user = cfg('vendors.wellpay.auth_user')
@@ -732,7 +763,7 @@ def __evaluate_upfront_payment(booking_req: GgtBooking):
 def __create_wp_bill(appointment: GgtAppointment):
     res: WellpayCreateBillResponse = WellpayCreateBillResponse()
     try:
-        wp_api_key, wp_refresh_token = wp_api_tokens()
+        wp_api_key, wp_refresh_token = __get_wp_api_tokens()
 
         base_url = cfg('vendors.wellpay.endpoint')
         url = "{}/bill/submit".format(base_url)
@@ -777,3 +808,136 @@ def __create_wp_bill(appointment: GgtAppointment):
         )
 
     return res
+
+
+def __bp_get_wellpay_insurance_eligibility(insurance_eligibility_request):
+    try:
+        wp_api_key, wp_refresh_token = __get_wp_api_tokens()
+        customer_id = __create_wellpay_customer(
+            wp_api_key, insurance_eligibility_request)
+        if(__add_wellpay_customer_insurance(
+                wp_api_key, insurance_eligibility_request, customer_id)):
+            eligibility = __add_wellpay_customer_insurance_eligibility(
+                wp_api_key, insurance_eligibility_request, customer_id)
+            if(eligibility['isEligible']):
+                return __get_wellpay_customer_insurance_plans(
+                    wp_api_key, insurance_eligibility_request, eligibility['eligibility_request_id'])
+            return eligibility
+        return {"isEligible": False}
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            appointment="appointment",
+            function=whoami(),
+            error=err
+        )
+        return {"isEligible": False}
+
+
+def __create_wellpay_customer(wp_api_key, insurance_eligibility_request):
+    try:
+        base_url = cfg('vendors.wellpay.endpoint')
+        url = "{}/bill/submit".format(base_url)
+        headers = {
+            'Authorization': 'Bearer {}'.format(wp_api_key),
+            'Content-Type': 'application/json'
+        }
+
+        payload = {
+            "first_name": insurance_eligibility_request.first_name,
+            "last_name": insurance_eligibility_request.last_name,
+            "phone": insurance_eligibility_request.phone_number,
+            "email": insurance_eligibility_request.email,
+            "date_of_birth": insurance_eligibility_request.dob,
+            "street_address": insurance_eligibility_request.addr1,
+            "city": insurance_eligibility_request.city,
+            "state": insurance_eligibility_request.state,
+            "zip_code": insurance_eligibility_request.zip_code,
+        }
+
+        r = requests.post(url, headers=headers, json=payload)
+        print(payload)
+        response = r.json()
+        print(response)
+        return response['customer_id']
+    except Exception as err:
+        print(err)
+
+
+def __add_wellpay_customer_insurance(wp_api_key, insurance_eligibility_request, customer_id):
+    try:
+        base_url = cfg('vendors.wellpay.endpoint')
+        url = "{}/customers/{}/insurance".format(base_url, customer_id)
+        headers = {
+            'Authorization': 'Bearer {}'.format(wp_api_key),
+            'Content-Type': 'application/json'
+        }
+        print(url)
+        payload = {
+            "insurance_id_number": insurance_eligibility_request.insurance_id_number,
+            "insurance_payer_id": insurance_eligibility_request.insurance_payer_id,
+            "insurance_group_number": insurance_eligibility_request.insurance_group_number,
+            "level": insurance_eligibility_request.level.lower(),
+        }
+
+        r = requests.post(url, headers=headers, json=payload)
+        print(payload)
+        response = r.json()
+        print(response)
+        return True
+    except Exception as err:
+        print(err)
+
+
+def __add_wellpay_customer_insurance_eligibility(wp_api_key, insurance_eligibility_request, customer_id):
+    try:
+        base_url = cfg('vendors.wellpay.endpoint')
+        url = "{}/customers/{}/eligibility".format(base_url, customer_id)
+        headers = {
+            'Authorization': 'Bearer {}'.format(wp_api_key),
+            'Content-Type': 'application/json'
+        }
+        print(url)
+        print(datetime.datetime.today().strftime('%Y-%m-%d'))
+        print(datetime.date.today()+ datetime.timedelta(days=10))
+        payload = {
+            "services": [],
+            "insurance_level": insurance_eligibility_request.level.lower(),
+            "as_of_date": datetime.datetime.today().strftime('%Y-%m-%d'),
+            "to_date": (datetime.date.today()+ datetime.timedelta(days=10)).strftime('%Y-%m-%d'),
+            "place_of_service_code": "",
+            "npi": cfg('vendors.wellpay.npi')
+        }
+
+        r = requests.post(url, headers=headers, json=payload)
+        print(payload)
+        print(headers)
+        print(r.json())
+        if(r.status_code == 200):
+            return {"isEligible": True, "eligibility_request_id": r.json()['request_id'], "error": None}
+        return {"isEligible": False, "error": r.text}
+    except Exception as err:
+        print(err)
+        return {"isEligible": False, "error": None}
+
+
+def __get_wellpay_customer_insurance_plans(wp_api_key, insurance_eligibility_request, eligibility_request_id):
+    try:
+        base_url = cfg('vendors.wellpay.endpoint')
+        url = "{}/insurance/{}/plans".format(base_url, eligibility_request_id)
+        headers = {
+            'Authorization': 'Bearer {}'.format(wp_api_key),
+            'Content-Type': 'application/json'
+        }
+        print(url)
+        payload = {}
+        r = requests.get(url, headers=headers, json=payload)
+        print(payload)
+        if(r.status_code == 200):
+            return {"isEligible": True, "benefits": r.json(), "error": None}
+        elif(r.status_code == 404):
+            return {"isEligible": False, "benefits": None, "error": "Benefits not found"}
+        return {"isEligible": False, "error": r.text}
+    except Exception as err:
+        print(err)
+        return {"isEligible": False, "error": None}

@@ -45,6 +45,7 @@ nest-asyncio = "*"
 pytest-faulthandler = "*"
 gcloud = "*"
 cachetools = "*"
+pdfplumber = "*"
 
 [requires]
 python_version = "3.7"

@@ -161,18 +161,19 @@ def insert_sms_archive_table(records):
 
 def delete_archived_email_record():
     print("Deleting archived records from email_notification_queue.")
-    sql = """DELETE FROM email_notification_queue 
-                WHERE
-                    id IN (SELECT 
-                            temp.id
-                            FROM
-                            (SELECT 
-                                en.id AS id
-                            FROM
-                                email_notification_queue AS en
-                            INNER JOIN archived_email_notification AS an 
-                                ON en.id = an.id) as 
-                            temp);"""
+    sql = """
+    DELETE FROM email_notification_queue 
+    WHERE
+        id IN (
+            SELECT temp.id
+            FROM (
+                SELECT 
+                    en.id AS id
+                FROM
+                    email_notification_queue AS en
+                INNER JOIN archived_email_notification AS an ON en.id = an.id) AS temp
+            )
+    """
     return exec_delete(sql)
 
 
@@ -206,11 +207,15 @@ def archive_sms_notifications(records):
 def archive_email_notifications(records):
     print("Uploading email archives to the bucket")
     for rec in records:
-        note = rec['html_content']
-        note = str(note)
-        destination_blob_name = "{}_email_{}_{}.json".format(
-            rec['id'], rec['to_email'],  rec['update_dt'])
-        upload_archived_notification(note, destination_blob_name)
+        try:
+            note = rec['html_content']
+            note = str(note)
+            destination_blob_name = "{}_email_{}_{}.json".format(
+                rec['id'], rec['to_email'],  rec['update_dt'])
+            upload_archived_notification(note, destination_blob_name)
+        except Exception as err:
+            print("err:", err)
+    return True
 
 
 def upload_archived_notification(notification, destination_blob_name):

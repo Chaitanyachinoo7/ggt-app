@@ -561,10 +561,9 @@ def add_to_healthtrackrx_inbound_data_table():
     rows = get_all_lab_records_from_cache()
     try:
         sql = """
-            INSERT INTO healthtrackrx_inbound_data
+            INSERT IGNORE INTO healthtrackrx_inbound_data
                 (requisition_id, order_number, first_name, last_name, dob, assay_name, status, result)
             VALUES (%s,%s,%s,%s, %s,%s,%s,%s)
-            ON DUPLICATE KEY UPDATE requisition_id=requisition_id
         """
         exec_batch_execute(sql, rows)
 
@@ -583,9 +582,13 @@ def update_test_samples_with_results():
             test_samples.test_result = (CASE
                 WHEN (healthtrackrx_inbound_data.result = 'Negative') THEN 'neg'
                 WHEN (healthtrackrx_inbound_data.result = 'Positive') THEN 'pos'
-                ELSE 'inconclusive'
+                ELSE NULL
             END),
-            test_samples.status = 'lab_result_received',
+            test_samples.status = (CASE
+                WHEN (healthtrackrx_inbound_data.status IN ('Approved' , 'Resulted')) THEN 'lab_result_received'
+                WHEN (healthtrackrx_inbound_data.status = 'Rejected') THEN 'rejected'
+                ELSE NULL
+            END),
             test_samples.update_dt = NOW()
         WHERE
             test_samples.test_result IS NULL

@@ -1,13 +1,17 @@
 app_name: COVID-19 Testing
-app_version: 1.2
+app_version: 1.1
 log_level: DEBUG
 base_url: https://start.GoGetTested.com
 env: DEV
-
+default_timezone: CST
 
 server:
   host: 0.0.0.0
   port: 8888
+  inbound_processor_port: 5010
+  outbound_processor_port: 5020
+  email_queue_processor_port: 5030
+  sms_queue_processor_port: 5040
 
 origins: 
   - https://gogettested.com
@@ -110,6 +114,13 @@ vendors:
     api_audience: https://pfe-api.gogettested.com/api
     algorithms: ['RS256']
     roles: http://roles.ggt/roles
+    management_client_id: 6ok7VWNkeOA6An5sN30Jl9gHoH4oUT8j
+    management_sectret: Rwx8-mby99m5O-2aR14JKgoim0VV0FJuO6sefpDxXjKiQ18mys4JWf2oAO6_5Mha
+    connection: Username-Password-Authentication
+
+  auth:
+    api_key_name: x-api-key
+    api_key_value: f63e3e17-e10a-4f57-b7b5-08a40d4b0d6b
 
   healthtrackrx_outbound:
     hostname: sftp.healthtrackrx.com
@@ -120,7 +131,7 @@ vendors:
     remote_insurance_images_path: /insurance_files
     remote_backups_path: /backups
     remote_processed_orders_path: /processed_order_files
-    local_download_path: /Users/suresh/ggt-tasks/downloads/healthtrackrx/Reports
+    local_download_path: /Users/suresh/ggt-tasks/downloads
     local_outbound_file_path: /Users/suresh/ggt-tasks/outbound
     local_insurance_card_file_path: /Users/suresh/ggt-tasks/insurance_images
     local_process_summary_path: /Users/suresh/ggt-tasks/process_summary
@@ -136,7 +147,7 @@ vendors:
     remote_insurance_images_path: /ggt-sftp/healthtrackrx/insurance_files
     remote_backups_path: /ggt-sftp/healthtrackrx/backups
     remote_processed_orders_path: /ggt-sftp/healthtrackrx/processed_order_files
-    local_download_path: /Users/suresh/ggt-tasks/downloads/healthtrackrx/Reports
+    local_download_path: /Users/suresh/ggt-tasks/downloads/ggt-sftp/healthtrackrx
     local_outbound_file_path: /Users/suresh/ggt-tasks/outbound
     local_insurance_card_file_path: /Users/suresh/ggt-tasks/insurance_images
     local_process_summary_path: /Users/suresh/ggt-tasks/process_summary
@@ -147,7 +158,7 @@ vendors:
     endpoint: https://api.getwellpay.com/api/public/v1
     auth_user: suresh@wellpay.com
     auth_password: y7f{=/$>VfRF$vqE
-
+    npi: 1780944496
   kdhe:
     hostname: sl64.endpoint.com
     username: sftpwellhealth
