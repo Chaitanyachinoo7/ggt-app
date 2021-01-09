@@ -106,20 +106,21 @@ def add_to_csv_pdf_sync_cache(rec, source='csv'):
         insert_into_csv_pdf_sync_cache(rec, source)
 
 
-def add_to_lab_test_records_cache_v2(requisition_id, order_number, result, status):
+def add_to_lab_test_records_cache_v2(requisition_id, order_number, result, status, lab):
     res = False
     try:
         conn = sqlite3.connect(sqlite_db)
         cur = conn.cursor()
         sql = '''
             INSERT OR IGNORE INTO lab_test_records
-            (requisition_id, order_number, status, result)
-            VALUES ('{}', '{}', '{}', '{}')
+            (requisition_id, order_number, status, result, lab)
+            VALUES ('{}', '{}', '{}', '{}', '{}')
         '''.format(
                 requisition_id,
                 order_number,
                 status,
-                result
+                result,
+                lab
         )
         cur.execute(sql)
         conn.commit()
@@ -138,7 +139,7 @@ def add_to_lab_test_records_cache_v2(requisition_id, order_number, result, statu
     return res
 
 
-def add_to_csv_pdf_sync_cache_v2(requisition_id, order_number, result, status):
+def add_to_csv_pdf_sync_cache_v2(requisition_id, order_number, result, status, lab):
     res = False
     try:
         conn = sqlite3.connect(sqlite_db)
@@ -146,13 +147,14 @@ def add_to_csv_pdf_sync_cache_v2(requisition_id, order_number, result, status):
 
         sql = '''
             INSERT OR IGNORE INTO csv_pdf_sync
-            (requisition_id, order_number, status, result, has_csv, has_pdf)
-            VALUES ('{}', '{}', '{}', '{}', 1, 1)
+            (requisition_id, order_number, status, result, lab, has_csv, has_pdf)
+            VALUES ('{}', '{}', '{}', '{}', '{}', 1, 1)
         '''.format(
                 requisition_id,
                 order_number,
                 status,
-                result
+                result,
+                lab
             )
 
         cur.execute(sql)
@@ -162,7 +164,6 @@ def add_to_csv_pdf_sync_cache_v2(requisition_id, order_number, result, status):
     except Exception as err:
         log_generic(
             type=c.ERROR,
-            rec=rec,
             function=whoami(),
             error=err
         )
@@ -333,16 +334,19 @@ def get_order_number_by_requisition_id(requisition_id):
     return result
 
 
-def get_all_lab_records_from_cache():
+def get_all_lab_records_from_cache(lab_name):
     result = False
     try:
+        query = '''
+            SELECT requisition_id, order_number, first_name, last_name, dob, assay_name, status, result
+            FROM lab_test_records
+            WHERE status IN ('Approved', 'Resulted', 'Rejected', 'approved', 'resulted', 'rejected')
+            AND lab = '{}'
+        '''.format(lab_name)
+
         conn = sqlite3.connect(sqlite_db)
         cur = conn.cursor()
-        cur.execute('''
-                    SELECT *
-                    FROM lab_test_records
-                    WHERE status IN ('Approved', 'Resulted', 'Rejected', 'approved', 'resulted', 'rejected')
-                ''')
+        cur.execute(query)
         rows = cur.fetchall()
         result = rows
 

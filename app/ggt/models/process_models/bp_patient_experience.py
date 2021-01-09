@@ -282,7 +282,7 @@ def bp_finalize_booking(booking_req: GgtBooking):
 
 def bp_finalize_payment(appointment_id: int, wp_receipt_token: str):
     try:
-        appointment = pointment(appointment_id)
+        appointment = get_appointment(appointment_id)
         if appointment.wp_receipt_token == wp_receipt_token:
             update_appointment_with_confirmed_scheduled(appointment_id)
             __send_qrcode_sms(appointment)

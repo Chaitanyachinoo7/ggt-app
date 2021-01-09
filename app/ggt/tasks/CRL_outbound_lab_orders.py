@@ -60,13 +60,14 @@ def task_process_crl_lab_orders():
 def create_outbound_files(orders):
     processed_orders = []
     for order in orders:
-        try:
-            make_api_request(order)
-            processed_orders.append(order)
+        if order['sample_collection_location_id'] == 2473:
+            try:
+                make_api_request(order)
+                processed_orders.append(order)
 
-        except Exception as err:
-            print(err)
-            print('Error generating HL7 for CRL/Order ID:', order['id'])
+            except Exception as err:
+                print(err)
+                print('Error generating HL7 for CRL/Order ID:', order['id'])
 
     return processed_orders
 
@@ -286,7 +287,8 @@ def get_orders_ready_to_transmit(limit=100):
             'Unknown' AS is_in_icu,
             'Unknown' AS is_congregate_resident,
             'Unknown' AS is_pregnant,
-            l.st as test_location_st
+            l.st as test_location_st,
+            t.sample_collection_location_id
         FROM
             (((test_samples t
             JOIN patients p ON ((t.patient_id = p.id)))
