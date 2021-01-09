@@ -44,7 +44,13 @@ from ggt.models.data_models.tasks_local_cache import (
     get_order_number_by_requisition_id,
     add_to_files_in_remote_storage_cache,
     file_exists_in_files_in_remote_storage_cache,
-    add_to_csv_pdf_sync_cache
+    add_to_csv_pdf_sync_cache,
+    add_to_csv_pdf_sync_cache_v2,
+    add_to_lab_test_records_cache_v2
+)
+
+from ggt.lib.adapters.s3_adapter import (
+    archive_ftp_s3_file
 )
 
 import ggt.lib.constants as c
@@ -87,12 +93,20 @@ def task_process_inbound_lab_reports():
 
     # clean_downloads_folder()
     #download_ftp_files()
-    parse_csv_files()
+    #parse_csv_files()
 
+    #add_to_healthtrackrx_inbound_data_table()
+    #update_test_samples_with_results()
+    #upload_pdf_lab_reports()
+    process_pdf_results_for_lab_ait()
+    process_pdf_results_for_lab_mawd()
+    #parse_report_comments()
     add_to_healthtrackrx_inbound_data_table()
+    add_to_mawdpath_inbound_data_table()
     update_test_samples_with_results()
-    upload_pdf_lab_reports()
+
     upload_all_inbound_files_to_central_storage()
+    
 
     log_generic(
         type=c.INFO,
@@ -248,6 +262,11 @@ def prep_local_downloads_dir(remote_dir_path):
     return newpath
 
 
+def cleanup_s3():
+    pass
+
+
+
 def download_and_cleanup(ftp_client, filename, remote_dir_path, cache_hits, cache_misses, download_errors):
     local_downloads_dir = prep_local_downloads_dir(remote_dir_path)
     if file_exists_in_all_inbound_files_cache(filename):
@@ -375,12 +394,16 @@ def parse_csv_files():
         p = 0
         PROGRESS_LABEL = 'Parsing CSV files'
         for filename in file_list:
-            i += 1
-            p = i/file_count*100
-            print_progress_bar_message('Parsing CSV files {:.1f}%'.format(p))
-            parse_csv_file(filename)
+            try:
+                i += 1
+                p = i/file_count*100
+                print_progress_bar_message('Parsing CSV files {:.1f}%'.format(p))
+                parse_csv_file(filename)
+            except Exception as e:
+                print(e)
+                print_error('Error Parsing {}'.format(filename))
 
-        print_ok2('{} 100%            '.format(PROGRESS_LABEL))
+        print_ok2('{} 100%'.format(PROGRESS_LABEL))
 
     except Exception as err:
         print(err)
@@ -392,7 +415,8 @@ def parse_csv_file(file_path):
         for row in reader:
             try:
                 add_to_lab_test_records_cache(row)
-                add_to_csv_pdf_sync_cache(row)
+                add_to_csv_pdf_sync_cache(row)                    
+
             except Exception as err:
                 print("err:", err)
 
@@ -415,6 +439,136 @@ def load_data_from_remote_db_to_cache():
         add_to_lab_test_records_cache(row)
 
     print_ok2('{} 100%            '.format(PROGRESS_LABEL))
+
+
+def process_pdf_results_for_lab_ait():
+    print('process_pdf_results_for_lab_ait')
+    try:
+        file_count = 0
+        for local_file_path in glob.iglob('{}/**/*.pdf'.format(local_download_path), recursive=True):
+            file_count += 1
+
+        i = 0
+        p = 0
+        PROGRESS_LABEL = 'Processing and uploading PDF lab reports'
+        for local_file_path in glob.iglob('{}/**/*.pdf'.format(local_download_path), recursive=True):
+            i += 1
+            p = i/file_count*100
+            print_progress_bar_message('{} {:.1f}%'.format(PROGRESS_LABEL, p))
+
+            try:
+                if os.stat(local_file_path).st_size == 0:
+                    raise ValueError('Empty File')
+
+                __requisition_id, __order_number, __test_result, __test_status, __destination_filename = extract_report_info(local_file_path)
+
+                #skip old format file
+                if not __requisition_id:
+                    continue
+
+                #proceed to process new format file
+                add_to_csv_pdf_sync_cache_v2(__requisition_id, __order_number, __test_result, __test_status, 'AIT')
+                add_to_lab_test_records_cache_v2(__requisition_id, __order_number, __test_result, __test_status, 'AIT')
+
+                if __destination_filename:
+                    shutil.copyfile(local_file_path, '{}/{}'.format(local_backups_path, __destination_filename))
+
+                    if file_exists_in_files_in_remote_storage_cache(__destination_filename):
+                        #print_ok2('cache hit: {}'.format(__destination_filename))
+                        pass
+                    else:
+                        if __order_number and __destination_filename:
+                            upload_status = upload_lab_report(
+                                local_file_path,
+                                __destination_filename
+                            )
+                            if upload_status is None:
+                                print('pdf_lab_report - Error Uploading.... {} ==> {}'.format(
+                                    local_file_path, __destination_filename))
+                            elif upload_status:
+                                print('pdf_lab_report - upload success {} ==> {}'.format(
+                                    local_file_path, __destination_filename))
+                            else:
+                                print('pdf_lab_report exists at destination... adding to local cache: {} ==> {}'.format(
+                                    local_file_path, __destination_filename))
+                                add_to_files_in_remote_storage_cache(
+                                    __destination_filename)
+                        else:
+                            #print_ok2('Lab report upload skipped for rejected lab test')
+                            handle_reject_report(local_file_path)
+                            
+            except Exception as err:
+                print('Error uploading — {} — {}'.format(err, local_file_path))
+
+        print_ok2('{} 100%            '.format(PROGRESS_LABEL))
+
+    except Exception as err:
+        print(err)
+
+
+
+
+def process_pdf_results_for_lab_mawd():
+    print('process_pdf_results_for_lab_mawd')
+    #local_download_path = cfg('vendors.mawdpath.remote_downloads_folder.local_download_path')
+    local_download_path = '/Users/suresh/ggt-tasks/downloads/mawdpath/prod/results'
+    try:
+        file_count = 0
+        for local_file_path in glob.iglob('{}/**/*.pdf'.format(local_download_path), recursive=True):
+            file_count += 1
+
+        i = 0
+        p = 0
+        PROGRESS_LABEL = 'Processing and uploading PDF lab reports'
+        for local_file_path in glob.iglob('{}/**/*.pdf'.format(local_download_path), recursive=True):
+            i += 1
+            p = i/file_count*100
+            print_progress_bar_message('{} {:.1f}%'.format(PROGRESS_LABEL, p))
+
+            try:
+                if os.stat(local_file_path).st_size == 0:
+                    raise ValueError('Empty File')
+
+                #__requisition_id, __order_number, __test_result, __test_status, __destination_filename = extract_report_info(local_file_path)
+                __vial_id, __order_number, __test_result, __test_status, __destination_filename = extract_report_info_mawd(local_file_path)
+
+                add_to_csv_pdf_sync_cache_v2(__vial_id, __order_number, __test_result, __test_status, 'MAWD')
+                add_to_lab_test_records_cache_v2(__vial_id, __order_number, __test_result, __test_status, 'MAWD')
+
+                if __destination_filename:
+                    ######shutil.copyfile(local_file_path, '{}/{}'.format(local_backups_path, __destination_filename))
+
+                    if file_exists_in_files_in_remote_storage_cache(__destination_filename):
+                        #print_ok2('cache hit: {}'.format(__destination_filename))
+                        pass
+                    else:
+                        if __order_number and __destination_filename:
+                            upload_status = upload_lab_report(
+                                local_file_path,
+                                __destination_filename
+                            )
+                            if upload_status is None:
+                                print('pdf_lab_report - Error Uploading.... {} ==> {}'.format(
+                                    local_file_path, __destination_filename))
+                            elif upload_status:
+                                print('pdf_lab_report - upload success {} ==> {}'.format(
+                                    local_file_path, __destination_filename))
+                            else:
+                                print('pdf_lab_report exists at destination... adding to local cache: {} ==> {}'.format(
+                                    local_file_path, __destination_filename))
+                                add_to_files_in_remote_storage_cache(
+                                    __destination_filename)
+                        else:
+                            #print_ok2('Lab report upload skipped for rejected lab test')
+                            handle_reject_report(local_file_path)
+                            
+            except Exception as err:
+                print('Error uploading — {} — {}'.format(err, local_file_path))
+
+        print_ok2('{} 100%            '.format(PROGRESS_LABEL))
+
+    except Exception as err:
+        print(err)
 
 
 def upload_pdf_lab_reports():
@@ -466,8 +620,9 @@ def upload_pdf_lab_reports():
                                 add_to_files_in_remote_storage_cache(
                                     __destination_filename)
                         else:
-                            print_ok2('Lab report upload skipped for rejected lab test')
-                            pass
+                            #print_ok2('Lab report upload skipped for rejected lab test')
+                            handle_reject_report(local_file_path)
+                            
             except Exception as err:
                 print('Error uploading — {} — {}'.format(err, local_file_path))
 
@@ -475,6 +630,64 @@ def upload_pdf_lab_reports():
 
     except Exception as err:
         print(err)
+
+
+def parse_report_comments():
+    print('Parsing PDF lab reports')
+    try:
+        file_count = 0
+        for local_file_path in glob.iglob('{}/**/*.pdf'.format(local_download_path), recursive=True):
+            file_count += 1
+
+        i = 0
+        p = 0
+        PROGRESS_LABEL = 'Parsing PDF lab reports'
+        for local_file_path in glob.iglob('{}/**/*.pdf'.format(local_download_path), recursive=True):
+            i += 1
+            p = i/file_count*100
+            print_progress_bar_message('{} {:.1f}%'.format(PROGRESS_LABEL, p))
+
+            try:
+                if os.stat(local_file_path).st_size == 0:
+                    raise ValueError('Empty File')
+
+                __requisition_id, __order_number, __destination_filename = generate_destination_filename(local_file_path)
+
+                import pdfplumber
+                with pdfplumber.open(local_file_path) as pdf:
+                    first_page = pdf.pages[0]
+                    print(first_page.extract_text(x_tolerance=3, y_tolerance=3).splitlines())
+                    for line in first_page.extract_text(x_tolerance=3, y_tolerance=3).splitlines():
+                        if line.startswith('Rejection Report'):
+                            is_reject_report=True
+                        if line.startswith('Comments:'):
+                            reject_reason = line.replace('Comments:','').strip()
+                
+                            
+            except Exception as err:
+                print('Error uploading — {} — {}'.format(err, local_file_path))
+
+        print_ok2('{} 100%            '.format(PROGRESS_LABEL))
+
+    except Exception as err:
+        print(err)
+
+
+def handle_reject_report(pdf_report_path):
+    import pdfplumber
+
+    with pdfplumber.open(pdf_report_path) as pdf:
+        is_reject_report = False
+        reject_reason = ''
+        first_page = pdf.pages[0]
+        print(first_page.extract_text(x_tolerance=3, y_tolerance=3).splitlines())
+        for line in first_page.extract_text(x_tolerance=3, y_tolerance=3).splitlines():
+            if line.startswith('Rejection Report'):
+                is_reject_report=True
+            if line.startswith('Comments:'):
+                reject_reason = line.replace('Comments:','').strip()
+        
+        print(is_reject_report, reject_reason)
 
 
 def upload_all_inbound_files_to_central_storage():
@@ -523,6 +736,81 @@ def upload_all_inbound_files_to_central_storage():
         print(err)
 
 
+
+
+
+#'ggt-tasks/downloads/healthtrackrx/Reports/3561603_967995_Negative.pdf'
+#'ggt-tasks/downloads/healthtrackrx/Reports/3560192_962060_Positive.pdf'
+#'ggt-tasks/downloads/healthtrackrx/Reports/3553760__Rejected.pdf'
+def extract_report_info(file_path):
+    filename = None
+    requisition_id = None
+    order_number = None
+    test_result = None
+    test_status = None
+
+    try:
+        arr = file_path.split('/')
+        filename = arr[len(arr)-1]
+
+        #ignore old format reports
+        if filename.startswith('Final-Report') or filename.startswith('requisitionReport') or filename.startswith('Preliminary-Report'):
+            return requisition_id, order_number, test_result, test_status, filename
+
+        filename_vars = filename.replace('.pdf','').split('_')
+        requisition_id = filename_vars[0]
+        order_number = filename_vars[1]
+        test_result = filename_vars[2]
+
+        if test_result == 'Negative' or test_result == 'Positive':
+            test_status = 'Approved'
+            filename = '{}.pdf'.format(order_number)
+        elif test_result == 'Rejected':
+            test_result = ''
+            filename = ''
+            test_status = 'Rejected'
+        else:
+            test_status =  None
+
+        return requisition_id, order_number, test_result, test_status, filename
+
+    except Exception as err:
+        print_error(err)
+
+    
+def extract_report_info_mawd(file_path):
+    filename = None
+    vial_id = None
+    order_number = None
+    test_result = None
+    test_status = None
+
+    try:
+        arr = file_path.split('/')
+        filename = arr[len(arr)-1]
+
+        filename_vars = filename.replace('.pdf','').split('_')
+        order_number = filename_vars[0]
+        vial_id = filename_vars[1]
+        test_result = filename_vars[2]
+
+        if test_result == 'NOTDETECTED':
+            test_status = 'Approved'
+            test_result = 'Negative'
+            filename = '{}.pdf'.format(order_number)
+        elif test_result == 'DETECTED':
+            test_status = 'Approved'
+            test_result = 'Positive'
+            filename = '{}.pdf'.format(order_number)
+        else:
+            test_status =  None
+
+        return vial_id, order_number, test_result, test_status, filename
+
+    except Exception as err:
+        print_error(err)
+
+
 def generate_destination_filename(file_path):
     filename = None
     requisition_id = None
@@ -560,12 +848,28 @@ def append_to_processing_summary(txt):
 
 def add_to_healthtrackrx_inbound_data_table():
     print('syncing cached healthtrackrx_inbound_data to remote DB')
-    rows = get_all_lab_records_from_cache()
+    rows = get_all_lab_records_from_cache('AIT')
     try:
         sql = """
             INSERT INTO healthtrackrx_inbound_data
                 (requisition_id, order_number, first_name, last_name, dob, assay_name, status, result)
-            VALUES (%s,%s,%s,%s, %s,%s,%s,%s)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+            ON DUPLICATE KEY UPDATE requisition_id=requisition_id
+        """
+        exec_batch_execute(sql, rows)
+
+    except Exception as err:
+        print_error('Critical ERROR: {}'.format(err))
+
+
+def add_to_mawdpath_inbound_data_table():
+    print('syncing cached mawdpath_inbound_data to remote DB')
+    rows = get_all_lab_records_from_cache('MAWD')
+    try:
+        sql = """
+            INSERT INTO mawdpath_inbound_data
+                (requisition_id, order_number, first_name, last_name, dob, assay_name, status, result)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
             ON DUPLICATE KEY UPDATE requisition_id=requisition_id
         """
         exec_batch_execute(sql, rows)
@@ -579,19 +883,51 @@ def update_test_samples_with_results():
     sql = """
         UPDATE test_samples
                 INNER JOIN
-            healthtrackrx_inbound_data ON (test_samples.id = healthtrackrx_inbound_data.order_number) 
+            healthtrackrx_inbound_data h ON (test_samples.id = h.order_number) 
         SET 
             test_samples.lab_result_receive_dt = NOW(),
             test_samples.test_result = (CASE
-                WHEN (healthtrackrx_inbound_data.result = 'Negative') THEN 'neg'
-                WHEN (healthtrackrx_inbound_data.result = 'Positive') THEN 'pos'
-                ELSE 'inconclusive'
+                WHEN (h.result = 'Negative') THEN 'neg'
+                WHEN (h.result = 'Positive') THEN 'pos'
+                WHEN (h.result = 'inconclusive') THEN 'inconclusive'
+                ELSE NULL
             END),
-            test_samples.status = 'lab_result_received',
+            test_samples.status = (CASE
+                WHEN (h.status = 'Approved') THEN 'lab_result_received'
+                WHEN (h.status = 'Resulted') THEN 'lab_result_received'
+                WHEN (h.status = 'Rejected') THEN 'rejected'
+                ELSE NULL
+            END),
             test_samples.update_dt = NOW()
         WHERE
             test_samples.test_result IS NULL
-                AND test_samples.id = healthtrackrx_inbound_data.order_number
+                AND test_samples.id = h.order_number
+        """
+    vals = ()
+    exec_update(sql, vals)
+
+    sql = """
+        UPDATE test_samples
+                INNER JOIN
+            mawdpath_inbound_data h ON (test_samples.id = h.order_number) 
+        SET 
+            test_samples.lab_result_receive_dt = NOW(),
+            test_samples.test_result = (CASE
+                WHEN (h.result = 'Negative') THEN 'neg'
+                WHEN (h.result = 'Positive') THEN 'pos'
+                WHEN (h.result = 'inconclusive') THEN 'inconclusive'
+                ELSE NULL
+            END),
+            test_samples.status = (CASE
+                WHEN (h.status = 'Approved') THEN 'lab_result_received'
+                WHEN (h.status = 'Resulted') THEN 'lab_result_received'
+                WHEN (h.status = 'Rejected') THEN 'rejected'
+                ELSE NULL
+            END),
+            test_samples.update_dt = NOW()
+        WHERE
+            test_samples.test_result IS NULL
+                AND test_samples.id = h.order_number
         """
     vals = ()
     exec_update(sql, vals)

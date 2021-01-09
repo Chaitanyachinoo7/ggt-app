@@ -8,6 +8,10 @@ default_timezone: CST
 server:
   host: 0.0.0.0
   port: 8888
+  inbound_processor_port: 5010
+  outbound_processor_port: 5020
+  email_queue_processor_port: 5030
+  sms_queue_processor_port: 5040
 
 origins: 
   - https://gogettested.com
@@ -109,6 +113,13 @@ vendors:
     api_audience: https://pfe-api.gogettested.com/api
     algorithms: ['RS256']
     roles: http://roles.ggt/roles
+    management_client_id: 6ok7VWNkeOA6An5sN30Jl9gHoH4oUT8j
+    management_sectret: Rwx8-mby99m5O-2aR14JKgoim0VV0FJuO6sefpDxXjKiQ18mys4JWf2oAO6_5Mha
+    connection: Username-Password-Authentication
+  
+  auth:
+    api_key_name: x-api-key
+    api_key_value: f63e3e17-e10a-4f57-b7b5-08a40d4b0d6b
 
   healthtrackrx:
     hostname: sftp.healthtrackrx.com
@@ -130,7 +141,7 @@ vendors:
     endpoint: https://api.getwellpay.com/api/public/v1
     auth_user: suresh@wellpay.com
     auth_password: y7f{=/$>VfRF$vqE
-
+    npi: 1780944496
   kdhe:
     hostname: sl64.endpoint.com
     username: sftpwellhealth

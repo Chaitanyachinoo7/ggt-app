@@ -69,26 +69,26 @@ def bp_get_appointment_info(appointment_id, dob):
     return False
 
 
-def bp_appointment_update(appointment_id: int, action: str, workstation_id: int, vial_id: str = None):
+def bp_appointment_update(appointment_id: int, action: str, workstation_id: int, user, vial_id: str = None):
     usuccess = False
     try:
         appointment: GgtAppointment = get_appointment(appointment_id)
 
         if action == c.APPOINTMENT_ACTION_CHECK_IN:
-            usuccess = update_appointment_with_checkin(appointment)
+            usuccess = update_appointment_with_checkin(appointment, user)
 
         elif action == c.APPOINTMENT_ACTION_START_TEST:
-            usuccess = __appointment_begin_test(appointment, workstation_id)
+            usuccess = __appointment_begin_test(user, appointment, workstation_id)
 
         elif action == c.APPOINTMENT_ACTION_SCAN_VIAL:
-            usuccess = update_appointment_with_scan_vial(appointment, vial_id)
+            usuccess = update_appointment_with_scan_vial(appointment, vial_id, user)
 
         elif action == c.APPOINTMENT_ACTION_END_TEST:
-            if update_appointment_with_test_completed(appointment):
+            if update_appointment_with_test_completed(appointment, user):
                 __send_test_complete_sms(appointment)
 
         elif action == c.APPOINTMENT_ACTION_REPRINT:
-            usuccess = __appointment_reprint_label(appointment, workstation_id)
+            usuccess = __appointment_reprint_label(user, appointment, workstation_id)
 
         # TODO: This allows the start_test to be invoked twice (print the label twice). And every other action only to be invoked once.
         # essentially works by waiting to catch the appointment status update in the next round
@@ -186,8 +186,8 @@ def __send_test_complete_sms(appointment):
     return send_sms(appointment.patient.phone_number, message)
 
 
-def __appointment_begin_test(appointment, workstation_id=1):
-    update_appointment_with_test_start(appointment)
+def __appointment_begin_test(user, appointment, workstation_id=1):
+    update_appointment_with_test_start(user, appointment, workstation_id)
 
     if __is_pre_labeled(appointment, workstation_id):
         return True
@@ -195,7 +195,7 @@ def __appointment_begin_test(appointment, workstation_id=1):
     return __send_label_to_printer(appointment.id, workstation_id)
 
 
-def __appointment_reprint_label(appointment, workstation_id=1):
+def __appointment_reprint_label(user, appointment, workstation_id=1):
     return __send_label_to_printer(appointment.id, workstation_id)
 
 

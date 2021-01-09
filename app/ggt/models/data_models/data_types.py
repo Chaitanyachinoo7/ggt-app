@@ -150,11 +150,15 @@ class TestResultsEnum(str, Enum):
     pos = 'pos'
     neg = 'neg'
     inconclusive = 'inconclusive'
+    rejected = 'rejected'
+    cancelled = 'cancelled'
 
 
 class ProviderProcessListRequest(BaseModel):
     limit: Optional[int] = 20
     offset: int
+    start_date: str
+    end_date: str
     consultation_status: Optional[ConsultationStatusEnum] = None
     consultation_notes: Optional[ConsultationNotesEnum] = None
     positive_call: Optional[PositiveCall] = None
@@ -268,6 +272,7 @@ class FinalizeRegistrationRequest(BaseModel):
     phone_number: str = None
     token: str = None
     isPatient: bool = None
+    ggd_waitlist: Optional[bool] = True
     gender: str = None
     race: str = None
     ethnicity: str = None
@@ -478,6 +483,12 @@ class SummaryByDate(BaseModel):
     date: str
 
 
+class UserActivity(BaseModel):
+    from_date: str
+    to_date: str
+    site_code: str
+
+
 class GenderEnum(str, Enum):
     male = 'male'
     female = 'female'
@@ -682,7 +693,6 @@ class GgtDateTimeLocation(BaseModel):
     open_hours: str = None
 
 
-
 class GgtBooking(BaseModel):
     token: str = None
     gender: str = None
@@ -762,7 +772,8 @@ class GgtBooking(BaseModel):
     billed_amount: int = None
 
     #language: str = None
-    #science37: 
+    # science37:
+
 
 '''
 class Science37(BaseModel):
@@ -787,6 +798,7 @@ class Science37(BaseModel):
 		}
 	},
 '''
+
 
 class GgtAppointment(BaseModel):
     id: int = None
@@ -960,3 +972,112 @@ class InsuranceCardResponse(BaseModel):
     subsriber_id: str
     group_id: str
     effective_date: str
+
+
+class UserRolesEnum(str, Enum):
+    billing_admin = 'billing_admin'
+    care_provider = 'care_provider'
+    clinical_provider = 'clinical_provider'
+    customer_contact = 'customer_contact'
+    site_admin = 'site_admin'
+    super_admin = 'super_admin'
+    org_admin = 'org_admin'
+    ggt = 'ggt_admin'
+
+    # org_admin
+
+
+class CreateAuth0User(BaseModel):
+    organization_id: str = None
+    role: List[UserRolesEnum]
+    email: str
+    given_name: str = None
+    family_name: str = None
+    name: str = None
+    nickname: str = None
+    blocked: bool = False
+    email_verified: bool = False
+
+
+class UpdateAuth0UserInfo(BaseModel):
+    ext_id: str
+    email: str
+    given_name: str
+    family_name: str
+    name: str
+    nickname: str
+
+
+class UpdateAuth0UserState(BaseModel):
+    ext_id: str
+    is_active: bool
+
+
+class UpdateAuth0User(BaseModel):
+    ext_user_id: str
+    current_role: List[UserRolesEnum]
+    new_role: List[UserRolesEnum]
+
+
+class DeleteAuth0User(BaseModel):
+    ext_user_id: str
+
+
+class CreateNewOrganization(BaseModel):
+    org_name: str
+    email: str
+    given_name: str = None
+    family_name: str = None
+    name: str = None
+    nickname: str = None
+
+
+class OrgRequestStatusEnum(str, Enum):
+    pending = 'pending'
+    accepted = 'accepted'
+    rejected = 'rejected'
+    any = ''
+
+
+class DbOrgRequestStatusEnum(str, Enum):
+    pending = 'pending'
+    accepted = 'accepted'
+    rejected = 'rejected'
+
+
+class ListOrgRequests(BaseModel):
+    status: OrgRequestStatusEnum
+
+
+class ProcessOrgRequests(BaseModel):
+    id: int
+    status: DbOrgRequestStatusEnum
+    comment: str
+
+
+class FilterUser(BaseModel):
+    role: str
+    name: str
+    email: str
+
+class StatusUpdatesRequest(BaseModel):
+    lab_code: str
+    requisition_id: str
+    order_id: str
+    status_code: str
+    remarks: str
+
+class InsuranceEligibilityRequest(BaseModel):
+    first_name: str = None
+    last_name: str = None
+    phone_number: str = None
+    email: str = None
+    dob: str = None
+    addr1: str = None
+    city: str = None
+    state: str = None
+    zip_code: str = None
+    insurance_id_number: str = None
+    insurance_payer_id: str = None
+    insurance_group_number: str = None
+    level: str = None
