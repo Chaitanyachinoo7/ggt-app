@@ -29,6 +29,7 @@ from ggt.models.data_models.clinical_test_sample import (
     create_test_sample_from_appointment
 )
 
+
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
@@ -55,8 +56,8 @@ def create_appointment(appointment_req: GgtBooking):
             appointment_req.patient_id,
             appointment_req.patient_questionnaire_id,
             appointment_req.group_code,
-            appointment_req.total_cost/100,  # cents --> decimal
-            appointment_req.billed_amount/100  # cents --> decimal
+            appointment_req.total_cost / 100,  # cents --> decimal
+            appointment_req.billed_amount / 100  # cents --> decimal
         )
         appointment_id = exec_insert(sql, vals)
         __add_services_to_appointment(appointment_id, appointment_req)
@@ -100,7 +101,7 @@ def add_service_to_appointment(appointment_id: int, service_code: str) -> bool:
             service_code = %s
             
         """.format(appointment_id)
-        vals = (service_code, )
+        vals = (service_code,)
         if exec_insert(sql, vals):
             return True
 
@@ -351,20 +352,21 @@ def update_appointment_with_confirmed_scheduled(appointment: GgtAppointment):
     return __update_appointment_status(appointment, c.APPOINTMENT_STATUS_SCHEDULED)
 
 
-def update_appointment_with_checkin(appointment: GgtAppointment):
-    return __update_appointment_status(appointment, c.APPOINTMENT_STATUS_CHECKED_IN)
+def update_appointment_with_checkin(appointment: GgtAppointment, user):
+    return __update_appointment_status(appointment, c.APPOINTMENT_STATUS_CHECKED_IN, user=user)
 
 
-def update_appointment_with_test_start(appointment: GgtAppointment):
-    return __update_appointment_status(appointment, c.APPOINTMENT_STATUS_TEST_IN_PROGRESS)
+def update_appointment_with_test_start(user, appointment: GgtAppointment, workstation_id):
+    return __update_appointment_status(appointment, c.APPOINTMENT_STATUS_TEST_IN_PROGRESS, user=user, workstation_id=workstation_id)
 
 
-def update_appointment_with_scan_vial(appointment: GgtAppointment, vial_id: str):
-    return __update_appointment_status(appointment, c.APPOINTMENT_STATUS_VIAL_SCANNED, vial_id)
+def update_appointment_with_scan_vial(appointment: GgtAppointment, vial_id: str, user):
+    return __update_appointment_status(appointment, c.APPOINTMENT_STATUS_VIAL_SCANNED, vial_id, user=user)
 
 
-def update_appointment_with_test_completed(appointment: GgtAppointment):
-    return __update_appointment_status(appointment, c.APPOINTMENT_STATUS_TEST_COMPLETED)
+def update_appointment_with_test_completed(appointment: GgtAppointment, user):
+    return __update_appointment_status(appointment, c.APPOINTMENT_STATUS_TEST_COMPLETED, user=user)
+
 
 ########################################################################################################
 # [Protected] functions
@@ -387,15 +389,14 @@ def __get_mapped_dt_field(status: str) -> str:
     return dt_field
 
 
-def __update_appointment_status(appointment: GgtAppointment, status: str, vial_id: str = None):
+def __update_appointment_status(appointment: GgtAppointment, status: str, vial_id: str = None, user=None, workstation_id=None):
     vial_id = None if vial_id == '' else vial_id
     usuccess = False
 
     try:
-        #Check if a vial has already been assigned, if so, don't allow update to proceed
-        if appointment.vial_id and vial_id: 
+        # Check if a vial has already been assigned, if so, don't allow update to proceed
+        if appointment.vial_id and vial_id:
             return usuccess
-
 
         if vial_id:
             sql = """
@@ -411,6 +412,7 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
 
             vals = (vial_id, status, appointment.id)
 
+
         else:
             sql = """
                 UPDATE appointments
@@ -425,6 +427,7 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
             vals = (status, appointment.id)
 
         usuccess = exec_update(sql, vals)
+        __create_provider_appointment_activity(user, appointment.id, whoami(), status, vial_id=vial_id, workstation_id=workstation_id)
         if usuccess and (status == c.APPOINTMENT_STATUS_TEST_COMPLETED or status == c.APPOINTMENT_STATUS_VIAL_SCANNED):
             return create_test_sample_from_appointment(appointment.id)
 
@@ -438,6 +441,35 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
         )
 
     return usuccess
+
+
+def __create_provider_appointment_activity(user, appointment_id, function, status, vial_id=None, workstation_id=None):
+    try:
+        if user:
+            user_ext_id = user['sub']
+            sql = """INSERT INTO provider_appointment_activity_history 
+                        (
+                            appointment_id, 
+                            provider_ext_id, 
+                            function,
+                            status,
+                            vial_id,
+                            workstation_id
+                        )
+                    VALUES 
+                        (%s, %s, %s, %s, %s, %s)"""
+
+            vals = (appointment_id, user_ext_id, function, status, vial_id, workstation_id)
+            return exec_insert(sql, vals)
+        else:
+            return None
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
 
 
 def __map_row_to_appointment(row: dict) -> GgtAppointment:
