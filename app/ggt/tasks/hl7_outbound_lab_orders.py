@@ -140,10 +140,11 @@ def __get_msh(order):
     dt = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     cid = str(int(time.time()))
 
-
     location_id = order['sample_collection_location_id']
     if location_id == 2415:
         lab_name = 'MAWD'
+    elif location_id == 2473:
+        pass #handled by other workers
     else:
         lab_name = 'AIT'
 
