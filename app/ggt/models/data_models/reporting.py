@@ -253,17 +253,19 @@ def get_stats_by_date(date, organization_id):
         )
         return None
 
-def get_patient_drilldown_by_date(location_id, date, status):
+
+def get_patient_drill_down_by_date(location_id, date, status, org_id):
+    where_clause = "AND org.id = {} AND org.is_active = 1".format(org_id)
     if status == PatientStatusEnum.scanned.value:
-        where_clause = " AND (t.pre_ship_label_scan_dt IS NOT NULL)"
+        where_clause = "{} AND (t.pre_ship_label_scan_dt IS NOT NULL)".format(where_clause)
     elif status == PatientStatusEnum.not_scanned.value:
-        where_clause = " AND (ISNULL(t.pre_ship_label_scan_dt) AND (t.id IS NOT NULL))"
+        where_clause = "{} AND (ISNULL(t.pre_ship_label_scan_dt) AND (t.id IS NOT NULL))".format(where_clause)
     elif status == PatientStatusEnum.total_scheduled.value:
-        where_clause = ""
+        where_clause = "{}".format(where_clause)
     else:
-        where_clause = "AND a.status = '{}'".format(status)
+        where_clause = "{} AND a.status = '{}'".format(where_clause, status)
     try:
-        sql = """  SELECT
+        sql = """SELECT
                         p.id AS patient_id,
                         p.first_name AS first_name,
                         p.middle_name AS middle_name,
@@ -395,9 +397,10 @@ def get_patient_drilldown_by_date(location_id, date, status):
                         ggt_users u ON u.external_id = c.provider_external_id
                             LEFT JOIN
                         insurance_info i ON p.id = i.patient_id
+                            LEFT JOIN 
+                        organizations org on l.org_id = org.id
                     WHERE
-                        1 = 1
-                            AND p.id IN (SELECT
+                       p.id IN (SELECT
                                 a.patient_id
                             FROM
                                 appointments a
