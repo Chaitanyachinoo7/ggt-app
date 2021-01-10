@@ -2,17 +2,17 @@ from ggt.lib.adapters.auth0_adapter import create_user_in_auth0, delete_user_in_
     assign_roles, get_user_in_auth0, create_password_change_ticket, update_user_in_auth0
 from ggt.lib.adapters.auth0_config import META_KEY, ORGANIZATION_KEY
 from ggt.lib.constants import ERROR
-from ggt.lib.management_utils import send_new_account_creation_email
+from ggt.lib.management_utils import send_new_account_creation_email, send_org_reject_email
 from ggt.lib.utils import log_generic, whoami
 from ggt.models.data_models.data_types import CreateAuth0User, UserRolesEnum, DbOrgRequestStatusEnum
-from ggt.models.data_models.management import create_new_organisation_request, list_org_requests, process_org_request, \
-    get_org_request_user, create_new_organisation, create_new_user, delete_user, update_user_role, get_user_by_ext_id, \
+from ggt.models.data_models.management import create_new_organization_request, list_org_requests, process_org_request, \
+    get_org_request_user, create_new_organization, create_new_user, delete_user, update_user_role, get_user_by_ext_id, \
     list_user, update_user, update_user_status, list_organizations, change_org_status
 
 
-def bp_create_new_organisation_request(req):
+def bp_create_new_organization_request(req):
     try:
-        return create_new_organisation_request(req)
+        return create_new_organization_request(req)
     except Exception as err:
         log_generic(
             type=ERROR,
@@ -53,13 +53,13 @@ def bp_process_org_request(req, user):
                     )
                     auth_user = create_user_in_auth0(_user, req.id)
                     if auth_user:
-                        create_new_organisation(data, auth_user['id'])
+                        create_new_organization(data, auth_user['id'])
                         _x = get_user_in_auth0(auth_user['id']).json()
                         create_new_user(_x, [UserRolesEnum.org_admin])
-                        #TODO Notify user with email
+                        send_new_account_creation_email(_x['given_name'], _x['email'], auth_user['password'])
                         return {"auth_user": auth_user, "org_id": req.id}
             if req.status == DbOrgRequestStatusEnum.rejected:
-                #TODO Notify user with email
+                send_org_reject_email(data['given_name'], data['email'])
                 return {"status": "rejected"}
     except Exception as err:
         log_generic(

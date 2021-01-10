@@ -9,7 +9,7 @@ from ggt.models.data_models.data_types import PermissionsEnum as p, CreateAuth0U
     CreateNewOrganization, ListOrgRequests, ProcessOrgRequests, FilterUser, UpdateAuth0UserInfo, UpdateAuth0UserState, \
     FilterOrg, ChangeOrgStatus
 from ggt.models.workflow_models.management_work_flow import create_user, delete_user, update_user_role, user_profile, \
-    create_new_organisation_request, list_org_requests, process_org_request, list_user, update_user, \
+    create_new_organization_request, list_org_requests, process_org_request, list_user, update_user, \
     password_change_ticket, update_user_state, list_organizations, change_org_status
 
 router = APIRouter()
@@ -31,8 +31,8 @@ async def api_process_org_request(req: ProcessOrgRequests, user=Security(authori
 
 
 @router.post("/create_new_organisation_request", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
-async def api_create_new_organisation_request(req: CreateNewOrganization):
-    return create_new_organisation_request(req)
+async def api_create_new_organization_request(req: CreateNewOrganization):
+    return create_new_organization_request(req)
 
 
 @router.post("/create_user")

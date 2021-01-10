@@ -15,3 +15,15 @@ def send_new_account_creation_email(first_name, email, password):
     template_name = 'GGT-19-NEW_ACCOUNT-EMAIL.html'
     html_content = render_template(template_name, **template_vars)
     send_email(from_email, from_name, email, subject, html_content)
+
+
+def send_org_reject_email(first_name, email):
+    from_email = cfg('notifications.from_email')
+    from_name = cfg('notifications.from_name')
+    subject = "GoGetTested Account created"
+    template_vars = {
+        "first_name": first_name
+    }
+    template_name = 'GGT-20-REJECT_ACCOUNT-EMAIL.html'
+    html_content = render_template(template_name, **template_vars)
+    send_email(from_email, from_name, email, subject, html_content)

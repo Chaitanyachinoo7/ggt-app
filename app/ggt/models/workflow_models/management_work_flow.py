@@ -2,13 +2,13 @@ from starlette.responses import StreamingResponse
 
 from ggt.lib.utils import y_response, x_response
 from ggt.models.process_models.bp_management import bp_create_user, bp_delete_user, bp_update_user_role, \
-    bp_create_new_organisation_request, bp_list_org_requests, bp_process_org_request, bp_user_profile, bp_list_user, \
+    bp_create_new_organization_request, bp_list_org_requests, bp_process_org_request, bp_user_profile, bp_list_user, \
     bp_update_user, bp_update_user_state, bp_password_change_ticket, bp_list_organizations, bp_change_org_status
 
 
-def create_new_organisation_request(req):
+def create_new_organization_request(req):
     return y_response(
-        bp_create_new_organisation_request(req)
+        bp_create_new_organization_request(req)
     )
 
 

@@ -18,9 +18,9 @@ from ggt.lib.utils import (
 ########################################################################################################
 
 
-def create_new_organisation_request(req):
+def create_new_organization_request(req):
     try:
-        sql = """INSERT INTO organisation_requests
+        sql = """INSERT INTO organization_requests
                                   (
                                   org_name,
                                   name,
@@ -50,9 +50,9 @@ def create_new_organisation_request(req):
             error=err)
 
 
-def create_new_organisation(req, ext_id):
+def create_new_organization(req, ext_id):
     try:
-        sql = """INSERT INTO organisations
+        sql = """INSERT INTO organizations
                                   (id,
                                   name,
                                   email,
@@ -180,7 +180,7 @@ def list_org_requests(req):
                     u.given_name
                     
                 FROM
-                    organisation_requests o
+                    organization_requests o
                         LEFT JOIN
                     ggt_users u ON o.resolved_by = u.external_id
                     WHERE
@@ -196,7 +196,7 @@ def list_org_requests(req):
 
 def get_org_request_user(id):
     try:
-        sql = """SELECT * FROM organisation_requests
+        sql = """SELECT * FROM organization_requests
                     WHERE
                     id = %s"""
         vals = (id,)
@@ -212,7 +212,7 @@ def get_org_request_user(id):
 def process_org_request(req, user):
     try:
 
-        sql = """UPDATE organisation_requests
+        sql = """UPDATE organization_requests
                     SET
                     status = %s,
                     comments = %s,
@@ -323,7 +323,7 @@ def list_organizations(req, user):
                     u.roles,
                     u.picture
                 FROM
-                    organisations o
+                    organizations o
                         JOIN
                     ggt_users u ON o.owner_ext_id = u.external_id
                     WHERE
@@ -339,7 +339,7 @@ def list_organizations(req, user):
 
 def change_org_status(req, user):
     try:
-        sql = """UPDATE organisations
+        sql = """UPDATE organizations
                     SET
                     is_active = %s,
                     update_dt = NOW()
