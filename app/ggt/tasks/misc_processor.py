@@ -165,13 +165,13 @@ def process_email_notifications():
 def formatted_email_message(row):
     from_email = cfg('notifications.from_email')
     from_name = cfg('notifications.from_name')
-    subject = "IMPORTANT: {}, Your Covid-19 Testing location hours have changed".format(row['first_name'])
+    subject = "IMPORTANT: {}, Your Covid-19 Testing location has closed due to inclement weather".format(row['first_name'])
 
     template_vars = {
         "first_name": row['first_name']
     }
 
-    template_name = 'GGT-12-APPOINTMENT-RESCHEDULE-EMAIL.html'
+    template_name = 'GGT-14-APPOINTMENT-WEATHER-CLOSING-EMAIL.html'
     html_content = render_template(template_name, **template_vars)
 
     email_message = {
@@ -402,10 +402,10 @@ def get_appointments():
                 JOIN
             patients p ON a.patient_id = p.id
         WHERE
-            location_id IN (310 , 286)
-                AND scheduled_dt > '2021-01-08 00:00:00'
-                AND scheduled_dt < '2021-01-09 00:00:00'
-                AND status = 'scheduled'
+            location_id IN (180 , 194, 222, 7)
+            AND scheduled_dt > '2021-01-10 00:00:00'
+            AND scheduled_dt < '2021-01-11 00:00:00'
+            AND status = 'scheduled'
         """
 
         return read_rows(sql)
@@ -415,7 +415,7 @@ def get_appointments():
 
 
 def prepare_sms_text(appointment):
-    return """Hi {}, due to inclement weather, we’ve had to delay opening the testing location where you have registered to 10am. This may change depending on the weather. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to register for a new appointment.
+    return """Hi {}, due to inclement weather, the location where you have registered for your COVID-19 test will be CLOSED. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to register for a new appointment.
     """.format(appointment["first_name"])
 
 
