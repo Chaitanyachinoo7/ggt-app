@@ -81,7 +81,10 @@ twilio:
   account_sid: AC9cef9b4155030ee2683281ccc72d4001
   auth_token: 62ee76165984c54f91ee80aac9cb3f0e
   from_number: '+18772802151'
-
+  account_sid_short_code: ACa718334f24171c002bc3ee69c59aae9e
+  auth_token_short_code: e9a391c21722705f3c7902fcde7522a4
+  from_number_short_code: "80578"
+  
 sendgrid:
   sendgrid_api_key: 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
 
@@ -121,7 +124,7 @@ vendors:
     api_key_name: x-api-key
     api_key_value: f63e3e17-e10a-4f57-b7b5-08a40d4b0d6b
 
-  healthtrackrx:
+  healthtrackrx_outbound:
     hostname: sftp.healthtrackrx.com
     username: wellpay
     password: 9cTE3fh@8H
@@ -131,6 +134,22 @@ vendors:
     remote_backups_path: /backups
     remote_processed_orders_path: /processed_order_files
     local_download_path: /Users/suresh/ggt-tasks/downloads
+    local_outbound_file_path: /Users/suresh/ggt-tasks/outbound
+    local_insurance_card_file_path: /Users/suresh/ggt-tasks/insurance_images
+    local_process_summary_path: /Users/suresh/ggt-tasks/process_summary
+    local_backups_path: /Users/suresh/ggt-tasks/backups
+    outbound_file_prefix: ggt-outbound
+    
+  healthtrackrx_inbound:
+    hostname: sftp.gogettested.com
+    username: healthtrackrx
+    password: q-5QXfKMLR\dtM_c
+    port: 22
+    remote_downloads_folder: /ggt-sftp/healthtrackrx/Reports
+    remote_insurance_images_path: /ggt-sftp/healthtrackrx/insurance_files
+    remote_backups_path: /ggt-sftp/healthtrackrx/backups
+    remote_processed_orders_path: /ggt-sftp/healthtrackrx/processed_order_files
+    local_download_path: /Users/suresh/ggt-tasks/downloads/healthtrackrx/Reports
     local_outbound_file_path: /Users/suresh/ggt-tasks/outbound
     local_insurance_card_file_path: /Users/suresh/ggt-tasks/insurance_images
     local_process_summary_path: /Users/suresh/ggt-tasks/process_summary
