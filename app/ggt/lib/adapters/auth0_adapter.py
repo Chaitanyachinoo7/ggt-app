@@ -3,7 +3,7 @@ import json
 
 from ggt.lib.adapters.auth0_config import AUTH_URL, AUTH0_MANAGEMENT_CLIENT_ID, AUTH0_MANAGEMENT_CLIENT_SECRET, \
     AUTH0_MANAGEMENT_AUDIENCE, AUTH0_MANAGEMENT_GRANT_TYPE, AUTH0_USER_MANAGEMENT_API, AUTH0_CONNECTION, \
-    AUTH0_GET_ROLES_API, AUTH0_ASSIGN_ROLES_API, AUTH0_USER_UPDATE_API
+    AUTH0_GET_ROLES_API, AUTH0_ASSIGN_ROLES_API, AUTH0_USER_UPDATE_API, AUTH0_PASSWORD_RESET, META_KEY, ORGANIZATION_KEY
 from ggt.lib.constants import ERROR
 from ggt.lib.utils import log_generic, whoami, get_random_password
 
@@ -187,3 +187,32 @@ def remove_roles(user_id, role_ids):
             error=err
         )
         return None
+
+
+def create_password_change_ticket(req, user):
+    try:
+        headers = get_management_api_req_headers()
+        body = {
+            "result_url": req.headers['origin'],
+            "user_id": user['sub'],
+            "ttl_sec": 2000,
+            "mark_email_as_verified": False,
+            "includeEmailInRedirect": False
+        }
+        body = json.dumps(body)
+        r = requests.post(AUTH0_PASSWORD_RESET, data=body, headers=headers)
+        return r.json()
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def get_organization_id(user):
+    if user is None:
+        return None
+    organization_id = user[META_KEY][ORGANIZATION_KEY] if user[META_KEY] else None
+    return organization_id

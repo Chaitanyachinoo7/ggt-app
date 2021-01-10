@@ -1,4 +1,5 @@
 from datetime import datetime
+from cachetools import cached, LRUCache, TTLCache
 
 import ggt.lib.constants as c
 from ggt.lib.utils import (
@@ -67,13 +68,14 @@ def bp_get_all_test_results():
         # return False
 
 
-def bp_get_general_search_results(first_name, middle_name, last_name, dob, phone_number, email, appointment_id,
+@cached(cache=TTLCache(maxsize=1024, ttl=60))
+def bp_get_general_search_results(org_id, first_name, middle_name, last_name, dob, phone_number, email, appointment_id,
                                   group_code, appointment_date, location_id, vial_id='', sort_field="register_dt", sort_type="desc"):
     try:
         if appointment_date != '':
             appointment_date = datetime.strptime(appointment_date, "%m%d%Y")
 
-        return find_patients(first_name, middle_name, last_name, dob, phone_number,
+        return find_patients(org_id, first_name, middle_name, last_name, dob, phone_number,
                              email, appointment_id, group_code, appointment_date, location_id, vial_id, sort_field, sort_type)
 
     except Exception as err:
@@ -112,9 +114,9 @@ def bp_update_group(group):
         )
 
 
-def bp_create_location(location):
+def bp_create_location(location, user):
     try:
-        l = create_location(location)
+        l = create_location(location, user)
         if l is None:
             return None
         location_id = l['location_id']
@@ -136,7 +138,7 @@ def bp_create_location(location):
             s_success = assign_all_services(tuple(location_services))
             if s_success is None or not s_success:
                 return None
-        _location = search_locations('', '', l['site_code'], '')
+        _location = search_locations('', '', l['site_code'], '', user)
         return _location
 
     except Exception as err:
@@ -242,9 +244,9 @@ def bp_update_location(location):
         )
 
 
-def bp_get_all_groups():
+def bp_get_all_groups(user):
     try:
-        return get_all_groups()
+        return get_all_groups(user)
 
     except Exception as err:
         log_generic(
@@ -277,9 +279,9 @@ def bp_get_all_services():
         )
 
 
-def bp_get_location_search_results(account, group_code, site_code, location_name):
+def bp_get_location_search_results(account, group_code, site_code, location_name, st, org_id):
     try:
-        return search_locations(account, group_code, site_code, location_name)
+        return search_locations(account, group_code, site_code, location_name, org_id, st=st)
 
     except Exception as err:
         log_generic(

@@ -1,6 +1,7 @@
+from ggt.lib.adapters.auth0_config import META_KEY, ORGANIZATION_KEY
 from ggt.lib.db import (
     read_rows,
-    exec_insert, exec_update)
+    exec_insert, exec_update, replica_read_rows)
 from ggt.lib.constants import (
     ERROR
 )
@@ -13,10 +14,22 @@ from ggt.lib.utils import (
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-def get_all_groups():
+def get_all_groups(user):
     try:
-        sql = "SELECT * FROM groups"
-        return read_rows(sql)
+        if user is None:
+            return None
+        organization_id = user[META_KEY][ORGANIZATION_KEY] if user[META_KEY] else None
+        if organization_id is None:
+            return None
+
+        sql = """SELECT * FROM groups"""
+        return replica_read_rows(sql)
+
+        '''If groups are not shared Use this'''
+        # sql = """SELECT * FROM groups
+        #             WHERE org_id = %s"""
+        # vals = (organization_id, )
+        # return replica_read_rows(sql, vals)
 
     except Exception as err:
         log_generic(

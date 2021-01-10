@@ -194,9 +194,9 @@ def get_provider_processing_list_db(offset, consultation_status, consultation_no
         return None
 
 
-def _get_provider_processing_list_db(offset, consultation_status, consultation_notes, positive_call, limit, start_date, end_date):
+def _get_provider_processing_list_db(offset, consultation_status, consultation_notes, positive_call, limit, start_date, end_date, org_id):
     try:
-        where_conditions = "t.create_dt >= '{}' AND t.create_dt <= '{}'".format(start_date, end_date)
+        where_conditions = "o.id = {} AND o.is_active = 1 AND t.create_dt >= '{}' AND t.create_dt <= '{}'".format(org_id, start_date, end_date)
         if consultation_status != ConsultationStatusEnum.any:
             if consultation_status == ConsultationStatusEnum.pending:
                 where_conditions = "{} AND ( t.consultation_status = '{}' OR t.consultation_status is null)".format(
@@ -337,6 +337,8 @@ FROM
     patient_consultations c ON a.id = c.appointment_id
         LEFT JOIN
     ggt_users u ON u.external_id = c.provider_external_id
+    	LEFT JOIN
+	organizations o ON o.id = l.org_id
     WHERE
         {}
     ORDER BY t.create_dt ASC 

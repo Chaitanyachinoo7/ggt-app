@@ -156,10 +156,10 @@ class GenericSearchResults(BaseModel):
 
 #tz = cfg(default_timezone)
 
-def find_patients(first_name='', middle_name='', last_name='', dob='', phone_number='',
+def find_patients(org_id, first_name='', middle_name='', last_name='', dob='', phone_number='',
                         email='', appointment_id='', group_code='', appointment_date='', location_id='', vial_id='', sort_field="register_dt", sort_type="desc"):
     try:
-        where_conditions = ''
+        where_conditions = 'o.id = {} AND o.is_active = 1'.format(org_id)
         if first_name != '':
             where_conditions = "{} AND p.first_name LIKE '%{}%'".format(
                 where_conditions, first_name)
@@ -329,7 +329,9 @@ def find_patients(first_name='', middle_name='', last_name='', dob='', phone_num
             ggt_users u ON u.external_id = c.provider_external_id
                 LEFT JOIN 
             insurance_info i ON p.id = i.patient_id
-        WHERE 1=1
+				LEFT JOIN
+			organizations o ON o.id = l.org_id
+        WHERE
             {}
         order by {} {}
         LIMIT {}

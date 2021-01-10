@@ -13,9 +13,9 @@ async def api_get_stats_today():
     return get_stats_today()
 
 
-@router.post("/get_stats_by_date", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
-async def api_get_stats_by_date(summary_by_bate: SummaryByDate):
-    return get_stats_by_date(summary_by_bate.date)
+@router.post("/get_stats_by_date")
+async def api_get_stats_by_date(summary_by_bate: SummaryByDate, user=Security(authorize_user, scopes=[p.CREATE_LOCATION])):
+    return get_stats_by_date(summary_by_bate.date, user)
 
 
 @router.post("/get_sms_stats_by_date", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
