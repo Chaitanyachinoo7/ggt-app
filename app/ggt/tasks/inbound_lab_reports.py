@@ -105,7 +105,7 @@ def task_process_inbound_lab_reports():
     add_to_mawdpath_inbound_data_table()
     update_test_samples_with_results()
 
-    upload_all_inbound_files_to_central_storage()
+    #upload_all_inbound_files_to_central_storage() //Not required anymore since files are hosted in S3
     
 
     log_generic(
