@@ -2,6 +2,7 @@ from ggt.lib.adapters.auth0_adapter import create_user_in_auth0, delete_user_in_
     assign_roles, get_user_in_auth0, create_password_change_ticket, update_user_in_auth0
 from ggt.lib.adapters.auth0_config import META_KEY, ORGANIZATION_KEY
 from ggt.lib.constants import ERROR
+from ggt.lib.management_utils import send_new_account_creation_email
 from ggt.lib.utils import log_generic, whoami
 from ggt.models.data_models.data_types import CreateAuth0User, UserRolesEnum, DbOrgRequestStatusEnum
 from ggt.models.data_models.management import create_new_organisation_request, list_org_requests, process_org_request, \
@@ -82,6 +83,7 @@ def bp_create_user(user, is_org_owner=False, owner=None):
         auth_user = create_user_in_auth0(user, organization_id)
         _user = get_user_in_auth0(auth_user['id']).json()
         if create_new_user(_user, user.role) is not None:
+            send_new_account_creation_email(_user['given_name'], _user['email'], auth_user['password'])
             return _user
         else:
             return None

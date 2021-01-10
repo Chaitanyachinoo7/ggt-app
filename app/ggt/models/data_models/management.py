@@ -86,7 +86,7 @@ def create_new_user(req, roles):
             name,
             picture,
             external_id,
-            organization_id,
+            org_id,
             roles
             )    
             VALUES

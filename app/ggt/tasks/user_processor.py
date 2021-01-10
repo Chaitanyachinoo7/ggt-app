@@ -1,3 +1,5 @@
+import json
+
 import requests
 from requests import Response
 
@@ -24,6 +26,7 @@ user_url = "https://gogettested.us.auth0.com/api/v2/users?page={}&per_page=100&i
 roles_url = "https://gogettested.us.auth0.com/api/v2/users/{}/roles"
 permissions_url = "https://gogettested.us.auth0.com/api/v2/users/{}/permissions"
 delete_url = "https://gogettested.us.auth0.com/api/v2/users/{}"
+update_user = "https://gogettested.us.auth0.com/api/v2/users/{}"
 
 
 auth_response = requests.post(auth_url, data=auth_file)
@@ -35,6 +38,28 @@ total = existing_users.json()['total']
 limit = 100
 COUNT = 0
 rounds = int(total/limit)
+
+
+def add_organizations(users):
+    users = users.json()['users']
+    for user in users:
+        if 'user_metadata' not in user.keys():
+            add_organization_to_existing_user(user['user_id'], 1)
+
+
+def add_organization_to_existing_user(user_id, org_id):
+    body = {
+        "user_metadata": {
+            "organization": org_id
+        }
+    }
+    body = json.dumps(body)
+    r = requests.patch(update_user.format(user_id), data=body, headers=headers)
+    _user = r.json()
+    print("-------------------------------------------------------------------")
+    print(_user)
+    print("-------------------------------------------------------------------")
+    return {'user': _user}
 
 
 def delete_user(user_id, days):
@@ -133,7 +158,9 @@ def remove_user_after_30_inactive_days(users):
 for x in range(0, rounds):
     _existing_users: Response = requests.get(user_url.format(x), headers=headers)
     # task_populate_users(_existing_users, x)
-    remove_user_after_30_inactive_days(_existing_users)
+    # remove_user_after_30_inactive_days(_existing_users)
+    add_organizations(_existing_users)
+
 
 def update_gps_coordinates(location_id, lat, lng):
     sql = """

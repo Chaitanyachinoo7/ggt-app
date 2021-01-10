@@ -207,16 +207,9 @@ def get_all_locations():
         return None
 
 
-def search_locations(account, group_code, site_code, location_name, user, id=None, st=""):
+def search_locations(account, group_code, site_code, location_name, org_id, id=None, st=""):
     try:
-
-        if user is None:
-            return None
-        organization_id = user[META_KEY][ORGANIZATION_KEY] if user[META_KEY] else None
-        if organization_id is None:
-            return None
-
-        where_conditions = 'AND org.id = {} and org.is_active = 1'.format(organization_id)
+        where_conditions = 'AND org.id = {} and org.is_active = 1'.format(org_id)
         if account != '':
             where_conditions = "{} AND g.account LIKE '%{}%'".format(
                 where_conditions, account)
@@ -292,7 +285,7 @@ def search_locations(account, group_code, site_code, location_name, user, id=Non
                         group_codes_to_locations_mapping gm
                     LEFT JOIN groups g ON gm.group_id = g.id
                     GROUP BY gm.location_id) gp ON l.id = gp.location_id
-                    JOIN organisations org ON l.org_id = org.id
+                    JOIN organizations org ON l.org_id = org.id
                         WHERE 1=1
                             {}
                         LIMIT {}

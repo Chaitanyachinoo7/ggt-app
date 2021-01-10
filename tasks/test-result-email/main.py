@@ -1,7 +1,8 @@
 import os
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
-
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 
 
 
@@ -22,7 +23,7 @@ def send_sendgrid_email(from_email, to_email, subject, html_content, text_conten
         print(response.headers)
 
     except Exception as err:
-        print(e.message)
+        # print(e.message)zz
         print("sending-email-failed: {}".format(err))
         print("from: {} / to: {} / subject: {} / html_content: {} / text_content: {};".format(from_email, to_email, subject, html_content, text_content))
         return False
@@ -52,26 +53,20 @@ def send_email(from_email, to_email, subject, html_content, text_content=""):
 
 
 # MAIN
-
 template_vars = {
-    "first_name": "Suresh",
-    "test_number": "f4gv34-001",
-    "test_location_line1": "Gregory Swanson",
-    "test_location_line2": "26 Caesar Canyon Suite 723,",
-    "test_location_line3": "West Newell, 62418",
-    "test_date": "August 01, 2020",
-    "test_time": "11:15AM to 11:30AM",
-    "appointment_link": "https://schedule.gogettested.com/a/1f4771ef-5b10-4b55-93e2-1db04d4269f7"
-}
+        "first_name": "first_name",
+        "email": "email",
+        "password": "password"
+    }
 
 
 # generate HTML from template
 template_folder = "/templates/email/"
-template_name = 'GGT-1-APPOINTMENT-CONFIRMATION-EMAIL.html'
+template_name = 'GGT-19-NEW_ACCOUNT-EMAIL.html'
 html_content = render_template(template_folder, template_name, **template_vars)
 
 from_email = "support@gogettested.com"
-to_email = "suresh@wellpay.com"
+to_email = "visithamanujaya@gmail.com"
 subject = "COVID-19 Testing Appointment Confirmation"
 
 send_email(from_email, to_email, subject, html_content)

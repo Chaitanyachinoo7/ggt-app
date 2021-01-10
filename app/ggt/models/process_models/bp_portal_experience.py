@@ -1,4 +1,5 @@
 from datetime import datetime
+from cachetools import cached, LRUCache, TTLCache
 
 import ggt.lib.constants as c
 from ggt.lib.utils import (
@@ -67,13 +68,14 @@ def bp_get_all_test_results():
         # return False
 
 
-def bp_get_general_search_results(first_name, middle_name, last_name, dob, phone_number, email, appointment_id,
+@cached(cache=TTLCache(maxsize=1024, ttl=60))
+def bp_get_general_search_results(org_id, first_name, middle_name, last_name, dob, phone_number, email, appointment_id,
                                   group_code, appointment_date, location_id, vial_id='', sort_field="register_dt", sort_type="desc"):
     try:
         if appointment_date != '':
             appointment_date = datetime.strptime(appointment_date, "%m%d%Y")
 
-        return find_patients(first_name, middle_name, last_name, dob, phone_number,
+        return find_patients(org_id, first_name, middle_name, last_name, dob, phone_number,
                              email, appointment_id, group_code, appointment_date, location_id, vial_id, sort_field, sort_type)
 
     except Exception as err:
@@ -277,9 +279,9 @@ def bp_get_all_services():
         )
 
 
-def bp_get_location_search_results(account, group_code, site_code, location_name, st, user):
+def bp_get_location_search_results(account, group_code, site_code, location_name, st, org_id):
     try:
-        return search_locations(account, group_code, site_code, location_name, user, st=st)
+        return search_locations(account, group_code, site_code, location_name, org_id, st=st)
 
     except Exception as err:
         log_generic(
