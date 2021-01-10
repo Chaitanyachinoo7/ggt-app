@@ -1090,3 +1090,21 @@ class InsuranceEligibilityRequest(BaseModel):
     insurance_payer_id: str = None
     insurance_group_number: str = None
     level: str = None
+
+
+class PatientStatusEnum(str, Enum):
+    pending = 'pending'
+    total_scheduled = 'total_scheduled'
+    scheduled = 'scheduled'
+    checked_in = 'checked_in'
+    test_in_progress = 'test_in_progress'
+    test_completed = 'test_completed'
+    cancelled = 'cancelled'
+    scanned = 'scanned'
+    not_scanned = 'not_scanned'
+
+
+class PatientDrilldownRequest(BaseModel):
+    location_id: str
+    date: str
+    status: PatientStatusEnum

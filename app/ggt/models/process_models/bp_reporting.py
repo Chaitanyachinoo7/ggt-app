@@ -4,7 +4,7 @@
 from cachetools import cached, LRUCache, TTLCache
 
 from ggt.models.data_models.reporting import get_stats_today, get_stats_by_date, get_sms_stats_by_date, \
-    get_email_stats_by_date, aging_samples_with_lab_by_ship_date, get_user_activity
+    get_email_stats_by_date, aging_samples_with_lab_by_ship_date, get_user_activity, get_patient_drill_down_by_date
 
 
 def bp_get_stats_today():
@@ -30,3 +30,7 @@ def bp_aging_samples_with_lab():
 
 def bp_get_user_activity(req):
     return get_user_activity(req)
+
+
+def bp_get_patient_drill_down_by_date(location_id, date, status, org_id):
+    return get_patient_drill_down_by_date(location_id, date, status, org_id)
