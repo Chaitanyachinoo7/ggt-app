@@ -424,6 +424,7 @@ class PortalGeneralSearchRequest(BaseModel):
 class PortalLocationSearchRequest(BaseModel):
     account: str
     group_code: str
+    st: str
     site_code: str
     location_name: str
 
@@ -693,6 +694,7 @@ class GgtDateTimeLocation(BaseModel):
     open_hours: str = None
 
 
+
 class GgtBooking(BaseModel):
     token: str = None
     gender: str = None
@@ -772,8 +774,7 @@ class GgtBooking(BaseModel):
     billed_amount: int = None
 
     #language: str = None
-    # science37:
-
+    #science37: 
 
 '''
 class Science37(BaseModel):
@@ -798,7 +799,6 @@ class Science37(BaseModel):
 		}
 	},
 '''
-
 
 class GgtAppointment(BaseModel):
     id: int = None
@@ -984,7 +984,7 @@ class UserRolesEnum(str, Enum):
     org_admin = 'org_admin'
     ggt = 'ggt_admin'
 
-    # org_admin
+    #org_admin
 
 
 class CreateAuth0User(BaseModel):
@@ -1059,6 +1059,15 @@ class FilterUser(BaseModel):
     role: str
     name: str
     email: str
+
+
+class FilterOrg(BaseModel):
+    name: str
+
+
+class ChangeOrgStatus(BaseModel):
+    id: str
+    is_active: bool
 
 class StatusUpdatesRequest(BaseModel):
     lab_code: str

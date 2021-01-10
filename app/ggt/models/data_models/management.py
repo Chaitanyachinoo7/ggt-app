@@ -86,7 +86,7 @@ def create_new_user(req, roles):
             name,
             picture,
             external_id,
-            organisation_id,
+            org_id,
             roles
             )    
             VALUES
@@ -163,8 +163,26 @@ def list_org_requests(req):
     try:
         where_statement = "1=1"
         if req.status != '':
-            where_statement = "{} AND status = '{}'".format(where_statement, req.status)
-        sql = """SELECT * FROM organisation_requests
+            where_statement = "{} AND o.status = '{}'".format(where_statement, req.status)
+        sql = """SELECT 
+                    o.id as org_id,
+                    o.org_name as org_name,
+                    o.email as org_email,
+                    o.given_name as org_given_name,
+                    o.family_name as org_family_name,
+                    o.status as org_status,
+                    o.comments,
+                    o.create_dt as org_create_dt,
+                    o.update_dt as org_update_dt,
+                    u.external_id,
+                    u.email as ggt_user_email,
+                    u.family_name,
+                    u.given_name
+                    
+                FROM
+                    organisation_requests o
+                        LEFT JOIN
+                    ggt_users u ON o.resolved_by = u.external_id
                     WHERE
                     {}""".format(where_statement)
         return read_rows(sql)
@@ -265,10 +283,10 @@ def list_user(req, user):
 
         if user is None:
             return None
-        organisation_id = user[META_KEY][ORGANIZATION_KEY] if user[META_KEY] else None
-        if organisation_id is None:
+        organization_id = user[META_KEY][ORGANIZATION_KEY] if user[META_KEY] else None
+        if organization_id is None:
             return None
-        where_statement = "organisation_id = {}".format(organisation_id)
+        where_statement = "org_id = {}".format(organization_id)
         if req.role != "":
             where_statement = "{} AND roles LIKE '%{}%'".format(where_statement, req.role)
         if req.name != "":
@@ -279,6 +297,55 @@ def list_user(req, user):
                     WHERE
                     {}""".format(where_statement)
         return read_rows(sql)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err)
+
+
+def list_organizations(req, user):
+    try:
+        where_statement = "1=1"
+        if req.name != "":
+            where_statement = "{} AND o.name LIKE '%{}%'".format(where_statement, req.name)
+        sql = """SELECT 
+                    o.id AS org_id,
+                    o.name AS org_name,
+                    o.is_active AS org_active,
+                    u.id AS user_id,
+                    u.external_id,
+                    u.is_active AS user_active,
+                    u.email,
+                    u.given_name,
+                    u.family_name,
+                    u.roles,
+                    u.picture
+                FROM
+                    organisations o
+                        JOIN
+                    ggt_users u ON o.owner_ext_id = u.external_id
+                    WHERE
+                    {}""".format(where_statement)
+        return read_rows(sql)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err)
+
+
+def change_org_status(req, user):
+    try:
+        sql = """UPDATE organisations
+                    SET
+                    is_active = %s,
+                    update_dt = NOW()
+                    WHERE id = %s"""
+        vals = (req.is_active, req.id)
+        return exec_update(sql, vals)
 
     except Exception as err:
         log_generic(

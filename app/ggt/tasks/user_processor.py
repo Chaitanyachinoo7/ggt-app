@@ -1,3 +1,5 @@
+import json
+
 import requests
 from requests import Response
 
@@ -11,6 +13,7 @@ from ggt.lib.db import (
     replica_read_row,
     replica_read_rows
 )
+from datetime import datetime, date
 
 # TODO: read the params from Config files
 auth_file = {
@@ -19,14 +22,49 @@ auth_file = {
     "audience": "https://gogettested.us.auth0.com/api/v2/", "grant_type": "client_credentials"
 }
 auth_url = "https://gogettested.us.auth0.com/oauth/token"
-user_url = "https://gogettested.us.auth0.com/api/v2/users"
+user_url = "https://gogettested.us.auth0.com/api/v2/users?page={}&per_page=100&include_totals=true"
 roles_url = "https://gogettested.us.auth0.com/api/v2/users/{}/roles"
 permissions_url = "https://gogettested.us.auth0.com/api/v2/users/{}/permissions"
+delete_url = "https://gogettested.us.auth0.com/api/v2/users/{}"
+update_user = "https://gogettested.us.auth0.com/api/v2/users/{}"
+
 
 auth_response = requests.post(auth_url, data=auth_file)
 auth = "Bearer {}".format(auth_response.json()['access_token'])
 headers = {'content-type': 'application/json', 'Accept-Charset': 'UTF-8', 'Authorization': auth}
-existing_users: Response = requests.get(user_url, headers=headers)
+existing_users: Response = requests.get(user_url.format(0), headers=headers)
+
+total = existing_users.json()['total']
+limit = 100
+COUNT = 0
+rounds = int(total/limit)
+
+
+def add_organizations(users):
+    users = users.json()['users']
+    for user in users:
+        if 'user_metadata' not in user.keys():
+            add_organization_to_existing_user(user['user_id'], 1)
+
+
+def add_organization_to_existing_user(user_id, org_id):
+    body = {
+        "user_metadata": {
+            "organization": org_id
+        }
+    }
+    body = json.dumps(body)
+    r = requests.patch(update_user.format(user_id), data=body, headers=headers)
+    _user = r.json()
+    print("-------------------------------------------------------------------")
+    print(_user)
+    print("-------------------------------------------------------------------")
+    return {'user': _user}
+
+
+def delete_user(user_id, days):
+    res = requests.delete(delete_url.format(user_id), headers=headers)
+    print("{} - {} - {}".format(res.status_code, user_id, days))
 
 
 def get_user_roles(user_id):
@@ -54,7 +92,7 @@ def update_ggt_users_roles_permissions(id, roles, permissions):
     exec_update(sql, (roles, permissions, id))
 
 
-def update_ggt_users(ggt_users):
+def update_ggt_users(ggt_users, x):
     sql = """INSERT IGNORE INTO ggt_users
         (
             email,
@@ -64,19 +102,25 @@ def update_ggt_users(ggt_users):
             name,
             picture,
             external_id,
-            organisation_id
+            org_id,
+            is_active
         )    
             VALUES
-        (%s, %s, %s, %s, %s, %s, %s, %s);
+        (%s, %s, %s, %s, %s, %s, %s, %s, %s);
 """
     # exec_batch_execute(sql, ggt_users) # Insert many throws errors with INSERT IGNORE
-    for user in ggt_users:
+    for idx, user in enumerate(ggt_users):
+        if x == 0:
+            COUNT = idx + 1
+        else:
+            COUNT = x*100 + idx + 1
+        print("{}. USER {} ADDED.".format(COUNT, user[0]))
         exec_insert(sql, user)
 
 
-def task_populate_users(existing_users):
+def task_populate_users(existing_users, x):
     print('\n\n********************task_populate_users****************************\n\n')
-    users = existing_users.json()
+    users = existing_users.json()['users']
     filtered_users = list(map(lambda user: [
         user['email'],
         1 if user['email_verified'] else 0,
@@ -85,20 +129,37 @@ def task_populate_users(existing_users):
         user['name'] if 'name' in user.keys() else "",
         user['picture'] if 'picture' in user.keys() else "",
         user['user_id'],
-        user['user_metadata']['organization'] if user['user_metadata']['organization'] else 1
+        user['user_metadata']['organization'] if 'user_metadata' in user.keys() else 1,
+        user['blocked'] if 'blocked' in user.keys() else 1
     ], users))
-    update_ggt_users(filtered_users)
+    update_ggt_users(filtered_users, x)
 
-    for u in users:
-        id = str(u['user_id'])
-        roles = get_user_roles(id)
-        permissions = get_user_permissions(id)
-        update_ggt_users_roles_permissions(id, roles, permissions)
+    # for u in users:
+    #     id = str(u['user_id'])
+    #     roles = get_user_roles(id)
+    #     permissions = get_user_permissions(id)
+    #     update_ggt_users_roles_permissions(id, roles, permissions)
 
     print('\n\n*******************************************************************\n\n')
 
 
-task_populate_users(existing_users)
+def days_between(d1, d2):
+    d1 = datetime.strptime(d1, "%Y-%m-%d")
+    d2 = datetime.strptime(d2[0:10], "%Y-%m-%d")
+    return abs((d2 - d1).days)
+
+
+def remove_user_after_30_inactive_days(users):
+    for user in users.json()['users']:
+        if days_between(str(date.today()), user['last_login']) > 30:
+            delete_user(user['user_id'], days_between(str(date.today()), user['last_login']))
+
+
+for x in range(0, rounds):
+    _existing_users: Response = requests.get(user_url.format(x), headers=headers)
+    # task_populate_users(_existing_users, x)
+    # remove_user_after_30_inactive_days(_existing_users)
+    add_organizations(_existing_users)
 
 
 def update_gps_coordinates(location_id, lat, lng):
