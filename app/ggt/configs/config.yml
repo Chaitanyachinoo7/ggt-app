@@ -13,7 +13,7 @@ server:
   email_queue_processor_port: 5030
   sms_queue_processor_port: 5040
 
-origins: 
+origins:
   - https://gogettested.com
   - https://schedule.gogettested.com
   - https://start.gogettested.com
@@ -51,7 +51,7 @@ gcp:
   notification_archive_bucket_name: ggt-notification-archive-dev2
   enable_cloud_profiler: false
   enable_cloud_logger: false
-  cloud_logger_log_level: 3 # 0-error, 1-warning, 2-info, 3-debug. 
+  cloud_logger_log_level: 3 # 0-error, 1-warning, 2-info, 3-debug.
 
 databases:
   mysql:
@@ -119,6 +119,10 @@ vendors:
     management_sectret: Rwx8-mby99m5O-2aR14JKgoim0VV0FJuO6sefpDxXjKiQ18mys4JWf2oAO6_5Mha
     connection: Username-Password-Authentication
 
+  auth:
+    api_key_name: x-api-key
+    api_key_value: f63e3e17-e10a-4f57-b7b5-08a40d4b0d6b
+
   healthtrackrx_outbound:
     hostname: sftp.healthtrackrx.com
     username: wellpay
@@ -155,6 +159,7 @@ vendors:
     endpoint: https://api-staging.getwellpay.com/api/public/v1
     auth_user: suresh@wellpay.com
     auth_password: 8,tp{Na{76<~@.>(
+    npi: 1780944496
 
   kdhe:
     hostname: sl64.endpoint.com

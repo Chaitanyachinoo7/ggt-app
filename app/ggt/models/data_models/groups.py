@@ -18,8 +18,8 @@ def get_all_groups(user):
     try:
         if user is None:
             return None
-        organisation_id = user[META_KEY][ORGANIZATION_KEY] if user[META_KEY] else None
-        if organisation_id is None:
+        organization_id = user[META_KEY][ORGANIZATION_KEY] if user[META_KEY] else None
+        if organization_id is None:
             return None
 
         sql = """SELECT * FROM groups"""
@@ -28,7 +28,7 @@ def get_all_groups(user):
         '''If groups are not shared Use this'''
         # sql = """SELECT * FROM groups
         #             WHERE org_id = %s"""
-        # vals = (organisation_id, )
+        # vals = (organization_id, )
         # return replica_read_rows(sql, vals)
 
     except Exception as err:

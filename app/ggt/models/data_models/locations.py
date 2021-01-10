@@ -212,11 +212,11 @@ def search_locations(account, group_code, site_code, location_name, user, id=Non
 
         if user is None:
             return None
-        organisation_id = user[META_KEY][ORGANIZATION_KEY] if user[META_KEY] else None
-        if organisation_id is None:
+        organization_id = user[META_KEY][ORGANIZATION_KEY] if user[META_KEY] else None
+        if organization_id is None:
             return None
 
-        where_conditions = 'AND org.id = {} and org.is_active = 1'.format(organisation_id)
+        where_conditions = 'AND org.id = {} and org.is_active = 1'.format(organization_id)
         if account != '':
             where_conditions = "{} AND g.account LIKE '%{}%'".format(
                 where_conditions, account)
@@ -313,8 +313,8 @@ def create_location(location, user):
     try:
         if user is None:
             return None
-        organisation_id = user[META_KEY][ORGANIZATION_KEY] if user[META_KEY] else None
-        if organisation_id is None:
+        organization_id = user[META_KEY][ORGANIZATION_KEY] if user[META_KEY] else None
+        if organization_id is None:
             return None
         sql = """
                INSERT INTO locations
@@ -353,7 +353,7 @@ def create_location(location, user):
                """
         vals = (
             location.site_code,
-            organisation_id,
+            organization_id,
             location.name,
             location.addr1,
             location.addr2,

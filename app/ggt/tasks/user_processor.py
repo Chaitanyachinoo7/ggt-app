@@ -77,7 +77,7 @@ def update_ggt_users(ggt_users, x):
             name,
             picture,
             external_id,
-            organisation_id,
+            org_id,
             is_active
         )    
             VALUES

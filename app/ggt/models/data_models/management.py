@@ -86,7 +86,7 @@ def create_new_user(req, roles):
             name,
             picture,
             external_id,
-            organisation_id,
+            organization_id,
             roles
             )    
             VALUES
@@ -283,10 +283,10 @@ def list_user(req, user):
 
         if user is None:
             return None
-        organisation_id = user[META_KEY][ORGANIZATION_KEY] if user[META_KEY] else None
-        if organisation_id is None:
+        organization_id = user[META_KEY][ORGANIZATION_KEY] if user[META_KEY] else None
+        if organization_id is None:
             return None
-        where_statement = "organisation_id = {}".format(organisation_id)
+        where_statement = "org_id = {}".format(organization_id)
         if req.role != "":
             where_statement = "{} AND roles LIKE '%{}%'".format(where_statement, req.role)
         if req.name != "":
