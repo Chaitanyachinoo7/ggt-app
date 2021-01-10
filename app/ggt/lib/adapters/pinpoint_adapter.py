@@ -7,7 +7,7 @@ from ggt.lib.utils import (
 )
 
 
-def send_pinpoint_message(recipient_number, message, sender_number="+12315986677", sender_id="GoGetTested"):
+def send_pinpoint_message(recipient_number, message, sender_number="+19094747938", sender_id="GoGetTested"):
     # The AWS Region that you want to use to send the message. For a list of
     # AWS Regions where the Amazon Pinpoint API is available, see
     # https://docs.aws.amazon.com/pinpoint/latest/apireference/

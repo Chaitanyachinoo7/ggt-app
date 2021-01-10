@@ -64,7 +64,7 @@ def __batch_process_sms_queue(micro_offset, micro_batch_size):
     FROM sms_notification_queue 
     WHERE status 
         IN ('pending','retry') 
-    ORDER BY create_dt ASC
+    ORDER BY create_dt DESC
     LIMIT {},{}
     """.format(micro_offset, micro_batch_size)
 
