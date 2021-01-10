@@ -7,30 +7,27 @@ from pprint import pprint
 
 class MSH(BaseModel):
     # https://hl7-definition.caristix.com/v2/HL7v2.5.1/Segments/MSH
-    msh_1_field_separator: = ''
-    msh_2_encoding_characters: constr(max_length=4)
-    msh_3_sending_application: Optional[constr(max_length=227)] = ''
-    msh_4_sending_facility: Optional[constr(max_length=227)] = ''
-    msh_5_receiving_application: Optional[constr(max_length=227)] = ''
-    msh_6_receiving_facility: Optional[constr(max_length=227)] = ''
-    msh_7_datetime_of_message: constr(max_length=26)  # Timestamp
-    msh_8_security: Optional[constr(max_length=40)] = ''
-    msh_9_message_type: constr(max_length=15)
-    msh_10_message_control_id: constr(max_length=20)
-    msh_11_processing_id: constr(max_length=3)
-    msh_12_version_id: constr(max_length=60)
-    msh_13_sequence_number: Optional[constr(max_length=15)] = ''
-    msh_14_continuation_pointer: Optional[constr(max_length=180)] = ''
-    msh_15_accept_acknowledgment_type: Optional[constr(max_length=2)] = ''
-    msh_16_application_acknowledgment_type: Optional[constr(
-        max_length=2)] = ''
-    msh_17_country_code: Optional[constr(max_length=3)] = ''
-    msh_18_character_set: Optional[constr(max_length=16)] = ''
-    msh_19_principal_language_of_message: Optional[constr(
-        max_length=250)] = ''
-    msh_20_alternate_character_set_handling_scheme: Optional[constr(
-        max_length=20)] = ''
-    msh_21_message_profile_identifier: Optional[constr(max_length=427)] = ''
+    msh_1_field_separator = ''
+    msh_2_encoding_characters = ''
+    msh_3_sending_application = ''
+    msh_4_sending_facility = ''
+    msh_5_receiving_application = ''
+    msh_6_receiving_facility = ''
+    msh_7_datetime_of_message = ''  # Timestamp
+    msh_8_security = ''
+    msh_9_message_type = ''
+    msh_10_message_control_id = ''
+    msh_11_processing_id = ''
+    msh_12_version_id = ''
+    msh_13_sequence_number = ''
+    msh_14_continuation_pointer = ''
+    msh_15_accept_acknowledgment_type = ''
+    msh_16_application_acknowledgment_type = ''
+    msh_17_country_code = ''
+    msh_18_character_set = ''
+    msh_19_principal_language_of_message = ''
+    msh_20_alternate_character_set_handling_scheme = ''
+    msh_21_message_profile_identifier = ''
 
     def __str__(self):
         return 'MSH|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}'.format(
@@ -60,9 +57,9 @@ class MSH(BaseModel):
 
 class MSG(BaseModel):
     # https://hl7-definition.caristix.com/v2/HL7v2.5.1/Segments/MSG
-    msg_1_message_code: constr(max_length=3)
-    msg_2_trigger_event: constr(max_length=3)
-    msg_3_message_structure: constr(max_length=7)
+    msg_1_message_code = ''
+    msg_2_trigger_event = ''
+    msg_3_message_structure = ''
 
     def __str__(self):
         return '{}|{}|{}'.format(
@@ -74,84 +71,45 @@ class MSG(BaseModel):
 
 class PID(BaseModel):
     # https://hl7-definition.caristix.com/v2/HL7v2.5.1/Segments/PID
-    pid_1_set_id: \
-        Optional[constr(max_length=4)] = ''
-    pid_2_patient_id: \
-        Optional[constr(max_length=20)] = ''
-    pid_3_patient_identifier_list: \
-        constr(max_length=250)
-    pid_4_alternate_patient_id_pid: \
-        Optional[constr(max_length=20)] = ''
-    pid_5_patient_name: \
-        constr(max_length=250)
-    pid_6_mothers_maiden_name: \
-        Optional[constr(max_length=250)] = ''
-    pid_7_date_time_of_birth: \
-        Optional[constr(max_length=26)] = ''
-    pid_8_administrative_sex: \
-        Optional[constr(max_length=1)] = ''
-    pid_9_patient_alias: \
-        Optional[constr(max_length=250)] = ''
-    pid_10_race: \
-        Optional[constr(max_length=250)] = ''
-    pid_11_patient_address: \
-        Optional[constr(max_length=250)] = ''
-    pid_12_county_code: \
-        Optional[constr(max_length=4)] = ''
-    pid_13_phone_number_home: \
-        Optional[constr(max_length=250)] = ''
-    pid_14_phone_number_business: \
-        Optional[constr(max_length=250)] = ''
-    pid_15_primary_language: \
-        Optional[constr(max_length=250)] = ''
-    pid_16_marital_status: \
-        Optional[constr(max_length=250)] = ''
-    pid_17_religion: \
-        Optional[constr(max_length=250)] = ''
-    pid_18_patient_account_number: \
-        Optional[constr(max_length=250)] = ''
-    pid_19_ssn_number_patient: \
-        Optional[constr(max_length=16)] = ''
-    pid_20_drivers_license_number_patient: \
-        Optional[constr(max_length=25)] = ''
-    pid_21_mothers_identifier: \
-        Optional[constr(max_length=250)] = ''
-    pid_22_ethnic_group: \
-        Optional[constr(max_length=250)] = ''
-    pid_23_birth_place: \
-        Optional[constr(max_length=250)] = ''
-    pid_24_multiple_birth_indicator: \
-        Optional[constr(max_length=1)] = ''
-    pid_25_birth_order: \
-        Optional[constr(max_length=2)] = ''
-    pid_26_citizenship: \
-        Optional[constr(max_length=250)] = ''
-    pid_27_veterans_military_status: \
-        Optional[constr(max_length=250)] = ''
-    pid_28_nationality: \
-        Optional[constr(max_length=250)] = ''
-    pid_29_patient_death_date_and_time: \
-        Optional[constr(max_length=26)] = ''
-    pid_30_patient_death_indicator: \
-        Optional[constr(max_length=1)] = ''
-    pid_31_identity_unknown_indicator: \
-        Optional[constr(max_length=1)] = ''
-    pid_32_identity_reliability_code: \
-        Optional[constr(max_length=20)] = ''
-    pid_33_last_update_datetime: \
-        Optional[constr(max_length=26)] = ''
-    pid_34_last_update_facility: \
-        Optional[constr(max_length=241)] = ''
-    pid_35_species_code: \
-        Optional[constr(max_length=250)] = ''
-    pid_36_breed_code: \
-        Optional[constr(max_length=250)] = ''
-    pid_37_strain: \
-        Optional[constr(max_length=80)] = ''
-    pid_38_production_class_code: \
-        Optional[constr(max_length=250)] = ''
-    pid_39_tribal_citizenship: \
-        Optional[constr(max_length=250)] = ''
+    pid_1_set_id = ''
+    pid_2_patient_id = ''
+    pid_3_patient_identifier_list = ''
+    pid_4_alternate_patient_id_pid = ''
+    pid_5_patient_name = ''
+    pid_6_mothers_maiden_name = ''
+    pid_7_date_time_of_birth = ''
+    pid_8_administrative_sex = ''
+    pid_9_patient_alias = ''
+    pid_10_race = ''
+    pid_11_patient_address = ''
+    pid_12_county_code = ''
+    pid_13_phone_number_home = ''
+    pid_14_phone_number_business = ''
+    pid_15_primary_language = ''
+    pid_16_marital_status = ''
+    pid_17_religion = ''
+    pid_18_patient_account_number = ''
+    pid_19_ssn_number_patient = ''
+    pid_20_drivers_license_number_patient = ''
+    pid_21_mothers_identifier = ''
+    pid_22_ethnic_group = ''
+    pid_23_birth_place = ''
+    pid_24_multiple_birth_indicator = ''
+    pid_25_birth_order = ''
+    pid_26_citizenship = ''
+    pid_27_veterans_military_status = ''
+    pid_28_nationality = ''
+    pid_29_patient_death_date_and_time = ''
+    pid_30_patient_death_indicator = ''
+    pid_31_identity_unknown_indicator = ''
+    pid_32_identity_reliability_code = ''
+    pid_33_last_update_datetime = ''
+    pid_34_last_update_facility = ''
+    pid_35_species_code = ''
+    pid_36_breed_code = ''
+    pid_37_strain = ''
+    pid_38_production_class_code = ''
+    pid_39_tribal_citizenship = ''
 
     def __str__(self):
         return 'PID|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}'.format(
@@ -199,112 +157,60 @@ class PID(BaseModel):
 
 class IN1(BaseModel):
     # https://hl7-definition.caristix.com/v2/HL7v2.5.1/Segments/IN1
-    in1_1_set_id: \
-        constr(max_length=4)
-    in1_2_insurance_plan_id: \
-        constr(max_length=250) = ''
-    in1_3_insurance_company_id: \
-        constr(max_length=250)
-    in1_4_insurance_company_name: \
-        Optional[constr(max_length=250)] = ''
-    in1_5_insurance_company_address: \
-        Optional[constr(max_length=250)] = ''
-    in1_6_insurance_co_contact_person: \
-        Optional[constr(max_length=250)] = ''
-    in1_7_insurance_co_phone_number: \
-        Optional[constr(max_length=250)] = ''
-    in1_8_group_number: \
-        Optional[constr(max_length=12)] = ''
-    in1_9_group_name: \
-        Optional[constr(max_length=250)] = ''
-    in1_10_insureds_group_emp_id: \
-        Optional[constr(max_length=250)] = ''
-    in1_11_insureds_group_emp_name: \
-        Optional[constr(max_length=250)] = ''
-    in1_12_plan_effective_date: \
-        Optional[constr(max_length=8)] = ''
-    in1_13_plan_expiration_date: \
-        Optional[constr(max_length=8)] = ''
-    in1_14_authorization_information: \
-        Optional[constr(max_length=239)] = ''
-    in1_15_plan_type: \
-        Optional[constr(max_length=3)] = ''
-    in1_16_name_of_insured: \
-        Optional[constr(max_length=250)] = ''
-    in1_17_insureds_relationship_to_patient: \
-        Optional[constr(max_length=250)] = ''
-    in1_18_insureds_date_of_birth: \
-        Optional[constr(max_length=26)] = ''
-    in1_19_insureds_address: \
-        Optional[constr(max_length=250)] = ''
-    in1_20_assignment_of_benefits: \
-        Optional[constr(max_length=2)] = ''
-    in1_21_coordination_of_benefits: \
-        Optional[constr(max_length=2)] = ''
-    in1_22_coord_of_ben_priority: \
-        Optional[constr(max_length=2)] = ''
-    in1_23_notice_of_admission_flag: \
-        Optional[constr(max_length=1)] = ''
-    in1_24_notice_of_admission_date: \
-        Optional[constr(max_length=8)] = ''
-    in1_25_report_of_eligibility_flag: \
-        Optional[constr(max_length=1)] = ''
-    in1_26_report_of_eligibility_date: \
-        Optional[constr(max_length=8)] = ''
-    in1_27_release_information_code: \
-        Optional[constr(max_length=2)] = ''
-    in1_28_pre_admit_cert_pac: \
-        Optional[constr(max_length=15)] = ''
-    in1_29_verification_datetime: \
-        Optional[constr(max_length=26)] = ''
-    in1_30_verification_by: \
-        Optional[constr(max_length=250)] = ''
-    in1_31_type_of_agreement_code: \
-        Optional[constr(max_length=2)] = ''
+    in1_1_set_id = ''
+    in1_2_insurance_plan_id = ''
+    in1_3_insurance_company_id = ''
+    in1_4_insurance_company_name = ''
+    in1_5_insurance_company_address = ''
+    in1_6_insurance_co_contact_person = ''
+    in1_7_insurance_co_phone_number = ''
+    in1_8_group_number = ''
+    in1_9_group_name = ''
+    in1_10_insureds_group_emp_id = ''
+    in1_11_insureds_group_emp_name = ''
+    in1_12_plan_effective_date = ''
+    in1_13_plan_expiration_date = ''
+    in1_14_authorization_information = ''
+    in1_15_plan_type = ''
+    in1_16_name_of_insured = ''
+    in1_17_insureds_relationship_to_patient = ''
+    in1_18_insureds_date_of_birth = ''
+    in1_19_insureds_address = ''
+    in1_20_assignment_of_benefits = ''
+    in1_21_coordination_of_benefits = ''
+    in1_22_coord_of_ben_priority = ''
+    in1_23_notice_of_admission_flag = ''
+    in1_24_notice_of_admission_date = ''
+    in1_25_report_of_eligibility_flag = ''
+    in1_26_report_of_eligibility_date = ''
+    in1_27_release_information_code = ''
+    in1_28_pre_admit_cert_pac = ''
+    in1_29_verification_datetime = ''
+    in1_30_verification_by = ''
+    in1_31_type_of_agreement_code = ''
     in1_32_billing_status: \
         Optional[str] = ''
-    in1_33_lifetime_reserve_days: \
-        Optional[constr(max_length=4)] = ''
-    in1_34_delay_before_l_r_day: \
-        Optional[constr(max_length=4)] = ''
-    in1_35_company_plan_code: \
-        Optional[constr(max_length=8)] = ''
-    in1_36_policy_number: \
-        Optional[constr(max_length=15)] = ''
-    in1_37_policy_deductible: \
-        Optional[constr(max_length=12)] = ''
-    in1_38_policy_limit_amount: \
-        Optional[constr(max_length=12)] = ''
-    in1_39_policy_limit_days: \
-        Optional[constr(max_length=4)] = ''
-    in1_40_room_rate_semi_private: \
-        Optional[constr(max_length=12)] = ''
-    in1_41_room_rate_private: \
-        Optional[constr(max_length=12)] = ''
-    in1_42_insureds_employment_status: \
-        Optional[constr(max_length=250)] = ''
-    in1_43_insureds_administrative_sex: \
-        Optional[constr(max_length=1)] = ''
-    in1_44_insureds_employers_address: \
-        Optional[constr(max_length=250)] = ''
-    in1_45_verification_status: \
-        Optional[constr(max_length=2)] = ''
-    in1_46_prior_insurance_plan_id: \
-        Optional[constr(max_length=8)] = ''
-    in1_47_coverage_type: \
-        Optional[constr(max_length=3)] = ''
-    in1_48_handicap: \
-        Optional[constr(max_length=2)] = ''
-    in1_49_insureds_id_number: \
-        Optional[constr(max_length=250)] = ''
-    in1_50_signature_code: \
-        Optional[constr(max_length=1)] = ''
-    in1_51_signature_code_date: \
-        Optional[constr(max_length=8)] = ''
-    in1_52_insureds_birth_place: \
-        Optional[constr(max_length=250)] = ''
-    in1_53_vip_indicator: \
-        Optional[constr(max_length=2)] = ''
+    in1_33_lifetime_reserve_days = ''
+    in1_34_delay_before_l_r_day = ''
+    in1_35_company_plan_code = ''
+    in1_36_policy_number = ''
+    in1_37_policy_deductible = ''
+    in1_38_policy_limit_amount = ''
+    in1_39_policy_limit_days = ''
+    in1_40_room_rate_semi_private = ''
+    in1_41_room_rate_private = ''
+    in1_42_insureds_employment_status = ''
+    in1_43_insureds_administrative_sex = ''
+    in1_44_insureds_employers_address = ''
+    in1_45_verification_status = ''
+    in1_46_prior_insurance_plan_id = ''
+    in1_47_coverage_type = ''
+    in1_48_handicap = ''
+    in1_49_insureds_id_number = ''
+    in1_50_signature_code = ''
+    in1_51_signature_code_date = ''
+    in1_52_insureds_birth_place = ''
+    in1_53_vip_indicator = ''
 
     def __str__(self):
         return 'IN1|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}'.format(
@@ -366,110 +272,58 @@ class IN1(BaseModel):
 
 class PV1(BaseModel):
     # https://hl7-definition.caristix.com/v2/HL7v2.5.1/Segments/PV1
-    pv1_1_set_id: \
-        Optional[constr(max_length=4)] = ''
-    pv1_2_patient_class: \
-        constr(max_length=1) = ''
-    pv1_3_assigned_patient_location: \
-        Optional[constr(max_length=80)] = ''
-    pv1_4_admission_type: \
-        Optional[constr(max_length=2)] = ''
-    pv1_5_preadmit_number: \
-        Optional[constr(max_length=250)] = ''
-    pv1_6_prior_patient_location: \
-        Optional[constr(max_length=80)] = ''
-    pv1_7_attending_doctor: \
-        Optional[constr(max_length=250)] = ''
-    pv1_8_referring_doctor: \
-        Optional[constr(max_length=250)] = ''
-    pv1_9_consulting_doctor: \
-        Optional[constr(max_length=250)] = ''
-    pv1_10_hospital_service: \
-        Optional[constr(max_length=3)] = ''
-    pv1_11_temporary_location: \
-        Optional[constr(max_length=80)] = ''
-    pv1_12_preadmit_test_indicator: \
-        Optional[constr(max_length=2)] = ''
-    pv1_13_re_admission_indicator: \
-        Optional[constr(max_length=2)] = ''
-    pv1_14_admit_source: \
-        Optional[constr(max_length=6)] = ''
-    pv1_15_ambulatory_status: \
-        Optional[constr(max_length=2)] = ''
-    pv1_16_vip_indicator: \
-        Optional[constr(max_length=2)] = ''
-    pv1_17_admitting_doctor: \
-        Optional[constr(max_length=250)] = ''
-    pv1_18_patient_type: \
-        Optional[constr(max_length=2)] = ''
-    pv1_19_visit_number: \
-        Optional[constr(max_length=250)] = ''
-    pv1_20_financial_class: \
-        Optional[constr(max_length=50)] = ''
-    pv1_21_charge_price_indicator: \
-        Optional[constr(max_length=2)] = ''
-    pv1_22_courtesy_code: \
-        Optional[constr(max_length=2)] = ''
-    pv1_23_credit_rating: \
-        Optional[constr(max_length=2)] = ''
-    pv1_24_contract_code: \
-        Optional[constr(max_length=2)] = ''
-    pv1_25_contract_effective_date: \
-        Optional[constr(max_length=8)] = ''
-    pv1_26_contract_amount: \
-        Optional[constr(max_length=12)] = ''
-    pv1_27_contract_period: \
-        Optional[constr(max_length=3)] = ''
-    pv1_28_interest_code: \
-        Optional[constr(max_length=2)] = ''
-    pv1_29_transfer_to_bad_debt_code: \
-        Optional[constr(max_length=4)] = ''
-    pv1_30_transfer_to_bad_debt_date: \
-        Optional[constr(max_length=8)] = ''
-    pv1_31_bad_debt_agency_code: \
-        Optional[constr(max_length=10)] = ''
-    pv1_32_bad_debt_transfer_amount: \
-        Optional[constr(max_length=12)] = ''
-    pv1_33_bad_debt_recovery_amount: \
-        Optional[constr(max_length=12)] = ''
-    pv1_34_delete_account_indicator: \
-        Optional[constr(max_length=1)] = ''
-    pv1_35_delete_account_date: \
-        Optional[constr(max_length=8)] = ''
-    pv1_36_discharge_disposition: \
-        Optional[constr(max_length=3)] = ''
-    pv1_37_discharged_to_location: \
-        Optional[constr(max_length=47)] = ''
-    pv1_38_diet_type: \
-        Optional[constr(max_length=250)] = ''
-    pv1_39_servicing_facility: \
-        Optional[constr(max_length=2)] = ''
-    pv1_40_bed_status: \
-        Optional[constr(max_length=1)] = ''
-    pv1_41_account_status: \
-        Optional[constr(max_length=2)] = ''
-    pv1_42_pending_location: \
-        Optional[constr(max_length=80)] = ''
-    pv1_43_prior_temporary_location: \
-        Optional[constr(max_length=80)] = ''
-    pv1_44_admit_datetime: \
-        Optional[constr(max_length=26)] = ''
-    pv1_45_discharge_datetime: \
-        Optional[constr(max_length=26)] = ''
-    pv1_46_current_patient_balance: \
-        Optional[constr(max_length=12)] = ''
-    pv1_47_total_charges: \
-        Optional[constr(max_length=12)] = ''
-    pv1_48_total_adjustments: \
-        Optional[constr(max_length=12)] = ''
-    pv1_49_total_payments: \
-        Optional[constr(max_length=12)] = ''
-    pv1_50_alternate_visit_id: \
-        Optional[constr(max_length=250)] = ''
-    pv1_51_visit_indicator: \
-        Optional[constr(max_length=1)] = ''
-    pv1_52_other_healthcare_provider: \
-        Optional[constr(max_length=250)] = ''
+    pv1_1_set_id = ''
+    pv1_2_patient_class = ''
+    pv1_3_assigned_patient_location = ''
+    pv1_4_admission_type = ''
+    pv1_5_preadmit_number = ''
+    pv1_6_prior_patient_location = ''
+    pv1_7_attending_doctor = ''
+    pv1_8_referring_doctor = ''
+    pv1_9_consulting_doctor = ''
+    pv1_10_hospital_service = ''
+    pv1_11_temporary_location = ''
+    pv1_12_preadmit_test_indicator = ''
+    pv1_13_re_admission_indicator = ''
+    pv1_14_admit_source = ''
+    pv1_15_ambulatory_status = ''
+    pv1_16_vip_indicator = ''
+    pv1_17_admitting_doctor = ''
+    pv1_18_patient_type = ''
+    pv1_19_visit_number = ''
+    pv1_20_financial_class = ''
+    pv1_21_charge_price_indicator = ''
+    pv1_22_courtesy_code = ''
+    pv1_23_credit_rating = ''
+    pv1_24_contract_code = ''
+    pv1_25_contract_effective_date = ''
+    pv1_26_contract_amount = ''
+    pv1_27_contract_period = ''
+    pv1_28_interest_code = ''
+    pv1_29_transfer_to_bad_debt_code = ''
+    pv1_30_transfer_to_bad_debt_date = ''
+    pv1_31_bad_debt_agency_code = ''
+    pv1_32_bad_debt_transfer_amount = ''
+    pv1_33_bad_debt_recovery_amount = ''
+    pv1_34_delete_account_indicator = ''
+    pv1_35_delete_account_date = ''
+    pv1_36_discharge_disposition = ''
+    pv1_37_discharged_to_location = ''
+    pv1_38_diet_type = ''
+    pv1_39_servicing_facility = ''
+    pv1_40_bed_status = ''
+    pv1_41_account_status = ''
+    pv1_42_pending_location = ''
+    pv1_43_prior_temporary_location = ''
+    pv1_44_admit_datetime = ''
+    pv1_45_discharge_datetime = ''
+    pv1_46_current_patient_balance = ''
+    pv1_47_total_charges = ''
+    pv1_48_total_adjustments = ''
+    pv1_49_total_payments = ''
+    pv1_50_alternate_visit_id = ''
+    pv1_51_visit_indicator = ''
+    pv1_52_other_healthcare_provider = ''
 
     def __str__(self):
         return 'PV1|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}'.format(
@@ -530,56 +384,31 @@ class PV1(BaseModel):
 
 class OBX(BaseModel):
     # https://hl7-definition.caristix.com/v2/hl7v2.5.1/segments/obx
-    obx_1_set_id: \
-        Optional[constr(max_length=4)] = ''
-    obx_2_value_type: \
-        Optional[constr(max_length=2)] = ''
-    obx_3_observation_identifier: \
-        constr(max_length=250)
-    obx_4_observation_sub_id: \
-        Optional[constr(max_length=20)] = ''
-    obx_5_observation_value: \
-        Optional[str] = ''
-    obx_6_units: \
-        Optional[constr(max_length=250)] = ''
-    obx_7_references_range: \
-        Optional[constr(max_length=60)] = ''
-    obx_8_abnormal_flags: \
-        Optional[constr(max_length=5)] = ''
-    obx_9_probability: \
-        Optional[constr(max_length=5)] = ''
-    obx_10_nature_of_abnormal_test: \
-        Optional[constr(max_length=2)] = ''
-    obx_11_observation_result_status: \
-        Optional[constr(max_length=1)] = ''
-    obx_12_effective_date_of_reference_range: \
-        Optional[constr(max_length=26)] = ''
-    obx_13_user_defined_access_checks: \
-        Optional[constr(max_length=20)] = ''
-    obx_14_datetime_of_the_observation: \
-        Optional[constr(max_length=26)] = ''
-    obx_15_producers_id: \
-        Optional[constr(max_length=250)] = ''
-    obx_16_responsible_observer: \
-        Optional[constr(max_length=250)] = ''
-    obx_17_observation_method: \
-        Optional[constr(max_length=250)] = ''
-    obx_18_equipment_instance_identifier: \
-        Optional[constr(max_length=22)] = ''
-    obx_19_datetime_of_the_analysis: \
-        Optional[constr(max_length=26)] = ''
-    obx_20_reserved_for_harmonization_with_v2_6: \
-        Optional[constr(max_length=0)] = ''
-    obx_21_reserved_for_harmonization_with_v2_6: \
-        Optional[constr(max_length=0)] = ''
-    obx_22_reserved_for_harmonization_with_v2_6: \
-        Optional[constr(max_length=0)] = ''
-    obx_23_performing_organization_name: \
-        Optional[constr(max_length=567)] = ''
-    obx_24_performing_organization_address: \
-        Optional[constr(max_length=631)] = ''
-    obx_25_performing_organization_medical_director: \
-        Optional[constr(max_length=3002)] = ''
+    obx_1_set_id = ''
+    obx_2_value_type = ''
+    obx_3_observation_identifier = ''
+    obx_4_observation_sub_id = ''
+    obx_5_observation_value = ''
+    obx_6_units = ''
+    obx_7_references_range = ''
+    obx_8_abnormal_flags = ''
+    obx_9_probability = ''
+    obx_10_nature_of_abnormal_test = ''
+    obx_11_observation_result_status = ''
+    obx_12_effective_date_of_reference_range = ''
+    obx_13_user_defined_access_checks = ''
+    obx_14_datetime_of_the_observation = ''
+    obx_15_producers_id = ''
+    obx_16_responsible_observer = ''
+    obx_17_observation_method = ''
+    obx_18_equipment_instance_identifier = ''
+    obx_19_datetime_of_the_analysis = ''
+    obx_20_reserved_for_harmonization_with_v2_6 = ''
+    obx_21_reserved_for_harmonization_with_v2_6 = ''
+    obx_22_reserved_for_harmonization_with_v2_6 = ''
+    obx_23_performing_organization_name = ''
+    obx_24_performing_organization_address = ''
+    obx_25_performing_organization_medical_director = ''
 
     def __str__(self):
         return 'OBX|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}'.format(
@@ -613,120 +442,63 @@ class OBX(BaseModel):
 
 class GT1(BaseModel): \
         # https://hl7-definition.caristix.com/v2/hl7v2.5.1/segments/gt1
-    gt1_1_set_id_gt1: \
-        constr(max_length=4)
-    gt1_2_guarantor_number: \
-        Optional[constr(max_length=250)] = ''
-    gt1_3_guarantor_name: \
-        constr(max_length=250)
-    gt1_4_guarantor_spouse_name: \
-        Optional[constr(max_length=250)] = ''
-    gt1_5_guarantor_address: \
-        Optional[constr(max_length=250)] = ''
-    gt1_6_guarantor_ph_num_home: \
-        Optional[constr(max_length=250)] = ''
-    gt1_7_guarantor_ph_num_business: \
-        Optional[constr(max_length=250)] = ''
-    gt1_8_guarantor_datetime_of_birth: \
-        Optional[constr(max_length=26)] = ''
-    gt1_9_guarantor_administrative_sex: \
-        Optional[constr(max_length=1)] = ''
-    gt1_10_guarantor_type: \
-        Optional[constr(max_length=2)] = ''
-    gt1_11_guarantor_relationship: \
-        Optional[constr(max_length=250)] = ''
-    gt1_12_guarantor_ssn: \
-        Optional[constr(max_length=11)] = ''
-    gt1_13_guarantor_date_begin: \
-        Optional[constr(max_length=8)] = ''
-    gt1_14_guarantor_date_end: \
-        Optional[constr(max_length=8)] = ''
-    gt1_15_guarantor_priority: \
-        Optional[constr(max_length=2)] = ''
-    gt1_16_guarantor_employer_name: \
-        Optional[constr(max_length=250)] = ''
-    gt1_17_guarantor_employer_address: \
-        Optional[constr(max_length=250)] = ''
-    gt1_18_guarantor_employer_phone_number: \
-        Optional[constr(max_length=250)] = ''
-    gt1_19_guarantor_employee_id_number: \
-        Optional[constr(max_length=250)] = ''
-    gt1_20_guarantor_employment_status: \
-        Optional[constr(max_length=2)] = ''
-    gt1_21_guarantor_organization_name: \
-        Optional[constr(max_length=250)] = ''
-    gt1_22_guarantor_billing_hold_flag: \
-        Optional[constr(max_length=1)] = ''
-    gt1_23_guarantor_credit_rating_code: \
-        Optional[constr(max_length=250)] = ''
-    gt1_24_guarantor_death_date_and_time: \
-        Optional[constr(max_length=26)] = ''
-    gt1_25_guarantor_death_flag: \
-        Optional[constr(max_length=1)] = ''
-    gt1_26_guarantor_charge_adjustment_code: \
-        Optional[constr(max_length=250)] = ''
-    gt1_27_guarantor_household_annual_income: \
-        Optional[constr(max_length=10)] = ''
-    gt1_28_guarantor_household_size: \
-        Optional[constr(max_length=3)] = ''
-    gt1_29_guarantor_employer_id_number: \
-        Optional[constr(max_length=250)] = ''
-    gt1_30_guarantor_marital_status_code: \
-        Optional[constr(max_length=250)] = ''
-    gt1_31_guarantor_hire_effective_date: \
-        Optional[constr(max_length=8)] = ''
-    gt1_32_employment_stop_date: \
-        Optional[constr(max_length=8)] = ''
-    gt1_33_living_dependency: \
-        Optional[constr(max_length=2)] = ''
-    gt1_34_ambulatory_status: \
-        Optional[constr(max_length=2)] = ''
-    gt1_35_citizenship: \
-        Optional[constr(max_length=250)] = ''
-    gt1_36_primary_language: \
-        Optional[constr(max_length=250)] = ''
-    gt1_37_living_arrangement: \
-        Optional[constr(max_length=2)] = ''
-    gt1_38_publicity_code: \
-        Optional[constr(max_length=250)] = ''
-    gt1_39_protection_indicator: \
-        Optional[constr(max_length=1)] = ''
-    gt1_40_student_indicator: \
-        Optional[constr(max_length=2)] = ''
-    gt1_41_religion: \
-        Optional[constr(max_length=250)] = ''
-    gt1_42_mothers_maiden_name: \
-        Optional[constr(max_length=250)] = ''
-    gt1_43_nationality: \
-        Optional[constr(max_length=250)] = ''
-    gt1_44_ethnic_group: \
-        Optional[constr(max_length=250)] = ''
-    gt1_45_contact_persons_name: \
-        Optional[constr(max_length=250)] = ''
-    gt1_46_contact_persons_telephone_number: \
-        Optional[constr(max_length=250)] = ''
-    gt1_47_contact_reason: \
-        Optional[constr(max_length=250)] = ''
-    gt1_48_contact_relationship: \
-        Optional[constr(max_length=3)] = ''
-    gt1_49_job_title: \
-        Optional[constr(max_length=20)] = ''
-    gt1_50_job_code_class: \
-        Optional[constr(max_length=20)] = ''
-    gt1_51_guarantor_employers_organization_name: \
-        Optional[constr(max_length=250)] = ''
-    gt1_52_handicap: \
-        Optional[constr(max_length=2)] = ''
-    gt1_53_job_status: \
-        Optional[constr(max_length=2)] = ''
-    gt1_54_guarantor_financial_class: \
-        Optional[constr(max_length=50)] = ''
-    gt1_55_guarantor_race: \
-        Optional[constr(max_length=250)] = ''
-    gt1_56_guarantor_birth_place: \
-        Optional[constr(max_length=250)] = ''
-    gt1_57_vip_indicator: \
-        Optional[constr(max_length=2)] = ''
+    gt1_1_set_id_gt1 = ''
+    gt1_2_guarantor_number = ''
+    gt1_3_guarantor_name = ''
+    gt1_4_guarantor_spouse_name = ''
+    gt1_5_guarantor_address = ''
+    gt1_6_guarantor_ph_num_home = ''
+    gt1_7_guarantor_ph_num_business = ''
+    gt1_8_guarantor_datetime_of_birth = ''
+    gt1_9_guarantor_administrative_sex = ''
+    gt1_10_guarantor_type = ''
+    gt1_11_guarantor_relationship = ''
+    gt1_12_guarantor_ssn = ''
+    gt1_13_guarantor_date_begin = ''
+    gt1_14_guarantor_date_end = ''
+    gt1_15_guarantor_priority = ''
+    gt1_16_guarantor_employer_name = ''
+    gt1_17_guarantor_employer_address = ''
+    gt1_18_guarantor_employer_phone_number = ''
+    gt1_19_guarantor_employee_id_number = ''
+    gt1_20_guarantor_employment_status = ''
+    gt1_21_guarantor_organization_name = ''
+    gt1_22_guarantor_billing_hold_flag = ''
+    gt1_23_guarantor_credit_rating_code = ''
+    gt1_24_guarantor_death_date_and_time = ''
+    gt1_25_guarantor_death_flag = ''
+    gt1_26_guarantor_charge_adjustment_code = ''
+    gt1_27_guarantor_household_annual_income = ''
+    gt1_28_guarantor_household_size = ''
+    gt1_29_guarantor_employer_id_number = ''
+    gt1_30_guarantor_marital_status_code = ''
+    gt1_31_guarantor_hire_effective_date = ''
+    gt1_32_employment_stop_date = ''
+    gt1_33_living_dependency = ''
+    gt1_34_ambulatory_status = ''
+    gt1_35_citizenship = ''
+    gt1_36_primary_language = ''
+    gt1_37_living_arrangement = ''
+    gt1_38_publicity_code = ''
+    gt1_39_protection_indicator = ''
+    gt1_40_student_indicator = ''
+    gt1_41_religion = ''
+    gt1_42_mothers_maiden_name = ''
+    gt1_43_nationality = ''
+    gt1_44_ethnic_group = ''
+    gt1_45_contact_persons_name = ''
+    gt1_46_contact_persons_telephone_number = ''
+    gt1_47_contact_reason = ''
+    gt1_48_contact_relationship = ''
+    gt1_49_job_title = ''
+    gt1_50_job_code_class = ''
+    gt1_51_guarantor_employers_organization_name = ''
+    gt1_52_handicap = ''
+    gt1_53_job_status = ''
+    gt1_54_guarantor_financial_class = ''
+    gt1_55_guarantor_race = ''
+    gt1_56_guarantor_birth_place = ''
+    gt1_57_vip_indicator = ''
 
     def __str__(self):
         return 'GT1|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}'.format(
@@ -792,106 +564,56 @@ class GT1(BaseModel): \
 
 class OBR(BaseModel): \
         # https://hl7-definition.caristix.com/v2/hl7v2.5.1/segments/obr
-    obr_1_set_id: \
-        Optional[constr(max_length=4)] = ''
-    obr_2_placer_order_number: \
-        Optional[constr(max_length=22)] = ''
-    obr_3_filler_order_number: \
-        Optional[constr(max_length=22)] = ''
-    obr_4_universal_service_identifier: \
-        constr(max_length=250)
-    obr_5_priority_obr: \
-        Optional[constr(max_length=2)] = ''
-    obr_6_requested_datetime: \
-        Optional[constr(max_length=26)] = ''
-    obr_7_observation_datetime: \
-        Optional[constr(max_length=26)] = ''
-    obr_8_observation_end_datetime: \
-        Optional[constr(max_length=26)] = ''
-    obr_9_collection_volume: \
-        Optional[constr(max_length=20)] = ''
-    obr_10_collector_identifier: \
-        Optional[constr(max_length=250)] = ''
-    obr_11_specimen_action_code: \
-        Optional[constr(max_length=1)] = ''
-    obr_12_danger_code: \
-        Optional[constr(max_length=250)] = ''
-    obr_13_relevant_clinical_information: \
-        Optional[constr(max_length=300)] = ''
-    obr_14_specimen_received_datetime: \
-        Optional[constr(max_length=26)] = ''
-    obr_15_specimen_source: \
-        Optional[constr(max_length=300)] = ''
-    obr_16_ordering_provider: \
-        Optional[constr(max_length=250)] = ''
-    obr_17_order_callback_phone_number: \
-        Optional[constr(max_length=250)] = ''
-    obr_18_placer_field_1: \
-        Optional[constr(max_length=60)] = ''
-    obr_19_placer_field_2: \
-        Optional[constr(max_length=60)] = ''
-    obr_20_filler_field_1: \
-        Optional[constr(max_length=60)] = ''
-    obr_21_filler_field_2: \
-        Optional[constr(max_length=60)] = ''
-    obr_22_results_rpt_status_chng_datetime: \
-        Optional[constr(max_length=26)] = ''
-    obr_23_charge_to_practice: \
-        Optional[constr(max_length=40)] = ''
-    obr_24_diagnostic_serv_sect_id: \
-        Optional[constr(max_length=10)] = ''
-    obr_25_result_status: \
-        Optional[constr(max_length=1)] = ''
-    obr_26_parent_result: \
-        Optional[constr(max_length=400)] = ''
-    obr_27_quantity_timing: \
-        Optional[constr(max_length=200)] = ''
-    obr_28_result_copies_to: \
-        Optional[constr(max_length=250)] = ''
-    obr_29_parent: \
-        Optional[constr(max_length=200)] = ''
-    obr_30_transportation_mode: \
-        Optional[constr(max_length=20)] = ''
-    obr_31_reason_for_study: \
-        Optional[constr(max_length=250)] = ''
-    obr_32_principal_result_interpreter: \
-        Optional[constr(max_length=200)] = ''
-    obr_33_assistant_result_interpreter: \
-        Optional[constr(max_length=200)] = ''
-    obr_34_technician: \
-        Optional[constr(max_length=200)] = ''
-    obr_35_transcriptionist: \
-        Optional[constr(max_length=200)] = ''
-    obr_36_scheduled_datetime: \
-        Optional[constr(max_length=26)] = ''
-    obr_37_number_of_sample_containers: \
-        Optional[constr(max_length=4)] = ''
-    obr_38_transport_logistics_of_collected_sample: \
-        Optional[constr(max_length=250)] = ''
-    obr_39_collectors_comment: \
-        Optional[constr(max_length=250)] = ''
-    obr_40_transport_arrangement_responsibility: \
-        Optional[constr(max_length=250)] = ''
-    obr_41_transport_arranged: \
-        Optional[constr(max_length=30)] = ''
-    obr_42_escort_required: \
-        Optional[constr(max_length=1)] = ''
-    obr_43_planned_patient_transport_comment: \
-        Optional[constr(max_length=250)] = ''
-    obr_44_procedure_code: \
-        Optional[constr(max_length=250)] = ''
-    obr_45_procedure_code_modifier: \
-        Optional[constr(max_length=250)] = ''
-    obr_46_placer_supplemental_service_information: \
-        Optional[constr(max_length=250)] = ''
-    obr_47_filler_supplemental_service_information: \
-        Optional[constr(max_length=250)] = ''
-    obr_48_medically_necessary_duplicate_procedure_reason_: \
-        Optional[constr(max_length=250)] = ''
-    obr_49_result_handling: \
-        Optional[constr(max_length=2)] = ''
-    obr_50_parent_universal_service_identifier: \
-        Optional[constr(max_length=250)] = ''
+    obr_1_set_id = ''
+    obr_2_placer_order_number = ''
+    obr_3_filler_order_number = ''
+    obr_4_universal_service_identifier = ''
+    obr_5_priority_obr = ''
+    obr_6_requested_datetime = ''
+    obr_7_observation_datetime = ''
+    obr_8_observation_end_datetime = ''
+    obr_9_collection_volume = ''
+    obr_10_collector_identifier = ''
+    obr_11_specimen_action_code = ''
+    obr_12_danger_code = ''
+    obr_13_relevant_clinical_information = ''
+    obr_14_specimen_received_datetime = ''
+    obr_15_specimen_source = ''
+    obr_16_ordering_provider = ''
+    obr_17_order_callback_phone_number = ''
+    obr_18_placer_field_1 = ''
+    obr_19_placer_field_2 = ''
+    obr_20_filler_field_1 = ''
+    obr_21_filler_field_2 = ''
+    obr_22_results_rpt_status_chng_datetime = ''
+    obr_23_charge_to_practice = ''
+    obr_24_diagnostic_serv_sect_id = ''
+    obr_25_result_status = ''
+    obr_26_parent_result = ''
+    obr_27_quantity_timing = ''
+    obr_28_result_copies_to = ''
+    obr_29_parent = ''
+    obr_30_transportation_mode = ''
+    obr_31_reason_for_study = ''
+    obr_32_principal_result_interpreter = ''
+    obr_33_assistant_result_interpreter = ''
+    obr_34_technician = ''
+    obr_35_transcriptionist = ''
+    obr_36_scheduled_datetime = ''
+    obr_37_number_of_sample_containers = ''
+    obr_38_transport_logistics_of_collected_sample = ''
+    obr_39_collectors_comment = ''
+    obr_40_transport_arrangement_responsibility = ''
+    obr_41_transport_arranged = ''
+    obr_42_escort_required = ''
+    obr_43_planned_patient_transport_comment = ''
+    obr_44_procedure_code = ''
+    obr_45_procedure_code_modifier = ''
+    obr_46_placer_supplemental_service_information = ''
+    obr_47_filler_supplemental_service_information = ''
+    obr_48_medically_necessary_duplicate_procedure_reason_ = ''
+    obr_49_result_handling = ''
+    obr_50_parent_universal_service_identifier = ''
 
     def __str__(self):
         return 'OBR|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}'.format(
@@ -950,48 +672,27 @@ class OBR(BaseModel): \
 
 class DG1(BaseModel): \
         # https://hl7-definition.caristix.com/v2/hl7v2.5.1/segments/dg1
-    dg1_1_set_id_dg1: \
-        constr(max_length=4)
-    dg1_2_diagnosis_coding_method: \
-        Optional[constr(max_length=2)] = ''
-    dg1_3_diagnosis_code_dg1: \
-        Optional[constr(max_length=250)] = ''
-    dg1_4_diagnosis_description: \
-        Optional[constr(max_length=40)] = ''
-    dg1_5_diagnosis_datetime: \
-        Optional[constr(max_length=26)] = ''
-    dg1_6_diagnosis_type: \
-        constr(max_length=2) = ''
-    dg1_7_major_diagnostic_category: \
-        Optional[constr(max_length=250)] = ''
-    dg1_8_diagnostic_related_group: \
-        Optional[constr(max_length=250)] = ''
-    dg1_9_drg_approval_indicator: \
-        Optional[constr(max_length=1)] = ''
-    dg1_10_drg_grouper_review_code: \
-        Optional[constr(max_length=2)] = ''
-    dg1_11_outlier_type: \
-        Optional[constr(max_length=250)] = ''
-    dg1_12_outlier_days: \
-        Optional[constr(max_length=3)] = ''
-    dg1_13_outlier_cost: \
-        Optional[constr(max_length=12)] = ''
-    dg1_14_grouper_version_and_type: \
-        Optional[constr(max_length=4)] = ''
-    dg1_15_diagnosis_priority: \
-        Optional[constr(max_length=2)] = ''
-    dg1_16_diagnosing_clinician: \
-        Optional[constr(max_length=250)] = ''
-    dg1_17_diagnosis_classification: \
-        Optional[constr(max_length=3)] = ''
-    dg1_18_confidential_indicator: \
-        Optional[constr(max_length=1)] = ''
-    dg1_19_attestation_datetime: \
-        Optional[constr(max_length=26)] = ''
-    dg1_20_diagnosis_identifier: \
-        Optional[constr(max_length=427)] = ''
-    dg1_21_diagnosis_action_code: \
-        Optional[constr(max_length=1)] = ''
+    dg1_1_set_id_dg1 = ''
+    dg1_2_diagnosis_coding_method = ''
+    dg1_3_diagnosis_code_dg1 = ''
+    dg1_4_diagnosis_description = ''
+    dg1_5_diagnosis_datetime = ''
+    dg1_6_diagnosis_type = ''
+    dg1_7_major_diagnostic_category = ''
+    dg1_8_diagnostic_related_group = ''
+    dg1_9_drg_approval_indicator = ''
+    dg1_10_drg_grouper_review_code = ''
+    dg1_11_outlier_type = ''
+    dg1_12_outlier_days = ''
+    dg1_13_outlier_cost = ''
+    dg1_14_grouper_version_and_type = ''
+    dg1_15_diagnosis_priority = ''
+    dg1_16_diagnosing_clinician = ''
+    dg1_17_diagnosis_classification = ''
+    dg1_18_confidential_indicator = ''
+    dg1_19_attestation_datetime = ''
+    dg1_20_diagnosis_identifier = ''
+    dg1_21_diagnosis_action_code = ''
 
     def __str__(self):
         return 'DG1|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}'.format(
@@ -1020,68 +721,37 @@ class DG1(BaseModel): \
 
 
 class ORC(BaseModel):
-    orc_1_order_control: \
-			Optional[constr(max_length=2)] = ''
-    orc_2_placer_order_number: \
-                Optional[constr(max_length=22)] = ''
-    orc_3_filler_order_number: \
-                Optional[constr(max_length=22)] = ''
-    orc_4_placer_group_number: \
-                Optional[constr(max_length=22)] = ''
-    orc_5_order_status: \
-                Optional[constr(max_length=2)] = ''
-    orc_6_response_flag: \
-                Optional[constr(max_length=1)] = ''
-    orc_7_quantitytiming: \
-                Optional[constr(max_length=200)] = ''
-    orc_8_parent_order: \
-                Optional[constr(max_length=200)] = ''
-    orc_9_datetime_of_transaction: \
-                Optional[constr(max_length=26)] = ''
-    orc_10_entered_by: \
-                Optional[constr(max_length=250)] = ''
-    orc_11_verified_by: \
-                Optional[constr(max_length=250)] = ''
-    orc_12_ordering_provider: \
-                Optional[constr(max_length=250)] = ''
-    orc_13_enterers_location: \
-                Optional[constr(max_length=80)] = ''
-    orc_14_call_back_phone_number: \
-                Optional[constr(max_length=250)] = ''
-    orc_15_order_effective_datetime: \
-                Optional[constr(max_length=26)] = ''
-    orc_16_order_control_code_reason: \
-                Optional[constr(max_length=250)] = ''
-    orc_17_entering_organization: \
-                Optional[constr(max_length=250)] = ''
-    orc_18_entering_device: \
-                Optional[constr(max_length=250)] = ''
-    orc_19_action_by: \
-                Optional[constr(max_length=250)] = ''
-    orc_20_advanced_beneficiary_notice_code: \
-                Optional[constr(max_length=250)] = ''
-    orc_21_ordering_facility_name: \
-                Optional[constr(max_length=250)] = ''
-    orc_22_ordering_facility_address: \
-                Optional[constr(max_length=250)] = ''
-    orc_23_ordering_facility_phone_number: \
-                Optional[constr(max_length=250)] = ''
-    orc_24_ordering_provider_address: \
-                Optional[constr(max_length=250)] = ''
-    orc_25_order_status_modifier: \
-                Optional[constr(max_length=250)] = ''
-    orc_26_advanced_beneficiary_notice_override_reason: \
-                Optional[constr(max_length=60)] = ''
-    orc_27_fillers_expected_availability_datetime: \
-                Optional[constr(max_length=26)] = ''
-    orc_28_confidentiality_code: \
-                Optional[constr(max_length=250)] = ''
-    orc_29_order_type: \
-                Optional[constr(max_length=250)] = ''
-    orc_30_enterer_authorization_mode: \
-                Optional[constr(max_length=250)] = ''
-    orc_31_parent_universal_service_identifier: \
-                Optional[constr(max_length=250)] = ''
+    orc_1_order_control = ''
+    orc_2_placer_order_number = ''
+    orc_3_filler_order_number = ''
+    orc_4_placer_group_number = ''
+    orc_5_order_status = ''
+    orc_6_response_flag = ''
+    orc_7_quantitytiming = ''
+    orc_8_parent_order = ''
+    orc_9_datetime_of_transaction = ''
+    orc_10_entered_by = ''
+    orc_11_verified_by = ''
+    orc_12_ordering_provider = ''
+    orc_13_enterers_location = ''
+    orc_14_call_back_phone_number = ''
+    orc_15_order_effective_datetime = ''
+    orc_16_order_control_code_reason = ''
+    orc_17_entering_organization = ''
+    orc_18_entering_device = ''
+    orc_19_action_by = ''
+    orc_20_advanced_beneficiary_notice_code = ''
+    orc_21_ordering_facility_name = ''
+    orc_22_ordering_facility_address = ''
+    orc_23_ordering_facility_phone_number = ''
+    orc_24_ordering_provider_address = ''
+    orc_25_order_status_modifier = ''
+    orc_26_advanced_beneficiary_notice_override_reason = ''
+    orc_27_fillers_expected_availability_datetime = ''
+    orc_28_confidentiality_code = ''
+    orc_29_order_type = ''
+    orc_30_enterer_authorization_mode = ''
+    orc_31_parent_universal_service_identifier = ''
     
     def __str__(self):
         return 'ORC|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}'.format(
