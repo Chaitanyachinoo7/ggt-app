@@ -302,11 +302,8 @@ def search_locations(account, group_code, site_code, location_name, org_id, id=N
         return None
 
 
-def create_location(location, user):
+def create_location(location, organization_id):
     try:
-        if user is None:
-            return None
-        organization_id = user[META_KEY][ORGANIZATION_KEY] if user[META_KEY] else None
         if organization_id is None:
             return None
         sql = """
@@ -378,11 +375,11 @@ def create_location(location, user):
 
         site_code = 'GGT{}{}'.format(location.st, location_id)
         
-        #geo = get_gps_coordinates(
-        #    location.addr1, location.city, location.st, location.zip, location.addr2)
-        geo={}
-        geo['lat']=0
-        geo['lng']=0
+        geo = get_gps_coordinates(
+           location.addr1, location.city, location.st, location.zip, location.addr2)
+        # geo={}
+        # geo['lat']=0
+        # geo['lng']=0
         sql_2 = """UPDATE locations
                 SET 
                     site_code = %s,

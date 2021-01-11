@@ -122,9 +122,9 @@ async def api_get_locations():
     return get_locations()
 
 
-@router.post("/site-admin/update_location", dependencies=[Security(authorize_user, scopes=[p.UPDATE_LOCATION])])
-async def api_update_location(location: GgtUpdateLocation):
-    return update_location(location)
+@router.post("/site-admin/update_location")
+async def api_update_location(location: GgtUpdateLocation, user=Security(authorize_user, scopes=[p.UPDATE_LOCATION])):
+    return update_location(location, user)
 
 
 @router.get("/site-admin/get_all_groups")

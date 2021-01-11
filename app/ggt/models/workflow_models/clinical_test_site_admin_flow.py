@@ -68,8 +68,9 @@ def site_admin_location_search(account, group_code, site_code, location_name, st
 
 
 def create_location(location, user):
+    org_id = get_organization_id(user)
     return y_response(
-        bp_create_location(location, user)
+        bp_create_location(location, org_id)
     )
 
 
@@ -121,9 +122,10 @@ def remove_service(req):
     )
 
 
-def update_location(location):
+def update_location(location, user):
+    org_id = get_organization_id(user)
     return y_response(
-        bp_update_location(location)
+        bp_update_location(location, org_id)
     )
 
 
