@@ -31,7 +31,7 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
     lookup_appointment,
     lookup_test_result,
     get_all_available_locations_and_times,
-    insurance_eligibility
+    insurance_eligibility, get_ggv_schedule_locations_available
 )
 
 # TODO: [GGT-193] Move this to a dedicated API
@@ -64,6 +64,11 @@ async def api_validate_otp(req: ValidateOtpRequest):
 @router.get("/get_available_dates/{group_code}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_get_available_dates(group_code: str):
     return get_schedule_dates_available(group_code)
+
+
+@router.get("/ggv/get_available_locations/{group_code}/{lat}/{lng}/{radius}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_ggv_get_available_locations(group_code: str, lat: float, lng: float, radius: int):
+    return get_ggv_schedule_locations_available(group_code, lat, lng, radius)
 
 
 @router.get("/get_available_locations/{group_code}/{date}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
