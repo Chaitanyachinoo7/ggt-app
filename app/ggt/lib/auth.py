@@ -28,11 +28,11 @@ from ggt.models.data_models.data_types import (
 # TODO: [GGT-81] read from config/DB
 CLIENT_ID = "269165607649-ejpvn7ar1llub2e8tr6ur4ad2p1srucf.apps.googleusercontent.com"
 # TODO: [GGT-82] read from config/DB as a single value of "tokenUrl" e.g. GgtOAuth2PasswordBearer(tokenUrl=get_config_val('vendors.auth0.auth0_domain'))
-oauth2_scheme = GgtOAuth2PasswordBearer(tokenUrl="https://" + get_config_val('vendors.auth0.auth0_domain') +
-                                        "/oauth/token")
-api_key_header = APIKeyHeader(name=get_config_val(
-    'vendors.auth.api_key_name'), auto_error=False)
-
+oauth2_scheme = GgtOAuth2PasswordBearer(tokenUrl="https://" + get_config_val('vendors.auth0.auth0_domain') + "/oauth/token")
+api_key_header = APIKeyHeader(
+    name='x-api-key', 
+    auto_error=False
+)
 
 # TODO: [GGT-84] read from config/DB
 def verify_google_idtoken(token):
@@ -167,13 +167,19 @@ def authorize(scopes, token):
     raise HTTPException(status_code=401, detail=c.AUTH_FAILED_MESSAGE)
 
 
-async def get_api_key(
-    api_key_header: str = Security(api_key_header),
-):
+async def get_vendor_api_key(api_key_header: str = Security(api_key_header), vcode: str = ''):
+    try:
+        if api_key_header == get_config_val('vendors.{}.ggt_api.api_key_value'.format(vcode)):
+            return api_key_header
 
-    if api_key_header == get_config_val('vendors.auth.api_key_value'):
-        return api_key_header
-    else:
-        raise HTTPException(
-            status_code=HTTP_403_FORBIDDEN, detail=c.AUTH_FAILED_MESSAGE
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
         )
+        
+    raise HTTPException(
+        status_code=HTTP_403_FORBIDDEN, 
+        detail=c.AUTH_FAILED_MESSAGE
+    )

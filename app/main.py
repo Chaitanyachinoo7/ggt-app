@@ -23,7 +23,9 @@ from ggt.routers import (
     rt_printer_hub,
     rt_care_provider,
     rt_billing,
-    rt_reporting, rt_management
+    rt_reporting, 
+    rt_management,
+    rt_vendor
 )
 
 app_init()
@@ -152,7 +154,19 @@ app.include_router(
     responses={404: {c.DESCRIPTION: c.NOT_FOUND}},
 )
 
+############################################################
+# rt_vendor route is only for role - Vendors or API Key   #
+############################################################
+app.include_router(
+    rt_vendor.router,
+    prefix=c.VENDOR_PATH_PREFIX,
+    tags=[c.VENDOR_RT_TAG],
+    responses={404: {c.DESCRIPTION: c.NOT_FOUND}},
+)
 
+#############################################################
+# To Run Locally                                             #
+#############################################################
 if __name__ == '__main__':
     uvicorn.run(
         app,
