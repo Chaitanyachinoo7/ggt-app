@@ -556,7 +556,7 @@ def __send_otp_sms(phone_number: str, message: str) -> bool:
             message=message,
             function=whoami()
         )
-        return send_sms(phone_number, message, 9)
+        return send_sms(phone_number, message, 1)
 
     except Exception as err:
         log_generic(

@@ -34,6 +34,7 @@ REPORT_RT_TAG = 'Reporting'
 MANAGEMENT_RT_TAG = 'Management'
 CARE_PROVIDER_RT_TAG = 'Care Provider'
 BILLING_RT_TAG = 'Billing App'
+VENDOR_RT_TAG = 'Vendor Integration'
 
 #API Prefixes
 CLINICAL_PROVIDER_PATH_PREFIX = '/api/provider'
@@ -46,6 +47,7 @@ REPORTING_PATH_PREFIX = '/api/report'
 MANAGEMENT_PATH_PREFIX = '/api/management'
 CARE_PROVIDER_PATH_PREFIX = '/api/care_provider'
 BILLING_PATH_PREFIX = '/api/billing'
+VENDOR_PATH_PREFIX = '/api/vendor'
 
 #Auth
 AUTH_FAILED_MESSAGE = 'Not Authorized'

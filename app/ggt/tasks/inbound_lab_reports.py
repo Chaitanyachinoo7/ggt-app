@@ -57,14 +57,8 @@ import ggt.lib.constants as c
 
 session_id = generate_session_id()
 
-hostname = cfg('vendors.healthtrackrx_inbound.hostname')
-username = cfg('vendors.healthtrackrx_inbound.username')
-password = cfg('vendors.healthtrackrx_inbound.password')
-port = cfg('vendors.healthtrackrx_inbound.port')
-remote_downloads_folder = cfg('vendors.healthtrackrx_inbound.remote_downloads_folder')
-
-local_backups_path = cfg('vendors.healthtrackrx_inbound.local_backups_path')
-local_download_path = cfg('vendors.healthtrackrx_inbound.local_download_path')
+local_backups_path = cfg('vendors.healthtrackrx.inbound.local_backups_path')
+local_download_path = cfg('vendors.healthtrackrx.inbound.local_download_path')
 
 # ----What this does----
 # Delete/move files at the download directory
