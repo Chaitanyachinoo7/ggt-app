@@ -11,8 +11,7 @@ from ggt.models.data_models.clinical_test_results import (
 )
 from ggt.models.data_models.clinical_test_sample import (
     create_test_sample_from_appointment,
-    record_label_scan,
-    lab_status_update
+    record_label_scan
 )
 from ggt.models.data_models.generic_search_result import (
     find_patients
@@ -304,18 +303,6 @@ def bp_create_test_sample_from_appointment(appointment_id):
 def bp_record_label_scan(appointment_id):
     try:
         return record_label_scan(appointment_id)
-
-    except Exception as err:
-        log_generic(
-            type=c.ERROR,
-            function=whoami(),
-            error=err
-        )
-
-
-def bp_lab_status_update(lab_status_update_request):
-    try:
-        return lab_status_update(lab_status_update_request)
 
     except Exception as err:
         log_generic(
