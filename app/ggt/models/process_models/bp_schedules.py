@@ -23,7 +23,7 @@ from ggt.models.data_models.schedules import (
     delete_schedule_generation_rule,
     get_all_available_dtl,
     trim_schedule_generation_rules_start_dt,
-    get_slots_matching_dt_list
+    get_slots_matching_dt_list, ggv_get_schedule_locations_available_near_lat_lng
 )
 
 from ggt.models.data_models.locations import (
@@ -239,6 +239,18 @@ def bp_get_all_available_locations_and_times(group_code=c.DEFAULT_GROUP_CODE):
     return {
         "available_location": available_locations
     }
+
+
+def bp_ggv_get_schedule_locations_available_near_lat_lng(group_code, lat, lng, radius):
+    try:
+        return ggv_get_schedule_locations_available_near_lat_lng(group_code, lat, lng, radius)
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            group_code=group_code,
+            function=whoami(),
+            error=err
+        )
 
 
 def bp_get_schedule_times_available(location_id, date):
