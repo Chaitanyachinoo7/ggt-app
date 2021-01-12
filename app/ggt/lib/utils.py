@@ -41,6 +41,10 @@ def get_config_val(key):
         return cfg[key_list[0]][key_list[1]]
     elif key_depth == 3:
         return cfg[key_list[0]][key_list[1]][key_list[2]]
+    elif key_depth == 4:
+        return cfg[key_list[0]][key_list[1]][key_list[2]][key_list[3]]
+    elif key_depth == 5:
+        return cfg[key_list[0]][key_list[1]][key_list[2]][key_list[3]][key_list[4]]
     else:
         return ""
 

@@ -37,11 +37,11 @@ import ggt.lib.constants as c
 
 session_id = generate_session_id()
 local_outbound_file_path = cfg(
-    'vendors.healthtrackrx_outbound.local_outbound_file_path')
+    'vendors.healthtrackrx.outbound.local_outbound_file_path')
 outbound_file_prefix = cfg(
-    'vendors.healthtrackrx_outbound.outbound_file_prefix')
+    'vendors.healthtrackrx.outbound.outbound_file_prefix')
 local_insurance_card_file_path = cfg(
-    'vendors.healthtrackrx_outbound.local_insurance_card_file_path')
+    'vendors.healthtrackrx.outbound.local_insurance_card_file_path')
 
 
 def task_process_hl7_lab_orders():
@@ -532,7 +532,7 @@ def get_orders_ready_to_transmit(limit=100):
             """.format(limit)
     return read_rows(sql,)
 
-
+'''
 def upload_file_list_to_ftp(file_list):
     try:
         hostname = cfg('vendors.healthtrackrx_outbound.hostname')
@@ -598,7 +598,7 @@ def upload_file_to_ftp(filename, local_file_path):
         )
     finally:
         ftp_client.close()
-
+'''
 
 def update_to_with_lab_status(orders):
     if len(orders) == 0:

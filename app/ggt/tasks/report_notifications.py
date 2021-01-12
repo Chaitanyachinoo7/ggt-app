@@ -34,19 +34,19 @@ def task_schedule_result_notifications_and_followups():
     print('schedule_result_notifications_using_email')
     schedule_result_notifications_using_email()
 
-    create_rejects_notification_campaign()
+    #create_rejects_notification_campaign()
     print('schedule_rejects_notifications_using_sms')
-    schedule_rejects_notifications_using_sms()
+    #schedule_rejects_notifications_using_sms()
     print('schedule_rejects_notifications_using_email')
-    schedule_rejects_notifications_using_email()
+    #schedule_rejects_notifications_using_email()
 
     
     print('create_96_hour_delayed_result_notification_campaign')
-    create_96_hour_delayed_result_notification_campaign()
+    #create_96_hour_delayed_result_notification_campaign()
     print('schedule_96_hour_delayed_result_notifications_using_sms')
-    schedule_96_hour_delayed_result_notifications_using_sms()
+    #schedule_96_hour_delayed_result_notifications_using_sms()
     print('schedule_96_hour_delayed_result_notifications_using_email')
-    schedule_96_hour_delayed_result_notifications_using_email()
+    #schedule_96_hour_delayed_result_notifications_using_email()
     
 
     print('schedule_positive_followups')
@@ -739,9 +739,9 @@ def batch_enqueue_email_notifications(data):
     try:
         sql = """
             INSERT INTO email_notification_queue
-                (from_email, from_name, to_email, subject, html_content)
+                (from_email, from_name, to_email, subject, html_content, priority)
             VALUES
-                (%s, %s, %s, %s, %s);
+                (%s, %s, %s, %s, %s, %s);
         """
         exec_batch_execute(sql, data)
         return True
