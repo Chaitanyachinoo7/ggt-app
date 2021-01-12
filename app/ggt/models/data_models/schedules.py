@@ -30,6 +30,74 @@ from ggt.models.data_models.data_types import (
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
+def ggv_get_schedule_locations_available_near_lat_lng(group_code, lat, lng, radius):
+    try:
+        sql = """SELECT
+                    l.id AS location_id,
+                    l.name,
+                    l.addr1,
+                    l.addr2,
+                    l.city,
+                    l.st,
+                    l.zip,
+                    l.lat,
+                    l.lng,
+                    smc.first_available_slot,
+                    smc.last_available_slot,
+                    mg.max_last_available_slot,
+                    smc.available_slots_count AS slot_count,
+                    (3963 * ACOS(COS(RADIANS(%s)) * COS(RADIANS(l.lat)) * COS(RADIANS(l.lng) - RADIANS(%s)) + SIN(RADIANS(%s)) * SIN(RADIANS(l.lat)))) AS distance
+                    FROM
+                        locations l
+                            LEFT JOIN
+                        services_to_locations_mapping m ON (m.location_id = l.id)
+                            LEFT JOIN
+                        services_catalog c ON (c.id = m.service_id)
+                            LEFT JOIN
+                        schedules_metrics_cache smc ON (smc.location_id = l.id)
+                            LEFT JOIN
+                        locations_metrics_cache lmc ON (lmc.location_id = l.id)
+                            LEFT JOIN
+                        (
+                            SELECT MAX(last_available_slot) as max_last_available_slot,
+                                    location_id
+                            FROM schedules_metrics_cache
+                            GROUP BY location_id
+                            
+                        ) mg on l.id = mg.location_id
+                    WHERE
+                        1 = 1 AND l.status = 'enabled'
+                            AND smc.available_slots_count > 0
+                            AND smc.first_available_slot IS NOT NULL
+                            AND smc.first_available_slot >= CONVERT_TZ(NOW(), '+00:00', '-06:00')
+                            AND (3963 * ACOS(COS(RADIANS(%s)) * COS(RADIANS(l.lat)) * COS(RADIANS(l.lng) - RADIANS(%s)) + SIN(RADIANS(%s)) * SIN(RADIANS(l.lat)))) < %s
+                            AND DATEDIFF(mg.max_last_available_slot, smc.first_available_slot) < 29
+                            AND DATEDIFF(mg.max_last_available_slot, smc.first_available_slot) > 20
+                            AND l.id IN (SELECT 
+                                glm.location_id
+                            FROM
+                                group_codes_to_locations_mapping glm
+                                    INNER JOIN
+                                groups g ON (g.id = glm.group_id)
+                            WHERE
+                                g.group_code = %s)
+                    ORDER BY distance;"""
+        vals = (lat, lng, lat, lat, lng, lat, radius, group_code)
+        res = replica_read_rows(sql, vals)
+        return __format_ggv_available_locations(res)
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            lat=lat,
+            lng=lng,
+            group_code=group_code,
+            radius=radius,
+            error=err
+        )
+        return None
+
+
 def create_schedule_entry(location_id, start_dt, end_dt, duration, status):
     try:
         sql = """
@@ -553,6 +621,56 @@ def get_slots_matching_dt_list(dt_list, location_id):
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
+def __format_ggv_available_locations(res):
+    _locations = {}
+    _dates = {}
+    dates = []
+
+    for r in res:
+        date = str(r['first_available_slot'])[0:10]
+        start_time = str(r['first_available_slot'])[11:19]
+        end_time = str(r['last_available_slot'])[11:19]
+
+        if r['location_id'] in _locations.keys():
+            pass
+        else:
+            _locations[r['location_id']] = {
+                "id": r['location_id'],
+                "name": r['name'],
+                "address": "{}, {}, {}, {}, {}".format(r['addr1'], r['addr2'], r['city'], r['st'], r['zip']),
+                "lat": r['lat'],
+                "lng": r['lng'],
+                "distance": r['distance']
+            }
+
+        if date in _dates.keys():
+            _dates[date]['locations'].append({
+                "id": r['location_id'],
+                "slots_available": r['slot_count'],
+                "starting_at": start_time,
+                "ending_at": end_time
+            })
+        else:
+            _dates[date] = {
+                "locations": [{
+                    "id": r['location_id'],
+                    "slots_available": r['slot_count'],
+                    "starting_at": start_time,
+                    "ending_at": end_time
+            }]
+            }
+    for key in _dates.keys():
+        dates.append({
+            "date": key,
+            "locations": _dates[key]['locations']
+        })
+
+    return {
+        "dates": dates,
+        "locations": list(_locations.values())
+    }
+
+
 def __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, group_code, map_thumbnail):
     try:
         map_thumbnail_field = 'l.image_thumbnail,' if map_thumbnail else "'' as image_thumbnail,"
