@@ -832,8 +832,7 @@ class OBR(BaseModel): \
         Optional[constr(max_length=4)] = ''
     obr_2_placer_order_number: \
         Optional[constr(max_length=22)] = ''
-    obr_3_filler_order_number: \
-        Optional[constr(max_length=22)] = ''
+    obr_3_filler_order_number = ''
     obr_4_universal_service_identifier: \
         constr(max_length=250)
     obr_5_priority_obr: \
@@ -1060,8 +1059,7 @@ class ORC(BaseModel):
 			Optional[constr(max_length=2)] = ''
     orc_2_placer_order_number: \
                 Optional[constr(max_length=22)] = ''
-    orc_3_filler_order_number: \
-                Optional[constr(max_length=22)] = ''
+    orc_3_filler_order_number = ''
     orc_4_placer_group_number: \
                 Optional[constr(max_length=22)] = ''
     orc_5_order_status: \

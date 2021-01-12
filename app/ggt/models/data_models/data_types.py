@@ -1060,12 +1060,15 @@ class FilterUser(BaseModel):
     name: str
     email: str
 
-class StatusUpdatesRequest(BaseModel):
-    lab_code: str
-    requisition_id: str
-    order_id: str
-    status_code: str
-    remarks: str
+
+class LabStatusUpdateRequest(BaseModel):
+    lab_code: str = None
+    requisition_id: str = None
+    order_id: str = None
+    status_code: str = None
+    remarks: str = None
+    status_dt: datetime.datetime = None
+
 
 class InsuranceEligibilityRequest(BaseModel):
     first_name: str = None
