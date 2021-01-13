@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Set, Dict, Tuple, Optional
 from contextlib import suppress
 from datetime import date
@@ -43,6 +44,7 @@ def ggv_get_schedule_locations_available_near_lat_lng(group_code, lat, lng, radi
                     l.lat,
                     l.lng,
                     smc.first_available_slot,
+                    CAST(smc.first_available_slot AS DATE) available_date,
                     smc.last_available_slot,
                     mg.max_last_available_slot,
                     smc.available_slots_count AS slot_count,
@@ -71,7 +73,6 @@ def ggv_get_schedule_locations_available_near_lat_lng(group_code, lat, lng, radi
                             AND smc.first_available_slot IS NOT NULL
                             AND smc.first_available_slot >= CONVERT_TZ(NOW(), '+00:00', '-06:00')
                             AND (3963 * ACOS(COS(RADIANS(%s)) * COS(RADIANS(l.lat)) * COS(RADIANS(l.lng) - RADIANS(%s)) + SIN(RADIANS(%s)) * SIN(RADIANS(l.lat)))) < %s
-                            AND DATEDIFF(mg.max_last_available_slot, smc.first_available_slot) < 29
                             AND DATEDIFF(mg.max_last_available_slot, smc.first_available_slot) > 20
                             AND l.id IN (SELECT 
                                 glm.location_id
@@ -84,7 +85,21 @@ def ggv_get_schedule_locations_available_near_lat_lng(group_code, lat, lng, radi
                     ORDER BY distance;"""
         vals = (lat, lng, lat, lat, lng, lat, radius, group_code)
         res = replica_read_rows(sql, vals)
-        return __format_ggv_available_locations(res)
+
+        location_ids = []
+        for r in res:
+            location_ids.append(r['location_id'])
+        sql2 = """SELECT 
+                        location_id,
+                        CAST(first_available_slot AS DATE) as first_available_slot
+                    FROM
+                        schedules_metrics_cache
+                    WHERE
+                        location_id IN {};""".format(str(tuple(set(location_ids))))
+        res2 = replica_read_rows(sql2)
+
+        res3 = __filter_response(res, res2)
+        return __format_ggv_available_locations(res3)
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -621,6 +636,39 @@ def get_slots_matching_dt_list(dt_list, location_id):
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
+def __days_between(d1, d2):
+    return abs((d2 - d1).days)
+
+
+def __filter_response(res, res2):
+    _location_id_available_dates = {}
+    valid_available_dates = {}
+    valid_responses = []
+
+    for r in res2:
+        if r['location_id'] in _location_id_available_dates.keys():
+            _location_id_available_dates[r['location_id']].append(r['first_available_slot'])
+        else:
+            _location_id_available_dates[r['location_id']] = [r['first_available_slot'], ]
+
+    for r in res:
+        available_date = r['available_date']
+        location_id = r['location_id']
+        if location_id in _location_id_available_dates.keys():
+            for dt in _location_id_available_dates[location_id]:
+                diff = __days_between(available_date, dt)
+                if 20 < diff < 29:
+                    if available_date not in valid_available_dates.keys():
+                        valid_available_dates[available_date] = [location_id,]
+                        valid_responses.append(r)
+                    else:
+                        if location_id not in valid_available_dates[available_date]:
+                            valid_available_dates[available_date].append(location_id)
+                            valid_responses.append(r)
+
+    return valid_responses
+
+
 def __format_ggv_available_locations(res):
     _locations = {}
     _dates = {}
@@ -664,11 +712,17 @@ def __format_ggv_available_locations(res):
             "date": key,
             "locations": _dates[key]['locations']
         })
-
+    dates = __sort_by_field(dates)
     return {
         "dates": dates,
         "locations": list(_locations.values())
     }
+
+
+def __sort_by_field(task_list):
+    new_list = sorted(
+        task_list, key=lambda x: x['date'], reverse=False)
+    return new_list
 
 
 def __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, group_code, map_thumbnail):
