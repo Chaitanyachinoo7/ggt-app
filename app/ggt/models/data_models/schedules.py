@@ -98,8 +98,8 @@ def ggv_get_schedule_locations_available_near_lat_lng(group_code, lat, lng, radi
                         location_id IN {};""".format(str(tuple(set(location_ids))))
         res2 = replica_read_rows(sql2)
 
-        res3 = __filter_response(res, res2)
-        return __format_ggv_available_locations(res3)
+        res3, valid_next_available_dates = __filter_response(res, res2)
+        return __format_ggv_available_locations(res3, valid_next_available_dates)
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -637,12 +637,13 @@ def get_slots_matching_dt_list(dt_list, location_id):
 # [Protected] functions
 ########################################################################################################
 def __days_between(d1, d2):
-    return abs((d2 - d1).days)
+    return (d2 - d1).days
 
 
 def __filter_response(res, res2):
     _location_id_available_dates = {}
     valid_available_dates = {}
+    valid_next_available_dates = {}
     valid_responses = []
 
     for r in res2:
@@ -666,10 +667,20 @@ def __filter_response(res, res2):
                             valid_available_dates[available_date].append(location_id)
                             valid_responses.append(r)
 
-    return valid_responses
+                    if str(available_date) not in valid_next_available_dates.keys():
+                        valid_next_available_dates[str(available_date)] = {
+                            location_id: [str(dt), ]
+                        }
+                    else:
+                        if location_id not in valid_next_available_dates[str(available_date)].keys():
+                            valid_next_available_dates[str(available_date)][location_id] = [str(dt), ]
+                        elif str(dt) not in valid_next_available_dates[str(available_date)][location_id]:
+                            valid_next_available_dates[str(available_date)][location_id].append(str(dt))
+
+    return valid_responses, valid_next_available_dates
 
 
-def __format_ggv_available_locations(res):
+def __format_ggv_available_locations(res, valid_next_available_dates):
     _locations = {}
     _dates = {}
     dates = []
@@ -713,6 +724,16 @@ def __format_ggv_available_locations(res):
             "locations": _dates[key]['locations']
         })
     dates = __sort_by_field(dates)
+
+    for d in dates:
+        dt = d['date']
+        for idx, x in enumerate(d['locations']):
+            if dt in valid_next_available_dates.keys():
+                temp = valid_next_available_dates[dt]
+                location_id = x['id']
+                if location_id in temp.keys():
+                    d['locations'][idx]['next_available_dates'] = temp[location_id]
+
     return {
         "dates": dates,
         "locations": list(_locations.values())
