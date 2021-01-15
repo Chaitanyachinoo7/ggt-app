@@ -405,10 +405,10 @@ def get_appointments():
             patients p ON a.patient_id = p.id
         WHERE
             location_id IN (
-                276,350, 360, 366, 367, 369, 370, 371, 2399, 2414, 2415, 2416, 2417, 2420, 2421, 2422, 2423, 2447, 2448, 2463, 2424
+                274,276,2485,360,361,399,366,367,367,369,370,371,372,373,2385,2414,2415, 2416, 2417, 2419, 2420, 2421, 2422, 2423, 2424, 2446, 2448, 2447, 2463
             )
-            AND scheduled_dt > '2021-01-14 00:00:00'
-            AND scheduled_dt < '2021-01-15 00:00:00'
+            AND scheduled_dt > '2021-01-15 00:00:00'
+            AND scheduled_dt < '2021-01-16 00:00:00'
             AND status = 'scheduled'
         """
 
@@ -419,11 +419,11 @@ def get_appointments():
 
 
 def prepare_sms_text(appointment):
-    #return """Hi {}, due to inclement weather, the location where you have registered for your COVID-19 test will be CLOSED. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to register for a new appointment.
-    #""".format(appointment["first_name"])
-
-    return """Hi {}, due to inclement weather, the location where you have registered for your COVID-19 test will be CLOSED for the remainder of the day. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to register for a new appointment.
+    return """Hi {}, due to inclement weather, the location where you have registered for your COVID-19 test will be CLOSED. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to register for a new appointment.
     """.format(appointment["first_name"])
+
+    #return """Hi {}, due to inclement weather, the location where you have registered for your COVID-19 test will be CLOSED for the remainder of the day. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to register for a new appointment.
+    #""".format(appointment["first_name"])
 
 
 def sync_appointments_with_schedule_slots():

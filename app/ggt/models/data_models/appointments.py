@@ -396,9 +396,22 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
     try:
         # Check if a vial has already been assigned, if so, don't allow update to proceed
         if appointment.vial_id and vial_id:
+            print('vial has already been assigned')
             return usuccess
 
         if vial_id:
+            #check if vial is a dupe
+            sql = """
+                SELECT COUNT(*) as count FROM appointments WHERE vial_id = %s
+            """
+            vals = (vial_id,)
+            row = replica_read_row(sql,vals)
+
+            if row['count'] > 0:
+                print('duplicate vial ID')
+                return usuccess
+
+            #proceed with updating vial_id
             sql = """
                 UPDATE appointments
                 SET
@@ -412,8 +425,8 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
 
             vals = (vial_id, status, appointment.id)
 
-
         else:
+            #proceed with updating other info
             sql = """
                 UPDATE appointments
                 SET
@@ -425,9 +438,10 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
                 """.format(__get_mapped_dt_field(status))
 
             vals = (status, appointment.id)
-
+        
         usuccess = exec_update(sql, vals)
         __create_provider_appointment_activity(user, appointment.id, whoami(), status, vial_id=vial_id, workstation_id=workstation_id)
+
         if usuccess and (status == c.APPOINTMENT_STATUS_TEST_COMPLETED or status == c.APPOINTMENT_STATUS_VIAL_SCANNED):
             return create_test_sample_from_appointment(appointment.id)
 
