@@ -60,14 +60,13 @@ def task_process_crl_lab_orders():
 def create_outbound_files(orders):
     processed_orders = []
     for order in orders:
-        if order['sample_collection_location_id'] == 2473:
-            try:
-                make_api_request(order)
-                processed_orders.append(order)
+        try:
+            make_api_request(order)
+            processed_orders.append(order)
 
-            except Exception as err:
-                print(err)
-                print('Error generating HL7 for CRL/Order ID:', order['id'])
+        except Exception as err:
+            print(err)
+            print('Error generating orders for CRL/Order ID:', order['id'])
 
     return processed_orders
 
@@ -200,7 +199,7 @@ def get_orders_ready_to_transmit(limit=100):
             (CASE
                 WHEN (p.gender = 'male') THEN 'Male'
                 WHEN (p.gender = 'female') THEN 'Female'
-                ELSE 'U'
+                ELSE 'Other'
             END) AS gender,
             (CASE
                 WHEN (t.sample_collection_start_dt IS NOT NULL) THEN 
