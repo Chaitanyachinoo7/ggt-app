@@ -23,7 +23,7 @@ from ggt.models.data_models.schedules import (
     delete_schedule_generation_rule,
     get_all_available_dtl,
     trim_schedule_generation_rules_start_dt,
-    get_slots_matching_dt_list
+    get_slots_matching_dt_list, ggv_get_schedule_locations_available_near_lat_lng
 )
 
 from ggt.models.data_models.locations import (
@@ -117,7 +117,7 @@ def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: float, rad
                     'collect_upfront_payment': dtl.location.collect_upfront_payment,
                     'next_test_date': dtl.first_date_time_available.strftime("%a, %-d %b %Y @ %-I:%M %p") if dtl.first_date_time_available else None,
                     'wait_time_mins': '< 10m',
-                    'result_time_hours': '{}h'.format(dtl.average_processing_time),
+                    'result_time_hours': '24~72h', #'{}h'.format(dtl.average_processing_time),
                     'slots_available': dtl.slot_count,
                     'type': 'public',
                     'services_available': dtl.location.services_available,
@@ -195,7 +195,7 @@ def bp_get_schedule_locations_available(date, group_code=c.DEFAULT_GROUP_CODE):
                     'collect_upfront_payment': dtl.location.collect_upfront_payment,
                     'next_test_date': dtl.first_date_time_available.strftime("%a, %-d %b %Y @ %-I:%M %p"),
                     'wait_time_mins': '< 10m',
-                    'result_time_hours': '{}h'.format(dtl.average_processing_time),
+                    'result_time_hours': '24~72h', #'{}h'.format(dtl.average_processing_time),
                     'slots_available': dtl.slot_count*8,
                     'type': 'public',
                     'map_thumbnail': map_thumbnail,
@@ -239,6 +239,18 @@ def bp_get_all_available_locations_and_times(group_code=c.DEFAULT_GROUP_CODE):
     return {
         "available_location": available_locations
     }
+
+
+def bp_ggv_get_schedule_locations_available_near_lat_lng(group_code, lat, lng, radius):
+    try:
+        return ggv_get_schedule_locations_available_near_lat_lng(group_code, lat, lng, radius)
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            group_code=group_code,
+            function=whoami(),
+            error=err
+        )
 
 
 def bp_get_schedule_times_available(location_id, date):
@@ -356,7 +368,7 @@ def bp_add_schedule_generation_rule(data):
     try:
         # Zero out the seconds and hours for dt fields
         data.local_start_time = data.local_start_time.replace(second=0)
-        data.local_end_time = data.local_start_time.replace(second=0)
+        data.local_end_time = data.local_end_time.replace(second=0)
         data.active_local_start_dt = data.active_local_start_dt.replace(
             hour=0, minute=0, second=0)
         data.active_local_end_dt = data.active_local_end_dt.replace(
@@ -590,7 +602,7 @@ def __map_dtl_list_to_available_locations(dtl_list):
                     'collect_upfront_payment': dtl.location.collect_upfront_payment,
                     'next_test_date': dtl.first_date_time_available.strftime("%a, %-d %b %Y @ %-I:%M %p") if dtl.first_date_time_available else None,
                     'wait_time_mins': '< 10m',
-                    'result_time_hours': '{}h'.format(dtl.average_processing_time),
+                    'result_time_hours': '24~72h', #'{}h'.format(dtl.average_processing_time),
                     'slots_available': dtl.slot_count*8,
                     'type': 'public',
                     'map_thumbnail': map_thumbnail,

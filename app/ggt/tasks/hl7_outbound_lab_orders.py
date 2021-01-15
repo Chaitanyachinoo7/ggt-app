@@ -393,7 +393,7 @@ def create_outbound_files(orders):
                 hl7file.write(_str)
             '''
             
-            if order['sample_collection_location_id'] == 2415:
+            if order['sample_collection_location_id'] == 2415 or order['sample_collection_location_id'] == 370 or order['sample_collection_location_id'] == 2447 or order['sample_collection_location_id'] == 361:
                 write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8','ignore'), 'mawdpath')
             else:
                 write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8','ignore'), 'healthtrackrx_merth')

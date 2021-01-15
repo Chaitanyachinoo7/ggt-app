@@ -153,6 +153,7 @@ def make_api_request(order):
     }
     ]
     '''
+    print(ujson.dumps(payload))
     invoke_post(payload)
 
 
@@ -168,7 +169,8 @@ def invoke_post(payload):
         auth = HTTPBasicAuth(auth_user, auth_password)
         headers = {}
         r = requests.post(url, auth=auth, headers=headers, json=payload)
-        #response = r.json()
+        response = r.json()
+        print(response)
 
         if r.status_code == 200 or r.status_code == 201:
             print('success')
@@ -296,7 +298,7 @@ def get_orders_ready_to_transmit(limit=100):
             JOIN patient_questionnaires q ON ((p.id = q.patient_id)))
         WHERE
             (t.status = 'ready_to_tx')
-            AND t.id IN (929894 , 929857, 929862, 930899, 929875)
+            AND t.lab_id = 3
         LIMIT {}
             """.format(limit)
     return read_rows(sql,)
