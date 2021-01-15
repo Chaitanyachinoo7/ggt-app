@@ -128,3 +128,37 @@ def archive_ftp_s3_file(file_name):
             function=whoami(),
             error=err
         )
+
+
+def rename_s3_filrename_s3_filee(source, destination, bucketName="ggt-sftp"):
+    try:
+        print(source, destination)
+        copy = __boto_connect_client('s3').copy_object(
+            Bucket=bucketName, CopySource=source, Key=destination, MetadataDirective="COPY")
+        delete = __boto_connect_client('s3').delete_object(
+            Bucket=bucketName, Key=source.replace(bucketName+"/", ""))
+        return True
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return False
+
+
+def generate_s3_signed_url(filename, bucketName="ggt-sftp"):
+    try:
+        url = __boto_connect_client('s3').generate_presigned_url(
+            Params={
+                'Bucket': bucketName,
+                'Key': filename
+            }, ClientMethod='get_object')
+        return {"url": url}
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return False
