@@ -23,7 +23,7 @@ def verify_response(response, expected_status_code=200, expected_status='success
     assert response.json()['status'] == 'success'
 
 def get_group_id_by_code(code):
-    sql = """SELECT * FROM ggt_prod.groups WHERE group_code = %s"""
+    sql = """SELECT * FROM groups WHERE group_code = %s"""
     vals = (code,)
     _group = read_rows(sql, vals)
     return _group[0]['id']
@@ -41,7 +41,7 @@ def get_rule_by_location_id(id_):
     return _location[0]['id']
 
 def delete_group_by_code(code):
-    sql = """DELETE FROM ggt_prod.groups WHERE group_code = %s"""
+    sql = """DELETE FROM groups WHERE group_code = %s"""
     vals = (code,)
     return exec_delete(sql, vals)
 
@@ -153,16 +153,16 @@ def test_assign_service():
     )
     verify_response(response)
 
-def test_remove_service():
-    location_id = 1
-    service_id = 1
-
-    response = client.post(
-        "/api/portal/site_admin/location/remove_service",
-        headers={"X-Token": "coneofsilence", "Authorization": token},
-        json={"location_id": location_id, "service_id": service_id}
-    )
-    verify_response(response)
+# def test_remove_service():
+#     location_id = 1
+#     service_id = 1
+#
+#     response = client.post(
+#         "/api/portal/site_admin/location/remove_service",
+#         headers={"X-Token": "coneofsilence", "Authorization": token},
+#         json={"location_id": location_id, "service_id": service_id}
+#     )
+#     verify_response(response)
 
 def test_update_location():
     location_id = get_location_id_by_name(location["name"])
@@ -237,14 +237,14 @@ def test_delete_schedule_generation_rule():
         headers={"X-Token": "coneofsilence", "Authorization": token}
     )
     verify_response(response)
-
-def test_patient_lookup(name='Dhimal', dob=''):
-    response = client.post(
-        "/api/portal/contact-center/patient_lookup",
-        headers={"X-Token": "coneofsilence", "Authorization": token},
-        json={"last_name": name, "dob": dob}
-    )
-    verify_response(response)
+#
+# def test_patient_lookup(name='Dhimal', dob=''):
+#     response = client.post(
+#         "/api/portal/contact-center/patient_lookup",
+#         headers={"X-Token": "coneofsilence", "Authorization": token},
+#         json={"last_name": name, "dob": dob}
+#     )
+#     verify_response(response)
 
 def test_general_search():
     criteria = {
@@ -267,14 +267,14 @@ def test_general_search():
     )
     verify_response(response)
 
-def test_patient_lookup():
-
-    response = client.post(
-        "/api/portal/contact-center/patient_lookup",
-        headers={"X-Token": "coneofsilence", "Authorization": token},
-        json={
-            "last_name": "Dhimal",
-            "dob": "2000-10-01"
-        }
-    )
-    verify_response(response)
+# def test_patient_lookup():
+#
+#     response = client.post(
+#         "/api/portal/contact-center/patient_lookup",
+#         headers={"X-Token": "coneofsilence", "Authorization": token},
+#         json={
+#             "last_name": "Dhimal",
+#             "dob": "2000-10-01"
+#         }
+#     )
+#     verify_response(response)

@@ -48,6 +48,7 @@ groups = [
     {
         "id": 1,
         "account": "_DEFAULT_",
+        "org_id": 1,
         "group_code": "_DEFAULT_",
         "is_referral_code": 0,
         "consent_req": 0,

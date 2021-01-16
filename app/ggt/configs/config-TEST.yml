@@ -1,7 +1,7 @@
-app_name: COVID-19 Testing
+app_name: ggt-api
 app_version: 1.1
 log_level: DEBUG
-base_url: https://start.GoGetTested.com
+base_url: https://start-dev.GoGetTested.com
 env: TEST
 default_timezone: CST
 
@@ -13,7 +13,7 @@ server:
   email_queue_processor_port: 5030
   sms_queue_processor_port: 5040
 
-origins: 
+origins:
   - https://gogettested.com
   - https://schedule.gogettested.com
   - https://start.gogettested.com
@@ -41,25 +41,26 @@ aws:
   sqs_print_queue_base_url: https://sqs.us-east-1.amazonaws.com/135292740376/ggt-print-queue
 
 gcp:
-  project_id: ggt-pfe-prod
+  project_id: ggt-pfe-dev2
   service_account_file: gcp-service-account.json
   default_link_expiration_time_limit: 300
   service_account_file_prod: gcp-service-account-prod.json
   all_inbound_files_bucket_name: ggt-all-inbound-files-prod
   lab_reports_bucket_name: ggt-lab-reports-prod
   insurance_cards_bucket_name: ggt-insurance-cards-prod
-  notification_archive_bucket_name: ggt-notification-archive-prod
+  notification_archive_bucket_name: ggt-notification-archive-dev2
   enable_cloud_profiler: false
   enable_cloud_logger: false
-  cloud_logger_log_level: 3 # 0-error, 1-warning, 2-info, 3-debug. 
+  cloud_logger_log_level: 3 # 0-error, 1-warning, 2-info, 3-debug.
 
 databases:
   mysql:
-    host: ggt-test-db.csfqhv5lbvg2.us-east-2.rds.amazonaws.com
-    read_replica_host: ggt-test-db.csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+    host: ggt-dev-db.cluster-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+    read_replica_host: ggt-dev-db.cluster-ro-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
     username: admin
-    password: ggt123.321
-    db: ggt_prod
+    password: hWMgl5Tfkqn30saQNp9M
+    db: ggt_test
+
 
   sqlite:
     tasks_sqlite_db: /Users/suresh/ggt-tasks/ggt_tasks_local_cache.db
@@ -85,13 +86,13 @@ twilio:
   account_sid_short_code: ACa718334f24171c002bc3ee69c59aae9e
   auth_token_short_code: e9a391c21722705f3c7902fcde7522a4
   from_number_short_code: "80578"
-  
+
 sendgrid:
   sendgrid_api_key: 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
 
 google:
   maps:
-    api_key: AIzaSyAf7kDO2y7Hz7HYb3LHqvXimqJQcA6X8DQ
+    api_key: AIzaSyBH2PDb_3WMu7MxHpG5DlwZ66PyJ0rv5aQ
     base_url: https://maps.googleapis.com/maps/api/staticmap
     geo_url: https://maps.googleapis.com/maps/api/geocode/json
     zoom_level: 10
