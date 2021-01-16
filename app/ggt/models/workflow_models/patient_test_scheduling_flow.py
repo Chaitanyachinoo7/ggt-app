@@ -278,5 +278,4 @@ def insurance_eligibility(insurance_eligibility_request):
     return bp_get_wellpay_insurance_eligibility(insurance_eligibility_request)
 
 def insurance_search_payer(insurance_search_payer_request):
-    print(insurance_search_payer_request)
     return bp_search_insurance_payer_list(insurance_search_payer_request)

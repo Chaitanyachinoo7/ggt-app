@@ -175,5 +175,4 @@ def api_insurance_eligibility(req: InsuranceEligibilityRequest):
 
 @router.post("/search_payers_list")
 def api_insurance_search_payer(req: InsurancePayersListRequest):
-    print(req)
     return insurance_search_payer(req)
