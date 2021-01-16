@@ -2,7 +2,7 @@ app_name: ggt-api
 app_version: 1.1
 log_level: DEBUG
 base_url: https://start-dev.GoGetTested.com
-env: DEV
+env: TEST
 default_timezone: CST
 
 server:
@@ -13,7 +13,7 @@ server:
   email_queue_processor_port: 5030
   sms_queue_processor_port: 5040
 
-origins: 
+origins:
   - https://gogettested.com
   - https://schedule.gogettested.com
   - https://start.gogettested.com
@@ -51,7 +51,7 @@ gcp:
   notification_archive_bucket_name: ggt-notification-archive-dev2
   enable_cloud_profiler: false
   enable_cloud_logger: false
-  cloud_logger_log_level: 3 # 0-error, 1-warning, 2-info, 3-debug. 
+  cloud_logger_log_level: 3 # 0-error, 1-warning, 2-info, 3-debug.
 
 databases:
   mysql:
@@ -59,7 +59,7 @@ databases:
     read_replica_host: ggt-dev-db.cluster-ro-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
     username: admin
     password: hWMgl5Tfkqn30saQNp9M
-    db: ggt_prod
+    db: ggt_test
 
 
   sqlite:
@@ -86,7 +86,7 @@ twilio:
   account_sid_short_code: ACa718334f24171c002bc3ee69c59aae9e
   auth_token_short_code: e9a391c21722705f3c7902fcde7522a4
   from_number_short_code: "80578"
-  
+
 sendgrid:
   sendgrid_api_key: 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
 
@@ -121,7 +121,7 @@ vendors:
     management_client_id: 6ok7VWNkeOA6An5sN30Jl9gHoH4oUT8j
     management_sectret: Rwx8-mby99m5O-2aR14JKgoim0VV0FJuO6sefpDxXjKiQ18mys4JWf2oAO6_5Mha
     connection: Username-Password-Authentication
-    
+
   auth:
     api_key_name: x-api-key
     api_key_value: f63e3e17-e10a-4f57-b7b5-08a40d4b0d6b
@@ -141,7 +141,7 @@ vendors:
     local_process_summary_path: /Users/suresh/ggt-tasks/process_summary
     local_backups_path: /Users/suresh/ggt-tasks/backups
     outbound_file_prefix: ggt-outbound
-    
+
   healthtrackrx_inbound:
     hostname: sftp.gogettested.com
     username: healthtrackrx

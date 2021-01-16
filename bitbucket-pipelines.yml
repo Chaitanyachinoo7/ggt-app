@@ -5,6 +5,23 @@ pipelines:
 
     dev2:
       - step:
+          name: DEV2 Testing
+          image: python:3.7.9
+          caches:
+            - pip
+          artifacts:
+            - pytest-logs.txt
+          script:
+            - cp app/ggt/configs/config-TEST.yml app/ggt/configs/config.yml
+            - cp app/ggt/configs/log-config-dev.yml app/ggt/configs/log-config.yml
+            - cp app/ggt/configs/gcp-service-account-dev.json app/ggt/configs/gcp-service-account.json
+            - apt-get update && apt-get -y install gcc
+            - pip install pipenv
+            - pipenv lock --requirements
+            - pipenv lock --requirements > app/requirements.txt
+            - pip install --no-cache-dir -r app/requirements.txt
+            - pytest -W ignore -s app/tests/
+      - step:
           name: DEV2 Deployment
           deployment: staging
           caches:
