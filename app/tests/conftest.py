@@ -33,49 +33,49 @@ def cleanup_db():
             'workstations', 'users', 'insurance_info', 'appointment_services', 'organizations',
               'patient_questionnaires', 'locations_metrics_cache', 'schedules_metrics_cache', 'patient_consultations',
               'group_codes_to_locations_mapping']
-    # for table in tables[::-1]:
-    #     print("Cleaning up table:", table)
-    #     sql = """delete from {} where id > -1""".format(table)
-    #     exec_delete(sql)
+    for table in tables[::-1]:
+        print("Cleaning up table:", table)
+        sql = """delete from {} where id > -1""".format(table)
+        exec_delete(sql)
 
 
-# @pytest.fixture(autouse=True, scope='session')
-# def test_populate_db(cleanup_db):
-    # for row in data.locations:
-    #     insert('locations', row)
-    # for row in data.groups:
-    #     insert('groups', row)
-    # for row in data.group_codes_to_locations_mapping:
-    #     insert('group_codes_to_locations_mapping', row)
-    # for row in data.schedules:
-    #     insert('schedules', row)
-    # for row in data.patients:
-    #     insert('patients', row)
-    # for row in data.appointments:
-    #     insert('appointments', row)
-    # for row in data.test_samples:
-    #     insert('test_samples', row)
-    # for row in data.states:
-    #     insert('states', row)
-    # for row in data.services_catalog:
-    #     insert('services_catalog', row)
-    # for row in data.services_to_locations_mapping:
-    #     insert('services_to_locations_mapping', row)
-    # for row in data.workstations:
-    #     insert('workstations', row)
-    # for row in data.users:
-    #     insert('users', row)
-    # for row in data.appointment_services:
-    #     insert('appointment_services', row)
-    # for row in data.organizations:
-    #     insert('organizations', row)
-    # for row in data.patient_questionnaires:
-    #     insert('patient_questionnaires', row)
-    # for row in data.locations_metrics_cache:
-    #     insert('locations_metrics_cache', row)
-    # for row in data.schedules_metrics_cache:
-    #     insert('schedules_metrics_cache', row)
-    # for row in data.patient_consultations:
-    #     insert('patient_consultations', row)
-    # for row in data.group_codes_to_locations_mapping:
-    #     insert('group_codes_to_locations_mapping', row)
+@pytest.fixture(autouse=True, scope='session')
+def test_populate_db(cleanup_db):
+    for row in data.locations:
+        insert('locations', row)
+    for row in data.groups:
+        insert('groups', row)
+    for row in data.group_codes_to_locations_mapping:
+        insert('group_codes_to_locations_mapping', row)
+    for row in data.schedules:
+        insert('schedules', row)
+    for row in data.patients:
+        insert('patients', row)
+    for row in data.appointments:
+        insert('appointments', row)
+    for row in data.test_samples:
+        insert('test_samples', row)
+    for row in data.states:
+        insert('states', row)
+    for row in data.services_catalog:
+        insert('services_catalog', row)
+    for row in data.services_to_locations_mapping:
+        insert('services_to_locations_mapping', row)
+    for row in data.workstations:
+        insert('workstations', row)
+    for row in data.users:
+        insert('users', row)
+    for row in data.appointment_services:
+        insert('appointment_services', row)
+    for row in data.organizations:
+        insert('organizations', row)
+    for row in data.patient_questionnaires:
+        insert('patient_questionnaires', row)
+    for row in data.locations_metrics_cache:
+        insert('locations_metrics_cache', row)
+    for row in data.schedules_metrics_cache:
+        insert('schedules_metrics_cache', row)
+    for row in data.patient_consultations:
+        insert('patient_consultations', row)
+    for row in data.group_codes_to_locations_mapping:
+        insert('group_codes_to_locations_mapping', row)
