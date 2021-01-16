@@ -1,10 +1,7 @@
 import os
 import sys
-import time
 
 import nest_asyncio
-import pytest
-from datetime import datetime, timedelta
 
 nest_asyncio.apply()
 myPath = os.path.dirname(os.path.abspath(__file__))
@@ -13,7 +10,6 @@ sys.path.insert(0, myPath + '/../')
 from fastapi.testclient import TestClient
 from main import app
 from tests.resources import token
-from ggt.lib.db import read_rows
 
 client = TestClient(app)
 
@@ -32,6 +28,7 @@ def test_get_workstations():
     )
     verify_response(response)
 
+
 def test_lookup_appointment():
     response = client.post(
         "/api/provider/lookup_appointment",
@@ -39,6 +36,7 @@ def test_lookup_appointment():
         json={"appointment_id": 1}
     )
     verify_response(response)
+
 
 def test_update_appointment():
     response = client.post(
@@ -51,6 +49,7 @@ def test_update_appointment():
         }
     )
     verify_response(response)
+
 
 def test_scan_label():
     response = client.post(

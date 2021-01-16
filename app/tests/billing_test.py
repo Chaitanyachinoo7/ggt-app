@@ -1,8 +1,6 @@
 import os
 import sys
-import time
 
-import pytest
 import nest_asyncio
 
 nest_asyncio.apply()
@@ -10,7 +8,7 @@ myPath = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, myPath + '/../')
 
 from fastapi.testclient import TestClient
-from ggt.lib.db import read_rows, exec_delete
+from ggt.lib.db import read_rows
 from tests.resources import token
 from main import app
 
@@ -35,8 +33,8 @@ def test_get_billing_list():
         "/api/billing/get_billing_list",
         headers={"X-Token": "coneofsilence", "Authorization": token},
         json={
-          "from_dt": "02112020",
-          "to_dt": "21112020"
+          "from_dt": "2020-11-02",
+          "to_dt": "2020-11-21"
          }
     )
     verify_response(response)

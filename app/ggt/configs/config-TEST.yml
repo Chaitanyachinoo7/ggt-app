@@ -2,7 +2,7 @@ app_name: COVID-19 Testing
 app_version: 1.1
 log_level: DEBUG
 base_url: https://start.GoGetTested.com
-env: DEV
+env: TEST
 default_timezone: CST
 
 server:
@@ -55,10 +55,10 @@ gcp:
 
 databases:
   mysql:
-    host: prod-ggt-aurora.cluster-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
-    read_replica_host: reader.cluster-custom-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+    host: ggt-test-db.csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+    read_replica_host: ggt-test-db.csfqhv5lbvg2.us-east-2.rds.amazonaws.com
     username: admin
-    password: hWMgl5Tfkqn30saQNp9M
+    password: ggt123.321
     db: ggt_prod
 
   sqlite:
@@ -114,7 +114,7 @@ app:
 vendors:
   auth0:
     auth0_domain: gogettested.us.auth0.com
-    api_audience: https://pfe-api.gogettested.com/api
+    api_audience: https://role-base-auth.test/api
     algorithms: ['RS256']
     roles: http://roles.ggt/roles
     management_client_id: 6ok7VWNkeOA6An5sN30Jl9gHoH4oUT8j
@@ -140,7 +140,7 @@ vendors:
     local_process_summary_path: /Users/suresh/ggt-tasks/process_summary
     local_backups_path: /Users/suresh/ggt-tasks/backups
     outbound_file_prefix: ggt-outbound
-    
+
   healthtrackrx_inbound:
     hostname: sftp.gogettested.com
     username: healthtrackrx
@@ -158,10 +158,11 @@ vendors:
     outbound_file_prefix: ggt-outbound
 
   wellpay:
-    endpoint: https://api.getwellpay.com/api/public/v1
+    endpoint: https://api-staging.getwellpay.com/api/public/v1
     auth_user: suresh@wellpay.com
-    auth_password: y7f{=/$>VfRF$vqE
+    auth_password: 8,tp{Na{76<~@.>(
     npi: 1780944496
+
   kdhe:
     hostname: sl64.endpoint.com
     username: sftpwellhealth
