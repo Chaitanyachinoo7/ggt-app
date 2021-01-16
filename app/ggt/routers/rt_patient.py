@@ -11,7 +11,8 @@ from ggt.models.data_models.data_types import (
     LookupAppointmentRequest,
     VerifyExistingPatientRequest,
     PermissionsEnum as p,
-    InsuranceEligibilityRequest
+    InsuranceEligibilityRequest,
+    InsurancePayersListRequest
 )
 
 from ggt.models.workflow_models.patient_portal_flow import (
@@ -31,7 +32,8 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
     lookup_appointment,
     lookup_test_result,
     get_all_available_locations_and_times,
-    insurance_eligibility, get_ggv_schedule_locations_available
+    insurance_eligibility, get_ggv_schedule_locations_available,
+    insurance_search_payer
 )
 
 # TODO: [GGT-193] Move this to a dedicated API
@@ -170,3 +172,8 @@ async def api_lookup_appointments_by_phone(phone_number: str, dob: str):
 @router.post("/insurance_eligibility")
 def api_insurance_eligibility(req: InsuranceEligibilityRequest):
     return insurance_eligibility(req)
+
+@router.post("/search_payers_list")
+def api_insurance_search_payer(req: InsurancePayersListRequest):
+    print(req)
+    return insurance_search_payer(req)
