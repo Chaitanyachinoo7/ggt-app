@@ -33,7 +33,7 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
     lookup_test_result,
     get_all_available_locations_and_times,
     insurance_eligibility, get_ggv_schedule_locations_available,
-    insurance_search_payer
+    insurance_search_payer, get_ggv_screen_flow_seq
 )
 
 # TODO: [GGT-193] Move this to a dedicated API
@@ -48,6 +48,11 @@ router = APIRouter()
 @router.get("/get_screen_flow_seq/{group_code}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_get_screen_flow_seq(group_code: str):
     return get_screen_flow_seq(group_code)
+
+
+@router.get("/ggv/get_screen_flow_seq/{group_code}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_ggv_get_screen_flow_seq(group_code: str):
+    return get_ggv_screen_flow_seq(group_code)
 
 
 @router.post("/verify_phone", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
