@@ -25,7 +25,8 @@ from ggt.models.process_models.bp_schedules import (
     bp_get_schedule_locations_available,
     bp_get_schedule_times_available,
     bp_get_all_available_locations_and_times,
-    bp_get_schedule_locations_available_near_lat_lng, bp_ggv_get_schedule_locations_available_near_lat_lng
+    bp_get_schedule_locations_available_near_lat_lng, bp_ggv_get_schedule_locations_available_near_lat_lng,
+    bp_get_second_shot_available_times
 )
 
 from ggt.models.process_models.bp_appointments import (
@@ -132,6 +133,14 @@ def get_schedule_times_available(
             location_id,
             date
         )
+    )
+
+
+def get_second_shot_available_times(req):
+    location_id = req.location_id
+    date = str(tuple((req.dates)))
+    return x_response(
+        bp_get_second_shot_available_times(location_id, date)
     )
 
 

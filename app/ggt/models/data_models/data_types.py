@@ -267,6 +267,11 @@ class InfluenzaScreening(BaseModel):
     egg_allergy: bool = None
 
 
+class SecondAvailableDate(BaseModel):
+    location_id: str
+    dates: List[str]
+
+
 class FinalizeRegistrationRequest(BaseModel):
     groupCode: str = None
     phone_number: str = None
