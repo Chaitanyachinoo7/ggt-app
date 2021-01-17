@@ -1084,3 +1084,9 @@ class InsuranceEligibilityRequest(BaseModel):
     insurance_payer_id: str = None
     insurance_group_number: str = None
     level: str = None
+
+
+class InsurancePayersListRequest(BaseModel):
+    search_query: str = None
+    page: int = 1
+    limit: int = 10

@@ -374,6 +374,9 @@ def bp_get_wellpay_api_key():
 def bp_get_wellpay_insurance_eligibility(insurance_eligibility_request):
     return __bp_get_wellpay_insurance_eligibility(insurance_eligibility_request)
 
+
+def bp_search_insurance_payer_list(insurance_search_payer_request):
+    return __bp_search_insurance_payer_list(insurance_search_payer_request)
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
@@ -899,12 +902,12 @@ def __add_wellpay_customer_insurance_eligibility(wp_api_key, insurance_eligibili
         }
         print(url)
         print(datetime.datetime.today().strftime('%Y-%m-%d'))
-        print(datetime.date.today()+ datetime.timedelta(days=10))
+        print(datetime.date.today() + datetime.timedelta(days=10))
         payload = {
             "services": [],
             "insurance_level": insurance_eligibility_request.level.lower(),
             "as_of_date": datetime.datetime.today().strftime('%Y-%m-%d'),
-            "to_date": (datetime.date.today()+ datetime.timedelta(days=10)).strftime('%Y-%m-%d'),
+            "to_date": (datetime.date.today() + datetime.timedelta(days=10)).strftime('%Y-%m-%d'),
             "place_of_service_code": "",
             "npi": cfg('vendors.wellpay.npi')
         }
@@ -941,3 +944,28 @@ def __get_wellpay_customer_insurance_plans(wp_api_key, insurance_eligibility_req
     except Exception as err:
         print(err)
         return {"isEligible": False, "error": None}
+
+
+def __bp_search_insurance_payer_list(insurance_search_payer_request):
+    try:
+        wp_api_key, wp_refresh_token = __get_wp_api_tokens()
+        base_url = cfg('vendors.wellpay.endpoint')
+        url = "{}/eligibility/searchPayersList".format(base_url)
+        headers = {
+            'Authorization': 'Bearer {}'.format(wp_api_key),
+            'Content-Type': 'application/json'
+        }
+
+        payload = {
+            "searchQuery": insurance_search_payer_request.search_query,
+            "page": insurance_search_payer_request.page,
+            "limit": insurance_search_payer_request.limit
+        }
+
+        r = requests.post(url, headers=headers, json=payload)
+        print(payload)
+        response = r.json()
+        print(response)
+        return response
+    except Exception as err:
+        print(err)
