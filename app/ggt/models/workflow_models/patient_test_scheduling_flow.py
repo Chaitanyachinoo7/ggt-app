@@ -17,7 +17,7 @@ from ggt.models.process_models.bp_patient_experience import (
     bp_finalize_payment,
     bp_get_test_result, bp_add_to_ggd_waiting_queue,
     bp_get_wellpay_insurance_eligibility,
-    bp_search_insurance_payer_list
+    bp_search_insurance_payer_list, bp_get_ggv_screen_flow_seq
 )
 
 from ggt.models.process_models.bp_schedules import (
@@ -47,6 +47,13 @@ import ggt.lib.constants as c
 def get_screen_flow_seq(group_code):
     return x_response(
         bp_get_screen_flow_seq(group_code)
+    )
+
+
+@cached(cache=TTLCache(maxsize=1024, ttl=600))
+def get_ggv_screen_flow_seq(group_code):
+    return x_response(
+        bp_get_ggv_screen_flow_seq(group_code)
     )
 
 

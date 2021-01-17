@@ -83,6 +83,45 @@ from ggt.lib.storage import get_temporary_lab_report_url
 ########################################################################################################
 
 
+def bp_get_ggv_screen_flow_seq(group_code: str):
+    group_info: GgtThirdPartyGroup = get_group_info(group_code)
+
+    validations = {}
+    screens = []
+    config = {}
+
+    if group_info.ggv_screen_seq:
+        screens = group_info.ggv_screen_seq
+        for screen in screens:
+            req = False
+            if group_info.ggv_required_screens:
+                req = True if (
+                    screen in group_info.ggv_required_screens) else False
+
+            validations[screen] = {
+                "required": req
+            }
+
+    if group_info.display_group_consent:
+        config = {
+            "consent-provider": {
+                "content": {
+                    "logo": [group_info.logo_1, group_info.logo_2],
+                    "intro_text": group_info.intro_text,
+                    "provider_name": group_info.consent_party_name,
+                    "consent_url": group_info.consent_url if (group_info.consent_url and group_info.consent_url != '') else None,
+                    "additional_fields": group_info.additional_fields
+                }
+            }
+        }
+
+    return {
+        "screens": screens,
+        "validation": validations,
+        "config": config
+    }
+
+
 def bp_get_screen_flow_seq(group_code: str):
     group_info: GgtThirdPartyGroup = get_group_info(group_code)
 

@@ -889,8 +889,10 @@ class GgtThirdPartyGroup(BaseModel):
     logo_1: str = None
     logo_2: str = None
     required_screens: List[str] = None
+    ggv_required_screens: List[str] = None
     optional_screens: List[str] = None  # Redundant, remove
     screen_seq: List[str] = None
+    ggv_screen_seq: List[str] = None
     additional_fields: List[GgtCustomField] = None
 
 
