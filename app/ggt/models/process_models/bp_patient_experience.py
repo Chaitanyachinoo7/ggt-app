@@ -1005,6 +1005,6 @@ def __bp_search_insurance_payer_list(insurance_search_payer_request):
         print(payload)
         response = r.json()
         print(response)
-        return response
+        return {"response": response}
     except Exception as err:
         print(err)
