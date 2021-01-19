@@ -292,6 +292,7 @@ def bp_get_schedule_times_available(location_id, date):
 def bp_get_second_shot_available_times(location_id, date):
     rows = get_second_shot_available_times(location_id, date)
     dates = {}
+    res = []
     try:
         for row in rows:
             d = datetime.strptime(str(row['start_time']), "%H:%M:%S")
@@ -314,6 +315,12 @@ def bp_get_second_shot_available_times(location_id, date):
                     ]
                 }
 
+        for key in dates.keys():
+            res.append({
+                "date": key,
+                "available_times": dates[key]['available_times']
+            })
+
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -325,7 +332,7 @@ def bp_get_second_shot_available_times(location_id, date):
         )
 
     return {
-        "available_date_times": dates
+        "available_date_times": res
     }
 
 
