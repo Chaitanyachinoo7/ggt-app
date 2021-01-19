@@ -12,7 +12,7 @@ from ggt.models.data_models.data_types import (
     VerifyExistingPatientRequest,
     PermissionsEnum as p,
     InsuranceEligibilityRequest,
-    InsurancePayersListRequest, SecondAvailableDate
+    InsurancePayersListRequest, SecondAvailableDate, FinalizeGGVRegistrationRequest
 )
 
 from ggt.models.workflow_models.patient_portal_flow import (
@@ -33,7 +33,7 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
     lookup_test_result,
     get_all_available_locations_and_times,
     insurance_eligibility, get_ggv_schedule_locations_available,
-    insurance_search_payer, get_ggv_screen_flow_seq, get_second_shot_available_times
+    insurance_search_payer, get_ggv_screen_flow_seq, get_second_shot_available_times, ggv_finalize_registration
 )
 
 # TODO: [GGT-193] Move this to a dedicated API
@@ -121,6 +121,11 @@ async def api_get_all_available_locations_and_times(group_code: str = None):
 @router.post("/finalize_registration", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_finalize_registration(finalize_registration_request: FinalizeRegistrationRequest):
     return finalize_registration(finalize_registration_request)
+
+
+@router.post("/ggv/finalize_registration", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_ggv_finalize_registration(finalize_registration_request: FinalizeGGVRegistrationRequest):
+    return ggv_finalize_registration(finalize_registration_request)
 
 
 @router.post("/finalize_payment", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])

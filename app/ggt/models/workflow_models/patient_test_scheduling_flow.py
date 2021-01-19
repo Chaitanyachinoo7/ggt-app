@@ -17,7 +17,7 @@ from ggt.models.process_models.bp_patient_experience import (
     bp_finalize_payment,
     bp_get_test_result, bp_add_to_ggd_waiting_queue,
     bp_get_wellpay_insurance_eligibility,
-    bp_search_insurance_payer_list, bp_get_ggv_screen_flow_seq
+    bp_search_insurance_payer_list, bp_get_ggv_screen_flow_seq, bp_ggv_finalize_booking
 )
 
 from ggt.models.process_models.bp_schedules import (
@@ -197,6 +197,35 @@ def finalize_registration(finalize_registration_request):
         }
 
 
+def ggv_finalize_registration(finalize_registration_request):
+    booking_req = __map_to_booking_req(finalize_registration_request)
+    appointment_1, appointment_2, status_message, patient_id = bp_ggv_finalize_booking(booking_req)
+
+    if finalize_registration_request.ggd_waitlist:
+        bp_add_to_ggd_waiting_queue(patient_id)
+    if (appointment_1 and appointment_2) :
+        return {
+            "appointment_id_1": appointment_1.id,
+            "date_1": appointment_1.date_text,
+            "location_1": appointment_1.location_text,
+            'total_balance_1': int(appointment_1.billed_amount*100),
+            'total_cost_1': int(appointment_1.total_cost*100),
+            'payment_url_1': appointment_1.payment_url,
+            "appointment_id_2": appointment_2.id,
+            "date_2": appointment_2.date_text,
+            "location_2": appointment_2.location_text,
+            'total_balance_2': int(appointment_2.billed_amount*100),
+            'total_cost_2': int(appointment_2.total_cost*100),
+            'payment_url_2': appointment_2.payment_url,
+            c.STATUS: c.SUCCESS
+        }
+    else:
+        return {
+            c.STATUS: c.FAILED,
+            c.ERROR: status_message
+        }
+
+
 def __map_to_booking_req(finalize_registration_request):
     b = GgtBooking()
     try:
@@ -221,13 +250,14 @@ def __map_to_booking_req(finalize_registration_request):
 
         b.is_patient = finalize_registration_request.isPatient
         b.group_code = finalize_registration_request.groupCode.strip()
-        b.symptom_fever = finalize_registration_request.symptoms.symptom_fever
+        if finalize_registration_request.symptoms:
+            b.symptom_fever = finalize_registration_request.symptoms.symptom_fever
 
-        b.symptom_shortbreath = finalize_registration_request.symptoms.symptom_short_breath
-        b.symptom_coughing = finalize_registration_request.symptoms.symptom_cough
-        b.symptom_chestpains = finalize_registration_request.symptoms.symptom_chest_pains
-        b.symptom_others = finalize_registration_request.symptoms.symptom_other
-        b.symptom_lack_of_smell = finalize_registration_request.symptoms.symptom_lack_of_smell
+            b.symptom_shortbreath = finalize_registration_request.symptoms.symptom_short_breath
+            b.symptom_coughing = finalize_registration_request.symptoms.symptom_cough
+            b.symptom_chestpains = finalize_registration_request.symptoms.symptom_chest_pains
+            b.symptom_others = finalize_registration_request.symptoms.symptom_other
+            b.symptom_lack_of_smell = finalize_registration_request.symptoms.symptom_lack_of_smell
         b.covid_contact = finalize_registration_request.contactTracing
 
         b.meds = finalize_registration_request.patientVitals.medications
@@ -255,6 +285,23 @@ def __map_to_booking_req(finalize_registration_request):
         b.date = finalize_registration_request.date
         b.location_id = finalize_registration_request.location
         b.timeslot_id = finalize_registration_request.timeSlot
+
+        if "appointmentOneTime" in finalize_registration_request.fields.keys():
+            b.appointmentOneTime = finalize_registration_request.appointmentOneTime
+        if "appointmentTwoTime" in finalize_registration_request.fields.keys():
+            b.appointmentTwoTime = finalize_registration_request.appointmentTwoTime
+        if "symptomsVax" in finalize_registration_request.fields.keys():
+            b.symptomsVax = finalize_registration_request.symptomsVax
+        if "covid19ConfirmedCase" in finalize_registration_request.fields.keys():
+            b.covid19ConfirmedCase = finalize_registration_request.covid19ConfirmedCase
+        if "pregnancy" in finalize_registration_request.fields.keys():
+            b.pregnancy = finalize_registration_request.pregnancy
+        if "allergicReaction" in finalize_registration_request.fields.keys():
+            b.allergicReaction = finalize_registration_request.allergicReaction
+        if "eggAllergy" in finalize_registration_request.fields.keys():
+            b.eggAllergy = finalize_registration_request.eggAllergy
+        if "guillianBarre" in finalize_registration_request.fields.keys():
+            b.guillianBarre = finalize_registration_request.guillianBarre
 
         with suppress(AttributeError):
             b.public_places_bars_restaurants_cafes = finalize_registration_request.publicPlaces.bars_restaurants_cafes
