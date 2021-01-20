@@ -537,10 +537,10 @@ def __generate_ggv_appointments(booking_req: GgtBooking):
             raise ValueError('Invalid Slot')
 
         booking_req.timeslot = booking_req.slot_1
-        appointment_1 = create_appointment(booking_req)
+        appointment_1 = create_appointment(booking_req, ggv_slot=1)
 
         booking_req.timeslot = booking_req.slot_2
-        appointment_2 = create_appointment(booking_req)
+        appointment_2 = create_appointment(booking_req, ggv_slot=2)
 
         if appointment_1 and appointment_2:
             update_slot_information(booking_req.appointmentOneTime, appointment_1.id)
