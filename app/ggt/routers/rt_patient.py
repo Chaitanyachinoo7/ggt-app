@@ -167,9 +167,9 @@ async def api_verify_existing_patient(phone_number: str):
 
 @router.get("/lookup_appointments_by_phone/{phone_number}/{dob}")
 async def api_lookup_appointments_by_phone(phone_number: str, dob: str):
-    return {
-        'status': 'failed'
-    }
+    # return {
+    #     'status': 'failed'
+    # }
     return site_admin_general_search(
         '',
         '',
@@ -181,6 +181,23 @@ async def api_lookup_appointments_by_phone(phone_number: str, dob: str):
         '',
         '',
         ''
+    )
+
+
+@router.get("/get_appointments_by_phone/{phone_number}/{dob}")
+async def api_get_appointments_by_phone(phone_number: str, dob: str):
+    return site_admin_general_search(
+        '',
+        '',
+        '',
+        dob,
+        phone_number,
+        '',
+        '',
+        '',
+        '',
+        '',
+        group_vax_results=True
     )
 
 
