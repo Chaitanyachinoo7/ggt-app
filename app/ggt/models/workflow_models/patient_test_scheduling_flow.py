@@ -198,7 +198,7 @@ def finalize_registration(finalize_registration_request):
 
 
 def ggv_finalize_registration(finalize_registration_request):
-    booking_req = __map_to_booking_req(finalize_registration_request)
+    booking_req = __map_to_booking_req(finalize_registration_request, ggv=True)
     appointment_1, appointment_2, status_message, patient_id = bp_ggv_finalize_booking(booking_req)
 
     if finalize_registration_request.ggd_waitlist:
@@ -226,7 +226,7 @@ def ggv_finalize_registration(finalize_registration_request):
         }
 
 
-def __map_to_booking_req(finalize_registration_request):
+def __map_to_booking_req(finalize_registration_request, ggv=False):
     b = GgtBooking()
     try:
         b.token = finalize_registration_request.token
@@ -268,13 +268,17 @@ def __map_to_booking_req(finalize_registration_request):
         b.other_chronic_disease = finalize_registration_request.preExistingConditions.other_chronic_disease
         b.allergies = finalize_registration_request.preExistingConditions.allergies
 
-        if finalize_registration_request.serviceSelection:
-            b.service_covid19_test = finalize_registration_request.serviceSelection.COVID_19_TEST
-            b.service_flu_shot = finalize_registration_request.serviceSelection.FLU_SHOT
-            b.service_consult = finalize_registration_request.serviceSelection.CONSULT
+        # if the request comes from GGV, then set the vaccination service
+        if ggv:
+            b.service_covid19_vaccine = True
         else:
-            # handle errors in form submission where there is no test type submitted
-            b.service_covid19_test = True
+            if finalize_registration_request.serviceSelection:
+                b.service_covid19_test = finalize_registration_request.serviceSelection.COVID_19_TEST
+                b.service_flu_shot = finalize_registration_request.serviceSelection.FLU_SHOT
+                b.service_consult = finalize_registration_request.serviceSelection.CONSULT
+            else:
+                # handle errors in form submission where there is no test type submitted
+                b.service_covid19_test = True
 
         b.insurance_photo = finalize_registration_request.insurancePhoto
         if b.insurance_photo and len(b.insurance_photo) > 250:

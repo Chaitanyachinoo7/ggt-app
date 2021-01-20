@@ -345,7 +345,10 @@ class FinalizeGGVRegistrationRequest(BaseModel):
     consent_provider: Optional[ConsentProvider] = None
     influenzaConsent: Optional[InfluenzaConsent] = None
 
+    # we don't need serviceSelection for GGV request, because user cannot choose
+    # which vaccine he wants (depends on location)
     serviceSelection: Optional[ServiceSelection] = None
+
     insuranceVerification: Optional[InsuranceVerification] = None
     influenzaScreening: Optional[InfluenzaScreening] = None
     publicPlaces: Optional[PublicPlaces] = None
@@ -804,6 +807,9 @@ class GgtBooking(BaseModel):
     service_covid19_test: bool = False
     service_flu_shot: bool = False
     service_consult: bool = False
+
+    # service for vaccination
+    service_covid19_vaccine: bool = False
 
     flu_screen_severely_ill: bool = False
     flu_screen_guillain_barre_syndrome: bool = False
