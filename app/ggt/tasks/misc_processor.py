@@ -165,15 +165,15 @@ def process_email_notifications():
 def formatted_email_message(row):
     from_email = cfg('notifications.from_email')
     from_name = cfg('notifications.from_name')
-    #subject = "IMPORTANT: {}, Your Covid-19 Testing location has closed due to inclement weather".format(row['first_name'])
-    subject = "IMPORTANT: {}, Your Covid-19 Testing hours have changed".format(row['first_name'])
+    subject = "IMPORTANT: {}, Your Covid-19 Testing location has closed due to inclement weather".format(row['first_name'])
+    #subject = "IMPORTANT: {}, Your Covid-19 Testing hours have changed".format(row['first_name'])
 
     template_vars = {
         "first_name": row['first_name']
     }
 
-    #template_name = 'GGT-14-APPOINTMENT-WEATHER-CLOSING-EMAIL.html'
-    template_name = 'GGT-9-APPOINTMENT-DELAYED-EMAIL.html'
+    template_name = 'GGT-14-APPOINTMENT-WEATHER-CLOSING-EMAIL.html'
+    #template_name = 'GGT-9-APPOINTMENT-DELAYED-EMAIL.html'
     html_content = render_template(template_name, **template_vars)
 
     email_message = {
@@ -382,7 +382,7 @@ def get_appointments():
                 AND a.test_start_dt < '2021-12-29 00:00:00'
         """
 
-        sql = """
+        sql14 = """
         SELECT 
             p.first_name, p.phone_number, p.email
         FROM
@@ -396,7 +396,7 @@ def get_appointments():
                 AND status = 'scheduled'
         """
 
-        sql12 = """
+        sql = """
         SELECT 
             p.first_name, p.phone_number, p.email
         FROM
@@ -404,9 +404,11 @@ def get_appointments():
                 JOIN
             patients p ON a.patient_id = p.id
         WHERE
-            location_id IN (250, 164)
-            AND scheduled_dt > '2021-01-11 00:00:00'
-            AND scheduled_dt < '2021-01-12 00:00:00'
+            location_id IN (
+                274,276,2485,360,361,399,366,367,367,369,370,371,372,373,2385,2414,2415, 2416, 2417, 2419, 2420, 2421, 2422, 2423, 2424, 2446, 2448, 2447, 2463
+            )
+            AND scheduled_dt > '2021-01-15 00:00:00'
+            AND scheduled_dt < '2021-01-16 00:00:00'
             AND status = 'scheduled'
         """
 
@@ -417,11 +419,11 @@ def get_appointments():
 
 
 def prepare_sms_text(appointment):
-    #return """Hi {}, due to inclement weather, the location where you have registered for your COVID-19 test will be CLOSED. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to register for a new appointment.
-    #""".format(appointment["first_name"])
-
-    return """Hi {}, due to inclement weather, we’ve had to delay opening the testing location where you have registered to 11am. This may change depending on the weather. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to register for a new appointment.
+    return """Hi {}, due to inclement weather, the location where you have registered for your COVID-19 test will be CLOSED. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to register for a new appointment.
     """.format(appointment["first_name"])
+
+    #return """Hi {}, due to inclement weather, the location where you have registered for your COVID-19 test will be CLOSED for the remainder of the day. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to register for a new appointment.
+    #""".format(appointment["first_name"])
 
 
 def sync_appointments_with_schedule_slots():

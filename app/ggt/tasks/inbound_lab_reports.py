@@ -784,9 +784,23 @@ def extract_report_info_mawd(file_path):
         filename = arr[len(arr)-1]
 
         filename_vars = filename.replace('.pdf','').split('_')
-        order_number = filename_vars[0]
-        vial_id = filename_vars[1]
-        test_result = filename_vars[2]
+
+        file_version = 2
+        try:
+            report_type = filename_vars[3] #C for Correction, F for Final
+        except Exception as err:
+            print_error('using file version 1 (old naming format)')
+            file_version = 1 
+
+
+        if file_version == 1:
+            order_number = filename_vars[0]
+            vial_id = filename_vars[1] #This is actually the MAWD accession number
+            test_result = filename_vars[2]
+        else:
+            order_number = filename_vars[1]
+            vial_id = filename_vars[0] #This is actually the MAWD accession number
+            test_result = filename_vars[2]
 
         if test_result == 'NOTDETECTED':
             test_status = 'Approved'
