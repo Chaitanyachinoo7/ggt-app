@@ -35,7 +35,7 @@ from ggt.models.data_models.clinical_test_sample import (
 ########################################################################################################
 
 
-def create_appointment(appointment_req: GgtBooking):
+def create_appointment(appointment_req: GgtBooking, ggv_slot=None):
     try:
         sql = """
         INSERT INTO appointments
@@ -60,7 +60,7 @@ def create_appointment(appointment_req: GgtBooking):
             appointment_req.billed_amount / 100  # cents --> decimal
         )
         appointment_id = exec_insert(sql, vals)
-        __add_services_to_appointment(appointment_id, appointment_req)
+        __add_services_to_appointment(appointment_id, appointment_req, ggv_slot=ggv_slot)
         return get_appointment(appointment_id)
 
     except Exception as err:
@@ -87,7 +87,7 @@ def add_service_to_appointment(appointment_id: int, service_code: str) -> bool:
             copay_amount,
             insurance_amount
         )
-        SELECT 
+        SELECT
             '{}' as appointment_id,
             id as service_id,
             service_name,
@@ -120,7 +120,7 @@ def add_service_to_appointment(appointment_id: int, service_code: str) -> bool:
 def get_appointment(appointment_id: int) -> GgtAppointment:
     try:
         sql = """
-        SELECT 
+        SELECT
             a.*,
             l.addr1 AS location_addr1,
             l.addr2 AS location_addr2,
@@ -180,8 +180,8 @@ def get_appointment(appointment_id: int) -> GgtAppointment:
 def get_monthy_calendar(from_date: str, to_date: str, location_id: int):
     try:
         sql = """
-            SELECT * 
-            FROM 
+            SELECT *
+            FROM
                 appointment_with_patient
             WHERE
                 scheduled_dt between %s AND %s
@@ -307,7 +307,7 @@ def get_appointment_count_by_phone_dob(phone_number, dob):
     try:
         if dob:
             sql = """
-            SELECT 
+            SELECT
                 COUNT(*) AS count
             FROM
                 appointments a
@@ -321,7 +321,7 @@ def get_appointment_count_by_phone_dob(phone_number, dob):
 
         else:
             sql = """
-            SELECT 
+            SELECT
                 COUNT(*) AS count
             FROM
                 appointments a
@@ -438,7 +438,7 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
                 """.format(__get_mapped_dt_field(status))
 
             vals = (status, appointment.id)
-        
+
         usuccess = exec_update(sql, vals)
         __create_provider_appointment_activity(user, appointment.id, whoami(), status, vial_id=vial_id, workstation_id=workstation_id)
 
@@ -461,16 +461,16 @@ def __create_provider_appointment_activity(user, appointment_id, function, statu
     try:
         if user:
             user_ext_id = user['sub']
-            sql = """INSERT INTO provider_appointment_activity_history 
+            sql = """INSERT INTO provider_appointment_activity_history
                         (
-                            appointment_id, 
-                            provider_ext_id, 
+                            appointment_id,
+                            provider_ext_id,
                             function,
                             status,
                             vial_id,
                             workstation_id
                         )
-                    VALUES 
+                    VALUES
                         (%s, %s, %s, %s, %s, %s)"""
 
             vals = (appointment_id, user_ext_id, function, status, vial_id, workstation_id)
@@ -562,8 +562,15 @@ def __map_row_to_appointment(row: dict) -> GgtAppointment:
     return a
 
 
-def __add_services_to_appointment(appointment_id: int, appointment_req: GgtBooking) -> bool:
+def __add_services_to_appointment(appointment_id: int, appointment_req: GgtBooking, ggv_slot=None) -> bool:
     try:
+        if appointment_req.service_covid19_vaccine:
+            vaccine_service_code = __get_vaccine_service_code_for_location(
+                appointment_req.location_id,
+                ggv_slot=ggv_slot
+            )
+            add_service_to_appointment(appointment_id, vaccine_service_code)
+
         if appointment_req.service_covid19_test:
             add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST)
 
@@ -583,3 +590,36 @@ def __add_services_to_appointment(appointment_id: int, appointment_req: GgtBooki
             error=err
         )
     return False
+
+
+def __get_vaccine_service_code_for_location(location_id, ggv_slot):
+    try:
+        sql = """
+            SELECT
+                sc.service_code as service_code
+            FROM
+                ggt_prod.services_to_locations_mapping sl
+                    LEFT JOIN
+                ggt_prod.services_catalog sc ON (sl.service_id = sc.id)
+            WHERE
+                location_id = %s
+                    AND sc.service_code like '%VACCINE%{}'
+        """.format(ggv_slot)
+
+        vals = (location_id,)
+        row = replica_read_row(sql, vals)
+
+        if not row:
+            raise ValueError('No Service Info')
+
+        return row['service_code']
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            appointment_id=appointment_id,
+            function=whoami(),
+            error=err
+        )
+
+    return None

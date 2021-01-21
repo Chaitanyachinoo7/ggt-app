@@ -492,6 +492,35 @@ def get_available_times(location_id, date):
         return None
 
 
+def get_second_shot_available_times(location_id, date):
+    try:
+        sql = """
+            SELECT DISTINCT 
+                time(start_dt) as start_time, 
+                id, 
+                start_dt, 
+                end_dt, 
+                status 
+            FROM 
+                schedules 
+            WHERE 
+                location_id = {} 
+                AND status = 'available' 
+                AND date(start_dt) IN {}
+                AND start_dt >= CONVERT_TZ(NOW(), '+00:00', '-06:00')
+            ORDER BY id
+        """.format(location_id, date)
+        return replica_read_rows(sql)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 def get_slot_information(slot_id):
     try:
         sql = """
