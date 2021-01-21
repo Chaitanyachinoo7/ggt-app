@@ -184,6 +184,23 @@ async def api_lookup_appointments_by_phone(phone_number: str, dob: str):
     )
 
 
+@router.get("/get_appointments_by_phone/{phone_number}/{dob}")
+async def api_get_appointments_by_phone(phone_number: str, dob: str):
+    return site_admin_general_search(
+        '',
+        '',
+        '',
+        dob,
+        phone_number,
+        '',
+        '',
+        '',
+        '',
+        '',
+        group_vax_results=True
+    )
+
+
 @router.post("/insurance_eligibility")
 def api_insurance_eligibility(req: InsuranceEligibilityRequest):
     return insurance_eligibility(req)

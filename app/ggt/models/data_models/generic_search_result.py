@@ -197,7 +197,7 @@ def find_patients(first_name='', middle_name='', last_name='', dob='', phone_num
         limit = 250
 
         sql = """
-        SELECT 
+        SELECT
             p.id AS patient_id,
             p.first_name AS first_name,
             p.middle_name AS middle_name,
@@ -233,7 +233,7 @@ def find_patients(first_name='', middle_name='', last_name='', dob='', phone_num
             p.phone_number_verified AS phone_number_verified,
             p.email AS email,
             p.email_verified AS email_verified,
-            p.create_dt AS register_dt, 
+            p.create_dt AS register_dt,
             p.token AS token,
             q.symptom_fever AS symptom_fever,
             q.symptom_shortness_breath AS symptom_shortness_breath,
@@ -310,7 +310,9 @@ def find_patients(first_name='', middle_name='', last_name='', dob='', phone_num
             i.insurance_carrier AS insurance_carrier,
             i.group_number AS insurance_group_number,
             i.member_number AS insurance_member_number,
-            i.validated AS insurance_validated
+            i.validated AS insurance_validated,
+            sc.service_code AS service_code,
+            sc.service_name AS service_name
         FROM
             patients p
                 LEFT JOIN
@@ -327,8 +329,12 @@ def find_patients(first_name='', middle_name='', last_name='', dob='', phone_num
             patient_consultations  c ON a.id = c.appointment_id
                 LEFT JOIN
             ggt_users u ON u.external_id = c.provider_external_id
-                LEFT JOIN 
+                LEFT JOIN
             insurance_info i ON p.id = i.patient_id
+                LEFT JOIN
+            appointment_services aps ON a.id = aps.appointment_id
+                LEFT JOIN
+            services_catalog sc ON sc.id = aps.service_id
         WHERE 1=1
             {}
         order by {} {}
