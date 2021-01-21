@@ -123,7 +123,7 @@ def get_all_available_locations_and_times(group_code):
     )
 
 
-@cached(cache=TTLCache(maxsize=1024, ttl=60))
+# @cached(cache=TTLCache(maxsize=1024, ttl=60))
 def get_schedule_times_available(
     location_id,
     date=date.today().strftime("%Y-%m-%d")
@@ -203,7 +203,7 @@ def ggv_finalize_registration(finalize_registration_request):
 
     if finalize_registration_request.ggd_waitlist:
         bp_add_to_ggd_waiting_queue(patient_id)
-    if (appointment_1 and appointment_2) :
+    if appointment_1 and appointment_2:
         return {
             "appointment_id_1": appointment_1.id,
             "date_1": appointment_1.date_text,
