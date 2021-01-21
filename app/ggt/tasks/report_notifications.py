@@ -34,19 +34,19 @@ def task_schedule_result_notifications_and_followups():
     print('schedule_result_notifications_using_email')
     schedule_result_notifications_using_email()
 
-    #create_rejects_notification_campaign()
+    create_rejects_notification_campaign()
     print('schedule_rejects_notifications_using_sms')
-    #schedule_rejects_notifications_using_sms()
+    schedule_rejects_notifications_using_sms()
     print('schedule_rejects_notifications_using_email')
-    #schedule_rejects_notifications_using_email()
+    schedule_rejects_notifications_using_email()
 
     
     print('create_96_hour_delayed_result_notification_campaign')
-    #create_96_hour_delayed_result_notification_campaign()
+    create_96_hour_delayed_result_notification_campaign()
     print('schedule_96_hour_delayed_result_notifications_using_sms')
-    #schedule_96_hour_delayed_result_notifications_using_sms()
+    schedule_96_hour_delayed_result_notifications_using_sms()
     print('schedule_96_hour_delayed_result_notifications_using_email')
-    #schedule_96_hour_delayed_result_notifications_using_email()
+    schedule_96_hour_delayed_result_notifications_using_email()
     
 
     print('schedule_positive_followups')
@@ -204,7 +204,9 @@ def schedule_rejects_notifications_using_email():
     """
     row = replica_read_row(sql,)
     total_count = row['total']
+    print('{} to be sent'.format(total_count))
     limit = math.ceil(total_count/batch_size)
+    print('sending in {} batches of {}'.format(limit, batch_size))
 
     for _ in range(limit):
         __batch_schedule_rejects_notifications_using_email(batch_size)
@@ -229,8 +231,14 @@ def __batch_schedule_rejects_notifications_using_email(batch_size=100):
         email = formatted_rejects_email_message(row)
 
         data.append(
-            (email['from_email'], email['from_name'],
-             email['to_email'], email['subject'], email['html_content'])
+            (
+                email['from_email'], 
+                email['from_name'],
+                email['to_email'], 
+                email['subject'], 
+                email['html_content'],
+                row['priority']
+             )
         )
         test_id_list.append(
             test_id
@@ -365,7 +373,9 @@ def schedule_result_notifications_using_email():
     """
     row = replica_read_row(sql,)
     total_count = row['total']
+    print('{} to be sent'.format(total_count))
     limit = math.ceil(total_count/batch_size)
+    print('sending in {} batches of {}'.format(limit, batch_size))
 
     for _ in range(limit):
         __batch_schedule_result_notifications_using_email(batch_size)
@@ -390,8 +400,14 @@ def __batch_schedule_result_notifications_using_email(batch_size=100):
         email = formatted_result_email_message(row)
 
         data.append(
-            (email['from_email'], email['from_name'],
-             email['to_email'], email['subject'], email['html_content'])
+            (
+                email['from_email'], 
+                email['from_name'],
+                email['to_email'], 
+                email['subject'], 
+                email['html_content'],
+                row['priority']
+            )
         )
         test_id_list.append(
             test_id
@@ -546,7 +562,9 @@ def schedule_96_hour_delayed_result_notifications_using_email():
     """
     row = replica_read_row(sql,)
     total_count = row['total']
+    print('{} to be sent'.format(total_count))
     limit = math.ceil(total_count/batch_size)
+    print('sending in {} batches of {}'.format(limit, batch_size))
 
     for _ in range(limit):
         __batch_schedule_96_hour_delayed_result_notifications_using_email(
@@ -572,8 +590,14 @@ def __batch_schedule_96_hour_delayed_result_notifications_using_email(batch_size
         email = formatted_96_hour_delayed_result_email_message(row)
 
         data.append(
-            (email['from_email'], email['from_name'],
-             email['to_email'], email['subject'], email['html_content'])
+            (
+                email['from_email'], 
+                email['from_name'],
+                email['to_email'], 
+                email['subject'], 
+                email['html_content'],
+                row['priority']
+            )
         )
         test_id_list.append(
             test_id
@@ -706,6 +730,9 @@ def batch_update_notification_queue_status_for_email(test_id_list):
 
 
 def update_notification_queue_status_to_pending(test_id):
+    if len(test_id_list) == 0:
+        return
+        
     try:
         sql = """
             UPDATE result_notification_campaigns
@@ -722,6 +749,9 @@ def update_notification_queue_status_to_pending(test_id):
 
 
 def batch_enqueue_sms_notifications(data):
+    if len(data) == 0:
+        return
+
     try:
         sql = """
             INSERT INTO sms_notification_queue
@@ -736,6 +766,9 @@ def batch_enqueue_sms_notifications(data):
 
 
 def batch_enqueue_email_notifications(data):
+    if len(data) == 0:
+        return
+
     try:
         sql = """
             INSERT INTO email_notification_queue
@@ -752,6 +785,9 @@ def batch_enqueue_email_notifications(data):
 
 
 def batch_update_notification_queue_status_to_pending(test_id_list):
+    if len(test_id_list) == 0:
+        return
+
     sql = """
         UPDATE result_notification_campaigns
         SET

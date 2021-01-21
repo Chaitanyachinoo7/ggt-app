@@ -11,7 +11,8 @@ from ggt.models.data_models.data_types import (
     LookupAppointmentRequest,
     VerifyExistingPatientRequest,
     PermissionsEnum as p,
-    InsuranceEligibilityRequest
+    InsuranceEligibilityRequest,
+    InsurancePayersListRequest, SecondAvailableDate, FinalizeGGVRegistrationRequest
 )
 
 from ggt.models.workflow_models.patient_portal_flow import (
@@ -31,7 +32,8 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
     lookup_appointment,
     lookup_test_result,
     get_all_available_locations_and_times,
-    insurance_eligibility, get_ggv_schedule_locations_available
+    insurance_eligibility, get_ggv_schedule_locations_available,
+    insurance_search_payer, get_ggv_screen_flow_seq, get_second_shot_available_times, ggv_finalize_registration
 )
 
 # TODO: [GGT-193] Move this to a dedicated API
@@ -46,6 +48,11 @@ router = APIRouter()
 @router.get("/get_screen_flow_seq/{group_code}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_get_screen_flow_seq(group_code: str):
     return get_screen_flow_seq(group_code)
+
+
+@router.get("/ggv/get_screen_flow_seq/{group_code}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_ggv_get_screen_flow_seq(group_code: str):
+    return get_ggv_screen_flow_seq(group_code)
 
 
 @router.post("/verify_phone", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
@@ -95,6 +102,11 @@ async def api_get_available_times(location_id: str, date: str):
     )
 
 
+@router.post("/ggv/get_second_shot_available_times", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_get_second_shot_available_times(req: SecondAvailableDate):
+    return get_second_shot_available_times(req)
+
+
 @router.get("/get_available_times/{location_id}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_get_available_times_for_today(location_id: str):
     return get_schedule_times_available(location_id)
@@ -109,6 +121,11 @@ async def api_get_all_available_locations_and_times(group_code: str = None):
 @router.post("/finalize_registration", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_finalize_registration(finalize_registration_request: FinalizeRegistrationRequest):
     return finalize_registration(finalize_registration_request)
+
+
+@router.post("/ggv/finalize_registration", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_ggv_finalize_registration(finalize_registration_request: FinalizeGGVRegistrationRequest):
+    return ggv_finalize_registration(finalize_registration_request)
 
 
 @router.post("/finalize_payment", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
@@ -147,12 +164,12 @@ async def api_verify_existing_patient(phone_number: str):
         None
     )
 
-
+#TODO: Calling this API is dangerous, create dedicated much more restricted API that is geared towards a single user.
 @router.get("/lookup_appointments_by_phone/{phone_number}/{dob}")
 async def api_lookup_appointments_by_phone(phone_number: str, dob: str):
-    return {
-        'status': 'failed'
-    }
+    # return {
+    #     'status': 'failed'
+    # }
     return site_admin_general_search(
         '',
         '',
@@ -170,3 +187,7 @@ async def api_lookup_appointments_by_phone(phone_number: str, dob: str):
 @router.post("/insurance_eligibility")
 def api_insurance_eligibility(req: InsuranceEligibilityRequest):
     return insurance_eligibility(req)
+
+@router.post("/search_payers_list")
+def api_insurance_search_payer(req: InsurancePayersListRequest):
+    return insurance_search_payer(req)

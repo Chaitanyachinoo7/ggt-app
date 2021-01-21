@@ -393,12 +393,14 @@ def create_outbound_files(orders):
                 hl7file.write(_str)
             '''
             
-            if order['sample_collection_location_id'] == 2415:
-                write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8','ignore'), 'mawdpath')
-            else:
+            if order['lab_id'] == 1:
                 write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8','ignore'), 'healthtrackrx_merth')
-
-            processed_orders.append(order)
+                processed_orders.append(order)
+            elif order['lab_id'] == 2 or str(order['sample_code']).startswith('MAWD'):
+                write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8','ignore'), 'mawdpath')
+                processed_orders.append(order)
+            else:
+                print('skipping {}: {}'.format(order['id'], order['lab_id']))
 
         except Exception as err:
                 print(err)
@@ -520,7 +522,8 @@ def get_orders_ready_to_transmit(limit=100):
             'Unknown' AS is_congregate_resident,
             'Unknown' AS is_pregnant,
             l.st as test_location_st,
-            t.sample_collection_location_id
+            t.sample_collection_location_id,
+            t.lab_id
         FROM
             (((test_samples t
             JOIN patients p ON ((t.patient_id = p.id)))

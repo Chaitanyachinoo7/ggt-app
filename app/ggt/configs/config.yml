@@ -35,10 +35,12 @@ docs:
   redoc_url: /redoc
 
 aws:
-  region: us-east-1
+  region: us-east-2
   access_key_id: AKIAR7AATMMMGKHVWYP6
   secret_access_key: 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
   sqs_print_queue_base_url: https://sqs.us-east-1.amazonaws.com/135292740376/ggt-print-queue
+  lab_reports_bucket_name: ggt-labreports
+  default_link_expiration_time_limit: 300
 
 gcp:
   project_id: ggt-pfe-prod
@@ -133,12 +135,18 @@ vendors:
       local_outbound_file_path: /Users/suresh/ggt-tasks/outbound
       local_insurance_card_file_path: /Users/suresh/ggt-tasks/insurance_images
 
+  mawdpath:
+    inbound:
+      remote_downloads_folder: /ggt-sftp/mawdpath/results
+      remote_processed_orders_path: /ggt-sftp/mawdpath/results/archived
+    outbound:
+      outbound_file_prefix: ggt-outbound-mawd
+
   wellpay:
     endpoint: https://api.getwellpay.com/api/public/v1
     auth_user: suresh@wellpay.com
     auth_password: y7f{=/$>VfRF$vqE
     npi: 1780944496
-
   kdhe:
     hostname: sl64.endpoint.com
     username: sftpwellhealth
