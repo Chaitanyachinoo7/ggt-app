@@ -93,8 +93,8 @@ def make_api_request(order):
             }
         },
         "labAccount": {
-            "client": "CRL",
-            "region": "EMCT",
+            "client": "ZSK",
+            "region": "EMCW",
             "ref1": "",
             "ref2": ""
         },
@@ -114,6 +114,10 @@ def make_api_request(order):
             },
             "ethnicity": order['ethnicity'],
             "race": order['race'],
+            "guardianfirstName": "ON FILE WITH",
+            "guardianlastName": "WELLHEALTH",
+            "guardianPhone": "8778378461",
+            "guardianRelationship": "Care giver"
         } 
     }
 
@@ -157,11 +161,22 @@ def make_api_request(order):
 
 
 def invoke_post(payload):
+    #stage
+    '''
     auth_user = 'WELLHEALTH'
     auth_password = '38cvZtg4v8'
     
     base_url = 'https://api-stage.crlclear.com'
     resource_path = '/order'
+    '''
+
+    #prod
+    auth_user = 'WELLHEALTH'
+    auth_password = '38cvZtg4v8'
+    
+    base_url = 'https://api.crlclear.com'
+    resource_path = '/order'
+
 
     try:
         url = '{}{}'.format(base_url, resource_path)
@@ -185,6 +200,7 @@ def invoke_post(payload):
             function=whoami(),
             error=err
         )
+        raise ValueError('API submission failed')
 
 
 

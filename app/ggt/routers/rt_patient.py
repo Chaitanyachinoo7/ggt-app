@@ -149,7 +149,7 @@ async def api_verify_existing_patient(phone_number: str):
         None
     )
 
-
+#TODO: Calling this API is dangerous, create dedicated much more restricted API that is geared towards a single user.
 @router.get("/lookup_appointments_by_phone/{phone_number}/{dob}")
 async def api_lookup_appointments_by_phone(phone_number: str, dob: str):
     return {

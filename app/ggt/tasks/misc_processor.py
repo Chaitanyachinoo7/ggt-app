@@ -165,14 +165,14 @@ def process_email_notifications():
 def formatted_email_message(row):
     from_email = cfg('notifications.from_email')
     from_name = cfg('notifications.from_name')
-    subject = "IMPORTANT: {}, Your Covid-19 Testing location has closed due to inclement weather".format(row['first_name'])
+    subject = "IMPORTANT: {}, Important information regarding Covid-19 Testing".format(row['first_name'])
     #subject = "IMPORTANT: {}, Your Covid-19 Testing hours have changed".format(row['first_name'])
 
     template_vars = {
         "first_name": row['first_name']
     }
 
-    template_name = 'GGT-14-APPOINTMENT-WEATHER-CLOSING-EMAIL.html'
+    template_name = 'GGT-18-SITE-CLOSING-EMAIL.html'
     #template_name = 'GGT-9-APPOINTMENT-DELAYED-EMAIL.html'
     html_content = render_template(template_name, **template_vars)
 
@@ -405,10 +405,10 @@ def get_appointments():
             patients p ON a.patient_id = p.id
         WHERE
             location_id IN (
-                274,276,2485,360,361,399,366,367,367,369,370,371,372,373,2385,2414,2415, 2416, 2417, 2419, 2420, 2421, 2422, 2423, 2424, 2446, 2448, 2447, 2463
+                382
             )
-            AND scheduled_dt > '2021-01-15 00:00:00'
-            AND scheduled_dt < '2021-01-16 00:00:00'
+            AND scheduled_dt > '2021-01-18 00:00:00'
+            AND scheduled_dt < '2021-01-22 00:00:00'
             AND status = 'scheduled'
         """
 
@@ -419,7 +419,7 @@ def get_appointments():
 
 
 def prepare_sms_text(appointment):
-    return """Hi {}, due to inclement weather, the location where you have registered for your COVID-19 test will be CLOSED. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to register for a new appointment.
+    return """Hi {}, the testing location where you have registered will be closed on January 18th, 20th, and 21st. We apologize for the inconvenience this may cause. Please visit GoGetTested.com/Kansas to register for a new appointment.
     """.format(appointment["first_name"])
 
     #return """Hi {}, due to inclement weather, the location where you have registered for your COVID-19 test will be CLOSED for the remainder of the day. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to register for a new appointment.

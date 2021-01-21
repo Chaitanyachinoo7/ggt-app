@@ -39,7 +39,9 @@ aws:
   access_key_id: AKIAR7AATMMMGKHVWYP6
   secret_access_key: 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
   sqs_print_queue_base_url: https://sqs.us-east-1.amazonaws.com/135292740376/ggt-print-queue
-
+  lab_reports_bucket_name: ggt-labreports
+  default_link_expiration_time_limit: 300
+  
 gcp:
   project_id: ggt-pfe-dev
   service_account_file: gcp-service-account.json
