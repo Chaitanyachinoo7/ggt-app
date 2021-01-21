@@ -730,6 +730,9 @@ def batch_update_notification_queue_status_for_email(test_id_list):
 
 
 def update_notification_queue_status_to_pending(test_id):
+    if len(test_id_list) == 0:
+        return
+        
     try:
         sql = """
             UPDATE result_notification_campaigns
@@ -746,6 +749,9 @@ def update_notification_queue_status_to_pending(test_id):
 
 
 def batch_enqueue_sms_notifications(data):
+    if len(data) == 0:
+        return
+
     try:
         sql = """
             INSERT INTO sms_notification_queue
@@ -760,6 +766,9 @@ def batch_enqueue_sms_notifications(data):
 
 
 def batch_enqueue_email_notifications(data):
+    if len(data) == 0:
+        return
+
     try:
         sql = """
             INSERT INTO email_notification_queue
@@ -776,6 +785,9 @@ def batch_enqueue_email_notifications(data):
 
 
 def batch_update_notification_queue_status_to_pending(test_id_list):
+    if len(test_id_list) == 0:
+        return
+
     sql = """
         UPDATE result_notification_campaigns
         SET

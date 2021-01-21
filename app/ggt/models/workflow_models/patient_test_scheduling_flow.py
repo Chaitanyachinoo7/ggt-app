@@ -203,7 +203,7 @@ def ggv_finalize_registration(finalize_registration_request):
 
     if finalize_registration_request.ggd_waitlist:
         bp_add_to_ggd_waiting_queue(patient_id)
-    if (appointment_1 and appointment_2) :
+    if appointment_1 and appointment_2:
         return {
             "appointment_id_1": appointment_1.id,
             "date_1": appointment_1.date_text,
