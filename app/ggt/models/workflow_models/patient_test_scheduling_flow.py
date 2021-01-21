@@ -123,7 +123,7 @@ def get_all_available_locations_and_times(group_code):
     )
 
 
-# @cached(cache=TTLCache(maxsize=1024, ttl=60))
+@cached(cache=TTLCache(maxsize=1024, ttl=60))
 def get_schedule_times_available(
     location_id,
     date=date.today().strftime("%Y-%m-%d")

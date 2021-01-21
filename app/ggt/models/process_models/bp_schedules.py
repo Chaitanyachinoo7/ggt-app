@@ -263,39 +263,39 @@ def bp_ggv_get_schedule_locations_available_near_lat_lng(group_code, lat, lng, r
 
 
 def bp_get_schedule_times_available(location_id, date):
-    try:
-        request = {
-            "date": date,
-            "id": location_id,
-            "r_type": 1
-        }
-
-        r = json.dumps(request)
-        msg_id = push_sqs_message('https://sqs.us-east-2.amazonaws.com/135292740376/available_time_requests', r)
-        if msg_id:
-            start_time = datetime.now()
-            while True:
-                res = read_from_dynamo('available_slots', msg_id)
-                if "Item" in res.keys():
-                    temp = res['Item']
-                    for r in temp['available_dates']:
-                        r['value'] = int(r['value'])
-                    return temp
-                else:
-                    if (datetime.now() - start_time).total_seconds() > 100:
-                        return None
-    # rows = get_available_times(location_id, date)
-    # available_times = []
     # try:
-    #     for row in rows:
-    #         d = datetime.strptime(str(row['start_time']), "%H:%M:%S")
+    #     request = {
+    #         "date": date,
+    #         "id": location_id,
+    #         "r_type": 1
+    #     }
     #
-    #         available_times.append(
-    #             {
-    #                 "label": d.strftime("%I:%M %p"),
-    #                 "value": row['id']
-    #             }
-    #         )
+    #     r = json.dumps(request)
+    #     msg_id = push_sqs_message('https://sqs.us-east-2.amazonaws.com/135292740376/available_time_requests', r)
+    #     if msg_id:
+    #         start_time = datetime.now()
+    #         while True:
+    #             res = read_from_dynamo('available_slots', msg_id)
+    #             if "Item" in res.keys():
+    #                 temp = res['Item']
+    #                 for r in temp['available_dates']:
+    #                     r['value'] = int(r['value'])
+    #                 return temp
+    #             else:
+    #                 if (datetime.now() - start_time).total_seconds() > 100:
+    #                     return None
+    rows = get_available_times(location_id, date)
+    available_times = []
+    try:
+        for row in rows:
+            d = datetime.strptime(str(row['start_time']), "%H:%M:%S")
+
+            available_times.append(
+                {
+                    "label": d.strftime("%I:%M %p"),
+                    "value": row['id']
+                }
+            )
 
     except Exception as err:
         log_generic(
@@ -307,7 +307,7 @@ def bp_get_schedule_times_available(location_id, date):
         )
 
     return {
-        "available_times": []
+        "available_times": available_times
     }
 
 
