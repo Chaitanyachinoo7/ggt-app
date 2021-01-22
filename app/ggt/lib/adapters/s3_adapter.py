@@ -1,7 +1,7 @@
 import boto3
 
 from ggt.lib.utils import (
-    get_config_val,
+    get_config_val as cfg,
     log_generic,
     whoami
 )
@@ -16,13 +16,16 @@ from ggt.lib.constants import (
 )
 
 
+default_link_expiration_time_limit = cfg('aws.default_link_expiration_time_limit')
+lab_reports_bucket_name = cfg('aws.lab_reports_bucket_name')
+
 def __boto_connect_client(service):
     try:
         boto_client = boto3.client(
             service,
-            aws_access_key_id=get_config_val('aws.access_key_id'),
-            aws_secret_access_key=get_config_val('aws.secret_access_key'),
-            region_name=get_config_val('aws.region')
+            aws_access_key_id=cfg('aws.access_key_id'),
+            aws_secret_access_key=cfg('aws.secret_access_key'),
+            region_name=cfg('aws.region')
         )
         return boto_client
 
@@ -38,9 +41,9 @@ def __boto_connect_client(service):
 def __boto_connect_session():
     try:
         boto_session = boto3.Session(
-            aws_access_key_id=get_config_val('aws.access_key_id'),
-            aws_secret_access_key=get_config_val('aws.secret_access_key'),
-            region_name=get_config_val('aws.region')
+            aws_access_key_id=cfg('aws.access_key_id'),
+            aws_secret_access_key=cfg('aws.secret_access_key'),
+            region_name=cfg('aws.region')
         )
         return boto_session
 
@@ -58,8 +61,8 @@ def __boto_connect_resource(service, region_name='us-east-1'):
         boto_resource = boto3.resource(
             service_name=service,
             region_name=region_name,
-            aws_access_key_id=get_config_val('aws.access_key_id'),
-            aws_secret_access_key=get_config_val('aws.secret_access_key'),
+            aws_access_key_id=cfg('aws.access_key_id'),
+            aws_secret_access_key=cfg('aws.secret_access_key'),
         )
         return boto_resource
 
@@ -113,31 +116,21 @@ def write_text_file(bucket, filename, body):
     return False
 
 
-def archive_ftp_s3_file(file_name):
-    bucket_name = 'ggt-sftp-archive'
-    try:
-        resp = __boto_connect_client('s3').upload_file(file_name, bucket_name, file_name.replace('/Users/suresh/ggt-tasks/downloads/',''))
-        if resp:
-            return True
-        else:
-            return False
-
-    except Exception as err:
-        log_generic(
-            type=ERROR,
-            function=whoami(),
-            error=err
-        )
-
-
-def rename_s3_filrename_s3_filee(source, destination, bucketName="ggt-sftp"):
+def move_file(source, destination, bucketName):
     try:
         print(source, destination)
         copy = __boto_connect_client('s3').copy_object(
-            Bucket=bucketName, CopySource=source, Key=destination, MetadataDirective="COPY")
+            Bucket=bucketName, 
+            CopySource=source, 
+            Key=destination, 
+            MetadataDirective="COPY"
+        )
         delete = __boto_connect_client('s3').delete_object(
-            Bucket=bucketName, Key=source.replace(bucketName+"/", ""))
+            Bucket=bucketName, 
+            Key=source.replace(bucketName+"/", "")
+        )
         return True
+
     except Exception as err:
         log_generic(
             type=ERROR,
@@ -147,18 +140,22 @@ def rename_s3_filrename_s3_filee(source, destination, bucketName="ggt-sftp"):
         return False
 
 
-def generate_s3_signed_url(filename, bucketName="ggt-sftp"):
+def get_temp_lab_report_url(filename: str):
     try:
         url = __boto_connect_client('s3').generate_presigned_url(
+            'get_object',
             Params={
-                'Bucket': bucketName,
+                'Bucket': lab_reports_bucket_name,
                 'Key': filename
-            }, ClientMethod='get_object')
-        return {"url": url}
+            },
+            ExpiresIn=default_link_expiration_time_limit
+        )
+        return url
+
     except Exception as err:
         log_generic(
             type=ERROR,
             function=whoami(),
             error=err
         )
-        return False
+        return None

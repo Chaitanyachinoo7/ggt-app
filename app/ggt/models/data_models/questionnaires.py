@@ -73,9 +73,16 @@ def create_patient_questionnaire(booking_req):
                 flu_screen_severely_ill,
                 flu_screen_guillain_barre_syndrome,
                 flu_screen_life_threatening_reaction,
-                flu_screen_egg_allergy
+                flu_screen_egg_allergy,
+                symptoms_vax,
+                pregnancy,
+                allergic_reaction,
+                covid19_confirmed_case,
+                egg_allergy,
+                guillian_barre
             )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 
+        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,  %s, %s, %s, %s, %s, %s)
         """
 
         vals = (
@@ -119,7 +126,15 @@ def create_patient_questionnaire(booking_req):
             booking_req.flu_screen_severely_ill,
             booking_req.flu_screen_guillain_barre_syndrome,
             booking_req.flu_screen_life_threatening_reaction,
-            booking_req.flu_screen_egg_allergy
+            booking_req.flu_screen_egg_allergy,
+
+            booking_req.symptomsVax,
+            booking_req.covid19ConfirmedCase,
+            booking_req.pregnancy,
+            booking_req.allergicReaction,
+            booking_req.eggAllergy,
+            booking_req.guillianBarre
+
         )
 
         questionnaire_id = exec_insert(sql, vals)

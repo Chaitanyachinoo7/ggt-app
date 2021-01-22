@@ -1,5 +1,8 @@
+import json
 from datetime import date, datetime, timedelta
 
+from ggt.lib.adapters.dynamo_adapter import read_from_dynamo
+from ggt.lib.adapters.sqs_adapter import push_sqs_message
 from ggt.lib.utils import (
     get_config_val,
     log_generic,
@@ -23,7 +26,7 @@ from ggt.models.data_models.schedules import (
     delete_schedule_generation_rule,
     get_all_available_dtl,
     trim_schedule_generation_rules_start_dt,
-    get_slots_matching_dt_list, ggv_get_schedule_locations_available_near_lat_lng
+    get_slots_matching_dt_list, ggv_get_schedule_locations_available_near_lat_lng, get_second_shot_available_times
 )
 
 from ggt.models.data_models.locations import (
@@ -34,6 +37,10 @@ from ggt.models.data_models.locations import (
 from ggt.lib.maps import (
     get_map_thumbnail_url
 )
+
+from cachetools import cached, LRUCache, TTLCache
+
+
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
@@ -75,7 +82,8 @@ def bp_get_schedule_dates_available(group_code):
         )
 
 
-def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: float, radius: int = None, date_str: str = None, group_code: str = None):
+def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: float, radius: int = None, date_str: str = None,
+                                                     group_code: str = None):
     if not radius:
         radius = 100
 
@@ -115,9 +123,10 @@ def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: float, rad
                     'collect_insurance_info': dtl.location.collect_insurance_info,
                     'allow_insurance_skip': dtl.location.allow_insurance_skip,
                     'collect_upfront_payment': dtl.location.collect_upfront_payment,
-                    'next_test_date': dtl.first_date_time_available.strftime("%a, %-d %b %Y @ %-I:%M %p") if dtl.first_date_time_available else None,
+                    'next_test_date': dtl.first_date_time_available.strftime(
+                        "%a, %-d %b %Y @ %-I:%M %p") if dtl.first_date_time_available else None,
                     'wait_time_mins': '< 10m',
-                    'result_time_hours': '24~72h', #'{}h'.format(dtl.average_processing_time),
+                    'result_time_hours': '24~72h',  # '{}h'.format(dtl.average_processing_time),
                     'slots_available': dtl.slot_count,
                     'type': 'public',
                     'services_available': dtl.location.services_available,
@@ -138,7 +147,7 @@ def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: float, rad
             type=c.INFO,
             date_str=date_str,
             group_code=group_code,
-            #available_locations=available_locations,
+            # available_locations=available_locations,
             function=whoami()
         )
 
@@ -147,7 +156,7 @@ def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: float, rad
             type=c.ERROR,
             group_code=group_code,
             date_str=date_str,
-            #dtl_list=dtl_list,
+            # dtl_list=dtl_list,
             function=whoami(),
             error=err
         )
@@ -195,8 +204,8 @@ def bp_get_schedule_locations_available(date, group_code=c.DEFAULT_GROUP_CODE):
                     'collect_upfront_payment': dtl.location.collect_upfront_payment,
                     'next_test_date': dtl.first_date_time_available.strftime("%a, %-d %b %Y @ %-I:%M %p"),
                     'wait_time_mins': '< 10m',
-                    'result_time_hours': '24~72h', #'{}h'.format(dtl.average_processing_time),
-                    'slots_available': dtl.slot_count*8,
+                    'result_time_hours': '24~72h',  # '{}h'.format(dtl.average_processing_time),
+                    'slots_available': dtl.slot_count * 8,
                     'type': 'public',
                     'map_thumbnail': map_thumbnail,
                     'services_available': dtl.location.services_available,
@@ -209,7 +218,7 @@ def bp_get_schedule_locations_available(date, group_code=c.DEFAULT_GROUP_CODE):
             type=c.INFO,
             date=date,
             group_code=group_code,
-            #available_locations=available_locations,
+            # available_locations=available_locations,
             function=whoami()
         )
 
@@ -254,6 +263,27 @@ def bp_ggv_get_schedule_locations_available_near_lat_lng(group_code, lat, lng, r
 
 
 def bp_get_schedule_times_available(location_id, date):
+    # try:
+    #     request = {
+    #         "date": date,
+    #         "id": location_id,
+    #         "r_type": 1
+    #     }
+    #
+    #     r = json.dumps(request)
+    #     msg_id = push_sqs_message('https://sqs.us-east-2.amazonaws.com/135292740376/available_time_requests', r)
+    #     if msg_id:
+    #         start_time = datetime.now()
+    #         while True:
+    #             res = read_from_dynamo('available_slots', msg_id)
+    #             if "Item" in res.keys():
+    #                 temp = res['Item']
+    #                 for r in temp['available_dates']:
+    #                     r['value'] = int(r['value'])
+    #                 return temp
+    #             else:
+    #                 if (datetime.now() - start_time).total_seconds() > 100:
+    #                     return None
     rows = get_available_times(location_id, date)
     available_times = []
     try:
@@ -272,13 +302,82 @@ def bp_get_schedule_times_available(location_id, date):
             type=c.ERROR,
             location_id=location_id,
             date=date,
-            rows=rows,
             function=whoami(),
             error=err
         )
 
     return {
         "available_times": available_times
+    }
+
+
+# @cached(cache=TTLCache(maxsize=1024, ttl=60))
+def bp_get_second_shot_available_times(location_id, date):
+    try:
+        request = {
+            "date": date,
+            "id": location_id,
+            "r_type": 2
+        }
+
+        r = json.dumps(request)
+        msg_id = push_sqs_message('https://sqs.us-east-2.amazonaws.com/135292740376/available_time_requests', r)
+        if msg_id:
+            start_time = datetime.now()
+            while True:
+                res = read_from_dynamo('available_slots', msg_id)
+                if "Item" in res.keys():
+                    temp = res['Item']
+                    for x in temp['available_dates']:
+                        for y in x['available_times']:
+                            y['value'] = int(y['value'])
+                    return temp
+                else:
+                    if (datetime.now() - start_time).total_seconds() > 100:
+                        return None
+    # rows = get_second_shot_available_times(location_id, date)
+    # dates = {}
+    # res = []
+    # try:
+    #     for row in rows:
+    #         d = datetime.strptime(str(row['start_time']), "%H:%M:%S")
+    #         day = str(datetime.strptime(str(row['start_dt'])[0:10], "%Y-%m-%d"))[0:10]
+    #
+    #         if day in dates.keys():
+    #             dates[day]['available_times'].append(
+    #                 {
+    #                     "label": d.strftime("%I:%M %p"),
+    #                     "value": row['id']
+    #                 }
+    #             )
+    #         else:
+    #             dates[day] = {
+    #                 "available_times": [
+    #                     {
+    #                         "label": d.strftime("%I:%M %p"),
+    #                         "value": row['id']
+    #                     }
+    #                 ]
+    #             }
+    #
+    #     for key in dates.keys():
+    #         res.append({
+    #             "date": key,
+    #             "available_times": dates[key]['available_times']
+    #         })
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            location_id=location_id,
+            date=date,
+            rows=rows,
+            function=whoami(),
+            error=err
+        )
+
+    return {
+        "available_date_times": res
     }
 
 
@@ -439,6 +538,7 @@ def bp_get_schedule_generation_rules(location_id):
 
     return False
 
+
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
@@ -470,7 +570,7 @@ def __process_schedule_rule(rule):
                     while day_curr_time <= day_end_dt:  # time loop
                         slot_increment = rule['slot_increment'] * 60
                         day_curr_appointment_end_time = day_curr_time + \
-                            timedelta(0, slot_increment)
+                                                        timedelta(0, slot_increment)
 
                         row = (
                             location_id,
@@ -600,10 +700,11 @@ def __map_dtl_list_to_available_locations(dtl_list):
                     'collect_insurance_info': dtl.location.collect_insurance_info,
                     'allow_insurance_skip': dtl.location.allow_insurance_skip,
                     'collect_upfront_payment': dtl.location.collect_upfront_payment,
-                    'next_test_date': dtl.first_date_time_available.strftime("%a, %-d %b %Y @ %-I:%M %p") if dtl.first_date_time_available else None,
+                    'next_test_date': dtl.first_date_time_available.strftime(
+                        "%a, %-d %b %Y @ %-I:%M %p") if dtl.first_date_time_available else None,
                     'wait_time_mins': '< 10m',
-                    'result_time_hours': '24~72h', #'{}h'.format(dtl.average_processing_time),
-                    'slots_available': dtl.slot_count*8,
+                    'result_time_hours': '24~72h',  # '{}h'.format(dtl.average_processing_time),
+                    'slots_available': dtl.slot_count * 8,
                     'type': 'public',
                     'map_thumbnail': map_thumbnail,
                     'services_available': dtl.location.services_available,

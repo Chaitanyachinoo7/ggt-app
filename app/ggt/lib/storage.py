@@ -6,12 +6,15 @@ from ggt.lib.adapters.google_adapter import (
     upload_insurance_card as __upload_insurance_card,
     upload_insurance_card_from_base64_string as __upload_insurance_card_from_base64_string,
     upload_to_all_inbound_files as __upload_to_all_inbound_files,
-    get_temp_lab_report_url as __get_temp_lab_report_url,
     get_temp_insurance_card_url as __get_temp_insurance_card_url,
     get_list_of_all_uploaded_lab_reports as __get_list_of_all_uploaded_lab_reports,
     get_list_of_all_uploaded_inbound_files as __get_list_of_all_uploaded_inbound_files,
     get_file_blob as __get_file_blob,
     upload_archived_notification_from_base64_string as __upload_archived_notification_from_base64_string
+)
+
+from ggt.lib.adapters.s3_adapter import (
+    get_temp_lab_report_url as __get_temp_lab_report_url
 )
 
 
