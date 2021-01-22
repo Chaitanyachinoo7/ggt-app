@@ -468,14 +468,14 @@ def process_pdf_results_for_lab_ait():
 
                     #Archive downloads from remote storage. This change propagates to local folders
                     if file_exists_in_files_in_remote_storage_cache(__destination_filename):
-                        filename = extract_filename(local_file_path)
+                        #filename = extract_filename(local_file_path)
                         #if move_file('ggt-sftp/healthtrackrx/Reports/{}'.format(filename), 'healthtrackrx/Reports/archived/{}'.format(filename), 'ggt-sftp'):
                         #    print_ok2('archived: {}                 '.format(filename))
                         #else:
                         #    print_error('Failed to archive: {}                 '.format(filename))
 
-                        shutil.move(local_file_path, '{}/archived/{}'.format(local_download_path, filename))
-                        #pass
+                        #shutil.move(local_file_path, '{}/archived/{}'.format(local_download_path, filename))
+                        pass
                     else:
                         if __order_number and __destination_filename:
                             upload_status = upload_lab_report(
