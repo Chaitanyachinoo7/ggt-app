@@ -37,11 +37,11 @@ import ggt.lib.constants as c
 
 session_id = generate_session_id()
 local_outbound_file_path = cfg(
-    'vendors.healthtrackrx_outbound.local_outbound_file_path')
+    'vendors.healthtrackrx.outbound.local_outbound_file_path')
 outbound_file_prefix = cfg(
-    'vendors.healthtrackrx_outbound.outbound_file_prefix')
+    'vendors.healthtrackrx.outbound.outbound_file_prefix')
 local_insurance_card_file_path = cfg(
-    'vendors.healthtrackrx_outbound.local_insurance_card_file_path')
+    'vendors.healthtrackrx.outbound.local_insurance_card_file_path')
 
 
 def task_process_hl7_lab_orders():
@@ -393,12 +393,14 @@ def create_outbound_files(orders):
                 hl7file.write(_str)
             '''
             
-            if order['sample_collection_location_id'] == 2415:
-                write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8','ignore'), 'mawdpath')
-            else:
+            if order['lab_id'] == 1:
                 write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8','ignore'), 'healthtrackrx_merth')
-
-            processed_orders.append(order)
+                processed_orders.append(order)
+            elif order['lab_id'] == 2 or str(order['sample_code']).startswith('MAWD'):
+                write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8','ignore'), 'mawdpath')
+                processed_orders.append(order)
+            else:
+                print('skipping {}: {}'.format(order['id'], order['lab_id']))
 
         except Exception as err:
                 print(err)
@@ -520,7 +522,8 @@ def get_orders_ready_to_transmit(limit=100):
             'Unknown' AS is_congregate_resident,
             'Unknown' AS is_pregnant,
             l.st as test_location_st,
-            t.sample_collection_location_id
+            t.sample_collection_location_id,
+            t.lab_id
         FROM
             (((test_samples t
             JOIN patients p ON ((t.patient_id = p.id)))
@@ -532,7 +535,7 @@ def get_orders_ready_to_transmit(limit=100):
             """.format(limit)
     return read_rows(sql,)
 
-
+'''
 def upload_file_list_to_ftp(file_list):
     try:
         hostname = cfg('vendors.healthtrackrx_outbound.hostname')
@@ -598,7 +601,7 @@ def upload_file_to_ftp(filename, local_file_path):
         )
     finally:
         ftp_client.close()
-
+'''
 
 def update_to_with_lab_status(orders):
     if len(orders) == 0:

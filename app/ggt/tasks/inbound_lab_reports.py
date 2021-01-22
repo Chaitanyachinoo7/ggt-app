@@ -50,21 +50,15 @@ from ggt.models.data_models.tasks_local_cache import (
 )
 
 from ggt.lib.adapters.s3_adapter import (
-    archive_ftp_s3_file
-)
+        move_file
+    )
 
 import ggt.lib.constants as c
 
 session_id = generate_session_id()
 
-hostname = cfg('vendors.healthtrackrx_inbound.hostname')
-username = cfg('vendors.healthtrackrx_inbound.username')
-password = cfg('vendors.healthtrackrx_inbound.password')
-port = cfg('vendors.healthtrackrx_inbound.port')
-remote_downloads_folder = cfg('vendors.healthtrackrx_inbound.remote_downloads_folder')
-
-local_backups_path = cfg('vendors.healthtrackrx_inbound.local_backups_path')
-local_download_path = cfg('vendors.healthtrackrx_inbound.local_download_path')
+local_backups_path = cfg('vendors.healthtrackrx.inbound.local_backups_path')
+local_download_path = cfg('vendors.healthtrackrx.inbound.local_download_path')
 
 # ----What this does----
 # Delete/move files at the download directory
@@ -105,7 +99,7 @@ def task_process_inbound_lab_reports():
     add_to_mawdpath_inbound_data_table()
     update_test_samples_with_results()
 
-    upload_all_inbound_files_to_central_storage()
+    #upload_all_inbound_files_to_central_storage() //Not required anymore since files are hosted in S3
     
 
     log_generic(
@@ -117,6 +111,10 @@ def task_process_inbound_lab_reports():
     print_header(
         '\n\n****************** COMPLETED ******************************\nElapsed Time: {}\n'.format(time.time() - start))
 
+
+def do_test():
+    
+    move_file('ggt-sftp/healthtrackrx/Reports/2997696_751829_Rejected.pdf', 'healthtrackrx/Reports/archived/2997696_751829_Rejected.pdf', 'ggt-sftp')
 
 '''
 def init_ftp_connection():
@@ -260,11 +258,6 @@ def prep_local_downloads_dir(remote_dir_path):
     if not os.path.exists(newpath):
         os.makedirs(newpath)
     return newpath
-
-
-def cleanup_s3():
-    pass
-
 
 
 def download_and_cleanup(ftp_client, filename, remote_dir_path, cache_hits, cache_misses, download_errors):
@@ -454,7 +447,7 @@ def process_pdf_results_for_lab_ait():
         for local_file_path in glob.iglob('{}/**/*.pdf'.format(local_download_path), recursive=True):
             i += 1
             p = i/file_count*100
-            print_progress_bar_message('{} {:.1f}%'.format(PROGRESS_LABEL, p))
+            print_progress_bar_message('{} {:.1f}% | {}/{}'.format(PROGRESS_LABEL, p, i, file_count))
 
             try:
                 if os.stat(local_file_path).st_size == 0:
@@ -473,9 +466,16 @@ def process_pdf_results_for_lab_ait():
                 if __destination_filename:
                     shutil.copyfile(local_file_path, '{}/{}'.format(local_backups_path, __destination_filename))
 
+                    #Archive downloads from remote storage. This change propagates to local folders
                     if file_exists_in_files_in_remote_storage_cache(__destination_filename):
-                        #print_ok2('cache hit: {}'.format(__destination_filename))
-                        pass
+                        filename = extract_filename(local_file_path)
+                        #if move_file('ggt-sftp/healthtrackrx/Reports/{}'.format(filename), 'healthtrackrx/Reports/archived/{}'.format(filename), 'ggt-sftp'):
+                        #    print_ok2('archived: {}                 '.format(filename))
+                        #else:
+                        #    print_error('Failed to archive: {}                 '.format(filename))
+
+                        shutil.move(local_file_path, '{}/archived/{}'.format(local_download_path, filename))
+                        #pass
                     else:
                         if __order_number and __destination_filename:
                             upload_status = upload_lab_report(
@@ -500,7 +500,7 @@ def process_pdf_results_for_lab_ait():
             except Exception as err:
                 print('Error uploading — {} — {}'.format(err, local_file_path))
 
-        print_ok2('{} 100%            '.format(PROGRESS_LABEL))
+        print_ok2('{} 100%'.format(PROGRESS_LABEL))
 
     except Exception as err:
         print(err)
@@ -539,8 +539,10 @@ def process_pdf_results_for_lab_mawd():
                     ######shutil.copyfile(local_file_path, '{}/{}'.format(local_backups_path, __destination_filename))
 
                     if file_exists_in_files_in_remote_storage_cache(__destination_filename):
-                        #print_ok2('cache hit: {}'.format(__destination_filename))
-                        pass
+                        filename = extract_filename(local_file_path)
+                        move_file('ggt-sftp/mawdpath/prod/results/{}'.format(filename), 'mawdpath/prod/results/archived/{}'.format(filename), 'ggt-sftp')
+                        shutil.move(local_file_path, '{}/archived/{}'.format(local_download_path, filename))
+                        print_ok2('archiving: {}'.format(filename))
                     else:
                         if __order_number and __destination_filename:
                             upload_status = upload_lab_report(
@@ -790,9 +792,23 @@ def extract_report_info_mawd(file_path):
         filename = arr[len(arr)-1]
 
         filename_vars = filename.replace('.pdf','').split('_')
-        order_number = filename_vars[0]
-        vial_id = filename_vars[1]
-        test_result = filename_vars[2]
+
+        file_version = 2
+        try:
+            report_type = filename_vars[3] #C for Correction, F for Final
+        except Exception as err:
+            print_error('using file version 1 (old naming format)')
+            file_version = 1 
+
+
+        if file_version == 1:
+            order_number = filename_vars[0]
+            vial_id = filename_vars[1] #This is actually the MAWD accession number
+            test_result = filename_vars[2]
+        else:
+            order_number = filename_vars[1]
+            vial_id = filename_vars[0] #This is actually the MAWD accession number
+            test_result = filename_vars[2]
 
         if test_result == 'NOTDETECTED':
             test_status = 'Approved'

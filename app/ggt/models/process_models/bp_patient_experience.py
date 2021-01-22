@@ -83,6 +83,45 @@ from ggt.lib.storage import get_temporary_lab_report_url
 ########################################################################################################
 
 
+def bp_get_ggv_screen_flow_seq(group_code: str):
+    group_info: GgtThirdPartyGroup = get_group_info(group_code)
+
+    validations = {}
+    screens = []
+    config = {}
+
+    if group_info.ggv_screen_seq:
+        screens = group_info.ggv_screen_seq
+        for screen in screens:
+            req = False
+            if group_info.ggv_required_screens:
+                req = True if (
+                    screen in group_info.ggv_required_screens) else False
+
+            validations[screen] = {
+                "required": req
+            }
+
+    if group_info.display_group_consent:
+        config = {
+            "consent-provider": {
+                "content": {
+                    "logo": [group_info.logo_1, group_info.logo_2],
+                    "intro_text": group_info.intro_text,
+                    "provider_name": group_info.consent_party_name,
+                    "consent_url": group_info.consent_url if (group_info.consent_url and group_info.consent_url != '') else None,
+                    "additional_fields": group_info.additional_fields
+                }
+            }
+        }
+
+    return {
+        "screens": screens,
+        "validation": validations,
+        "config": config
+    }
+
+
 def bp_get_screen_flow_seq(group_code: str):
     group_info: GgtThirdPartyGroup = get_group_info(group_code)
 
@@ -280,6 +319,72 @@ def bp_finalize_booking(booking_req: GgtBooking):
     return appointment, status_message, patient_id
 
 
+def bp_ggv_finalize_booking(booking_req: GgtBooking):
+    appointment_1: GgtAppointment = None
+    appointment_2: GgtAppointment = None
+
+    status_message = None
+    try:
+        if not __is_valid_token(booking_req.token):
+            raise ValueError('Invalid Token')
+
+        # create patient
+        _patient = __extract_patient_from_booking_req(booking_req)
+        patient_id = create_patient_record(_patient)
+        booking_req.patient_id = patient_id
+        if not booking_req.patient_id:
+            raise ValueError('Invalid Patient ID')
+
+        # create questionnaire
+        booking_req.patient_questionnaire_id = create_patient_questionnaire(
+            booking_req)
+        if not booking_req.patient_questionnaire_id:
+            raise ValueError('Invalid Patient Questionnaire ID')
+
+        # determine if payment is required, if so, get billing info
+        upfront_payment_info = __evaluate_upfront_payment(booking_req)
+        booking_req.total_cost = upfront_payment_info.total_cost
+        booking_req.billed_amount = upfront_payment_info.billed_amount
+
+        # generate appointment/booking
+        appointment_1, appointment_2 = __generate_ggv_appointments(booking_req)
+        if not (appointment_1 and appointment_2):
+            raise ValueError('Invalid Appointment info')
+        #
+        # # store insurance card
+        if not __save_insurance_image(appointment_1.id, booking_req.insurance_photo):
+            pass  # allow transaction to proceed. TODO: Handle alternative action
+        #card
+        if not __save_insurance_image(appointment_2.id, booking_req.insurance_photo):
+            pass  # allow transaction to proceed. TODO: Handle alternative action
+
+        # if a payment is required, generate a payment link
+        appointment_1.payment_url = ''
+        appointment_2.payment_url = ''
+        if upfront_payment_info.is_payment_required:
+            appointment_1.payment_url = __inject_payment_flow(appointment_1)
+            appointment_1.payment_url = __inject_payment_flow(appointment_1)
+        else:
+            # payment not required, confirm the appointment and notify
+            update_appointment_with_confirmed_scheduled(appointment_1)
+            update_appointment_with_confirmed_scheduled(appointment_2)
+            __send_qrcode_sms(appointment_1)
+            __send_qrcode_email(appointment_1)
+            __send_qrcode_sms(appointment_2)
+            __send_qrcode_email(appointment_2)
+
+    except Exception as err:
+        status_message = str(err)
+        log_generic(
+            type=c.ERROR,
+            booking_req=booking_req,
+            function=whoami(),
+            error=err
+        )
+
+    return appointment_1, appointment_2, status_message, patient_id
+
+
 def bp_finalize_payment(appointment_id: int, wp_receipt_token: str):
     try:
         appointment = get_appointment(appointment_id)
@@ -374,6 +479,9 @@ def bp_get_wellpay_api_key():
 def bp_get_wellpay_insurance_eligibility(insurance_eligibility_request):
     return __bp_get_wellpay_insurance_eligibility(insurance_eligibility_request)
 
+
+def bp_search_insurance_payer_list(insurance_search_payer_request):
+    return __bp_search_insurance_payer_list(insurance_search_payer_request)
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
@@ -417,6 +525,49 @@ def __generate_appointment(booking_req: GgtBooking):
         )
 
     return appointment
+
+
+def __generate_ggv_appointments(booking_req: GgtBooking):
+    appointment_1: GgtAppointment = None
+    appointment_2: GgtAppointment = None
+    try:
+        booking_req.slot_1 = get_slot_information(booking_req.appointmentOneTime)
+        booking_req.slot_2 = get_slot_information(booking_req.appointmentTwoTime)
+        if not (booking_req.slot_1 and booking_req.slot_2):
+            raise ValueError('Invalid Slot')
+
+        booking_req.timeslot = booking_req.slot_1
+        appointment_1 = create_appointment(booking_req, ggv_slot=1)
+
+        booking_req.timeslot = booking_req.slot_2
+        appointment_2 = create_appointment(booking_req, ggv_slot=2)
+
+        if appointment_1 and appointment_2:
+            update_slot_information(booking_req.appointmentOneTime, appointment_1.id)
+            update_slot_information(booking_req.appointmentTwoTime, appointment_2.id)
+
+            '''
+            log_generic(
+                type=c.INFO,
+                booking_req=booking_req,
+                appointment=appointment,
+                function=whoami(),
+                info='appointment_created'
+            )
+            '''
+
+        else:
+            raise ValueError('error_creating_appointment')
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            data=booking_req,
+            function=whoami(),
+            error=err
+        )
+
+    return appointment_1, appointment_2
 
 
 def __create_pending_entry(phone_number: str):
@@ -556,7 +707,7 @@ def __send_otp_sms(phone_number: str, message: str) -> bool:
             message=message,
             function=whoami()
         )
-        return send_sms(phone_number, message)
+        return send_sms(phone_number, message, 1)
 
     except Exception as err:
         log_generic(
@@ -899,12 +1050,12 @@ def __add_wellpay_customer_insurance_eligibility(wp_api_key, insurance_eligibili
         }
         print(url)
         print(datetime.datetime.today().strftime('%Y-%m-%d'))
-        print(datetime.date.today()+ datetime.timedelta(days=10))
+        print(datetime.date.today() + datetime.timedelta(days=10))
         payload = {
             "services": [],
             "insurance_level": insurance_eligibility_request.level.lower(),
             "as_of_date": datetime.datetime.today().strftime('%Y-%m-%d'),
-            "to_date": (datetime.date.today()+ datetime.timedelta(days=10)).strftime('%Y-%m-%d'),
+            "to_date": (datetime.date.today() + datetime.timedelta(days=10)).strftime('%Y-%m-%d'),
             "place_of_service_code": "",
             "npi": cfg('vendors.wellpay.npi')
         }
@@ -941,3 +1092,28 @@ def __get_wellpay_customer_insurance_plans(wp_api_key, insurance_eligibility_req
     except Exception as err:
         print(err)
         return {"isEligible": False, "error": None}
+
+
+def __bp_search_insurance_payer_list(insurance_search_payer_request):
+    try:
+        wp_api_key, wp_refresh_token = __get_wp_api_tokens()
+        base_url = cfg('vendors.wellpay.endpoint')
+        url = "{}/eligibility/searchPayersList".format(base_url)
+        headers = {
+            'Authorization': 'Bearer {}'.format(wp_api_key),
+            'Content-Type': 'application/json'
+        }
+
+        payload = {
+            "searchQuery": insurance_search_payer_request.search_query,
+            "page": insurance_search_payer_request.page,
+            "limit": insurance_search_payer_request.limit
+        }
+
+        r = requests.post(url, headers=headers, json=payload)
+        print(payload)
+        response = r.json()
+        print(response)
+        return {"response": response}
+    except Exception as err:
+        print(err)

@@ -84,7 +84,8 @@ def bp_appointment_update(appointment_id: int, action: str, workstation_id: int,
             usuccess = update_appointment_with_scan_vial(appointment, vial_id, user)
 
         elif action == c.APPOINTMENT_ACTION_END_TEST:
-            if update_appointment_with_test_completed(appointment, user):
+            usuccess = update_appointment_with_test_completed(appointment, user)
+            if usuccess:
                 __send_test_complete_sms(appointment)
 
         elif action == c.APPOINTMENT_ACTION_REPRINT:
