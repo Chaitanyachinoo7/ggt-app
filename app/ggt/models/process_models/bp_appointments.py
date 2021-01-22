@@ -26,7 +26,8 @@ from ggt.models.data_models.appointments import (
     update_appointment_with_checkin,
     update_appointment_with_test_start,
     update_appointment_with_scan_vial,
-    update_appointment_with_test_completed
+    update_appointment_with_test_completed, update_appointment_with_start_vax, update_appointment_with_notes_vax,
+    update_appointment_with_scan_vial_vax, update_appointment_with_end_vax
 )
 
 from ggt.lib.sys_log import (write_syslog)
@@ -74,6 +75,15 @@ def bp_appointment_update(appointment_id: int, action: str, workstation_id: int,
     try:
         appointment: GgtAppointment = get_appointment(appointment_id)
 
+        if action == c.APPOINTMENT_ACTION_START_VAX:
+            usuccess = update_appointment_with_start_vax(appointment, user, workstation_id)
+
+        if action == c.APPOINTMENT_ACTION_END_VAX:
+            usuccess = update_appointment_with_end_vax(appointment, user, workstation_id)
+
+        if action == c.APPOINTMENT_ACTION_NOTES_VAX:
+            usuccess = update_appointment_with_notes_vax(appointment, user, workstation_id)
+
         if action == c.APPOINTMENT_ACTION_CHECK_IN:
             usuccess = update_appointment_with_checkin(appointment, user)
 
@@ -82,6 +92,9 @@ def bp_appointment_update(appointment_id: int, action: str, workstation_id: int,
 
         elif action == c.APPOINTMENT_ACTION_SCAN_VIAL:
             usuccess = update_appointment_with_scan_vial(appointment, vial_id, user)
+
+        elif action == c.APPOINTMENT_ACTION_SCAN_VIAL_VAX:
+            usuccess = update_appointment_with_scan_vial_vax(appointment, vial_id, user)
 
         elif action == c.APPOINTMENT_ACTION_END_TEST:
             usuccess = update_appointment_with_test_completed(appointment, user)

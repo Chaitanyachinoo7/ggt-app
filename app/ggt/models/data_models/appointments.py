@@ -356,12 +356,32 @@ def update_appointment_with_checkin(appointment: GgtAppointment, user):
     return __update_appointment_status(appointment, c.APPOINTMENT_STATUS_CHECKED_IN, user=user)
 
 
+def update_appointment_with_start_vax(appointment: GgtAppointment, user, workstation_id):
+    return __update_appointment_status(appointment, c.APPOINTMENT_ACTION_START_VAX, user=user,
+                                       workstation_id=workstation_id)
+
+
+def update_appointment_with_end_vax(appointment: GgtAppointment, user, workstation_id):
+    return __update_appointment_status(appointment, c.APPOINTMENT_ACTION_END_VAX, user=user,
+                                       workstation_id=workstation_id)
+
+
+def update_appointment_with_notes_vax(appointment: GgtAppointment, user, workstation_id):
+    return __update_appointment_status(appointment, c.APPOINTMENT_ACTION_NOTES_VAX, user=user,
+                                       workstation_id=workstation_id)
+
+
 def update_appointment_with_test_start(user, appointment: GgtAppointment, workstation_id):
-    return __update_appointment_status(appointment, c.APPOINTMENT_STATUS_TEST_IN_PROGRESS, user=user, workstation_id=workstation_id)
+    return __update_appointment_status(appointment, c.APPOINTMENT_STATUS_TEST_IN_PROGRESS, user=user,
+                                       workstation_id=workstation_id)
 
 
 def update_appointment_with_scan_vial(appointment: GgtAppointment, vial_id: str, user):
     return __update_appointment_status(appointment, c.APPOINTMENT_STATUS_VIAL_SCANNED, vial_id, user=user)
+
+
+def update_appointment_with_scan_vial_vax(appointment: GgtAppointment, vial_id: str, user):
+    return __update_appointment_status(appointment, c.APPOINTMENT_ACTION_SCAN_VIAL_VAX, vial_id, user=user)
 
 
 def update_appointment_with_test_completed(appointment: GgtAppointment, user):
@@ -379,6 +399,10 @@ def __get_mapped_dt_field(status: str) -> str:
         c.APPOINTMENT_STATUS_CHECKED_IN: 'check_in_dt',
         c.APPOINTMENT_STATUS_TEST_IN_PROGRESS: 'test_start_dt',
         c.APPOINTMENT_STATUS_VIAL_SCANNED: 'test_start_dt',
+        c.APPOINTMENT_ACTION_START_VAX: 'vax_start_dt',
+        c.APPOINTMENT_ACTION_SCAN_VIAL_VAX: 'vax_start_dt',
+        c.APPOINTMENT_ACTION_END_VAX: 'vax_end_dt',
+        c.APPOINTMENT_ACTION_NOTES_VAX: 'vax_notes_dt',
         c.APPOINTMENT_STATUS_TEST_COMPLETED: 'test_end_dt'
     }
     dt_field = switcher.get(status, None)
