@@ -60,14 +60,13 @@ def task_process_crl_lab_orders():
 def create_outbound_files(orders):
     processed_orders = []
     for order in orders:
-        if order['sample_collection_location_id'] == 2473:
-            try:
-                make_api_request(order)
-                processed_orders.append(order)
+        try:
+            make_api_request(order)
+            processed_orders.append(order)
 
-            except Exception as err:
-                print(err)
-                print('Error generating HL7 for CRL/Order ID:', order['id'])
+        except Exception as err:
+            print(err)
+            print('Error generating orders for CRL/Order ID:', order['id'])
 
     return processed_orders
 
@@ -94,8 +93,8 @@ def make_api_request(order):
             }
         },
         "labAccount": {
-            "client": "CRL",
-            "region": "EMCT",
+            "client": "ZSK",
+            "region": "EMCW",
             "ref1": "",
             "ref2": ""
         },
@@ -115,6 +114,10 @@ def make_api_request(order):
             },
             "ethnicity": order['ethnicity'],
             "race": order['race'],
+            "guardianfirstName": "ON FILE WITH",
+            "guardianlastName": "WELLHEALTH",
+            "guardianPhone": "8778378461",
+            "guardianRelationship": "Care giver"
         } 
     }
 
@@ -158,11 +161,22 @@ def make_api_request(order):
 
 
 def invoke_post(payload):
+    #stage
+    '''
     auth_user = 'WELLHEALTH'
     auth_password = '38cvZtg4v8'
     
     base_url = 'https://api-stage.crlclear.com'
     resource_path = '/order'
+    '''
+
+    #prod
+    auth_user = 'WELLHEALTH'
+    auth_password = '38cvZtg4v8'
+    
+    base_url = 'https://api.crlclear.com'
+    resource_path = '/order'
+
 
     try:
         url = '{}{}'.format(base_url, resource_path)
@@ -186,6 +200,7 @@ def invoke_post(payload):
             function=whoami(),
             error=err
         )
+        raise ValueError('API submission failed')
 
 
 
@@ -200,7 +215,7 @@ def get_orders_ready_to_transmit(limit=100):
             (CASE
                 WHEN (p.gender = 'male') THEN 'Male'
                 WHEN (p.gender = 'female') THEN 'Female'
-                ELSE 'U'
+                ELSE 'Other'
             END) AS gender,
             (CASE
                 WHEN (t.sample_collection_start_dt IS NOT NULL) THEN 

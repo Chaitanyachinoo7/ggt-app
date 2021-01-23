@@ -6,7 +6,6 @@ from ggt.lib.utils import (
     whoami
 )
 
-
 from ggt.lib.constants import (
     STATUS,
     SUCCESS,
@@ -18,44 +17,45 @@ from ggt.lib.constants import (
 
 def __boto_connect():
     try:
-        boto_client = boto3.client(
-            "sqs",
+        boto_resource = boto3.resource(
+            "dynamodb",
             aws_access_key_id=get_config_val('aws.access_key_id'),
             aws_secret_access_key=get_config_val('aws.secret_access_key'),
             region_name=get_config_val('aws.sqs_region')
         )
-        return boto_client
+
+        return boto_resource
 
     except Exception as err:
         log_generic(
-            type=ERROR, 
-            function=whoami(), 
+            type=ERROR,
+            function=whoami(),
             error=err
         )
         return None
 
 
-def push_sqs_message(queue_url, message):
+def read_from_dynamo(table, message_id):
     try:
-        response = __boto_connect().send_message(
-                        QueueUrl=queue_url,
-                        DelaySeconds=0,
-                        MessageBody=(message)
-                    )
+        table = __boto_connect().Table(table)
+        return table.get_item(
+            Key={
+                'message_id': message_id
+            }
+        )
         log_generic(
             type=INFO,
-            queue_url=queue_url,
-            message=message,
+            table=table,
+            message_id=message_id,
             function=whoami()
         )
-        return response['MessageId']
 
     except Exception as err:
         log_generic(
-            type = ERROR,
-            queue_url = queue_url,
-            message = message,
-            function = whoami(),
-            error = err
+            type=ERROR,
+            table=table,
+            message_id=message_id,
+            function=whoami(),
+            error=err
         )
         return False

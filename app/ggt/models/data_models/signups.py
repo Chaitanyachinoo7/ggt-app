@@ -209,8 +209,12 @@ def __map_row_to_group(row) -> GgtThirdPartyGroup:
         g.logo_2 = row['logo_2']
         if row['required_screens']:
             g.required_screens = row['required_screens'].split(',')
+        if row['ggv_required_screens']:
+            g.ggv_required_screens = row['ggv_required_screens'].split(',')
         if row['screen_seq']:
             g.screen_seq = row['screen_seq'].split(',')
+        if row['ggv_screen_seq']:
+            g.ggv_screen_seq = row['ggv_screen_seq'].split(',')
         if row['additional_fields']:
             g.additional_fields = []
             for field in row['additional_fields'].split(','):
