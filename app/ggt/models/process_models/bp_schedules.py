@@ -264,7 +264,6 @@ def bp_ggv_get_schedule_locations_available_near_lat_lng(group_code, lat, lng, r
 
 
 def bp_get_schedule_times_available(location_id, date):
-    '''
     available_times = []
     try:
         request = {
@@ -287,19 +286,19 @@ def bp_get_schedule_times_available(location_id, date):
                 else:
                     if (datetime.now() - start_time).total_seconds() > 100:
                         return None
-        '''
-    rows = get_available_times(location_id, date)
-    available_times = []
-    try:
-        for row in rows:
-            d = datetime.strptime(str(row['start_time']), "%H:%M:%S")
 
-            available_times.append(
-                {
-                    "label": d.strftime("%I:%M %p"),
-                    "value": row['id']
-                }
-            )
+    # rows = get_available_times(location_id, date)
+    # available_times = []
+    # try:
+    #     for row in rows:
+    #         d = datetime.strptime(str(row['start_time']), "%H:%M:%S")
+    #
+    #         available_times.append(
+    #             {
+    #                 "label": d.strftime("%I:%M %p"),
+    #                 "value": row['id']
+    #             }
+    #         )
 
     except Exception as err:
         log_generic(
