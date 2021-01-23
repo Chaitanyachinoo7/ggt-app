@@ -330,10 +330,12 @@ def bp_get_second_shot_available_times(location_id, date):
                 res = read_from_dynamo(get_config_val('aws.dynamo_table_name'), msg_id)
                 if "Item" in res.keys():
                     temp = res['Item']
-                    for x in temp['available_dates']:
+                    for x in temp['available_times']:
                         for y in x['available_times']:
                             y['value'] = int(y['value'])
-                    return temp
+                    return {
+                        "available_dates": temp['available_times']
+                    }
                 else:
                     if (datetime.now() - start_time).total_seconds() > 100:
                         return None
