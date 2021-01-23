@@ -280,7 +280,7 @@ def bp_get_schedule_times_available(location_id, date):
                 res = read_from_dynamo(get_config_val('aws.dynamo_table_name'), msg_id)
                 if "Item" in res.keys():
                     temp = res['Item']
-                    for r in temp['available_dates']:
+                    for r in temp['available_times']:
                         r['value'] = int(r['value'])
                     return temp
                 else:
