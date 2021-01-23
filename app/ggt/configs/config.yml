@@ -1,8 +1,8 @@
-app_name: ggt-api
+app_name: COVID-19 Testing
 app_version: 1.1
-log_level: INFO
+log_level: DEBUG
 base_url: https://start.GoGetTested.com
-env: PROD
+env: DEV
 default_timezone: CST
 
 server:
@@ -35,10 +35,10 @@ docs:
   redoc_url: /redoc
 
 aws:
-  dynamo_table_name: prod_available_slots
+  dynamo_table_name: available_slots
   sqs_region: us-east-2
   queue_count: 2
-  sqs_url: https://sqs.us-east-2.amazonaws.com/135292740376/available_slot_management_queue_{}
+  sqs_url: https://sqs.us-east-2.amazonaws.com/135292740376/available_time_requests
   region: us-east-1
   access_key_id: AKIAR7AATMMMGKHVWYP6
   secret_access_key: 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
