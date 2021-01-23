@@ -6,6 +6,7 @@ import boto3
 from cachetools import cached, LRUCache, TTLCache
 
 import ggt.lib.constants as c
+from ggt.lib.adapters.twilio_adapter import send_twilio_sms
 
 from ggt.models.data_models.data_types import (
     GgtAppointment
@@ -35,6 +36,8 @@ from ggt.lib.sys_log import (write_syslog)
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
+
+
 
 @cached(cache=TTLCache(maxsize=1024, ttl=30))
 def bp_get_appointment_info(appointment_id, dob):
@@ -80,6 +83,8 @@ def bp_appointment_update(appointment_id: int, action: str, workstation_id: int,
 
         if action == c.APPOINTMENT_ACTION_END_VAX:
             usuccess = update_appointment_with_end_vax(appointment, user, workstation_id)
+            if usuccess:
+                __send_vax_completion_sms(appointment.patient.first_name, appointment.patient.phone_number)
 
         if action == c.APPOINTMENT_ACTION_NOTES_VAX:
             usuccess = update_appointment_with_notes_vax(appointment, user, workstation_id)
@@ -260,3 +265,16 @@ def __send_label_to_printer(appointment_id, queue_id):
         )
         write_syslog("print", c.ERROR, appointment_id)
         return False
+
+
+def __send_vax_completion_sms(name, to_number):
+    msg = """Hi {} \nYour 15 minute observation period has begun.  Please alert the staff immediately if you feel 
+    unwell.  If you are not near staff  call 911""".format(name)
+    send_twilio_sms(to_number, msg)
+
+
+def __send_vax_completion_confirmation_in_15_minutes(name, to_number, appointment_id, dob):
+    msg = """Hi {} \nThank you for getting your vaccine with GoGetVax.com.  Please alert the staff immediately if you 
+    currently feel unwell .  If you are not near staff, call 911.  Your Vaccine record is located here 
+    <link to patient portal>.  Remember to still practice social distancing and continue to wear a mask.""".format(name)
+    send_twilio_sms(to_number, msg)
