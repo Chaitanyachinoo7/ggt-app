@@ -82,24 +82,30 @@ def task_process_inbound_lab_reports():
         task_session_id=session_id,
         info='Begin Processing Inbound Lab Reports')
 
-    # init_local_cache()
-    # load_data_from_remote_db_to_cache()
+    # init_local_cache()                    #temp disabled to save time
+    # load_data_from_remote_db_to_cache()   #temp disabled to save time
 
-    # clean_downloads_folder()
-    #download_ftp_files()
-    #parse_csv_files()
+    # clean_downloads_folder()              #deprecation path
+    # download_ftp_files()                  #deprecation path
 
-    #add_to_healthtrackrx_inbound_data_table()
-    #update_test_samples_with_results()
-    #upload_pdf_lab_reports()
+    process_rpt_results_for_lab_crl() #part 1/2
+    process_pdf_reports_for_lab_crl() #part 2/2
+    add_to_crl_inbound_data_table()
+    #parse_csv_files()                      #deprecation path
+
+    #add_to_healthtrackrx_inbound_data_table()  #deprecation path
+    #update_test_samples_with_results()         #deprecation path
+    #upload_pdf_lab_reports()                   #deprecation path
     process_pdf_results_for_lab_ait()
-    process_pdf_results_for_lab_mawd()
-    #parse_report_comments()
     add_to_healthtrackrx_inbound_data_table()
+
+    process_pdf_results_for_lab_mawd()
     add_to_mawdpath_inbound_data_table()
+    
     update_test_samples_with_results()
 
-    #upload_all_inbound_files_to_central_storage() //Not required anymore since files are hosted in S3
+    #parse_report_comments()                    #deprecation path
+    #upload_all_inbound_files_to_central_storage() #deprecation path / Not required anymore since files are hosted in S3
     
 
     log_generic(
@@ -111,10 +117,6 @@ def task_process_inbound_lab_reports():
     print_header(
         '\n\n****************** COMPLETED ******************************\nElapsed Time: {}\n'.format(time.time() - start))
 
-
-def do_test():
-    
-    move_file('ggt-sftp/healthtrackrx/Reports/2997696_751829_Rejected.pdf', 'healthtrackrx/Reports/archived/2997696_751829_Rejected.pdf', 'ggt-sftp')
 
 '''
 def init_ftp_connection():
@@ -438,13 +440,13 @@ def process_pdf_results_for_lab_ait():
     print('process_pdf_results_for_lab_ait')
     try:
         file_count = 0
-        for local_file_path in glob.iglob('{}/**/*.pdf'.format(local_download_path), recursive=True):
+        for local_file_path in glob.iglob('{}/*.pdf'.format(local_download_path), recursive=True):
             file_count += 1
 
         i = 0
         p = 0
         PROGRESS_LABEL = 'Processing and uploading PDF lab reports'
-        for local_file_path in glob.iglob('{}/**/*.pdf'.format(local_download_path), recursive=True):
+        for local_file_path in glob.iglob('{}/*.pdf'.format(local_download_path), recursive=True):
             i += 1
             p = i/file_count*100
             print_progress_bar_message('{} {:.1f}% | {}/{}'.format(PROGRESS_LABEL, p, i, file_count))
@@ -468,14 +470,14 @@ def process_pdf_results_for_lab_ait():
 
                     #Archive downloads from remote storage. This change propagates to local folders
                     if file_exists_in_files_in_remote_storage_cache(__destination_filename):
-                        #filename = extract_filename(local_file_path)
-                        #if move_file('ggt-sftp/healthtrackrx/Reports/{}'.format(filename), 'healthtrackrx/Reports/archived/{}'.format(filename), 'ggt-sftp'):
-                        #    print_ok2('archived: {}                 '.format(filename))
-                        #else:
-                        #    print_error('Failed to archive: {}                 '.format(filename))
+                        filename = extract_filename(local_file_path)
+                        if move_file('ggt-sftp/healthtrackrx/Reports/{}'.format(filename), 'healthtrackrx/Reports/archived/{}'.format(filename), 'ggt-sftp'):
+                            print_ok2('archived: {}                 '.format(filename))
+                        else:
+                            print_error('Failed to archive: {}                 '.format(filename))
 
-                        #shutil.move(local_file_path, '{}/archived/{}'.format(local_download_path, filename))
-                        pass
+                        shutil.move(local_file_path, '{}/archived/{}'.format(local_download_path, filename))
+                        #pass
                     else:
                         if __order_number and __destination_filename:
                             upload_status = upload_lab_report(
@@ -498,12 +500,12 @@ def process_pdf_results_for_lab_ait():
                             handle_reject_report(local_file_path)
                             
             except Exception as err:
-                print('Error uploading — {} — {}'.format(err, local_file_path))
+                print_error('Error uploading — {} — {}'.format(err, local_file_path))
 
         print_ok2('{} 100%'.format(PROGRESS_LABEL))
 
     except Exception as err:
-        print(err)
+        print_error(err)
 
 
 
@@ -514,13 +516,13 @@ def process_pdf_results_for_lab_mawd():
     local_download_path = '/Users/suresh/ggt-tasks/downloads/mawdpath/prod/results'
     try:
         file_count = 0
-        for local_file_path in glob.iglob('{}/**/*.pdf'.format(local_download_path), recursive=True):
+        for local_file_path in glob.iglob('{}/*.pdf'.format(local_download_path), recursive=True):
             file_count += 1
 
         i = 0
         p = 0
         PROGRESS_LABEL = 'Processing and uploading PDF lab reports'
-        for local_file_path in glob.iglob('{}/**/*.pdf'.format(local_download_path), recursive=True):
+        for local_file_path in glob.iglob('{}/*.pdf'.format(local_download_path), recursive=True):
             i += 1
             p = i/file_count*100
             print_progress_bar_message('{} {:.1f}%'.format(PROGRESS_LABEL, p))
@@ -565,12 +567,209 @@ def process_pdf_results_for_lab_mawd():
                             handle_reject_report(local_file_path)
                             
             except Exception as err:
-                print('Error uploading — {} — {}'.format(err, local_file_path))
+                print_error('Error uploading — {} — {}'.format(err, local_file_path))
+
+        print_ok2('{} 100%            '.format(PROGRESS_LABEL))
+
+    except Exception as err:
+        print_error(err)
+
+'''
+def process_pdf_results_for_lab_crl():
+    print('process_pdf_results_for_lab_crl')
+    local_download_path = '/Users/suresh/ggt-tasks/downloads/crllabs/prod/results'
+    try:
+        file_count = 0
+        for local_file_path in glob.iglob('{}/*.idx'.format(local_download_path), recursive=True):
+            file_count += 1
+
+        i = 0
+        p = 0
+        PROGRESS_LABEL = 'Processing and uploading PDF lab reports'
+        for local_file_path in glob.iglob('{}/*.idx'.format(local_download_path), recursive=True):
+            i += 1
+            p = i/file_count*100
+            print_progress_bar_message('{} {:.1f}%'.format(PROGRESS_LABEL, p))
+
+            try:
+                if os.stat(local_file_path).st_size == 0:
+                    raise ValueError('Empty File')
+
+                #__requisition_id, __order_number, __test_result, __test_status, __destination_filename = extract_report_info(local_file_path)
+                __vial_id, __order_number, __test_result, __test_status, __destination_filename = extract_report_info_mawd(local_file_path)
+
+                add_to_csv_pdf_sync_cache_v2(__vial_id, __order_number, __test_result, __test_status, 'MAWD')
+                add_to_lab_test_records_cache_v2(__vial_id, __order_number, __test_result, __test_status, 'MAWD')
+
+                if __destination_filename:
+                    ######shutil.copyfile(local_file_path, '{}/{}'.format(local_backups_path, __destination_filename))
+
+                    if file_exists_in_files_in_remote_storage_cache(__destination_filename):
+                        filename = extract_filename(local_file_path)
+                        move_file('ggt-sftp/mawdpath/prod/results/{}'.format(filename), 'mawdpath/prod/results/archived/{}'.format(filename), 'ggt-sftp')
+                        shutil.move(local_file_path, '{}/archived/{}'.format(local_download_path, filename))
+                        print_ok2('archiving: {}'.format(filename))
+                    else:
+                        if __order_number and __destination_filename:
+                            upload_status = upload_lab_report(
+                                local_file_path,
+                                __destination_filename
+                            )
+                            if upload_status is None:
+                                print('pdf_lab_report - Error Uploading.... {} ==> {}'.format(
+                                    local_file_path, __destination_filename))
+                            elif upload_status:
+                                print('pdf_lab_report - upload success {} ==> {}'.format(
+                                    local_file_path, __destination_filename))
+                            else:
+                                print('pdf_lab_report exists at destination... adding to local cache: {} ==> {}'.format(
+                                    local_file_path, __destination_filename))
+                                add_to_files_in_remote_storage_cache(
+                                    __destination_filename)
+                        else:
+                            #print_ok2('Lab report upload skipped for rejected lab test')
+                            handle_reject_report(local_file_path)
+                            
+            except Exception as err:
+                print_error('Error uploading — {} — {}'.format(err, local_file_path))
 
         print_ok2('{} 100%            '.format(PROGRESS_LABEL))
 
     except Exception as err:
         print(err)
+'''
+
+def process_rpt_results_for_lab_crl():
+    print('process_rpt_results_for_lab_crl')
+    local_download_path = '/Users/suresh/ggt-tasks/downloads/crllabs/prod/results'
+    try:
+        file_count = 0
+        for local_file_path in glob.iglob('{}/*.rpt'.format(local_download_path), recursive=True):
+            file_count += 1
+
+        i = 0
+        p = 0
+        PROGRESS_LABEL = 'Processing result files [steps 1/2]'
+        for local_file_path in glob.iglob('{}/*.rpt'.format(local_download_path), recursive=True):
+            i += 1
+            p = i/file_count*100
+            print_progress_bar_message('{} {:.1f}%'.format(PROGRESS_LABEL, p))
+
+            _order_number = None
+            _test_result = None
+            _requisition_id = None
+            _first_name = None
+            _last_name = None
+            _dob = None
+            _assay_name = None
+
+            try:
+                if os.stat(local_file_path).st_size == 0:
+                    raise ValueError('Empty File')
+
+                file_handler = open(local_file_path, 'r') 
+                for line in file_handler.readlines():
+
+                    if line.startswith('PID'):
+                        _requisition_id = line.split('|')[3]
+                        names = line.split('|')[5].split('^')
+                        _first_name = names[1]
+                        _last_name = names[0]
+                    elif line.startswith('PR1'):
+                        _assay_name = line.split('|')[3]
+                    elif line.startswith('OBR'):
+                        _order_number = line.split('|')[2]
+                    elif line.startswith('OBX'):
+                        r = line.split('|')[5]
+                        if r == 'NDD':
+                            _test_result = 'Negative'
+                        elif r == 'DET':
+                            _test_result = 'Positive'
+                        else:
+                            raise ValueError('Uknown result: {} / appointment_id {}'.format(r, _order_number))
+                        
+                add_to_csv_pdf_sync_cache_v2(_requisition_id, _order_number, _test_result, 'Approved', 'CRL')
+                add_to_lab_test_records_cache_v2(_requisition_id, _order_number, _test_result, 'Approved', 'CRL')
+                            
+            except Exception as err:
+                print_error('Error processing — {} — {}'.format(err, local_file_path))
+
+        print_ok2('{} 100%            '.format(PROGRESS_LABEL))
+
+    except Exception as err:
+        print_error(err)
+
+
+def process_pdf_reports_for_lab_crl():
+    print('process_pdf_reports_for_lab_crl')
+    local_download_path = '/Users/suresh/ggt-tasks/downloads/crllabs/prod/results'
+    try:
+        file_count = 0
+        for local_file_path in glob.iglob('{}/*.idx'.format(local_download_path), recursive=True):
+            file_count += 1
+
+        i = 0
+        p = 0
+        PROGRESS_LABEL = 'Processing result files [steps 2/2]'
+        for local_file_path in glob.iglob('{}/*.idx'.format(local_download_path), recursive=True):
+            i += 1
+            p = i/file_count*100
+            print_progress_bar_message('{} {:.1f}%'.format(PROGRESS_LABEL, p))
+
+            _pdf_filename = None
+            _order_number = None
+            _requisition_id = None
+            try:
+                if os.stat(local_file_path).st_size == 0:
+                    raise ValueError('Empty File')
+
+                for line in open(local_file_path).read().splitlines():
+                    if line.startswith('FILENAME='):
+                        _pdf_filename = line.split('=')[1]
+                    if line.startswith('REFERENCE_ID='):
+                        _order_number = line.split('=')[1]
+                    if line.startswith('SID='):
+                        _requisition_id = line.split('=')[1]
+
+                if not (_pdf_filename and _order_number and _requisition_id):
+                    raise ValueError('Invalid Data')
+
+                pdf_file_path = '{}/{}'.format(local_download_path, _pdf_filename)
+                __destination_filename = '{}.pdf'.format(_order_number)
+
+                add_to_csv_pdf_sync_cache(
+                    {'requisition_id': _requisition_id}, 
+                    'pdf'
+                )
+
+                shutil.copyfile(pdf_file_path, '{}/{}'.format(local_backups_path, __destination_filename))
+                if file_exists_in_files_in_remote_storage_cache(__destination_filename):
+                    pass
+                else:
+                    upload_status = upload_lab_report(
+                        pdf_file_path,
+                        __destination_filename
+                    )
+                    if upload_status is None:
+                        print('pdf_lab_report - Error Uploading.... {} ==> {}'.format(
+                            pdf_file_path, __destination_filename))
+                    elif upload_status:
+                        print('pdf_lab_report - upload success {} ==> {}'.format(
+                            pdf_file_path, __destination_filename))
+                    else:
+                        print('pdf_lab_report exists at destination... adding to local cache: {} ==> {}'.format(
+                            pdf_file_path, __destination_filename))
+                        add_to_files_in_remote_storage_cache(
+                            __destination_filename)
+                            
+            except Exception as err:
+                print_error('Error processing — {} — {}'.format(err, local_file_path))
+
+        print_ok2('{} 100%            '.format(PROGRESS_LABEL))
+
+    except Exception as err:
+        print_error(err)
+
 
 
 def upload_pdf_lab_reports():
@@ -894,59 +1093,105 @@ def add_to_mawdpath_inbound_data_table():
         print_error('Critical ERROR: {}'.format(err))
 
 
+def add_to_crl_inbound_data_table():
+    print('syncing cached crl_inbound_data to remote DB')
+    rows = get_all_lab_records_from_cache('CRL')
+    try:
+        sql = """
+            INSERT INTO crl_inbound_data
+                (requisition_id, order_number, first_name, last_name, dob, assay_name, status, result)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+            ON DUPLICATE KEY UPDATE requisition_id=requisition_id
+        """
+        exec_batch_execute(sql, rows)
+
+    except Exception as err:
+        print_error('Critical ERROR: {}'.format(err))
+
+
 def update_test_samples_with_results():
     print('updating test results in remote DB')
-    sql = """
-        UPDATE test_samples
-                INNER JOIN
-            healthtrackrx_inbound_data h ON (test_samples.id = h.order_number) 
-        SET 
-            test_samples.lab_result_receive_dt = NOW(),
-            test_samples.test_result = (CASE
-                WHEN (h.result = 'Negative') THEN 'neg'
-                WHEN (h.result = 'Positive') THEN 'pos'
-                WHEN (h.result = 'inconclusive') THEN 'inconclusive'
-                ELSE NULL
-            END),
-            test_samples.status = (CASE
-                WHEN (h.status = 'Approved') THEN 'lab_result_received'
-                WHEN (h.status = 'Resulted') THEN 'lab_result_received'
-                WHEN (h.status = 'Rejected') THEN 'rejected'
-                ELSE NULL
-            END),
-            test_samples.update_dt = NOW()
-        WHERE
-            test_samples.test_result IS NULL
-                AND test_samples.id = h.order_number
-        """
-    vals = ()
-    exec_update(sql, vals)
+    try:
+        sql = """
+            UPDATE test_samples
+                    INNER JOIN
+                healthtrackrx_inbound_data h ON (test_samples.id = h.order_number) 
+            SET 
+                test_samples.lab_result_receive_dt = NOW(),
+                test_samples.test_result = (CASE
+                    WHEN (h.result = 'Negative') THEN 'neg'
+                    WHEN (h.result = 'Positive') THEN 'pos'
+                    WHEN (h.result = 'inconclusive') THEN 'inconclusive'
+                    ELSE NULL
+                END),
+                test_samples.status = (CASE
+                    WHEN (h.status = 'Approved') THEN 'lab_result_received'
+                    WHEN (h.status = 'Resulted') THEN 'lab_result_received'
+                    WHEN (h.status = 'Rejected') THEN 'rejected'
+                    ELSE NULL
+                END),
+                test_samples.update_dt = NOW()
+            WHERE
+                test_samples.test_result IS NULL
+                    AND test_samples.id = h.order_number
+            """
+        vals = ()
+        exec_update(sql, vals)
 
-    sql = """
-        UPDATE test_samples
-                INNER JOIN
-            mawdpath_inbound_data h ON (test_samples.id = h.order_number) 
-        SET 
-            test_samples.lab_result_receive_dt = NOW(),
-            test_samples.test_result = (CASE
-                WHEN (h.result = 'Negative') THEN 'neg'
-                WHEN (h.result = 'Positive') THEN 'pos'
-                WHEN (h.result = 'inconclusive') THEN 'inconclusive'
-                ELSE NULL
-            END),
-            test_samples.status = (CASE
-                WHEN (h.status = 'Approved') THEN 'lab_result_received'
-                WHEN (h.status = 'Resulted') THEN 'lab_result_received'
-                WHEN (h.status = 'Rejected') THEN 'rejected'
-                ELSE NULL
-            END),
-            test_samples.update_dt = NOW()
-        WHERE
-            test_samples.test_result IS NULL
-                AND test_samples.id = h.order_number
-        """
-    vals = ()
-    exec_update(sql, vals)
+        sql = """
+            UPDATE test_samples
+                    INNER JOIN
+                mawdpath_inbound_data h ON (test_samples.id = h.order_number) 
+            SET 
+                test_samples.lab_result_receive_dt = NOW(),
+                test_samples.test_result = (CASE
+                    WHEN (h.result = 'Negative') THEN 'neg'
+                    WHEN (h.result = 'Positive') THEN 'pos'
+                    WHEN (h.result = 'inconclusive') THEN 'inconclusive'
+                    ELSE NULL
+                END),
+                test_samples.status = (CASE
+                    WHEN (h.status = 'Approved') THEN 'lab_result_received'
+                    WHEN (h.status = 'Resulted') THEN 'lab_result_received'
+                    WHEN (h.status = 'Rejected') THEN 'rejected'
+                    ELSE NULL
+                END),
+                test_samples.update_dt = NOW()
+            WHERE
+                test_samples.test_result IS NULL
+                    AND test_samples.id = h.order_number
+            """
+        vals = ()
+        exec_update(sql, vals)
+
+        sql = """
+            UPDATE test_samples
+                    INNER JOIN
+                crl_inbound_data h ON (test_samples.id = h.order_number) 
+            SET 
+                test_samples.lab_result_receive_dt = NOW(),
+                test_samples.test_result = (CASE
+                    WHEN (h.result = 'Negative') THEN 'neg'
+                    WHEN (h.result = 'Positive') THEN 'pos'
+                    WHEN (h.result = 'inconclusive') THEN 'inconclusive'
+                    ELSE NULL
+                END),
+                test_samples.status = (CASE
+                    WHEN (h.status = 'Approved') THEN 'lab_result_received'
+                    WHEN (h.status = 'Resulted') THEN 'lab_result_received'
+                    WHEN (h.status = 'Rejected') THEN 'rejected'
+                    ELSE NULL
+                END),
+                test_samples.update_dt = NOW()
+            WHERE
+                test_samples.test_result IS NULL
+                    AND test_samples.id = h.order_number
+            """
+        vals = ()
+        exec_update(sql, vals)
+
+    except Exception as err:
+        print_error('Critical ERROR - Database Update Failed: {}'.format(err))
 
 
 def extract_filename(file_path):
