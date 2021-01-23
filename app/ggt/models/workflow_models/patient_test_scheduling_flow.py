@@ -123,7 +123,7 @@ def get_all_available_locations_and_times(group_code):
     )
 
 
-@cached(cache=TTLCache(maxsize=1024, ttl=60))
+# @cached(cache=TTLCache(maxsize=1024, ttl=60))
 def get_schedule_times_available(
     location_id,
     date=date.today().strftime("%Y-%m-%d")
@@ -138,7 +138,10 @@ def get_schedule_times_available(
 
 def get_second_shot_available_times(req):
     location_id = req.location_id
-    date = str(tuple((req.dates)))
+    if len(req.dates) > 1:
+        date = str(tuple((req.dates)))
+    elif len(req.dates) == 1:
+        date = "('{}')".format(req.dates[0])
     return x_response(
         bp_get_second_shot_available_times(location_id, date)
     )
