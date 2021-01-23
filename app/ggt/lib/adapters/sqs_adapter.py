@@ -22,7 +22,7 @@ def __boto_connect():
             "sqs",
             aws_access_key_id=get_config_val('aws.access_key_id'),
             aws_secret_access_key=get_config_val('aws.secret_access_key'),
-            region_name=get_config_val('aws.region')
+            region_name=get_config_val('aws.sqs_region')
         )
         return boto_client
 

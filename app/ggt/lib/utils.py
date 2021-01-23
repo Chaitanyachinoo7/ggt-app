@@ -231,9 +231,18 @@ def is_site_admin(user: User):
 def is_contact_center(user: User):
     return (user and user.roles) and (get_config_val('app.roles.contact_center') in ujson.loads(user.roles))
 
+
 def get_random_password():
     chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@£$%^&*().,?0123456789'
     password = ''
     for c in range(20):
         password += random.choice(chars)
     return password
+
+
+def get_sqs_queue_url(schedule_id):
+    if get_config_val('env') != 'PROD':
+        return get_config_val('aws.sqs_url')
+    else:
+        r = int(schedule_id) % int(get_config_val('aws.queue_count'))
+        return get_config_val('aws.sqs_url').format(r)
