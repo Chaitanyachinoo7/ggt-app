@@ -40,6 +40,7 @@ aws:
   sqs_region: us-east-2
   queue_count: 2
   sqs_url: https://sqs.us-east-2.amazonaws.com/135292740376/available_slot_management_queue_{}
+  vax_sms_que: https://sqs.us-east-2.amazonaws.com/135292740376/vax_scheduled_sms_notification_queue
   region: us-east-1
   access_key_id: AKIAR7AATMMMGKHVWYP6
   secret_access_key: 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
@@ -92,7 +93,7 @@ twilio:
   account_sid_short_code: ACa718334f24171c002bc3ee69c59aae9e
   auth_token_short_code: e9a391c21722705f3c7902fcde7522a4
   from_number_short_code: "80578"
-
+  
 sendgrid:
   sendgrid_api_key: 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
 

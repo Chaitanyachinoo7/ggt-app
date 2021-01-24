@@ -35,11 +35,11 @@ def __boto_connect():
         return None
 
 
-def push_sqs_message(queue_url, message):
+def push_sqs_message(queue_url, message, delay_seconds=0):
     try:
         response = __boto_connect().send_message(
                         QueueUrl=queue_url,
-                        DelaySeconds=0,
+                        DelaySeconds=delay_seconds,
                         MessageBody=(message)
                     )
         log_generic(

@@ -33,7 +33,8 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
     lookup_test_result,
     get_all_available_locations_and_times,
     insurance_eligibility, get_ggv_schedule_locations_available,
-    insurance_search_payer, get_ggv_screen_flow_seq, get_second_shot_available_times, ggv_finalize_registration
+    insurance_search_payer, get_ggv_screen_flow_seq, get_second_shot_available_times, ggv_finalize_registration,
+    get_ggv_schedule_times_available
 )
 
 # TODO: [GGT-193] Move this to a dedicated API
@@ -110,6 +111,11 @@ async def api_get_second_shot_available_times(req: SecondAvailableDate):
 @router.get("/get_available_times/{location_id}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_get_available_times_for_today(location_id: str):
     return get_schedule_times_available(location_id)
+
+
+@router.get("/ggv/get_available_times/{location_id}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_ggv_get_available_times_for_today(location_id: str):
+    return get_ggv_schedule_times_available(location_id)
 
 
 @router.get("/get_locations", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
