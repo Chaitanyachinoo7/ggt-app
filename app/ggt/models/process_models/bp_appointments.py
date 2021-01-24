@@ -273,7 +273,7 @@ def __send_vax_completion_sms(name, to_number):
     msg = """Hi {} \nYour 15 minute observation period has begun.  Please alert the staff immediately if you feel 
     unwell.  If you are not near staff  call 911""".format(name)
 
-    send_twilio_sms(to_number, msg)
+    # send_twilio_sms(to_number, msg)
 
 
 def __send_vax_completion_confirmation_in_15_minutes(name, to_number):
@@ -285,4 +285,6 @@ def __send_vax_completion_confirmation_in_15_minutes(name, to_number):
         "message": msg,
         "to_number": to_number
     }
+
+    r = ujson.dumps(r)
     push_sqs_message(get_config_val('aws.vax_sms_que'), r, delay_seconds=900)
