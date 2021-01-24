@@ -6,6 +6,7 @@ import boto3
 from cachetools import cached, LRUCache, TTLCache
 
 import ggt.lib.constants as c
+from ggt.lib.adapters.sqs_adapter import push_sqs_message
 from ggt.lib.adapters.twilio_adapter import send_twilio_sms
 
 from ggt.models.data_models.data_types import (
@@ -85,6 +86,7 @@ def bp_appointment_update(appointment_id: int, action: str, workstation_id: int,
             usuccess = update_appointment_with_end_vax(appointment, user, workstation_id)
             if usuccess:
                 __send_vax_completion_sms(appointment.patient.first_name, appointment.patient.phone_number)
+                __send_vax_completion_confirmation_in_15_minutes(appointment.patient.first_name, appointment.patient.phone_number)
 
         if action == c.APPOINTMENT_ACTION_NOTES_VAX:
             usuccess = update_appointment_with_notes_vax(appointment, user, workstation_id)
@@ -270,11 +272,17 @@ def __send_label_to_printer(appointment_id, queue_id):
 def __send_vax_completion_sms(name, to_number):
     msg = """Hi {} \nYour 15 minute observation period has begun.  Please alert the staff immediately if you feel 
     unwell.  If you are not near staff  call 911""".format(name)
+
     send_twilio_sms(to_number, msg)
 
 
-def __send_vax_completion_confirmation_in_15_minutes(name, to_number, appointment_id, dob):
+def __send_vax_completion_confirmation_in_15_minutes(name, to_number):
     msg = """Hi {} \nThank you for getting your vaccine with GoGetVax.com.  Please alert the staff immediately if you 
     currently feel unwell .  If you are not near staff, call 911.  Your Vaccine record is located here 
-    <link to patient portal>.  Remember to still practice social distancing and continue to wear a mask.""".format(name)
-    send_twilio_sms(to_number, msg)
+    https://start.gogettested.com/provider.  Remember to still practice social distancing and continue to wear a mask.""".format(name)
+
+    r = {
+        "message": msg,
+        "to_number": to_number
+    }
+    push_sqs_message(get_config_val('aws.vax_sms_que'), r, delay_seconds=900)
