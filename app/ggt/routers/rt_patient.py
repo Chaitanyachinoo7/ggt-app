@@ -113,10 +113,12 @@ async def api_get_available_times_for_today(location_id: str):
     return get_schedule_times_available(location_id)
 
 
-@router.get("/ggv/get_available_times/{location_id}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
-async def api_ggv_get_available_times_for_today(location_id: str):
-    return get_ggv_schedule_times_available(location_id)
-
+@router.get("/ggv/get_available_times/{location_id}/{date}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_ggv_get_available_times_for_today(location_id: str, date: str):
+    return get_ggv_schedule_times_available(
+        location_id,
+        date
+    )
 
 @router.get("/get_locations", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 @router.get("/get_locations/{group_code}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
