@@ -58,13 +58,13 @@ def task_process_sms_queue(batch_size=10000, offset=0):
     print('************************ END ************************\n\n')
 
 
-def __batch_process_sms_queue(micro_offset, micro_batch_size):
+def __batch_process_sms_queue(micro_batch_size, micro_offset):
     sql = """
     SELECT * 
     FROM sms_notification_queue 
     WHERE status 
         IN ('pending','retry') 
-    ORDER BY create_dt ASC
+    ORDER BY create_dt DESC
     LIMIT {},{}
     """.format(micro_offset, micro_batch_size)
 
