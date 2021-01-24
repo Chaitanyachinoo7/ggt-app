@@ -26,7 +26,7 @@ from ggt.models.process_models.bp_schedules import (
     bp_get_schedule_times_available,
     bp_get_all_available_locations_and_times,
     bp_get_schedule_locations_available_near_lat_lng, bp_ggv_get_schedule_locations_available_near_lat_lng,
-    bp_get_second_shot_available_times
+    bp_get_second_shot_available_times, bp_get_ggv_schedule_times_available
 )
 
 from ggt.models.process_models.bp_appointments import (
@@ -109,7 +109,7 @@ def get_schedule_locations_available_near_lat_lng(date, group_code, lat, lng, ra
     )
 
 
-@cached(cache=TTLCache(maxsize=1024, ttl=180))
+# @cached(cache=TTLCache(maxsize=1024, ttl=180))
 def get_ggv_schedule_locations_available(group_code, lat, lng, radius):
     return y_response(
         bp_ggv_get_schedule_locations_available_near_lat_lng(group_code, lat, lng, radius)
@@ -123,13 +123,25 @@ def get_all_available_locations_and_times(group_code):
     )
 
 
-# @cached(cache=TTLCache(maxsize=1024, ttl=60))
+@cached(cache=TTLCache(maxsize=1024, ttl=60))
 def get_schedule_times_available(
     location_id,
     date=date.today().strftime("%Y-%m-%d")
 ):
     return x_response(
         bp_get_schedule_times_available(
+            location_id,
+            date
+        )
+    )
+
+
+def get_ggv_schedule_times_available(
+    location_id,
+    date=date.today().strftime("%Y-%m-%d")
+):
+    return x_response(
+        bp_get_ggv_schedule_times_available(
             location_id,
             date
         )

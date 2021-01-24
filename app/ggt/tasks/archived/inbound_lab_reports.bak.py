@@ -29,13 +29,11 @@ from ggt.lib.db import (
     replica_read_rows
 )
 
-'''
 from ggt.lib.storage import (
     file_exists_in_all_inbound_files,
     upload_lab_report,
     upload_to_all_inbound_files
 )
-'''
 
 from ggt.models.data_models.tasks_local_cache import (
     init_local_cache,
@@ -87,7 +85,16 @@ def task_process_inbound_lab_reports():
     # init_local_cache()                    #temp disabled to save time
     # load_data_from_remote_db_to_cache()   #temp disabled to save time
 
-    process_pdf_results_for_lab_ait()
+    # clean_downloads_folder()              #deprecation path
+    # download_ftp_files()                  #deprecation path
+
+    
+    #parse_csv_files()                      #deprecation path
+
+    #add_to_healthtrackrx_inbound_data_table()  #deprecation path
+    #update_test_samples_with_results()         #deprecation path
+    #upload_pdf_lab_reports()                   #deprecation path
+    #process_pdf_results_for_lab_ait()
     add_to_healthtrackrx_inbound_data_table()
     update_test_samples_with_results()
 
@@ -99,6 +106,9 @@ def task_process_inbound_lab_reports():
     #process_pdf_reports_for_lab_crl() #part 2/2
     add_to_crl_inbound_data_table()
     update_test_samples_with_results()
+
+    #parse_report_comments()                    #deprecation path
+    #upload_all_inbound_files_to_central_storage() #deprecation path / Not required anymore since files are hosted in S3
     
 
     log_generic(
@@ -109,6 +119,304 @@ def task_process_inbound_lab_reports():
 
     print_header(
         '\n\n****************** COMPLETED ******************************\nElapsed Time: {}\n'.format(time.time() - start))
+
+
+'''
+def init_ftp_connection():
+    try:
+        ssh_client = paramiko.SSHClient()
+        ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh_client.connect(
+            hostname=hostname,
+            username=username, 
+            password=password, 
+            port=port
+        )
+
+        ftp_client = ssh_client.open_sftp()
+        ftp_client.chdir(remote_folder)
+
+        paths = ftp_client.listdir()
+        directory_list = get_remote_directory_list(ftp_client, paths, remote_folder)
+        return ftp_client, directory_list, remote_folder
+
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR, 
+            function=whoami(), 
+            task_session_id=session_id, 
+            error=err
+        )
+    finally:
+        ftp_client.close()
+'''
+
+
+def clean_downloads_folder():
+    print('cleaning up downloads folder')
+    try:
+        files = glob.glob("{}/*".format(local_download_path))
+        for f in files:
+            os.remove(f)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+
+
+def download_ftp_files():
+    print_ok2('Connecting to FTP server...')
+    try:
+        ssh_client = paramiko.SSHClient()
+        ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh_client.connect(
+            hostname=hostname,
+            username=username,
+            password=password,
+            port=port
+        )
+
+        ftp_client = ssh_client.open_sftp()
+        ftp_client.chdir(remote_downloads_folder)
+
+        paths = ftp_client.listdir()
+        directory_list = get_remote_directory_list(ftp_client, paths, remote_downloads_folder)
+        copy_files_to_local(ftp_client, directory_list, remote_downloads_folder)
+        ftp_client.close()
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            task_session_id=session_id,
+            error=err
+        )
+    finally:
+        ftp_client.close()
+
+
+def copy_files_to_local(ftp_client, directory_list, remote_folder):
+    try:
+        for dir in directory_list:
+            remote_dir_path = "{}/{}".format(remote_folder, dir)
+            total_files = 0
+            cache_hits = 0
+            cache_misses = 0
+            download_errors = 0
+            try:
+                dir_list, file_list = get_remote_directories_and_files(ftp_client, remote_dir_path)
+
+                file_count = len(file_list)
+                i = 0
+                p = 0
+                PROGRESS_LABEL = 'copying files from FTP to local'
+                for filename in file_list:
+                    i += 1
+                    p = i/file_count*100
+                    print_progress_bar_message("{} {} —— {:.1f}%".format(PROGRESS_LABEL, remote_dir_path, p))
+
+                    total_files += 1
+                    try:
+                        cache_hits, cache_misses, download_errors = download_and_cleanup(
+                            ftp_client, filename, remote_dir_path, cache_hits, cache_misses, download_errors)
+
+                    except Exception as err:
+                        download_errors += 1
+                        log_generic(
+                            type=c.ERROR,
+                            function=whoami(),
+                            task_session_id=session_id,
+                            error=err
+                        )
+
+                print_ok2("{} {} —— 100%            ".format(
+                    PROGRESS_LABEL, remote_dir_path))
+
+            except Exception as err:
+                log_generic(
+                    type=c.ERROR,
+                    function=whoami(),
+                    task_session_id=session_id,
+                    error=err
+                )
+            finally:
+                print_ok1('total_files: {}'.format(total_files))
+                print_ok1('cache_hits: {}'.format(cache_hits))
+                print_ok1('cache_misses: {}'.format(cache_misses))
+                print_ok1('download_errors: {}'.format(download_errors))
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            task_session_id=session_id,
+            error=err
+        )
+
+
+def prep_local_downloads_dir(remote_dir_path):
+    newpath = "{}/{}".format(local_download_path, remote_dir_path)
+    if not os.path.exists(newpath):
+        os.makedirs(newpath)
+    return newpath
+
+
+def download_and_cleanup(ftp_client, filename, remote_dir_path, cache_hits, cache_misses, download_errors):
+    local_downloads_dir = prep_local_downloads_dir(remote_dir_path)
+    if file_exists_in_all_inbound_files_cache(filename):
+        cache_hits += 1
+        old_path = '{}/{}'.format(remote_dir_path, filename).replace('//', '/')
+        new_path = '{}{}/{}'.format('/backups/processed',
+                                    remote_dir_path, filename).replace('//', '/')
+        print('Archiving FTP file {}'.format(old_path))
+        ########ftp_move_file(ftp_client, old_path, new_path)  # Archive file
+
+    else:
+        cache_misses += 1
+        local_path = "{}/{}".format(local_downloads_dir,
+                                    filename).replace('//', '/')
+        if path.exists(local_path):
+            print("file {} exists".format(local_path))
+            if os.stat(local_path).st_size > 0:
+                add_to_all_inbound_files_cache(filename)
+            else:
+                print_error(
+                    'Deleting empty downloaded file : {}'.format(local_path))
+                download_errors += 1
+                os.remove(local_path)
+        else:
+            print_ok1("copying {} to {}".format(filename, local_path))
+            try:
+                ftp_client.get(filename, local_path)
+            except Exception as err:
+                print_error(err)
+                raise ValueError(
+                    'Error downloading from FTP —— {}'.format(filename))
+
+            if os.stat(local_path).st_size > 0:
+                add_to_all_inbound_files_cache(filename)
+            else:
+                print_error(
+                    'Deleting empty downloaded file : {}'.format(local_path))
+                download_errors += 1
+                os.remove(local_path)
+                raise ValueError(
+                    'Error downloading from FTP —— {}'.format(filename))
+
+    return cache_hits, cache_misses, download_errors
+
+
+def ftp_move_file(ftp_client, old_path, new_path):
+    dir_path, file_name = os.path.split(new_path.rstrip('/'))
+
+    try:
+        ftp_client.chdir(dir_path)
+    except IOError:
+        ftp_create_dir_path(ftp_client, dir_path)
+
+    try:
+        ftp_client.rename(old_path, new_path)
+    except Exception as err:
+        print_error('ftp move failed: {}'.format(err))
+
+
+def ftp_create_dir_path(ftp_client, dir_path):
+    # Test if sub directories to the remote path exists. If not recursively create them
+    dir_chain = dir_path.split('/')
+    sub_dir_path = ''
+    for directory in dir_chain:
+        sub_dir_path = '{}/{}'.format(sub_dir_path,
+                                      directory).replace('//', '/')
+        try:
+            ftp_client.chdir(sub_dir_path)
+        except IOError:
+            ftp_client.mkdir(sub_dir_path)
+
+
+def get_remote_directories_and_files(ftp_client, remote_folder):
+    file_list = []
+    dir_list = []
+
+    try:
+        ftp_client.chdir(remote_folder)
+        resources = ftp_client.listdir()
+
+        for resource in resources:
+            lstatout = str(ftp_client.lstat(resource)).split()[0]
+            if 'd' in lstatout:
+                dir_list.append(resource)
+            else:
+                file_list.append(resource)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            remote_folder=remote_folder,
+            error=err
+        )
+
+    return dir_list, file_list
+
+
+def get_remote_directory_list(ftp_client, paths, remote_folder):
+    directories = ['']
+    for path in paths:
+        try:
+            ftp_client.chdir(path)
+            directories.append(path)
+            ftp_client.chdir(remote_folder)
+        except:
+            #print(path+" is not a dir")
+            pass
+    print(directories)
+    return directories
+
+
+def parse_csv_files():
+    try:
+        file_list = glob.iglob(
+            '{}/**/*.csv'.format(local_download_path), recursive=True)
+
+        file_count = 0
+        for filename in file_list:
+            file_count += 1
+
+        file_list = glob.iglob(
+            '{}/**/*.csv'.format(local_download_path), recursive=True)
+        i = 0
+        p = 0
+        PROGRESS_LABEL = 'Parsing CSV files'
+        for filename in file_list:
+            try:
+                i += 1
+                p = i/file_count*100
+                print_progress_bar_message('Parsing CSV files {:.1f}%'.format(p))
+                parse_csv_file(filename)
+            except Exception as e:
+                print(e)
+                print_error('Error Parsing {}'.format(filename))
+
+        print_ok2('{} 100%'.format(PROGRESS_LABEL))
+
+    except Exception as err:
+        print(err)
+
+
+def parse_csv_file(file_path):
+    with open(file_path) as csvfile:
+        reader = csv.DictReader(lower_first(csvfile))
+        for row in reader:
+            try:
+                add_to_lab_test_records_cache(row)
+                add_to_csv_pdf_sync_cache(row)                    
+
+            except Exception as err:
+                print("err:", err)
 
 
 def load_data_from_remote_db_to_cache():
@@ -161,26 +469,38 @@ def process_pdf_results_for_lab_ait():
                 add_to_lab_test_records_cache_v2(__requisition_id, __order_number, __test_result, __test_status, 'AIT')
 
                 if __destination_filename:
-                    #creates the renamed labreport in the local folder
                     shutil.copyfile(local_file_path, '{}/{}'.format(local_backups_path, __destination_filename))
 
                     #Archive downloads from remote storage. This change propagates to local folders
                     if file_exists_in_files_in_remote_storage_cache(__destination_filename):
                         filename = extract_filename(local_file_path)
-                        '''
                         if move_file('ggt-sftp/healthtrackrx/Reports/{}'.format(filename), 'healthtrackrx/Reports/archived/{}'.format(filename), 'ggt-sftp'):
                             print_ok2('archived: {}                 '.format(filename))
                         else:
                             print_error('Failed to archive: {}                 '.format(filename))
-                        '''
 
                         shutil.move(local_file_path, '{}/archived/{}'.format(local_download_path, filename))
                         #pass
                     else:
                         if __order_number and __destination_filename:
-                            print_ok2('skipping file upload to GCP')
+                            upload_status = upload_lab_report(
+                                local_file_path,
+                                __destination_filename
+                            )
+                            if upload_status is None:
+                                print('pdf_lab_report - Error Uploading.... {} ==> {}'.format(
+                                    local_file_path, __destination_filename))
+                            elif upload_status:
+                                print('pdf_lab_report - upload success {} ==> {}'.format(
+                                    local_file_path, __destination_filename))
+                            else:
+                                print('pdf_lab_report exists at destination... adding to local cache: {} ==> {}'.format(
+                                    local_file_path, __destination_filename))
+                                add_to_files_in_remote_storage_cache(
+                                    __destination_filename)
                         else:
-                            print_warning('Lab report upload skipped for rejected lab test')
+                            #print_ok2('Lab report upload skipped for rejected lab test')
+                            handle_reject_report(local_file_path)
                             
             except Exception as err:
                 print_error('Error uploading — {} — {}'.format(err, local_file_path))
@@ -225,14 +545,29 @@ def process_pdf_results_for_lab_mawd():
 
                     if file_exists_in_files_in_remote_storage_cache(__destination_filename):
                         filename = extract_filename(local_file_path)
-                        #move_file('ggt-sftp/mawdpath/prod/results/{}'.format(filename), 'mawdpath/prod/results/archived/{}'.format(filename), 'ggt-sftp')
+                        move_file('ggt-sftp/mawdpath/prod/results/{}'.format(filename), 'mawdpath/prod/results/archived/{}'.format(filename), 'ggt-sftp')
                         shutil.move(local_file_path, '{}/archived/{}'.format(local_download_path, filename))
                         print_ok2('archiving: {}'.format(filename))
                     else:
                         if __order_number and __destination_filename:
-                            print_ok2('skipping file upload to GCP')
+                            upload_status = upload_lab_report(
+                                local_file_path,
+                                __destination_filename
+                            )
+                            if upload_status is None:
+                                print('pdf_lab_report - Error Uploading.... {} ==> {}'.format(
+                                    local_file_path, __destination_filename))
+                            elif upload_status:
+                                print('pdf_lab_report - upload success {} ==> {}'.format(
+                                    local_file_path, __destination_filename))
+                            else:
+                                print('pdf_lab_report exists at destination... adding to local cache: {} ==> {}'.format(
+                                    local_file_path, __destination_filename))
+                                add_to_files_in_remote_storage_cache(
+                                    __destination_filename)
                         else:
-                            print_warning('Lab report upload skipped for rejected lab test')
+                            #print_ok2('Lab report upload skipped for rejected lab test')
+                            handle_reject_report(local_file_path)
                             
             except Exception as err:
                 print_error('Error uploading — {} — {}'.format(err, local_file_path))
@@ -242,6 +577,70 @@ def process_pdf_results_for_lab_mawd():
     except Exception as err:
         print_error(err)
 
+'''
+def process_pdf_results_for_lab_crl():
+    print('process_pdf_results_for_lab_crl')
+    local_download_path = '/Users/suresh/ggt-tasks/downloads/crllabs/prod/results'
+    try:
+        file_count = 0
+        for local_file_path in glob.iglob('{}/*.idx'.format(local_download_path), recursive=True):
+            file_count += 1
+
+        i = 0
+        p = 0
+        PROGRESS_LABEL = 'Processing and uploading PDF lab reports'
+        for local_file_path in glob.iglob('{}/*.idx'.format(local_download_path), recursive=True):
+            i += 1
+            p = i/file_count*100
+            print_progress_bar_message('{} {:.1f}%'.format(PROGRESS_LABEL, p))
+
+            try:
+                if os.stat(local_file_path).st_size == 0:
+                    raise ValueError('Empty File')
+
+                #__requisition_id, __order_number, __test_result, __test_status, __destination_filename = extract_report_info(local_file_path)
+                __vial_id, __order_number, __test_result, __test_status, __destination_filename = extract_report_info_mawd(local_file_path)
+
+                add_to_csv_pdf_sync_cache_v2(__vial_id, __order_number, __test_result, __test_status, 'MAWD')
+                add_to_lab_test_records_cache_v2(__vial_id, __order_number, __test_result, __test_status, 'MAWD')
+
+                if __destination_filename:
+                    ######shutil.copyfile(local_file_path, '{}/{}'.format(local_backups_path, __destination_filename))
+
+                    if file_exists_in_files_in_remote_storage_cache(__destination_filename):
+                        filename = extract_filename(local_file_path)
+                        move_file('ggt-sftp/mawdpath/prod/results/{}'.format(filename), 'mawdpath/prod/results/archived/{}'.format(filename), 'ggt-sftp')
+                        shutil.move(local_file_path, '{}/archived/{}'.format(local_download_path, filename))
+                        print_ok2('archiving: {}'.format(filename))
+                    else:
+                        if __order_number and __destination_filename:
+                            upload_status = upload_lab_report(
+                                local_file_path,
+                                __destination_filename
+                            )
+                            if upload_status is None:
+                                print('pdf_lab_report - Error Uploading.... {} ==> {}'.format(
+                                    local_file_path, __destination_filename))
+                            elif upload_status:
+                                print('pdf_lab_report - upload success {} ==> {}'.format(
+                                    local_file_path, __destination_filename))
+                            else:
+                                print('pdf_lab_report exists at destination... adding to local cache: {} ==> {}'.format(
+                                    local_file_path, __destination_filename))
+                                add_to_files_in_remote_storage_cache(
+                                    __destination_filename)
+                        else:
+                            #print_ok2('Lab report upload skipped for rejected lab test')
+                            handle_reject_report(local_file_path)
+                            
+            except Exception as err:
+                print_error('Error uploading — {} — {}'.format(err, local_file_path))
+
+        print_ok2('{} 100%            '.format(PROGRESS_LABEL))
+
+    except Exception as err:
+        print(err)
+'''
 
 def process_rpt_results_for_lab_crl():
     print('process_rpt_results_for_lab_crl')
