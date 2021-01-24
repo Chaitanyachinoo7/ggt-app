@@ -434,9 +434,9 @@ def bp_delete_schedule(location_id):
     return False
 
 
-def bp_delete_schedule_for_date(location_id, date_str):
+def bp_delete_schedule_for_date(location_id, date_str, category):
     try:
-        return delete_schedule_entries_by_location_id_for_date(location_id, date_str)
+        return delete_schedule_entries_by_location_id_for_date(location_id, date_str, category)
 
     except Exception as err:
         log_generic(
@@ -567,6 +567,7 @@ def bp_get_schedule_generation_rules(location_id):
 def __process_schedule_rule(rule):
     try:
         location_id = rule['location_id']
+        category = rule['category']
         rule_type = rule['rule_type']
         start_date = rule['active_local_start_dt']
         start_date_str = start_date.strftime('%Y-%m-%d')
@@ -577,7 +578,7 @@ def __process_schedule_rule(rule):
         current_dt = datetime.today()
 
         if rule_type == 'exception':
-            bp_delete_schedule_for_date(location_id, start_date_str)
+            bp_delete_schedule_for_date(location_id, start_date_str, category)
 
         rows = []
         valid_days = __get_valid_days(rule)
@@ -610,9 +611,9 @@ def __process_schedule_rule(rule):
             schedule_date = schedule_date + timedelta(days=1)
 
         if rows:
-            rows = __remove_reserved_slots(rows, location_id)
+            rows = __remove_reserved_slots(rows, location_id, category)
         if rows:
-            add_schedule_entries(rows)
+            add_schedule_entries(rows, category)
         return True
 
     except Exception as err:
@@ -636,7 +637,7 @@ def __get_valid_days(row):
     }
 
 
-def __remove_reserved_slots(rows, location_id):
+def __remove_reserved_slots(rows, location_id, category):
     try:
         generated_dt_counts = {}  # counts map
         generated_dt_list = []  # flat list
@@ -649,7 +650,7 @@ def __remove_reserved_slots(rows, location_id):
                 generated_dt_list.append(dtkey)
 
         reserved_slots = get_slots_matching_dt_list(
-            generated_dt_list, location_id)
+            generated_dt_list, location_id, category)
 
         for slot in reserved_slots:
             slot_start_dt_str = slot.start_dt.strftime('%Y-%m-%d %H:%M:%S')

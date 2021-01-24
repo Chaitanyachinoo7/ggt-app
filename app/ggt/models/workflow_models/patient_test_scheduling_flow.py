@@ -109,7 +109,7 @@ def get_schedule_locations_available_near_lat_lng(date, group_code, lat, lng, ra
     )
 
 
-@cached(cache=TTLCache(maxsize=1024, ttl=180))
+# @cached(cache=TTLCache(maxsize=1024, ttl=180))
 def get_ggv_schedule_locations_available(group_code, lat, lng, radius):
     return y_response(
         bp_ggv_get_schedule_locations_available_near_lat_lng(group_code, lat, lng, radius)

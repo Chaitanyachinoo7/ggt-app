@@ -46,14 +46,37 @@ from ggt.models.workflow_models.clinical_test_site_admin_flow import (
 router = APIRouter()
 
 
-@router.get("/get_screen_flow_seq/{group_code}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
-async def api_get_screen_flow_seq(group_code: str):
-    return get_screen_flow_seq(group_code)
-
-
 @router.get("/ggv/get_screen_flow_seq/{group_code}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_ggv_get_screen_flow_seq(group_code: str):
     return get_ggv_screen_flow_seq(group_code)
+
+
+@router.get("/ggv/get_available_locations/{group_code}/{lat}/{lng}/{radius}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_ggv_get_available_locations(group_code: str, lat: float, lng: float, radius: int):
+    return get_ggv_schedule_locations_available(group_code, lat, lng, radius)
+
+
+@router.post("/ggv/get_second_shot_available_times", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_get_second_shot_available_times(req: SecondAvailableDate):
+    return get_second_shot_available_times(req)
+
+
+@router.get("/ggv/get_available_times/{location_id}/{date}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_ggv_get_available_times_for_today(location_id: str, date: str):
+    return get_ggv_schedule_times_available(
+        location_id,
+        date
+    )
+
+
+@router.post("/ggv/finalize_registration", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_ggv_finalize_registration(finalize_registration_request: FinalizeGGVRegistrationRequest):
+    return ggv_finalize_registration(finalize_registration_request)
+
+
+@router.get("/get_screen_flow_seq/{group_code}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_get_screen_flow_seq(group_code: str):
+    return get_screen_flow_seq(group_code)
 
 
 @router.post("/verify_phone", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
@@ -72,11 +95,6 @@ async def api_validate_otp(req: ValidateOtpRequest):
 @router.get("/get_available_dates/{group_code}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_get_available_dates(group_code: str):
     return get_schedule_dates_available(group_code)
-
-
-@router.get("/ggv/get_available_locations/{group_code}/{lat}/{lng}/{radius}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
-async def api_ggv_get_available_locations(group_code: str, lat: float, lng: float, radius: int):
-    return get_ggv_schedule_locations_available(group_code, lat, lng, radius)
 
 
 @router.get("/get_available_locations/{group_code}/{date}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
@@ -103,22 +121,10 @@ async def api_get_available_times(location_id: str, date: str):
     )
 
 
-@router.post("/ggv/get_second_shot_available_times", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
-async def api_get_second_shot_available_times(req: SecondAvailableDate):
-    return get_second_shot_available_times(req)
-
-
 @router.get("/get_available_times/{location_id}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_get_available_times_for_today(location_id: str):
     return get_schedule_times_available(location_id)
 
-
-@router.get("/ggv/get_available_times/{location_id}/{date}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
-async def api_ggv_get_available_times_for_today(location_id: str, date: str):
-    return get_ggv_schedule_times_available(
-        location_id,
-        date
-    )
 
 @router.get("/get_locations", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 @router.get("/get_locations/{group_code}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
@@ -129,11 +135,6 @@ async def api_get_all_available_locations_and_times(group_code: str = None):
 @router.post("/finalize_registration", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_finalize_registration(finalize_registration_request: FinalizeRegistrationRequest):
     return finalize_registration(finalize_registration_request)
-
-
-@router.post("/ggv/finalize_registration", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
-async def api_ggv_finalize_registration(finalize_registration_request: FinalizeGGVRegistrationRequest):
-    return ggv_finalize_registration(finalize_registration_request)
 
 
 @router.post("/finalize_payment", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
