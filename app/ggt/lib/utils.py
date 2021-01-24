@@ -241,7 +241,7 @@ def get_random_password():
 
 
 def get_sqs_queue_url(schedule_id):
-    if get_config_val('env') != 'PROD':
+    if get_config_val('env') != 'PROD' or get_config_val('env') != 'QA':
         return get_config_val('aws.sqs_url')
     else:
         r = int(schedule_id) % int(get_config_val('aws.queue_count'))
