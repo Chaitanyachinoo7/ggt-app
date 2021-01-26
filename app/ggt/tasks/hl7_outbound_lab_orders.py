@@ -43,7 +43,7 @@ outbound_file_prefix = cfg(
 local_insurance_card_file_path = cfg(
     'vendors.healthtrackrx.outbound.local_insurance_card_file_path')
 
-
+#TODO: write processing log to files, raw log, success log, error log, summary log
 def task_process_hl7_lab_orders():
     print('\n\n************************************************\n\n')
     log_generic(
@@ -61,24 +61,6 @@ def task_process_hl7_lab_orders():
         else:
             break
 
-    #print('looking up ready to transmit orders')
-    #orders = get_orders_ready_to_transmit(100)
-
-    # upload_insurance_files_from_gstore(orders)
-    '''
-    if len(orders) > 0:
-        print('generating outbound file')
-        #filename, local_file_path = create_outbound_file(orders)
-        processed_orders = create_outbound_files(orders)
-
-        #print('uploading file to FTP server')
-        # upload_file_to_ftp(filename, local_file_path)
-
-        #print('marking records to "with_lab" status')
-        update_to_with_lab_status(processed_orders)
-    else:
-        print('no orders to process')
-    '''
     log_generic(
         type=c.INFO,
         function=whoami(),
@@ -546,73 +528,6 @@ def get_orders_ready_to_transmit(limit=100):
             """.format(limit)
     return read_rows(sql,)
 
-'''
-def upload_file_list_to_ftp(file_list):
-    try:
-        hostname = cfg('vendors.healthtrackrx_outbound.hostname')
-        username = cfg('vendors.healthtrackrx_outbound.username')
-        password = cfg('vendors.healthtrackrx_outbound.password')
-        port = cfg('vendors.healthtrackrx_outbound.port')
-
-        ssh_client = paramiko.SSHClient()
-        ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh_client.connect(
-            hostname=hostname,
-            username=username,
-            password=password,
-            port=port
-        )
-
-        ftp_client = ssh_client.open_sftp()
-
-        for f in file_list:
-            filename = f[0]
-            local_file_path = f[1]
-            remotepath = "{}/{}".format('', filename)
-            ftp_client.put(local_file_path, remotepath)
-
-    except Exception as err:
-        log_generic(
-            type=c.ERROR,
-            function=whoami(),
-            task_session_id=session_id,
-            error=err
-        )
-    finally:
-        ftp_client.close()
-
-
-def upload_file_to_ftp(filename, local_file_path):
-    try:
-        hostname = cfg('vendors.healthtrackrx_outbound.hostname')
-        username = cfg('vendors.healthtrackrx_outbound.username')
-        password = cfg('vendors.healthtrackrx_outbound.password')
-        port = cfg('vendors.healthtrackrx_outbound.port')
-
-        ssh_client = paramiko.SSHClient()
-        ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh_client.connect(
-            hostname=hostname,
-            username=username,
-            password=password,
-            port=port
-        )
-
-        ftp_client = ssh_client.open_sftp()
-
-        remotepath = "{}/{}".format('', filename)
-        ftp_client.put(local_file_path, remotepath)
-
-    except Exception as err:
-        log_generic(
-            type=c.ERROR,
-            function=whoami(),
-            task_session_id=session_id,
-            error=err
-        )
-    finally:
-        ftp_client.close()
-'''
 
 def update_to_with_lab_status(orders):
     if len(orders) == 0:
