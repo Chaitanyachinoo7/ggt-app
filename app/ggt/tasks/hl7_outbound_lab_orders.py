@@ -399,14 +399,11 @@ def create_outbound_files(orders):
                 else:
                     raise ValueError('S3 write failed for MAWD')
 
-            elif order['lab_id'] == 1: #AIT
+            if order['lab_id'] == 1: #AIT
                 if write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8','ignore'), 'healthtrackrx_merth'):
                     processed_orders.append(order)
                 else:
                     raise ValueError('S3 write failed for AIT')
-            
-            else:
-                print_warning('skipping {}: {}'.format(order['id'], order['lab_id']))
 
         except Exception as err:
                 #print_error(err)
@@ -543,6 +540,8 @@ def get_orders_ready_to_transmit(limit=100):
             JOIN patient_questionnaires q ON ((p.id = q.patient_id)))
         WHERE
             (t.status = 'ready_to_tx')
+            AND t.vial_id IS NOT NULL
+            AND t.lab_id IN (1, 2)
         LIMIT {}
             """.format(limit)
     return read_rows(sql,)
