@@ -550,7 +550,10 @@ def get_second_shot_available_times(location_id, date):
         return None
 
 
-def get_slot_information(slot_id):
+def get_slot_information(slot_id, slot_type="test"):
+    table = "schedules"
+    if slot_type == "vax":
+        table = "ggv_schedules"
     try:
         sql = """
             SELECT 
@@ -562,10 +565,10 @@ def get_slot_information(slot_id):
                 status, 
                 appointment_id 
             FROM 
-                schedules 
+                {} 
             WHERE 
                 id = %s
-        """
+        """.format(table)
         vals = (slot_id,)
 
         row = replica_read_row(sql, vals)
@@ -599,17 +602,20 @@ def get_slot_information(slot_id):
         return None
 
 
-def update_slot_information(slot_id, appointment_id):
+def update_slot_information(slot_id, appointment_id, slot_type='test'):
+    table = "schedules"
+    if slot_type == "vax":
+        table = "ggv_schedules"
     try:
         sql = """
             UPDATE 
-                schedules 
+                {} 
             SET 
                 appointment_id = %s, 
                 status = 'booked'
             WHERE 
                 id = %s
-        """
+        """.format(table)
         vals = (appointment_id, slot_id)
         return exec_update(sql, vals)
 
