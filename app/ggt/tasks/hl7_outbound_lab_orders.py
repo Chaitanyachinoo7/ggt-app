@@ -443,25 +443,29 @@ def get_orders_ready_to_transmit(limit=100):
                 ELSE 'U'
             END) AS gender,
             (CASE
-                WHEN (t.sample_collection_start_dt IS NOT NULL) THEN 
+                WHEN
+                    (t.sample_collection_start_dt IS NOT NULL)
+                THEN
                     DATE_FORMAT(CONVERT_TZ(t.sample_collection_start_dt,
-                            '+00:00',
-                            '-06:00'),
-                    '%Y%m%d')
-                WHEN (t.sample_collection_end_dt IS NOT NULL) THEN 
+                                    '+00:00',
+                                    '-06:00'),
+                            '%Y%m%d%h%m%s')
+                WHEN
+                    (t.sample_collection_end_dt IS NOT NULL)
+                THEN
                     DATE_FORMAT(CONVERT_TZ(t.sample_collection_end_dt,
-                            '+00:00',
-                            '-06:00'),
-                    '%Y%m%d')
-                WHEN (t.pre_ship_label_scan_dt IS NOT NULL) THEN 
+                                    '+00:00',
+                                    '-06:00'),
+                            '%Y%m%d%h%m%s')
+                WHEN
+                    (t.pre_ship_label_scan_dt IS NOT NULL)
+                THEN
                     DATE_FORMAT(CONVERT_TZ(t.pre_ship_label_scan_dt,
-                            '+00:00',
-                            '-06:00'),
-                    '%Y%m%d')
-                ELSE DATE_FORMAT(CONVERT_TZ(NOW(),
-                            '+00:00',
-                            '-06:00'),
-                    '%Y%m%d')
+                                    '+00:00',
+                                    '-06:00'),
+                            '%Y%m%d%h%m%s')
+                ELSE DATE_FORMAT(CONVERT_TZ(NOW(), '+00:00', '-06:00'),
+                        '%Y%m%d%h%m%s')
             END) AS date_of_collection,
             (CASE
                 WHEN (p.race = 'race_american_indian') THEN '1002-5'
@@ -529,7 +533,7 @@ def get_orders_ready_to_transmit(limit=100):
             'Unknown' AS is_in_icu,
             'Unknown' AS is_congregate_resident,
             'Unknown' AS is_pregnant,
-            l.st as test_location_st,
+            l.st AS test_location_st,
             t.sample_collection_location_id,
             t.lab_id
         FROM

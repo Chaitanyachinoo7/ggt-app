@@ -41,12 +41,12 @@ def task_schedule_result_notifications_and_followups():
     schedule_rejects_notifications_using_email()
 
     
-    #print('create_96_hour_delayed_result_notification_campaign')
-    #create_96_hour_delayed_result_notification_campaign()
-    #print('schedule_96_hour_delayed_result_notifications_using_sms')
-    #schedule_96_hour_delayed_result_notifications_using_sms()
-    #print('schedule_96_hour_delayed_result_notifications_using_email')
-    #schedule_96_hour_delayed_result_notifications_using_email()
+    print('create_96_hour_delayed_result_notification_campaign')
+    create_96_hour_delayed_result_notification_campaign()
+    print('schedule_96_hour_delayed_result_notifications_using_sms')
+    schedule_96_hour_delayed_result_notifications_using_sms()
+    print('schedule_96_hour_delayed_result_notifications_using_email')
+    schedule_96_hour_delayed_result_notifications_using_email()
     
 
     print('schedule_positive_followups')
