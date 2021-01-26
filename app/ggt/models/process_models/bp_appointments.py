@@ -29,15 +29,16 @@ from ggt.models.data_models.appointments import (
     update_appointment_with_test_start,
     update_appointment_with_scan_vial,
     update_appointment_with_test_completed, update_appointment_with_start_vax, update_appointment_with_notes_vax,
-    update_appointment_with_scan_vial_vax, update_appointment_with_end_vax
+    update_appointment_with_scan_vial_vax, update_appointment_with_end_vax, __has_insurance_info,
+    update_appointment_with_verify_insurance
 )
 
 from ggt.lib.sys_log import (write_syslog)
 
+
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-
 
 
 @cached(cache=TTLCache(maxsize=1024, ttl=30))
@@ -74,7 +75,7 @@ def bp_get_appointment_info(appointment_id, dob):
     return False
 
 
-def bp_appointment_update(appointment_id: int, action: str, workstation_id: int, user, vial_id: str = None):
+def bp_appointment_update(service, appointment_id: int, action: str, workstation_id: int, user, vial_id: str = None):
     usuccess = False
     try:
         appointment: GgtAppointment = get_appointment(appointment_id)
@@ -82,11 +83,15 @@ def bp_appointment_update(appointment_id: int, action: str, workstation_id: int,
         if action == c.APPOINTMENT_ACTION_START_VAX:
             usuccess = update_appointment_with_start_vax(appointment, user, workstation_id)
 
+        if action == c.APPOINTMENT_ACTION_VERIFY_INSURANCE:
+            usuccess = update_appointment_with_verify_insurance(appointment, user)
+
         if action == c.APPOINTMENT_ACTION_END_VAX:
             usuccess = update_appointment_with_end_vax(appointment, user, workstation_id)
             if usuccess:
                 __send_vax_completion_sms(appointment.patient.first_name, appointment.patient.phone_number)
-                __send_vax_completion_confirmation_in_15_minutes(appointment.patient.first_name, appointment.patient.phone_number)
+                __send_vax_completion_confirmation_in_15_minutes(appointment.patient.first_name,
+                                                                 appointment.patient.phone_number)
 
         if action == c.APPOINTMENT_ACTION_NOTES_VAX:
             usuccess = update_appointment_with_notes_vax(appointment, user, workstation_id)
@@ -120,7 +125,7 @@ def bp_appointment_update(appointment_id: int, action: str, workstation_id: int,
         if usuccess:
             return {
                 'appointment_id': appointment.id,
-                'next_action': __next_action(appointment, __is_pre_labeled(appointment, workstation_id)),
+                'next_action': __next_action(appointment, service, __is_pre_labeled(appointment, workstation_id))
             }
 
     except Exception as err:
@@ -132,6 +137,7 @@ def bp_appointment_update(appointment_id: int, action: str, workstation_id: int,
         )
 
     return False
+
 
 ########################################################################################################
 # [Protected] functions
@@ -171,22 +177,42 @@ def __formatted_patient_dob(appointment):
     return appointment.patient.dob.strftime("%m/%d/%Y")
 
 
-def __next_action(appointment, pre_labeled=False):
-    switcher = {
-        c.APPOINTMENT_STATUS_SCHEDULED: c.APPOINTMENT_ACTION_CHECK_IN,
-        c.APPOINTMENT_STATUS_CHECKED_IN: c.APPOINTMENT_ACTION_START_TEST,
-        c.APPOINTMENT_STATUS_TEST_IN_PROGRESS: c.APPOINTMENT_ACTION_SCAN_VIAL,
-        c.APPOINTMENT_STATUS_VIAL_SCANNED: c.APPOINTMENT_ACTION_END_TEST,
-        c.APPOINTMENT_STATUS_TEST_COMPLETED: c.APPOINTMENT_ACTION_NONE
-    }
-
-    if not pre_labeled:  # vial scanning not required
+def __next_action(appointment, service, pre_labeled=False, ):
+    if service == "test":
         switcher = {
             c.APPOINTMENT_STATUS_SCHEDULED: c.APPOINTMENT_ACTION_CHECK_IN,
             c.APPOINTMENT_STATUS_CHECKED_IN: c.APPOINTMENT_ACTION_START_TEST,
-            c.APPOINTMENT_STATUS_TEST_IN_PROGRESS: c.APPOINTMENT_ACTION_END_TEST,
+            c.APPOINTMENT_STATUS_TEST_IN_PROGRESS: c.APPOINTMENT_ACTION_SCAN_VIAL,
+            c.APPOINTMENT_STATUS_VIAL_SCANNED: c.APPOINTMENT_ACTION_END_TEST,
             c.APPOINTMENT_STATUS_TEST_COMPLETED: c.APPOINTMENT_ACTION_NONE
         }
+
+        if not pre_labeled:  # vial scanning not required
+            switcher = {
+                c.APPOINTMENT_STATUS_SCHEDULED: c.APPOINTMENT_ACTION_CHECK_IN,
+                c.APPOINTMENT_STATUS_CHECKED_IN: c.APPOINTMENT_ACTION_START_TEST,
+                c.APPOINTMENT_STATUS_TEST_IN_PROGRESS: c.APPOINTMENT_ACTION_END_TEST,
+                c.APPOINTMENT_STATUS_TEST_COMPLETED: c.APPOINTMENT_ACTION_NONE
+            }
+    elif service == "vax":
+
+        if __has_insurance_info(appointment.patient.id):
+            switcher = {
+                c.APPOINTMENT_STATUS_SCHEDULED: c.APPOINTMENT_ACTION_CHECK_IN,
+                c.APPOINTMENT_STATUS_CHECKED_IN: c.APPOINTMENT_ACTION_VERIFY_INSURANCE,
+                c.APPOINTMENT_ACTION_VERIFY_INSURANCE: c.APPOINTMENT_ACTION_START_VAX,
+                c.APPOINTMENT_ACTION_START_VAX: c.APPOINTMENT_ACTION_SCAN_VIAL_VAX,
+                c.APPOINTMENT_ACTION_SCAN_VIAL_VAX: c.APPOINTMENT_ACTION_NOTES_VAX,
+                c.APPOINTMENT_ACTION_NOTES_VAX: c.APPOINTMENT_ACTION_END_VAX
+            }
+        else:
+            switcher = {
+                c.APPOINTMENT_STATUS_SCHEDULED: c.APPOINTMENT_ACTION_CHECK_IN,
+                c.APPOINTMENT_STATUS_CHECKED_IN: c.APPOINTMENT_ACTION_START_VAX,
+                c.APPOINTMENT_ACTION_START_VAX: c.APPOINTMENT_ACTION_SCAN_VIAL_VAX,
+                c.APPOINTMENT_ACTION_SCAN_VIAL_VAX: c.APPOINTMENT_ACTION_NOTES_VAX,
+                c.APPOINTMENT_ACTION_NOTES_VAX: c.APPOINTMENT_ACTION_END_VAX
+            }
 
     return switcher.get(appointment.status, c.APPOINTMENT_ACTION_NONE)
 
@@ -194,9 +220,9 @@ def __next_action(appointment, pre_labeled=False):
 # TODO: [GGT-80] Move copy to CMS
 def __send_test_complete_sms(appointment):
     message = "" \
-        "Hi {}, thank you for getting tested with GoGetTested.com. Your COVID-19 test results will be available in 48-96hours. " \
-        "If you have any questions, please visit GoGetTested.com Reply STOP to cancel msgs".format(
-            appointment.patient.first_name)
+              "Hi {}, thank you for getting tested with GoGetTested.com. Your COVID-19 test results will be available in 48-96hours. " \
+              "If you have any questions, please visit GoGetTested.com Reply STOP to cancel msgs".format(
+        appointment.patient.first_name)
 
     log_generic(
         type="info",
@@ -279,7 +305,8 @@ def __send_vax_completion_sms(name, to_number):
 def __send_vax_completion_confirmation_in_15_minutes(name, to_number):
     msg = """Hi {} \nThank you for getting your vaccine with GoGetVax.com.  Please alert the staff immediately if you 
     currently feel unwell .  If you are not near staff, call 911.  Your Vaccine record is located here 
-    https://start.gogettested.com/provider.  Remember to still practice social distancing and continue to wear a mask.""".format(name)
+    https://start.gogettested.com/provider.  Remember to still practice social distancing and continue to wear a mask.""".format(
+        name)
 
     r = {
         "message": msg,
