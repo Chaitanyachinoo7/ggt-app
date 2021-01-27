@@ -112,11 +112,11 @@ def upload_insurance_files_from_gstore(orders):
                 except Exception as err:
                     print(err)
 
-        print('uploading insurance files to FTP')
+        print_ok1('uploading insurance files to FTP')
         upload_file_list_to_ftp(file_buffer)
 
     except Exception as err:
-        print(err)
+        print_error(err)
 
 
 def get_insurance_photo_base64(appointment_id):
@@ -393,18 +393,24 @@ def create_outbound_files(orders):
                 hl7file.write(_str)
             '''
             
-            if order['lab_id'] == 1:
-                write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8','ignore'), 'healthtrackrx_merth')
-                processed_orders.append(order)
-            elif order['lab_id'] == 2 or str(order['sample_code']).startswith('MAWD'):
-                write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8','ignore'), 'mawdpath')
-                processed_orders.append(order)
+            if order['lab_id'] == 2 or str(order['sample_code']).startswith('MAWD'): #MAWD
+                if write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8','ignore'), 'mawdpath'):
+                    processed_orders.append(order)
+                else:
+                    raise ValueError('S3 write failed for MAWD')
+
+            elif order['lab_id'] == 1: #AIT
+                if write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8','ignore'), 'healthtrackrx_merth'):
+                    processed_orders.append(order)
+                else:
+                    raise ValueError('S3 write failed for AIT')
+            
             else:
-                print('skipping {}: {}'.format(order['id'], order['lab_id']))
+                print_warning('skipping {}: {}'.format(order['id'], order['lab_id']))
 
         except Exception as err:
-                print(err)
-                print('Error generating HL7 for Order ID:',order['id'])
+                #print_error(err)
+                print_error('Error generating HL7 for Order ID: {}'.format(order['id']))
     
     return processed_orders
                 
@@ -415,9 +421,11 @@ def write_to_s3(filename, body, lab_folder_path):
     bucket_name = 'ggt-sftp'
     prefix = '{}/prod/orders/'.format(lab_folder_path)
     if write_text_file(bucket_name, prefix+filename, body):
-        print('success {}'.format(bucket_name+prefix+filename))
+        print_ok1('success {}'.format(bucket_name+'/'+prefix+filename))
+        return True
     else:
-        print('FAILED {}'.format(bucket_name+prefix+filename))
+        print_error('FAILED {}'.format(bucket_name+'/'+prefix+filename))
+        return False
 
 
 
@@ -623,3 +631,45 @@ def update_to_with_lab_status(orders):
         """ % format_strings
 
     exec_update(sql, tuple(list_of_ids))
+
+
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+
+    def disable(self):
+        self.HEADER = ''
+        self.OKBLUE = ''
+        self.OKGREEN = ''
+        self.WARNING = ''
+        self.FAIL = ''
+        self.ENDC = ''
+
+
+def print_header(message):
+    print('{.HEADER}{}{.ENDC}'.format(bcolors, message, bcolors))
+
+
+def print_ok1(message):
+    print('{.OKGREEN}{}{.ENDC}'.format(bcolors, message, bcolors))
+
+
+def print_ok2(message):
+    print('{.OKBLUE}{}{.ENDC}'.format(bcolors, message, bcolors))
+
+
+def print_warning(message):
+    print('{.WARNING}{}{.ENDC}'.format(bcolors, message, bcolors))
+
+
+def print_error(message):
+    print('{.FAIL}{}{.ENDC}'.format(bcolors, message, bcolors))
+
+
+def print_progress_bar_message(message):
+    print('{.OKBLUE}{}{.ENDC}\r'.format(bcolors, message, bcolors), end="")

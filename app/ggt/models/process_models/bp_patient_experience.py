@@ -531,8 +531,8 @@ def __generate_ggv_appointments(booking_req: GgtBooking):
     appointment_1: GgtAppointment = None
     appointment_2: GgtAppointment = None
     try:
-        booking_req.slot_1 = get_slot_information(booking_req.appointmentOneTime)
-        booking_req.slot_2 = get_slot_information(booking_req.appointmentTwoTime)
+        booking_req.slot_1 = get_slot_information(booking_req.appointmentOneTime, slot_type='vax')
+        booking_req.slot_2 = get_slot_information(booking_req.appointmentTwoTime, slot_type='vax')
         if not (booking_req.slot_1 and booking_req.slot_2):
             raise ValueError('Invalid Slot')
 
@@ -543,8 +543,8 @@ def __generate_ggv_appointments(booking_req: GgtBooking):
         appointment_2 = create_appointment(booking_req, ggv_slot=2)
 
         if appointment_1 and appointment_2:
-            update_slot_information(booking_req.appointmentOneTime, appointment_1.id)
-            update_slot_information(booking_req.appointmentTwoTime, appointment_2.id)
+            update_slot_information(booking_req.appointmentOneTime, appointment_1.id, slot_type='vax')
+            update_slot_information(booking_req.appointmentTwoTime, appointment_2.id, slot_type='vax')
 
             '''
             log_generic(

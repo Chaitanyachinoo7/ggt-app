@@ -18,7 +18,7 @@ writer_connection_config_dict = {
     # 'raise_on_warnings': True,
     'use_pure': False,
     'autocommit': True,
-    'pool_name': 'writerpool',
+    'pool_name': 'xwriterpool',
     'pool_size': 5
 }
 
@@ -30,7 +30,7 @@ readonly_connection_config_dict = {
     # 'raise_on_warnings': True,
     'use_pure': False,
     'autocommit': True,
-    'pool_name': 'readonlypool',
+    'pool_name': 'xreadonlypool',
     'pool_size': 5
 }
 

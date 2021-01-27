@@ -34,6 +34,7 @@ async def api_provider_lookup_appointment(provider_lookup_appointment_request: P
 async def api_provider_update_appointment(provider_update_appointment_request: ProviderUpdateAppointmentRequest,
                                           user=Security(authorize_user, scopes=[p.UPDATE_APPOINTMENT])):
     return provider_update_appointment(
+        provider_update_appointment_request.service,
         provider_update_appointment_request.appointment_id,
         provider_update_appointment_request.action,
         provider_update_appointment_request.workstation_id,
