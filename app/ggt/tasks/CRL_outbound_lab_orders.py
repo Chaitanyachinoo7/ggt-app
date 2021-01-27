@@ -313,7 +313,8 @@ def get_orders_ready_to_transmit(limit=100):
             JOIN patient_questionnaires q ON ((p.id = q.patient_id)))
         WHERE
             (t.status = 'ready_to_tx')
-            AND t.lab_id = 3
+            AND t.vial_id IS NOT NULL
+            AND t.lab_id IN (3)
         LIMIT {}
             """.format(limit)
     return read_rows(sql,)
