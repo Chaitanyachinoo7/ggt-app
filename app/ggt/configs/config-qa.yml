@@ -2,8 +2,9 @@ app_name: ggt-api
 app_version: 1.1
 log_level: INFO
 base_url: https://start-qa.GoGetTested.com
-env: QA
+env: PROD
 default_timezone: CST
+
 
 server:
   host: 0.0.0.0
@@ -13,7 +14,7 @@ server:
   email_queue_processor_port: 5030
   sms_queue_processor_port: 5040
 
-origins: 
+origins:
   - https://gogettested.com
   - https://schedule.gogettested.com
   - https://start.gogettested.com
@@ -35,29 +36,30 @@ docs:
   redoc_url: /redoc
 
 aws:
-  dynamo_table_name: available_slots
+  dynamo_table_name: prod_available_slots
   sqs_region: us-east-2
   queue_count: 2
-  sqs_url: https://sqs.us-east-2.amazonaws.com/135292740376/available_time_requests
+  sqs_url: https://sqs.us-east-2.amazonaws.com/135292740376/available_slot_management_queue_{}
+  vax_sms_que: https://sqs.us-east-2.amazonaws.com/135292740376/vax_scheduled_sms_notification_queue
   region: us-east-1
   access_key_id: AKIAR7AATMMMGKHVWYP6
   secret_access_key: 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
   sqs_print_queue_base_url: https://sqs.us-east-1.amazonaws.com/135292740376/ggt-print-queue
   lab_reports_bucket_name: ggt-labreports
   default_link_expiration_time_limit: 300
-  
+
 gcp:
-  project_id: ggt-pfe-qa
+  project_id: ggt-pfe-prod
   service_account_file: gcp-service-account.json
   default_link_expiration_time_limit: 300
   service_account_file_prod: gcp-service-account-prod.json
   all_inbound_files_bucket_name: ggt-all-inbound-files-prod
   lab_reports_bucket_name: ggt-lab-reports-prod
   insurance_cards_bucket_name: ggt-insurance-cards-prod
-  notification_archive_bucket_name: ggt-notification-archive-qa
+  notification_archive_bucket_name: ggt-notification-archive-prod
   enable_cloud_profiler: false
   enable_cloud_logger: false
-  cloud_logger_log_level: 3 # 0-error, 1-warning, 2-info, 3-debug. 
+  cloud_logger_log_level: 3 # 0-error, 1-warning, 2-info, 3-debug.
 
 databases:
   mysql:
@@ -132,7 +134,7 @@ vendors:
       api_key_name: x-api-key
       api_key_value: f63e3e17-e10a-4f57-b7b5-08a40d4b0d6b
     inbound:
-      local_download_path: /Users/suresh/ggt-tasks/downloads/healthtrackrx/Reports  
+      local_download_path: /Users/suresh/ggt-tasks/downloads/healthtrackrx/Reports
       local_backups_path: /Users/suresh/ggt-tasks/backups
     outbound:
       outbound_file_prefix: ggt-outbound

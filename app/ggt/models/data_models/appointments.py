@@ -142,6 +142,7 @@ def get_appointment(appointment_id: int) -> GgtAppointment:
             p.email,
             p.gender,
             p.dob,
+            p.token,
             GROUP_CONCAT(c.service_code) as service_codes,
             GROUP_CONCAT(s.service_description) as service_descriptions
         FROM
@@ -361,6 +362,10 @@ def update_appointment_with_start_vax(appointment: GgtAppointment, user, worksta
                                        workstation_id=workstation_id)
 
 
+def update_appointment_with_verify_insurance(appointment: GgtAppointment, user):
+    return __update_appointment_status(appointment, c.APPOINTMENT_ACTION_VERIFY_INSURANCE, user=user)
+
+
 def update_appointment_with_end_vax(appointment: GgtAppointment, user, workstation_id):
     return __update_appointment_status(appointment, c.APPOINTMENT_ACTION_END_VAX, user=user,
                                        workstation_id=workstation_id)
@@ -399,6 +404,7 @@ def __get_mapped_dt_field(status: str) -> str:
         c.APPOINTMENT_STATUS_CHECKED_IN: 'check_in_dt',
         c.APPOINTMENT_STATUS_TEST_IN_PROGRESS: 'test_start_dt',
         c.APPOINTMENT_STATUS_VIAL_SCANNED: 'test_start_dt',
+        c.APPOINTMENT_ACTION_VERIFY_INSURANCE: 'test_start_dt',
         c.APPOINTMENT_ACTION_START_VAX: 'vax_start_dt',
         c.APPOINTMENT_ACTION_SCAN_VIAL_VAX: 'vax_start_dt',
         c.APPOINTMENT_ACTION_END_VAX: 'vax_end_dt',
@@ -479,6 +485,16 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
         )
 
     return usuccess
+
+
+def __has_insurance_info(patient_id):
+    sql = """SELECT * FROM ggt_prod.patient_questionnaires WHERE patient_id = %s;"""
+    vals = (patient_id, )
+    row = replica_read_row(sql, vals)
+    if row['has_insurance_photo'] == 1:
+        return True
+    else:
+        return False
 
 
 def __create_provider_appointment_activity(user, appointment_id, function, status, vial_id=None, workstation_id=None):

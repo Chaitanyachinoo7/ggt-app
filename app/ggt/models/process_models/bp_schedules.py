@@ -264,6 +264,34 @@ def bp_ggv_get_schedule_locations_available_near_lat_lng(group_code, lat, lng, r
 
 
 def bp_get_schedule_times_available(location_id, date):
+    rows = get_available_times(location_id, date)
+    available_times = []
+    try:
+        for row in rows:
+            d = datetime.strptime(str(row['start_time']), "%H:%M:%S")
+
+            available_times.append(
+                {
+                    "label": d.strftime("%I:%M %p"),
+                    "value": row['id']
+                }
+            )
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            location_id=location_id,
+            date=date,
+            function=whoami(),
+            error=err
+        )
+
+    return {
+        "available_times": available_times
+    }
+
+
+def bp_get_ggv_schedule_times_available(location_id, date):
     available_times = []
     try:
         request = {
@@ -286,18 +314,6 @@ def bp_get_schedule_times_available(location_id, date):
                 else:
                     if (datetime.now() - start_time).total_seconds() > 100:
                         return None
-    # rows = get_available_times(location_id, date)
-    # available_times = []
-    # try:
-    #     for row in rows:
-    #         d = datetime.strptime(str(row['start_time']), "%H:%M:%S")
-    #
-    #         available_times.append(
-    #             {
-    #                 "label": d.strftime("%I:%M %p"),
-    #                 "value": row['id']
-    #             }
-    #         )
 
     except Exception as err:
         log_generic(
@@ -330,10 +346,12 @@ def bp_get_second_shot_available_times(location_id, date):
                 res = read_from_dynamo(get_config_val('aws.dynamo_table_name'), msg_id)
                 if "Item" in res.keys():
                     temp = res['Item']
-                    for x in temp['available_dates']:
+                    for x in temp['available_times']:
                         for y in x['available_times']:
                             y['value'] = int(y['value'])
-                    return temp
+                    return {
+                        "available_dates": temp['available_times']
+                    }
                 else:
                     if (datetime.now() - start_time).total_seconds() > 100:
                         return None
@@ -416,9 +434,9 @@ def bp_delete_schedule(location_id):
     return False
 
 
-def bp_delete_schedule_for_date(location_id, date_str):
+def bp_delete_schedule_for_date(location_id, date_str, category):
     try:
-        return delete_schedule_entries_by_location_id_for_date(location_id, date_str)
+        return delete_schedule_entries_by_location_id_for_date(location_id, date_str, category)
 
     except Exception as err:
         log_generic(
@@ -549,6 +567,7 @@ def bp_get_schedule_generation_rules(location_id):
 def __process_schedule_rule(rule):
     try:
         location_id = rule['location_id']
+        category = rule['category']
         rule_type = rule['rule_type']
         start_date = rule['active_local_start_dt']
         start_date_str = start_date.strftime('%Y-%m-%d')
@@ -559,7 +578,7 @@ def __process_schedule_rule(rule):
         current_dt = datetime.today()
 
         if rule_type == 'exception':
-            bp_delete_schedule_for_date(location_id, start_date_str)
+            bp_delete_schedule_for_date(location_id, start_date_str, category)
 
         rows = []
         valid_days = __get_valid_days(rule)
@@ -592,9 +611,9 @@ def __process_schedule_rule(rule):
             schedule_date = schedule_date + timedelta(days=1)
 
         if rows:
-            rows = __remove_reserved_slots(rows, location_id)
+            rows = __remove_reserved_slots(rows, location_id, category)
         if rows:
-            add_schedule_entries(rows)
+            add_schedule_entries(rows, category)
         return True
 
     except Exception as err:
@@ -618,7 +637,7 @@ def __get_valid_days(row):
     }
 
 
-def __remove_reserved_slots(rows, location_id):
+def __remove_reserved_slots(rows, location_id, category):
     try:
         generated_dt_counts = {}  # counts map
         generated_dt_list = []  # flat list
@@ -631,7 +650,7 @@ def __remove_reserved_slots(rows, location_id):
                 generated_dt_list.append(dtkey)
 
         reserved_slots = get_slots_matching_dt_list(
-            generated_dt_list, location_id)
+            generated_dt_list, location_id, category)
 
         for slot in reserved_slots:
             slot_start_dt_str = slot.start_dt.strftime('%Y-%m-%d %H:%M:%S')
