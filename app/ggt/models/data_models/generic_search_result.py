@@ -194,7 +194,7 @@ def find_patients(first_name='', middle_name='', last_name='', dob='', phone_num
             where_conditions = "{} AND a.vial_id = '{}'".format(
                 where_conditions, vial_id)
 
-        limit = 250
+        limit = 500
 
         sql = """
         SELECT

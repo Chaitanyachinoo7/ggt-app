@@ -174,6 +174,7 @@ async def api_verify_existing_patient(phone_number: str):
     )
 
 #TODO: Calling this API is dangerous, create dedicated much more restricted API that is geared towards a single user.
+#Validate user token and restrict access to a single patient by comparing other elements in the result
 @router.get("/lookup_appointments_by_phone/{phone_number}/{dob}")
 async def api_lookup_appointments_by_phone(phone_number: str, dob: str):
     return {
