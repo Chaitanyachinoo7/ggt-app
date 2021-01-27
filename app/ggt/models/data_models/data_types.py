@@ -389,11 +389,17 @@ class ProviderPatientCodeRequest(BaseModel):
     token: str = None
 
 
+class SgrCategoryEnum(str, Enum):
+    test = 'test'
+    vax = 'vax'
+
+
 class ProviderUpdateAppointmentRequest(BaseModel):
     appointment_id: str = None
     action: str = None
     workstation_id: int = None
     vial_id: Optional[str] = None
+    service: SgrCategoryEnum = 'test'
 
 
 class ProviderLookupAppointmentRequest(BaseModel):
@@ -499,6 +505,7 @@ class ScheduleGenerationRule(BaseModel):
     time_zone_offset: Optional[str] = None
     status: Optional[str] = 'enabled'
     location_id: int
+    category: SgrCategoryEnum = 'test'
     slot_increment: Optional[int] = 10
     slot_multiplier: Optional[int] = 1
     local_start_time: Optional[datetime.time] = '12:00:00'

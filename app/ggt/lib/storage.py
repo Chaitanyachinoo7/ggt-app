@@ -13,13 +13,13 @@ from ggt.lib.adapters.google_adapter import (
     upload_archived_notification_from_base64_string as __upload_archived_notification_from_base64_string
 )
 
-#from ggt.lib.adapters.s3_adapter import (
-#    get_temp_lab_report_url as __get_temp_lab_report_url
-#)
-
-from ggt.lib.adapters.google_adapter import (
+from ggt.lib.adapters.s3_adapter import (
     get_temp_lab_report_url as __get_temp_lab_report_url
 )
+
+#from ggt.lib.adapters.google_adapter import (
+#    get_temp_lab_report_url as __get_temp_lab_report_url
+#)
 
 def upload_to_all_inbound_files(local_file_path, destination_filename):
     return __upload_to_all_inbound_files(local_file_path, destination_filename)
