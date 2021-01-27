@@ -177,7 +177,7 @@ def __formatted_patient_dob(appointment):
     return appointment.patient.dob.strftime("%m/%d/%Y")
 
 
-def __next_action(appointment, service, pre_labeled=False, ):
+def __next_action(appointment, service="test", pre_labeled=False, ):
     if service == "test":
         switcher = {
             c.APPOINTMENT_STATUS_SCHEDULED: c.APPOINTMENT_ACTION_CHECK_IN,
