@@ -29,14 +29,6 @@ from ggt.lib.db import (
     replica_read_rows
 )
 
-'''
-from ggt.lib.storage import (
-    file_exists_in_all_inbound_files,
-    upload_lab_report,
-    upload_to_all_inbound_files
-)
-'''
-
 from ggt.models.data_models.tasks_local_cache import (
     init_local_cache,
     add_to_lab_test_records_cache,
@@ -95,8 +87,8 @@ def task_process_inbound_lab_reports():
     add_to_mawdpath_inbound_data_table()
     update_test_samples_with_results()
 
-    #process_rpt_results_for_lab_crl() #part 1/2
-    #process_pdf_reports_for_lab_crl() #part 2/2
+    process_rpt_results_for_lab_crl() #part 1/2
+    process_pdf_reports_for_lab_crl() #part 2/2
     add_to_crl_inbound_data_table()
     update_test_samples_with_results()
     
@@ -130,6 +122,10 @@ def load_data_from_remote_db_to_cache():
 
     print_ok2('{} 100%            '.format(PROGRESS_LABEL))
 
+
+def process_pdf_results():
+    for i in iterate_bucket_items(bucket='ggt-sftp'):
+        print(i)
 
 def process_pdf_results_for_lab_ait():
     print('process_pdf_results_for_lab_ait')
