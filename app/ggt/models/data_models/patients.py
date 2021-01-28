@@ -155,6 +155,28 @@ def get_existing_patients(phone_number):
         return None
 
 
+def get_existing_patient_questionnaire(patient_id):
+    try:
+        sql = """SELECT 
+                        *
+                    FROM
+                        patient_questionnaires
+                    WHERE
+                        patient_id = %s;"""
+        vals = (patient_id,)
+        return replica_read_row(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            vals=vals,
+            patient_id=patient_id,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 def unlock_patient_info_patients(token, phone_number, id):
     try:
         sql = """UPDATE patients 
