@@ -399,7 +399,6 @@ class ProviderUpdateAppointmentRequest(BaseModel):
     action: str = None
     workstation_id: int = None
     vial_id: Optional[str] = None
-    service: SgrCategoryEnum = 'test'
 
 
 class ProviderLookupAppointmentRequest(BaseModel):
