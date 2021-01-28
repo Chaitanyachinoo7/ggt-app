@@ -177,9 +177,9 @@ async def api_verify_existing_patient(phone_number: str):
 #Validate user token and restrict access to a single patient by comparing other elements in the result
 @router.get("/lookup_appointments_by_phone/{phone_number}/{dob}")
 async def api_lookup_appointments_by_phone(phone_number: str, dob: str):
-    return {
-        'status': 'failed'
-    }
+    #return {
+    #    'status': 'failed'
+    #}
     return site_admin_general_search(
         '',
         '',
