@@ -12,7 +12,7 @@ from ggt.models.data_models.data_types import (
     VerifyExistingPatientRequest,
     PermissionsEnum as p,
     InsuranceEligibilityRequest,
-    InsurancePayersListRequest, SecondAvailableDate, FinalizeGGVRegistrationRequest
+    InsurancePayersListRequest, SecondAvailableDate, FinalizeGGVRegistrationRequest, FinalizeGGVPreRegistrationRequest
 )
 
 from ggt.models.workflow_models.patient_portal_flow import (
@@ -34,7 +34,7 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
     get_all_available_locations_and_times,
     insurance_eligibility, get_ggv_schedule_locations_available,
     insurance_search_payer, get_ggv_screen_flow_seq, get_second_shot_available_times, ggv_finalize_registration,
-    get_ggv_schedule_times_available
+    get_ggv_schedule_times_available, ggv_finalize_pre_registration
 )
 
 # TODO: [GGT-193] Move this to a dedicated API
@@ -72,6 +72,11 @@ async def api_ggv_get_available_times_for_today(location_id: str, date: str):
 @router.post("/ggv/finalize_registration", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_ggv_finalize_registration(finalize_registration_request: FinalizeGGVRegistrationRequest):
     return ggv_finalize_registration(finalize_registration_request)
+
+
+@router.post("/ggv/finalize_pre_registration", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_ggv_finalize_pre_registration(finalize_registration_request: FinalizeGGVPreRegistrationRequest):
+    return ggv_finalize_pre_registration(finalize_registration_request)
 
 
 @router.get("/get_screen_flow_seq/{group_code}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])

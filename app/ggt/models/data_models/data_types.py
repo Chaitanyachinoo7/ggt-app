@@ -323,6 +323,7 @@ class FinalizeGGVRegistrationRequest(BaseModel):
     phone_number: str = None
     token: str = None
     ggd_waitlist: bool = True
+    pre_register: bool = False
     isPatient: Optional[bool] = True
     gender: str = None
     race: str = None
@@ -359,6 +360,48 @@ class FinalizeGGVRegistrationRequest(BaseModel):
     forceFinish: Optional[bool] = None
     appointmentOneTime: int
     appointmentTwoTime: int
+
+
+class FinalizeGGVPreRegistrationRequest(BaseModel):
+    groupCode: str = None
+    phone_number: str = None
+    token: str = None
+    ggd_waitlist: bool = True
+    pre_register: bool = False
+    isPatient: Optional[bool] = True
+    gender: str = None
+    race: str = None
+    ethnicity: str = None
+    symptoms: Symptoms = None
+    symptomsVax: Optional[bool] = False
+    covid19ConfirmedCase: Optional[bool] = False
+    pregnancy: Optional[bool] = False
+    allergicReaction: Optional[bool] = False
+    eggAllergy: Optional[bool] = False
+    guillianBarre: Optional[bool] = False
+    contactTracing: Optional[bool]
+    patientDetails: PatientDetails = None
+    patientAddress: PatientAddress = None
+    patientContact: PatientContact = None
+    patientVitals: PatientVitals = None
+    preExistingConditions: PreExistingConditions = None
+    insurancePhoto: Optional[str] = None
+    consent: Optional[Consent] = None
+    consent_provider: Optional[ConsentProvider] = None
+    influenzaConsent: Optional[InfluenzaConsent] = None
+
+    # we don't need serviceSelection for GGV request, because user cannot choose
+    # which vaccine he wants (depends on location)
+    serviceSelection: Optional[ServiceSelection] = None
+
+    insuranceVerification: Optional[InsuranceVerification] = None
+    influenzaScreening: Optional[InfluenzaScreening] = None
+    publicPlaces: Optional[PublicPlaces] = None
+    date: Optional[str] = None
+    location: Optional[int] = None
+    timeSlot: Optional[int] = None
+    hasInsurance: Optional[bool] = None
+    forceFinish: Optional[bool] = None
 
 
 
@@ -800,6 +843,7 @@ class GgtBooking(BaseModel):
     autoimmune_disease: bool = False
     other_chronic_disease: bool = False
     allergies: bool = False
+    pre_register: bool = False
 
     signature: str = None
 

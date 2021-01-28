@@ -30,7 +30,7 @@ from ggt.models.data_models.signups import (
 
 from ggt.models.data_models.patients import (
     create_patient_record,
-    get_patient_by_token, add_to_ggd_waiting_queue
+    get_patient_by_token, add_to_ggd_waiting_queue, create_pre_registration
 )
 
 from ggt.models.data_models.questionnaires import (
@@ -263,6 +263,25 @@ def bp_add_to_ggd_waiting_queue(patient_id):
     return False
 
 
+def bp_create_pre_registration(patient_id):
+    try:
+        return create_pre_registration(patient_id)
+        log_generic(
+            type=c.INFO,
+            patient_id=patient_id,
+            function=whoami()
+        )
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            patient_id=patient_id,
+            function=whoami(),
+            error=err
+        )
+
+    return False
+
+
 def bp_finalize_booking(booking_req: GgtBooking):
     appointment: GgtAppointment = None
     status_message = None
@@ -383,6 +402,37 @@ def bp_ggv_finalize_booking(booking_req: GgtBooking):
         )
 
     return appointment_1, appointment_2, status_message, patient_id
+
+
+def bp_ggv_finalize_pre_booking(booking_req: GgtBooking):
+    status_message = None
+    try:
+        if not __is_valid_token(booking_req.token):
+            raise ValueError('Invalid Token')
+
+        # create patient
+        _patient = __extract_patient_from_booking_req(booking_req)
+        patient_id = create_patient_record(_patient)
+        booking_req.patient_id = patient_id
+        if not booking_req.patient_id:
+            raise ValueError('Invalid Patient ID')
+
+        # create questionnaire
+        booking_req.patient_questionnaire_id = create_patient_questionnaire(
+            booking_req)
+        if not booking_req.patient_questionnaire_id:
+            raise ValueError('Invalid Patient Questionnaire ID')
+
+    except Exception as err:
+        status_message = str(err)
+        log_generic(
+            type=c.ERROR,
+            booking_req=booking_req,
+            function=whoami(),
+            error=err
+        )
+
+    return status_message, patient_id
 
 
 def bp_finalize_payment(appointment_id: int, wp_receipt_token: str):
