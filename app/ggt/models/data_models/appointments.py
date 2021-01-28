@@ -393,6 +393,26 @@ def update_appointment_with_test_completed(appointment: GgtAppointment, user):
     return __update_appointment_status(appointment, c.APPOINTMENT_STATUS_TEST_COMPLETED, user=user)
 
 
+def get_service_type_by_appointment_id(appointment_id):
+    sql = """SELECT 
+                    (CASE
+                        WHEN
+                            c.service_code LIKE '%VACCINE%'
+                        THEN
+                             "vax"
+                        ELSE "test"
+                    END) AS appointment_type
+                FROM
+                    appointments a
+                        JOIN
+                    appointment_services s ON a.id = s.appointment_id
+                        JOIN
+                    services_catalog c ON s.service_id = c.id
+                WHERE
+                    a.id = %s"""
+    vals = (appointment_id, )
+    return replica_read_row(sql, vals)
+
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
