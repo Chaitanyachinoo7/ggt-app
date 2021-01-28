@@ -111,6 +111,27 @@ def add_to_ggd_waiting_queue(patient_id):
         return None
 
 
+def create_pre_registration(patient_id):
+    try:
+        sql = """
+            INSERT INTO 
+                vax_pre_registrations (patient_id)
+            VALUES (%s)
+        """
+        vals = (patient_id,)
+        return exec_insert(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            vals=vals,
+            patient=patient_id,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 def get_patient(patient_id):
     try:
         sql = """
