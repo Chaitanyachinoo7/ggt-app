@@ -1,6 +1,6 @@
 from ggt.lib.utils import (
     convert_to_bool,
-    log_generic
+    log_generic, whoami
 )
 
 from ggt.lib.db import (
@@ -146,6 +146,95 @@ def create_patient_questionnaire(booking_req):
             data=data,
             locals=locals(),
             function=whoami(), 
+            error=err
+        )
+        return None
+
+
+def update_patient_questionnaire(req):
+    try:
+        sql = """
+        UPDATE 
+            patient_questionnaires
+        SET
+                symptom_fever = %s, 
+                symptom_shortness_breath = %s, 
+                symptom_cough = %s, 
+                symptom_chest_pain = %s, 
+                symptom_lack_of_smell = %s, 
+                symptom_other_breathing = %s, 
+                covid_contact = %s, 
+                prescription_use = %s, 
+                heart_disease = %s, 
+                diabetes = %s, 
+                respiratory_diseases = %s, 
+                autoimmune_disease = %s, 
+                other_chronic = %s, 
+                allergies = %s,  
+                public_places_bars_restaurants_cafes  = %s,
+                public_places_gas_stations  = %s,
+                public_places_medical_offices  = %s,
+                public_places_place_of_work = %s,
+                public_places_retail_grocery_stores = %s, 
+                public_places_places_of_worship = %s,
+                public_places_public_parks = %s,
+                public_places_other = %s,
+                flu_screen_severely_ill = %s,
+                flu_screen_guillain_barre_syndrome = %s,
+                flu_screen_life_threatening_reaction = %s,
+                flu_screen_egg_allergy = %s,
+                symptoms_vax = %s,
+                pregnancy = %s,
+                allergic_reaction = %s,
+                covid19_confirmed_case = %s,
+                egg_allergy = %s,
+                guillian_barre = %s
+                WHERE id = %s
+        """
+
+        vals = (
+        req['symptom_fever'],
+        req['symptom_shortness_breath'],
+        req['symptom_cough'],
+        req['symptom_chest_pain'],
+        req['symptom_lack_of_smell'],
+        req['symptom_other_breathing'],
+        req['covid_contact'],
+        req['prescription_use'],
+        req['heart_disease'],
+        req['diabetes'],
+        req['respiratory_diseases'],
+        req['autoimmune_disease'],
+        req['other_chronic'],
+        req['allergies'],
+        req['public_places_bars_restaurants_cafes'],
+        req['public_places_gas_stations'],
+        req['public_places_medical_offices'],
+        req['public_places_place_of_work'],
+        req['public_places_retail_grocery_stores'],
+        req['public_places_places_of_worship'],
+        req['public_places_public_parks'],
+        req['public_places_other'],
+        req['flu_screen_severely_ill'],
+        req['flu_screen_guillain_barre_syndrome'],
+        req['flu_screen_life_threatening_reaction'],
+        req['flu_screen_egg_allergy'],
+        req['symptoms_vax'],
+        req['pregnancy'],
+        req['allergic_reaction'],
+        req['covid19_confirmed_case'],
+        req['egg_allergy'],
+        req['guillian_barre'],
+        req['id']
+        )
+
+        return exec_update(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            locals=locals(),
+            function=whoami(),
             error=err
         )
         return None

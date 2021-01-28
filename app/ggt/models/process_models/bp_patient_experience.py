@@ -31,11 +31,11 @@ from ggt.models.data_models.signups import (
 from ggt.models.data_models.patients import (
     create_patient_record,
     get_patient_by_token, add_to_ggd_waiting_queue, create_pre_registration,
-    get_existing_patients, unlock_patient_info_patients
+    get_existing_patients, unlock_patient_info_patients, get_existing_patient_questionnaire
 )
 
 from ggt.models.data_models.questionnaires import (
-    create_patient_questionnaire
+    create_patient_questionnaire, update_patient_questionnaire
 )
 
 from ggt.models.data_models.appointments import (
@@ -303,14 +303,24 @@ def bp_finalize_booking(booking_req: GgtBooking):
 
         # create patient
         _patient = __extract_patient_from_booking_req(booking_req)
-        patient_id = create_patient_record(_patient)
+        existing_patient = get_existing_patients(_patient.phone_number)
+        if existing_patient is None:
+            patient_id = create_patient_record(_patient)
+        else:
+            patient_id = existing_patient['id']
         booking_req.patient_id = patient_id
         if not booking_req.patient_id:
             raise ValueError('Invalid Patient ID')
 
         # create questionnaire
-        booking_req.patient_questionnaire_id = create_patient_questionnaire(
-            booking_req)
+        patient_questionnaire = get_existing_patient_questionnaire(patient_id)
+
+        if patient_questionnaire is None:
+            booking_req.patient_questionnaire_id = create_patient_questionnaire(
+                booking_req)
+        else:
+            booking_req.patient_questionnaire_id = patient_questionnaire['id']
+            __update_patient_questionnaire(patient_questionnaire, booking_req)
         if not booking_req.patient_questionnaire_id:
             raise ValueError('Invalid Patient Questionnaire ID')
 
@@ -361,14 +371,24 @@ def bp_ggv_finalize_booking(booking_req: GgtBooking):
 
         # create patient
         _patient = __extract_patient_from_booking_req(booking_req)
-        patient_id = create_patient_record(_patient)
+        existing_patient = get_existing_patients(_patient.phone_number)
+        if existing_patient is None:
+            patient_id = create_patient_record(_patient)
+        else:
+            patient_id = existing_patient['id']
         booking_req.patient_id = patient_id
         if not booking_req.patient_id:
             raise ValueError('Invalid Patient ID')
 
         # create questionnaire
-        booking_req.patient_questionnaire_id = create_patient_questionnaire(
-            booking_req)
+        patient_questionnaire = get_existing_patient_questionnaire(patient_id)
+
+        if patient_questionnaire is None:
+            booking_req.patient_questionnaire_id = create_patient_questionnaire(
+                booking_req)
+        else:
+            booking_req.patient_questionnaire_id = patient_questionnaire['id']
+            __update_patient_questionnaire(patient_questionnaire, booking_req)
         if not booking_req.patient_questionnaire_id:
             raise ValueError('Invalid Patient Questionnaire ID')
 
@@ -424,14 +444,24 @@ def bp_ggv_finalize_pre_booking(booking_req: GgtBooking):
 
         # create patient
         _patient = __extract_patient_from_booking_req(booking_req)
-        patient_id = create_patient_record(_patient)
+        existing_patient = get_existing_patients(_patient.phone_number)
+        if existing_patient is None:
+            patient_id = create_patient_record(_patient)
+        else:
+            patient_id = existing_patient['id']
         booking_req.patient_id = patient_id
         if not booking_req.patient_id:
             raise ValueError('Invalid Patient ID')
 
         # create questionnaire
-        booking_req.patient_questionnaire_id = create_patient_questionnaire(
-            booking_req)
+        patient_questionnaire = get_existing_patient_questionnaire(patient_id)
+
+        if patient_questionnaire is None:
+            booking_req.patient_questionnaire_id = create_patient_questionnaire(
+                booking_req)
+        else:
+            booking_req.patient_questionnaire_id = patient_questionnaire['id']
+            __update_patient_questionnaire(patient_questionnaire, booking_req)
         if not booking_req.patient_questionnaire_id:
             raise ValueError('Invalid Patient Questionnaire ID')
 
@@ -551,6 +581,23 @@ def bp_search_insurance_payer_list(insurance_search_payer_request):
 # TODO: Prevent from looking up slots that are already assigned to an appointment
 # TODO, doesn't check if it's already booked
 # TEMP, not using fixed slots since operational conditions allow oversubscribing
+
+
+def __update_patient_questionnaire(questionnaire, request):
+
+    # TODO: Discuss a logic to update existing questionnaire, for now this replace all data with new data
+    print(questionnaire, request)
+    temp = {}
+    r = dict(request)
+    r_keys = r.keys()
+    for key in questionnaire.keys():
+        if key in r_keys:
+            temp[key] = r[key]
+        else:
+            temp[key] = questionnaire[key]
+
+    update_patient_questionnaire(temp)
+
 
 
 def __generate_appointment(booking_req: GgtBooking):
@@ -806,14 +853,14 @@ def __override_random_otp(phone_number: str):
 
 def __is_valid_token(token: str) -> bool:
     try:
-        # Check Duplicate Token
-        if get_patient_by_token(token, expect_no_match=True):
-            print('Duplicate Token: {}', token)
-            return False
-
         # Allows overriding phone number validation
         if token.startswith("NOVERIFY"):
-            return True
+            # Check Duplicate Token
+            if get_patient_by_token(token, expect_no_match=True):
+                print('Duplicate Token: {}', token)
+                return False
+            else:
+                return True
         else:
             return get_signup_record_by_token(token)
 
