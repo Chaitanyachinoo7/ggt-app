@@ -157,7 +157,7 @@ class GenericSearchResults(BaseModel):
 #tz = cfg(default_timezone)
 
 def find_patients(first_name='', middle_name='', last_name='', dob='', phone_number='',
-                        email='', appointment_id='', group_code='', appointment_date='', location_id='', vial_id='', sort_field="register_dt", sort_type="desc"):
+                        email='', appointment_id='', group_code='', appointment_date='', location_id='', vial_id='', sort_field="register_dt", sort_type="desc", token=None):
     try:
         where_conditions = ''
         if first_name != '':
@@ -193,6 +193,9 @@ def find_patients(first_name='', middle_name='', last_name='', dob='', phone_num
         if vial_id != '' and vial_id:
             where_conditions = "{} AND a.vial_id = '{}'".format(
                 where_conditions, vial_id)
+        if token:
+            where_conditions = "{} AND p.token = '{}' AND p.token_expire > NOW()".format(
+                where_conditions, token)
 
         limit = 500
 
@@ -311,8 +314,7 @@ def find_patients(first_name='', middle_name='', last_name='', dob='', phone_num
             i.group_number AS insurance_group_number,
             i.member_number AS insurance_member_number,
             i.validated AS insurance_validated,
-            sc.service_code AS service_code,
-            sc.service_name AS service_name
+            sc.service_code AS service_code
         FROM
             patients p
                 LEFT JOIN
