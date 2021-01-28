@@ -30,7 +30,8 @@ from ggt.models.data_models.signups import (
 
 from ggt.models.data_models.patients import (
     create_patient_record,
-    get_patient_by_token, add_to_ggd_waiting_queue, create_pre_registration
+    get_patient_by_token, add_to_ggd_waiting_queue, create_pre_registration,
+    get_existing_patients, unlock_patient_info_patients
 )
 
 from ggt.models.data_models.questionnaires import (
@@ -165,19 +166,25 @@ def bp_initiate_verification_flow(phone_number: str, with_otp: bool = True):
     # Create a temp record until phone number is validated
     try:
         phone_number = validate_phone_number_format(phone_number)
-        otp_code, token = __create_pending_entry(phone_number)
-
+        existing_patient = get_existing_patients(phone_number)
+        token = None
+        if existing_patient:
+            token = existing_patient['token']
+        otp_code, token = __create_pending_entry(phone_number, token)
+        print(otp_code)
         if otp_code is None:
             raise ValueError(
                 'NO OTP / Cannot create Pending Phone Verification record')
 
         else:
-            activation_url = "{}/{}/{}".format(
-                cfg('base_url'), phone_number, token)
+            # activation_url = "{}/{}/{}".format(
+            #     cfg('base_url'), phone_number, token)
 
             if with_otp:
-                message = "Enter Code: {}\nOr click {} \nReply STOP to cancel msgs".format(
-                    otp_code, activation_url)
+                # message = "Enter Code: {}\nOr click {} \nReply STOP to cancel msgs".format(
+                #     otp_code, activation_url)
+                message = "OTP Code: {} \nReply STOP to cancel msgs".format(
+                    otp_code)
             else:
                 return True
 
@@ -188,7 +195,7 @@ def bp_initiate_verification_flow(phone_number: str, with_otp: bool = True):
                     phone_number=phone_number,
                     otp_code=otp_code,
                     token=token,
-                    activation_url=activation_url,
+                    # activation_url=activation_url,
                     sms_message=message,
                     function=whoami(),
                     info='OTP SMS Sent'
@@ -216,9 +223,14 @@ def bp_validate_phone_number(phone_number: str, otp: str):
             token = "NOVERIFY{}".format(generate_token()[8:])
         else:
             token = get_signup_record_by_phone_otp(phone_number, otp)
+            patient = get_existing_patients(phone_number)
 
         if token is None:
             raise ValueError('Invalid Token')
+
+        if patient:
+            '''Unlock patient record for 5 minutes.'''
+            unlock_patient_info_patients(token, phone_number, patient['id'])
 
         log_generic(
             type=c.INFO,
@@ -620,14 +632,15 @@ def __generate_ggv_appointments(booking_req: GgtBooking):
     return appointment_1, appointment_2
 
 
-def __create_pending_entry(phone_number: str):
+def __create_pending_entry(phone_number: str, token):
     try:
         override, otp_code = __override_random_otp(phone_number)
 
         if not override:
             otp_code = generate_otp()
 
-        token = generate_token()
+        if token is None:
+            token = generate_token()
 
         log_generic(
             type=c.INFO,

@@ -132,6 +132,50 @@ def create_pre_registration(patient_id):
         return None
 
 
+def get_existing_patients(phone_number):
+    try:
+        sql = """SELECT 
+                        *
+                    FROM
+                        patients
+                    WHERE
+                        phone_number_verified = 1
+                            AND phone_number = %s;"""
+        vals = (phone_number,)
+        return replica_read_row(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            vals=vals,
+            phone_number=phone_number,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def unlock_patient_info_patients(token, phone_number, id):
+    try:
+        sql = """UPDATE patients 
+                    SET 
+                        token_expire = DATE_ADD(NOW(), interval 5 minute)
+                    WHERE
+                        token =%s AND phone_number = %s AND id = %s"""
+        vals = (token, phone_number, id)
+        return exec_update(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            vals=vals,
+            phone_number=phone_number,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 def get_patient(patient_id):
     try:
         sql = """

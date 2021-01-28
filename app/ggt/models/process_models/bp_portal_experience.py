@@ -68,13 +68,13 @@ def bp_get_all_test_results():
 
 def bp_get_general_search_results(first_name, middle_name, last_name, dob, phone_number, email, appointment_id,
                                   group_code, appointment_date, location_id, vial_id='', sort_field="register_dt", sort_type="desc",
-                                  group_vax_results=False):
+                                  group_vax_results=False, token=None):
     try:
         if appointment_date != '':
             appointment_date = datetime.strptime(appointment_date, "%m%d%Y")
 
         search_results = find_patients(first_name, middle_name, last_name, dob, phone_number,
-                             email, appointment_id, group_code, appointment_date, location_id, vial_id, sort_field, sort_type)
+                             email, appointment_id, group_code, appointment_date, location_id, vial_id, sort_field, sort_type, token=token)
         if group_vax_results:
             return __group_vax_results(search_results)
 

@@ -198,8 +198,8 @@ async def api_lookup_appointments_by_phone(phone_number: str, dob: str):
     )
 
 
-@router.get("/get_appointments_by_phone/{phone_number}/{dob}")
-async def api_get_appointments_by_phone(phone_number: str, dob: str):
+@router.get("/get_appointments_by_phone/{token}/{phone_number}/{dob}")
+async def api_get_appointments_by_phone(token: str, phone_number: str, dob: str):
     return site_admin_general_search(
         '',
         '',
@@ -211,7 +211,8 @@ async def api_get_appointments_by_phone(phone_number: str, dob: str):
         '',
         '',
         '',
-        group_vax_results=True
+        group_vax_results=True,
+        token=token
     )
 
 
