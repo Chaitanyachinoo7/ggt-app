@@ -219,6 +219,7 @@ def bp_validate_phone_number(phone_number: str, otp: str):
     try:
         # Override OTP under special circumstances
         override_otp_code = cfg('pfe.signup.override_otp_code')
+        patient = None
         if otp == override_otp_code:
             token = "NOVERIFY{}".format(generate_token()[8:])
         else:
