@@ -245,7 +245,7 @@ def bp_validate_phone_number(phone_number: str, otp: str):
 
         return {
             "token": token,
-            "result_token": result_token
+            "session_token": result_token
         }
 
     except Exception as err:

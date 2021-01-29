@@ -494,6 +494,14 @@ class CCSendNotiRequest(BaseModel):
     to_number: str = None
 
 
+class PatientAppointmentLookup(BaseModel):
+    first_name: str
+    last_name: str
+    token: str
+    phone_number: str
+    dob: str
+
+
 class CCOutboundResultRequest(BaseModel):
     test_id: str = None
     first_name: str = None

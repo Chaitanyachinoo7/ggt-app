@@ -198,7 +198,7 @@ def finalize_registration(finalize_registration_request):
         bp_add_to_ggd_waiting_queue(patient_id)
     if appointment:
         return {
-            "result_token": result_token,
+            "session_token": result_token,
             "appointment_id": appointment.id,
             "date": appointment.date_text,
             "location": appointment.location_text,
@@ -222,7 +222,7 @@ def ggv_finalize_registration(finalize_registration_request):
         bp_add_to_ggd_waiting_queue(patient_id)
     if appointment_1 and appointment_2:
         return {
-            "result_token": result_token,
+            "session_token": result_token,
             "appointment_id_1": appointment_1.id,
             "date_1": appointment_1.date_text,
             "location_1": appointment_1.location_text,
