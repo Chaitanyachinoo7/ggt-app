@@ -808,6 +808,7 @@ class GgtDateTimeLocation(BaseModel):
 
 class GgtBooking(BaseModel):
     token: str = None
+    result_token: str = None
     gender: str = None
     dob: datetime.date = None
     height: str = None

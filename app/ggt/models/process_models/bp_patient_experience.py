@@ -1,4 +1,5 @@
 import requests
+from fastapi import HTTPException
 from requests.auth import HTTPBasicAuth
 from cachetools import cached, LRUCache, TTLCache
 import ggt.lib.constants as c
@@ -35,7 +36,7 @@ from ggt.models.data_models.patients import (
 )
 
 from ggt.models.data_models.questionnaires import (
-    create_patient_questionnaire, update_patient_questionnaire
+    create_patient_questionnaire
 )
 
 from ggt.models.data_models.appointments import (
@@ -220,6 +221,7 @@ def bp_validate_phone_number(phone_number: str, otp: str):
         # Override OTP under special circumstances
         override_otp_code = cfg('pfe.signup.override_otp_code')
         patient = None
+        result_token = None
         if otp == override_otp_code:
             token = "NOVERIFY{}".format(generate_token()[8:])
         else:
@@ -231,7 +233,7 @@ def bp_validate_phone_number(phone_number: str, otp: str):
 
         if patient:
             '''Unlock patient record for 5 minutes.'''
-            unlock_patient_info_patients(token, phone_number, patient['id'])
+            result_token = unlock_patient_info_patients(phone_number)
 
         log_generic(
             type=c.INFO,
@@ -242,7 +244,8 @@ def bp_validate_phone_number(phone_number: str, otp: str):
         )
 
         return {
-            "token": token
+            "token": token,
+            "result_token": result_token
         }
 
     except Exception as err:
@@ -299,32 +302,10 @@ def bp_finalize_booking(booking_req: GgtBooking):
     appointment: GgtAppointment = None
     status_message = None
     try:
-        if not __is_valid_token(booking_req.token):
-            raise ValueError('Invalid Token')
-
-        # create patient
-        _patient = __extract_patient_from_booking_req(booking_req)
-        existing_patient = get_existing_patients(_patient.phone_number)
-        if existing_patient is None:
-            patient_id = create_patient_record(_patient)
-        else:
-            patient_id = existing_patient['id']
-        booking_req.patient_id = patient_id
-        if not booking_req.patient_id:
-            raise ValueError('Invalid Patient ID')
-
-        # create questionnaire
-        patient_questionnaire = get_existing_patient_questionnaire(patient_id)
-
-        if patient_questionnaire is None:
-            booking_req.patient_questionnaire_id = create_patient_questionnaire(
-                booking_req)
-        else:
-            booking_req.patient_questionnaire_id = patient_questionnaire['id']
-            __update_patient_questionnaire(patient_questionnaire, booking_req)
-        if not booking_req.patient_questionnaire_id:
-            raise ValueError('Invalid Patient Questionnaire ID')
-
+        booking_req, status_message = __create_patient_and_questionnaire(booking_req)
+        if booking_req is None:
+            raise ValueError(status_message)
+        patient_id = booking_req.patient_id
         # determine if payment is required, if so, get billing info
         upfront_payment_info = __evaluate_upfront_payment(booking_req)
         booking_req.total_cost = upfront_payment_info.total_cost
@@ -357,42 +338,18 @@ def bp_finalize_booking(booking_req: GgtBooking):
             function=whoami(),
             error=err
         )
+        raise HTTPException(status_code=500)
 
-    return appointment, status_message, patient_id
+    return appointment, status_message, patient_id, booking_req.result_token
 
 
 def bp_ggv_finalize_booking(booking_req: GgtBooking):
-    appointment_1: GgtAppointment = None
-    appointment_2: GgtAppointment = None
-
-    status_message = None
     try:
-        if not __is_valid_token(booking_req.token):
-            raise ValueError('Invalid Token')
+        booking_req, status_message = __create_patient_and_questionnaire(booking_req)
+        if booking_req is None:
+            raise ValueError(status_message)
 
-        # create patient
-        _patient = __extract_patient_from_booking_req(booking_req)
-        existing_patient = get_existing_patients(_patient.phone_number)
-        if existing_patient is None:
-            patient_id = create_patient_record(_patient)
-        else:
-            patient_id = existing_patient['id']
-        booking_req.patient_id = patient_id
-        if not booking_req.patient_id:
-            raise ValueError('Invalid Patient ID')
-
-        # create questionnaire
-        patient_questionnaire = get_existing_patient_questionnaire(patient_id)
-
-        if patient_questionnaire is None:
-            booking_req.patient_questionnaire_id = create_patient_questionnaire(
-                booking_req)
-        else:
-            booking_req.patient_questionnaire_id = patient_questionnaire['id']
-            __update_patient_questionnaire(patient_questionnaire, booking_req)
-        if not booking_req.patient_questionnaire_id:
-            raise ValueError('Invalid Patient Questionnaire ID')
-
+        patient_id = booking_req.patient_id
         # determine if payment is required, if so, get billing info
         upfront_payment_info = __evaluate_upfront_payment(booking_req)
         booking_req.total_cost = upfront_payment_info.total_cost
@@ -433,39 +390,18 @@ def bp_ggv_finalize_booking(booking_req: GgtBooking):
             function=whoami(),
             error=err
         )
+        raise HTTPException(status_code=500)
 
-    return appointment_1, appointment_2, status_message, patient_id
+    return appointment_1, appointment_2, status_message, patient_id, booking_req.result_token
 
 
 def bp_ggv_finalize_pre_booking(booking_req: GgtBooking):
     status_message = None
     try:
-        if not __is_valid_token(booking_req.token):
-            raise ValueError('Invalid Token')
-
-        # create patient
-        _patient = __extract_patient_from_booking_req(booking_req)
-        existing_patient = get_existing_patients(_patient.phone_number)
-        if existing_patient is None:
-            patient_id = create_patient_record(_patient)
-        else:
-            patient_id = existing_patient['id']
-        booking_req.patient_id = patient_id
-        if not booking_req.patient_id:
-            raise ValueError('Invalid Patient ID')
-
-        # create questionnaire
-        patient_questionnaire = get_existing_patient_questionnaire(patient_id)
-
-        if patient_questionnaire is None:
-            booking_req.patient_questionnaire_id = create_patient_questionnaire(
-                booking_req)
-        else:
-            booking_req.patient_questionnaire_id = patient_questionnaire['id']
-            __update_patient_questionnaire(patient_questionnaire, booking_req)
-        if not booking_req.patient_questionnaire_id:
-            raise ValueError('Invalid Patient Questionnaire ID')
-
+        booking_req, status_message = __create_patient_and_questionnaire(booking_req)
+        if booking_req is None:
+            raise ValueError(status_message)
+        patient_id = booking_req.patient_id
     except Exception as err:
         status_message = str(err)
         log_generic(
@@ -474,6 +410,7 @@ def bp_ggv_finalize_pre_booking(booking_req: GgtBooking):
             function=whoami(),
             error=err
         )
+        raise HTTPException(status_code=500)
 
     return status_message, patient_id
 
@@ -582,23 +519,6 @@ def bp_search_insurance_payer_list(insurance_search_payer_request):
 # TODO: Prevent from looking up slots that are already assigned to an appointment
 # TODO, doesn't check if it's already booked
 # TEMP, not using fixed slots since operational conditions allow oversubscribing
-
-
-def __update_patient_questionnaire(questionnaire, request):
-
-    # TODO: Discuss a logic to update existing questionnaire, for now this replace all data with new data
-    print(questionnaire, request)
-    temp = {}
-    r = dict(request)
-    r_keys = r.keys()
-    for key in questionnaire.keys():
-        if key in r_keys:
-            temp[key] = r[key]
-        else:
-            temp[key] = questionnaire[key]
-
-    update_patient_questionnaire(temp)
-
 
 
 def __generate_appointment(booking_req: GgtBooking):
@@ -1228,3 +1148,49 @@ def __bp_search_insurance_payer_list(insurance_search_payer_request):
         return {"response": response}
     except Exception as err:
         print(err)
+
+
+def __create_patient_and_questionnaire(booking_req):
+    try:
+        if not __is_valid_token(booking_req.token):
+            raise ValueError('Invalid Token')
+
+        # create patient
+        _patient = __extract_patient_from_booking_req(booking_req)
+        existing_patient = get_existing_patients(
+            phone_number=_patient.phone_number,
+            first_name=_patient.first_name,
+            last_name=_patient.last_name,
+            dob=_patient.dob
+        )
+        if existing_patient is None:
+            patient_id = create_patient_record(_patient)
+            booking_req.result_token = _patient.token
+        else:
+            patient_id = existing_patient['id']
+            booking_req.result_token = unlock_patient_info_patients(existing_patient['phone_number'])
+        booking_req.patient_id = patient_id
+
+        if not booking_req.patient_id:
+            raise ValueError('Invalid Patient ID')
+
+        if not booking_req.result_token:
+            raise ValueError('Invalid result_token')
+
+        # create questionnaire
+        booking_req.patient_questionnaire_id = create_patient_questionnaire(
+                booking_req)
+        if not booking_req.patient_questionnaire_id:
+            raise ValueError('Invalid Patient Questionnaire ID')
+        return booking_req, None
+    except Exception as err:
+        status_message = str(err)
+        log_generic(
+            type=c.ERROR,
+            status_message=status_message,
+            booking_req=booking_req,
+            function=whoami(),
+            error=err
+        )
+        return None, status_message
+

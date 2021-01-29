@@ -1,7 +1,7 @@
 from ggt.lib.utils import (
     get_config_val,
     log_generic,
-    whoami
+    whoami, generate_token
 )
 
 from ggt.lib.constants import (
@@ -51,10 +51,12 @@ def create_patient_record(patient):
                     phone_number, 
                     phone_number_verified, 
                     email, 
-                    token
+                    token,
+                    result_token,
+                    token_expire
                 )
             VALUES 
-                (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, DATE_ADD(NOW(), interval 10 minute))
         """
 
         vals = (
@@ -74,6 +76,7 @@ def create_patient_record(patient):
             patient.phone_number, 
             patient.phone_number_verified, 
             patient.email,
+            patient.token,
             patient.token
         )
 
@@ -132,17 +135,25 @@ def create_pre_registration(patient_id):
         return None
 
 
-def get_existing_patients(phone_number):
+def get_existing_patients(phone_number="", first_name="", last_name="", dob=""):
+
+    where_statement = "phone_number_verified = 1"
+    if phone_number != "":
+        where_statement = "{} AND phone_number = '{}'".format(where_statement, phone_number)
+    if first_name != "":
+        where_statement = "{} AND first_name = '{}'".format(where_statement, first_name)
+    if last_name != "":
+        where_statement = "{} AND last_name = '{}'".format(where_statement, last_name)
+    if dob != "":
+        where_statement = "{} AND dob = '{}'".format(where_statement, dob)
     try:
         sql = """SELECT 
                         *
                     FROM
                         patients
                     WHERE
-                        phone_number_verified = 1
-                            AND phone_number = %s;"""
-        vals = (phone_number,)
-        return replica_read_row(sql, vals)
+                        {};""".format(where_statement)
+        return replica_read_row(sql)
 
     except Exception as err:
         log_generic(
@@ -177,16 +188,20 @@ def get_existing_patient_questionnaire(patient_id):
         return None
 
 
-def unlock_patient_info_patients(token, phone_number, id):
+def unlock_patient_info_patients(phone_number):
     try:
+        result_token = generate_token()
         sql = """UPDATE patients 
                     SET 
-                        token_expire = DATE_ADD(NOW(), interval 5 minute)
+                        result_token = %s,
+                        token_expire = DATE_ADD(NOW(), interval 10 minute)
                     WHERE
-                        token =%s AND phone_number = %s AND id = %s"""
-        vals = (token, phone_number, id)
-        return exec_update(sql, vals)
-
+                        phone_number = %s"""
+        vals = (result_token, phone_number)
+        if exec_update(sql, vals):
+            return result_token
+        else:
+            return None
     except Exception as err:
         log_generic(
             type=ERROR,

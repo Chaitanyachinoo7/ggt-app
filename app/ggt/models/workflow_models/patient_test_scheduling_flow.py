@@ -192,12 +192,13 @@ def finalize_payment(finalize_payment_request):
 
 def finalize_registration(finalize_registration_request):
     booking_req = __map_to_booking_req(finalize_registration_request)
-    appointment, status_message, patient_id = bp_finalize_booking(booking_req)
+    appointment, status_message, patient_id, result_token = bp_finalize_booking(booking_req)
 
     if finalize_registration_request.ggd_waitlist:
         bp_add_to_ggd_waiting_queue(patient_id)
     if appointment:
         return {
+            "result_token": result_token,
             "appointment_id": appointment.id,
             "date": appointment.date_text,
             "location": appointment.location_text,
@@ -215,12 +216,13 @@ def finalize_registration(finalize_registration_request):
 
 def ggv_finalize_registration(finalize_registration_request):
     booking_req = __map_to_booking_req(finalize_registration_request, ggv=True)
-    appointment_1, appointment_2, status_message, patient_id = bp_ggv_finalize_booking(booking_req)
+    appointment_1, appointment_2, status_message, patient_id, result_token = bp_ggv_finalize_booking(booking_req)
 
     if finalize_registration_request.ggd_waitlist:
         bp_add_to_ggd_waiting_queue(patient_id)
     if appointment_1 and appointment_2:
         return {
+            "result_token": result_token,
             "appointment_id_1": appointment_1.id,
             "date_1": appointment_1.date_text,
             "location_1": appointment_1.location_text,

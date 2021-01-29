@@ -143,6 +143,7 @@ def get_appointment(appointment_id: int) -> GgtAppointment:
             p.gender,
             p.dob,
             p.token,
+            p.result_token,
             GROUP_CONCAT(c.service_code) as service_codes,
             GROUP_CONCAT(s.service_description) as service_descriptions
         FROM

@@ -199,12 +199,12 @@ async def api_lookup_appointments_by_phone(phone_number: str, dob: str):
     )
 
 
-@router.get("/get_appointments_by_phone/{token}/{phone_number}/{dob}")
-async def api_get_appointments_by_phone(token: str, phone_number: str, dob: str):
+@router.get("/get_appointments_by_phone/{token}/{phone_number}/{dob}/{first_name}/{last_name}")
+async def api_get_appointments_by_phone(token: str, phone_number: str, dob: str, first_name: str, last_name: str):
     return site_admin_general_search(
+        first_name,
         '',
-        '',
-        '',
+        last_name,
         dob,
         phone_number,
         '',
