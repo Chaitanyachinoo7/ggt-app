@@ -7,7 +7,7 @@ from pathlib import Path
 import six
 from six.moves.urllib.parse import quote
 
-from google.cloud import storage
+#from google.cloud import storage
 from google.oauth2 import service_account
 
 from ggt.lib.utils import (

@@ -5,7 +5,7 @@ import glob
 import csv
 import datetime
 import time
-import paramiko
+#import paramiko
 import itertools
 import shutil
 from pathlib import Path
@@ -79,9 +79,9 @@ def task_process_inbound_lab_reports():
     # init_local_cache()                    #temp disabled to save time
     # load_data_from_remote_db_to_cache()   #temp disabled to save time
 
-    process_pdf_results_for_lab_ait()
-    add_to_healthtrackrx_inbound_data_table()
-    update_test_samples_with_results()
+    #process_pdf_results_for_lab_ait()
+    #add_to_healthtrackrx_inbound_data_table()
+    #update_test_samples_with_results()
 
     process_pdf_results_for_lab_mawd()
     add_to_mawdpath_inbound_data_table()
@@ -330,6 +330,8 @@ def process_pdf_reports_for_lab_crl():
                         _order_number = line.split('=')[1]
                     if line.startswith('SID='):
                         _requisition_id = line.split('=')[1]
+
+                print(_pdf_filename, _order_number, _requisition_id)
 
                 if not (_pdf_filename and _order_number and _requisition_id):
                     raise ValueError('Invalid Data')

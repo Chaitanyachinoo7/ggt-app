@@ -9,7 +9,7 @@ from pathlib import Path
 import phonenumbers
 import pyotp
 
-import google.cloud.logging
+#import google.cloud.logging
 #import googlecloudprofiler
 import random
 

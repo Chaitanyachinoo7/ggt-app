@@ -3,7 +3,7 @@ import glob
 import csv
 import datetime
 import time
-import paramiko
+#import paramiko
 import base64
 from PIL import Image
 

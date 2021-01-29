@@ -2,7 +2,7 @@ import os
 import glob
 import csv
 import datetime
-import paramiko
+#import paramiko
 import base64
 from PIL import Image
 

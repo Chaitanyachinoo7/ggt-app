@@ -1,7 +1,7 @@
 import csv
 import datetime
 
-import paramiko
+#import paramiko
 
 import ggt.lib.constants as c
 from ggt.lib.db import (

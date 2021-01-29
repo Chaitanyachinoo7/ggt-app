@@ -5,7 +5,7 @@ import glob
 import csv
 from datetime import datetime
 import time
-import paramiko
+#import paramiko
 import itertools
 import shutil
 from pathlib import Path
