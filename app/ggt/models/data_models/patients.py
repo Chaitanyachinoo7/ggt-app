@@ -135,7 +135,7 @@ def create_pre_registration(patient_id):
         return None
 
 
-def get_existing_patients(phone_number="", first_name="", last_name="", dob=""):
+def get_existing_patients(phone_number="", first_name="", last_name="", dob="", token=""):
 
     where_statement = "phone_number_verified = 1"
     if phone_number != "":
@@ -146,6 +146,8 @@ def get_existing_patients(phone_number="", first_name="", last_name="", dob=""):
         where_statement = "{} AND last_name = '{}'".format(where_statement, last_name)
     if dob != "":
         where_statement = "{} AND dob = '{}'".format(where_statement, dob)
+    if token != "":
+        where_statement = "{} AND token = '{}'".format(where_statement, token)
     try:
         sql = """SELECT 
                         *

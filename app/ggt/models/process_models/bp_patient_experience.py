@@ -1164,8 +1164,11 @@ def __create_patient_and_questionnaire(booking_req):
             dob=_patient.dob
         )
         if existing_patient is None:
+            p = get_existing_patients(token=_patient.token)
+            if p:
+                _patient.token = generate_token()
             patient_id = create_patient_record(_patient)
-            booking_req.result_token = _patient.token
+            booking_req.result_token = unlock_patient_info_patients(_patient.phone_number)
         else:
             patient_id = existing_patient['id']
             booking_req.result_token = unlock_patient_info_patients(existing_patient['phone_number'])
