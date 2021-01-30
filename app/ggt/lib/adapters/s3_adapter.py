@@ -17,8 +17,10 @@ from ggt.lib.constants import (
 )
 
 
-default_link_expiration_time_limit = cfg('aws.default_link_expiration_time_limit')
+default_link_expiration_time_limit = cfg(
+    'aws.default_link_expiration_time_limit')
 lab_reports_bucket_name = cfg('aws.lab_reports_bucket_name')
+
 
 def __boto_connect_client(service):
     try:
@@ -37,7 +39,7 @@ def __boto_connect_client(service):
                 aws_secret_access_key=cfg('aws.secret_access_key'),
                 region_name=cfg('aws.region')
             )
-        
+
         return boto_client
 
     except Exception as err:
@@ -111,7 +113,6 @@ def create_folder(bucket_name, directory_name):
         return False
 
 
-
 def write_text_file(bucket, filename, body):
     try:
         if __boto_connect_client('s3').put_object(Body=body, Bucket=bucket, Key=filename):
@@ -123,24 +124,16 @@ def write_text_file(bucket, filename, body):
             function=whoami(),
             error=err
         )
-    
+
     return False
+    
 
-
-def move_file(source, destination, bucketName):
+def move_file(source_bucket, source_key, dest_bucket, dest_key):
     try:
-        print(source, destination)
-        copy = __boto_connect_client('s3').copy_object(
-            Bucket=bucketName, 
-            CopySource=source, 
-            Key=destination, 
-            MetadataDirective="COPY"
-        )
-        delete = __boto_connect_client('s3').delete_object(
-            Bucket=bucketName, 
-            Key=source.replace(bucketName+"/", "")
-        )
-        return True
+        if copy_file_from_s3_to_s3(source_bucket, source_key, dest_bucket, dest_key):
+            s3 = __boto_connect_resource('s3')
+            s3.Object(source_bucket, source_key).delete()
+            return True
 
     except Exception as err:
         log_generic(
@@ -148,7 +141,8 @@ def move_file(source, destination, bucketName):
             function=whoami(),
             error=err
         )
-        return False
+    
+    return False        
 
 
 def get_temp_lab_report_url(filename: str):
@@ -172,25 +166,75 @@ def get_temp_lab_report_url(filename: str):
         return None
 
 
-import boto3
+def get_list_of_files(bucket_name, prefix):
+    s3 = __boto_connect_resource('s3')
+    bucket = s3.Bucket(bucket_name)
+    files = []
+
+    for file in bucket.objects.filter(
+        Prefix=prefix
+    ):
+        files.append(file.key)
+
+    return files
 
 
-def iterate_bucket_items(bucket):
+def get_file_iterator(bucket, prefix='', suffix=''):
     """
-    Generator that iterates over all objects in a given s3 bucket
+    Generate the keys in an S3 bucket.
 
-    See http://boto3.readthedocs.io/en/latest/reference/services/s3.html#S3.Client.list_objects_v2 
-    for return data format
-    :param bucket: name of s3 bucket
-    :return: dict of metadata for an object
+    :param bucket: Name of the S3 bucket.
+    :param prefix: Only fetch keys that start with this prefix (optional).
+    :param suffix: Only fetch keys that end with this suffix (optional).
     """
+    s3 = boto3.client('s3')
+    kwargs = {'Bucket': bucket}
+
+    # If the prefix is a single string (not a tuple of strings), we can
+    # do the filtering directly in the S3 API.
+    if isinstance(prefix, str):
+        kwargs['Prefix'] = prefix
+
+    while True:
+
+        # The S3 API response is a large blob of metadata.
+        # 'Contents' contains information about the listed objects.
+        resp = s3.list_objects_v2(**kwargs)
+        for obj in resp['Contents']:
+            key = obj['Key']
+            if key.startswith(prefix) and key.endswith(suffix):
+                yield key
+
+        # The S3 API is paginated, returning up to 1000 keys at a time.
+        # Pass the continuation token into the next response, until we
+        # reach the final page (when this field is missing).
+        try:
+            kwargs['ContinuationToken'] = resp['NextContinuationToken']
+        except KeyError:
+            break
 
 
-    client = __boto_connect_client('s3')
-    paginator = client.get_paginator('list_objects_v2')
-    page_iterator = paginator.paginate(Bucket=bucket)
 
-    for page in page_iterator:
-        if page['KeyCount'] > 0:
-            for item in page['Contents']:
-                yield item
+def copy_file_from_s3_to_s3(source_bucket, source_key, dest_bucket, dest_key):
+    try:
+        s3 = __boto_connect_resource('s3')
+
+        copy_source = {
+            'Bucket': source_bucket,
+            'Key': source_key
+        }
+
+        bucket = s3.Bucket(dest_bucket)
+        bucket.copy(copy_source, dest_key)
+        return True
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            operation='{}/{} ==> {}/{}'.format(source_bucket, source_key, dest_bucket, dest_key),
+            error=err
+        )
+    
+    return False
+

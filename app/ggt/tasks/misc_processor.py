@@ -165,15 +165,15 @@ def process_email_notifications():
 def formatted_email_message(row):
     from_email = cfg('notifications.from_email')
     from_name = cfg('notifications.from_name')
-    #subject = "IMPORTANT: {}, Important information regarding Covid-19 Testing".format(row['first_name'])
-    subject = "IMPORTANT: {}, Your Covid-19 Testing location has closed due to inclement weather".format(row['first_name'])
+    subject = "IMPORTANT: {}, Important information regarding Covid-19 Testing".format(row['first_name'])
+    #subject = "IMPORTANT: {}, Your Covid-19 Testing location has closed due to inclement weather".format(row['first_name'])
 
     template_vars = {
         "first_name": row['first_name']
     }
 
-    template_name = 'GGT-14-APPOINTMENT-WEATHER-CLOSING-EMAIL.html'
-    #template_name = 'GGT-9-APPOINTMENT-DELAYED-EMAIL.html'
+    #template_name = 'GGT-14-APPOINTMENT-WEATHER-CLOSING-EMAIL.html'
+    template_name = 'GGT-9-APPOINTMENT-DELAYED-EMAIL.html'
     html_content = render_template(template_name, **template_vars)
 
     email_message = {
@@ -405,10 +405,10 @@ def get_appointments():
             patients p ON a.patient_id = p.id
         WHERE
             location_id IN (
-                2420,370,2422,2385,276,373,367,399,2414,2446,2447,2415,2423,2417,2448,2416,274,369, 372, 2421
+                2420,370,2422,2424,2385,367,399,2485,361,2414,2446,2419,2447,2415,2423,371,2417,2416,366, 692, 419
             )
-            AND scheduled_dt > '2021-01-27 00:00:00'
-            AND scheduled_dt < '2021-01-28 00:00:00'
+            AND scheduled_dt > '2021-01-30 00:00:00'
+            AND scheduled_dt < '2021-01-31 00:00:00'
             AND status = 'scheduled'
         """
 
@@ -422,7 +422,7 @@ def prepare_sms_text(appointment):
     #return """Hi {}, the testing location where you have registered will be closed on January 18th, 20th, and 21st. We apologize for the inconvenience this may cause. Please visit GoGetTested.com/Kansas to register for a new appointment.
     #""".format(appointment["first_name"])
 
-    return """Hi {}, due to inclement weather, the location where you have registered for your COVID-19 test will be CLOSED. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to register for a new appointment.
+    return """Hi {}, due to inclement weather the location where you have reigstered for your COVID-19 test will have a delayed start until 2pm. We apologize for the inconvenience. Please visit GoGetTested.com to register for a new appointment.
     """.format(appointment["first_name"])
 
 
