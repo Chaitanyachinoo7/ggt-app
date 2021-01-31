@@ -59,7 +59,9 @@ def bp_process_org_request(req, user):
                         send_new_account_creation_email(_x['given_name'], _x['email'], auth_user['password'])
                         return {"auth_user": auth_user, "org_id": req.id}
             if req.status == DbOrgRequestStatusEnum.rejected:
-                send_org_reject_email(data['given_name'], data['email'])
+                if res is not None and len(res) > 0:
+                    data = res
+                    send_org_reject_email(data['given_name'], data['email'])
                 return {"status": "rejected"}
     except Exception as err:
         log_generic(

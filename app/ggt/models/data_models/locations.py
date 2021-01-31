@@ -225,7 +225,7 @@ def search_locations(account, group_code, site_code, location_name, org_id, id=N
         if id:
             where_conditions = "{} AND l.id = {}".format(where_conditions, id)
         if st != "":
-            where_conditions = "{} AND l.st = {}".format(where_conditions, st)
+            where_conditions = "{} AND l.st = '{}'".format(where_conditions, st)
 
         limit = 500
 
