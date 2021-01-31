@@ -238,3 +238,24 @@ def copy_file_from_s3_to_s3(source_bucket, source_key, dest_bucket, dest_key):
     
     return False
 
+
+def file_exists(bucket, filename):
+    try:
+        if __boto_connect_client('s3').head_object(Bucket=bucket, Key=filename).get('ResponseMetadata', None) is None:
+            return False
+        else:
+            return True
+
+    except Exception:
+        return False
+
+
+def read_file(bucket, filename):
+    try:
+        s3 = __boto_connect_resource('s3')
+        obj = s3.Object(bucket, filename)
+        body = obj.get()['Body'].read()
+        return body
+
+    except Exception:
+        return None
