@@ -92,6 +92,11 @@ def update_ggt_users_roles_permissions(id, roles, permissions):
     exec_update(sql, (roles, permissions, id))
 
 
+def get_all_users_in_db():
+    sql = """SELECT external_id FROM ggt_users"""
+    return replica_read_rows(sql)
+
+
 def update_ggt_users(ggt_users, x):
     sql = """INSERT IGNORE INTO ggt_users
         (
@@ -109,13 +114,22 @@ def update_ggt_users(ggt_users, x):
         (%s, %s, %s, %s, %s, %s, %s, %s, %s);
 """
     # exec_batch_execute(sql, ggt_users) # Insert many throws errors with INSERT IGNORE
+
+    ex_users = get_all_users_in_db()
+    ext_ids = []
+    for y in ex_users:
+        ext_ids.append(y['external_id'])
+
     for idx, user in enumerate(ggt_users):
         if x == 0:
             COUNT = idx + 1
         else:
             COUNT = x*100 + idx + 1
-        print("{}. USER {} ADDED.".format(COUNT, user[0]))
-        exec_insert(sql, user)
+        if user[6] not in ext_ids:
+            print("{}. USER {} ADDED.".format(COUNT, user[0]))
+            exec_insert(sql, user)
+        else:
+            print("PASS - {}".format(user[0]))
 
 
 def task_populate_users(existing_users, x):
@@ -151,15 +165,20 @@ def days_between(d1, d2):
 
 def remove_user_after_30_inactive_days(users):
     for user in users.json()['users']:
-        if days_between(str(date.today()), user['last_login']) > 30:
-            delete_user(user['user_id'], days_between(str(date.today()), user['last_login']))
+        try:
+            if days_between(str(date.today()), user['last_login']) > 30:
+                delete_user(user['user_id'], days_between(str(date.today()), user['last_login']))
+        except KeyError:
+            delete_user(user['user_id'], "never_logged_in")
+            print(user)
+            pass
 
 
 for x in range(0, rounds):
     _existing_users: Response = requests.get(user_url.format(x), headers=headers)
     # task_populate_users(_existing_users, x)
-    # remove_user_after_30_inactive_days(_existing_users)
-    add_organizations(_existing_users)
+    remove_user_after_30_inactive_days(_existing_users)
+    # add_organizations(_existing_users)
 
 
 def update_gps_coordinates(location_id, lat, lng):
