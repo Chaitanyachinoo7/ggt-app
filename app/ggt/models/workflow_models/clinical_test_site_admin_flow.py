@@ -35,8 +35,13 @@ import ggt.lib.constants as c
 
 # @cached(cache=TTLCache(maxsize=1024, ttl=60))
 def site_admin_general_search(user, first_name, middle_name, last_name, dob, phone_number, email, appointment_id,
-                                    group_code, appointment_date, location_id, vial_id="", sort_field="register_dt", sort_type="desc"):
-    org_id = get_organization_id(user)
+                                    group_code, appointment_date, location_id, vial_id="", sort_field="register_dt",
+                              sort_type="desc", group_vax_results=False, token=None, is_patient=False):
+    if not is_patient:
+        org_id = get_organization_id(user)
+    else:
+        org_id = None
+
     return y_response(
         bp_get_general_search_results(
             org_id,
@@ -52,7 +57,10 @@ def site_admin_general_search(user, first_name, middle_name, last_name, dob, pho
             location_id,
             vial_id,
             sort_field,
-            sort_type
+            sort_type,
+            group_vax_results=group_vax_results,
+            token=token,
+            is_patient=is_patient
         )
     )
 

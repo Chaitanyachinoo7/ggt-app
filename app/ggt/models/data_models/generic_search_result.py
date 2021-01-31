@@ -154,12 +154,16 @@ class GenericSearchResult(BaseModel):
 class GenericSearchResults(BaseModel):
     search_results: Optional[GenericSearchResult] = None
 
-#tz = cfg(default_timezone)
 
+#tz = cfg(default_timezone)
 def find_patients(org_id, first_name='', middle_name='', last_name='', dob='', phone_number='',
-                        email='', appointment_id='', group_code='', appointment_date='', location_id='', vial_id='', sort_field="register_dt", sort_type="desc"):
+                        email='', appointment_id='', group_code='', appointment_date='', location_id='', vial_id='', sort_field="register_dt", sort_type="desc",
+                  token=None, is_patient=False):
     try:
-        where_conditions = 'o.id = {} AND o.is_active = 1'.format(org_id)
+        if not is_patient:
+            where_conditions = 'o.id = {} AND o.is_active = 1'.format(org_id)
+        else:
+            where_conditions = "1=1"
         if first_name != '':
             where_conditions = "{} AND p.first_name LIKE '%{}%'".format(
                 where_conditions, first_name)
@@ -193,11 +197,14 @@ def find_patients(org_id, first_name='', middle_name='', last_name='', dob='', p
         if vial_id != '' and vial_id:
             where_conditions = "{} AND a.vial_id = '{}'".format(
                 where_conditions, vial_id)
+        if token:
+            where_conditions = "{} AND p.result_token = '{}' AND p.token_expire > NOW() AND p.phone_number_verified = 1".format(
+                where_conditions, token)
 
-        limit = 250
+        limit = 500
 
         sql = """
-        SELECT 
+        SELECT
             p.id AS patient_id,
             p.first_name AS first_name,
             p.middle_name AS middle_name,
@@ -233,7 +240,7 @@ def find_patients(org_id, first_name='', middle_name='', last_name='', dob='', p
             p.phone_number_verified AS phone_number_verified,
             p.email AS email,
             p.email_verified AS email_verified,
-            p.create_dt AS register_dt, 
+            p.create_dt AS register_dt,
             p.token AS token,
             q.symptom_fever AS symptom_fever,
             q.symptom_shortness_breath AS symptom_shortness_breath,
@@ -310,7 +317,8 @@ def find_patients(org_id, first_name='', middle_name='', last_name='', dob='', p
             i.insurance_carrier AS insurance_carrier,
             i.group_number AS insurance_group_number,
             i.member_number AS insurance_member_number,
-            i.validated AS insurance_validated
+            i.validated AS insurance_validated,
+            sc.service_code AS service_code
         FROM
             patients p
                 LEFT JOIN
@@ -329,7 +337,11 @@ def find_patients(org_id, first_name='', middle_name='', last_name='', dob='', p
             ggt_users u ON u.external_id = c.provider_external_id
                 LEFT JOIN 
             insurance_info i ON p.id = i.patient_id
-				LEFT JOIN
+                LEFT JOIN
+            appointment_services aps ON a.id = aps.appointment_id
+                LEFT JOIN
+            services_catalog sc ON sc.id = aps.service_id
+                LEFT JOIN
 			organizations o ON o.id = l.org_id
         WHERE
             {}

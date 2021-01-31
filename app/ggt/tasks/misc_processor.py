@@ -42,9 +42,9 @@ from ggt.lib.storage import (
 import ggt.lib.constants as c
 
 session_id = generate_session_id()
-local_outbound_file_path = cfg('vendors.healthtrackrx_outbound.local_outbound_file_path')
-outbound_file_prefix = cfg('vendors.healthtrackrx_outbound.outbound_file_prefix')
-local_insurance_card_file_path = cfg('vendors.healthtrackrx_outbound.local_insurance_card_file_path')
+local_outbound_file_path = cfg('vendors.healthtrackrx.outbound.local_outbound_file_path')
+outbound_file_prefix = cfg('vendors.healthtrackrx.outbound.outbound_file_prefix')
+local_insurance_card_file_path = cfg('vendors.healthtrackrx.outbound.local_insurance_card_file_path')
 
 def task_process_misc():
     print('\n\n************************************************\n\n')
@@ -98,7 +98,7 @@ def upload_insurance_files_from_gstore():
     except Exception as err:
         print(err)
 
-
+'''
 def upload_file_list_to_ftp(file_list):
     try:
         hostname = cfg('vendors.healthtrackrx_outbound.hostname')
@@ -133,7 +133,7 @@ def upload_file_list_to_ftp(file_list):
         )
     finally:
         ftp_client.close()
-
+'''
 
 def process_sms_notifications():
     rows = get_appointments()
@@ -165,13 +165,15 @@ def process_email_notifications():
 def formatted_email_message(row):
     from_email = cfg('notifications.from_email')
     from_name = cfg('notifications.from_name')
-    subject = "IMPORTANT: {}, Your Covid-19 Testing location hours have changed".format(row['first_name'])
+    #subject = "IMPORTANT: {}, Important information regarding Covid-19 Testing".format(row['first_name'])
+    subject = "IMPORTANT: {}, Your Covid-19 Testing location has closed due to inclement weather".format(row['first_name'])
 
     template_vars = {
         "first_name": row['first_name']
     }
 
-    template_name = 'GGT-12-APPOINTMENT-RESCHEDULE-EMAIL.html'
+    template_name = 'GGT-14-APPOINTMENT-WEATHER-CLOSING-EMAIL.html'
+    #template_name = 'GGT-9-APPOINTMENT-DELAYED-EMAIL.html'
     html_content = render_template(template_name, **template_vars)
 
     email_message = {
@@ -380,7 +382,7 @@ def get_appointments():
                 AND a.test_start_dt < '2021-12-29 00:00:00'
         """
 
-        sql11 = """
+        sql14 = """
         SELECT 
             p.first_name, p.phone_number, p.email
         FROM
@@ -388,9 +390,9 @@ def get_appointments():
                 JOIN
             patients p ON a.patient_id = p.id
         WHERE
-            location_id IN (2423)
-                AND scheduled_dt > '2021-01-04 00:00:00'
-                AND scheduled_dt <  '2021-01-05 00:00:00'
+            location_id IN (144)
+                AND scheduled_dt > '2021-01-11 00:00:00'
+                AND scheduled_dt <  '2021-01-12 00:00:00'
                 AND status = 'scheduled'
         """
 
@@ -402,10 +404,12 @@ def get_appointments():
                 JOIN
             patients p ON a.patient_id = p.id
         WHERE
-            location_id IN (310 , 286)
-                AND scheduled_dt > '2021-01-08 00:00:00'
-                AND scheduled_dt < '2021-01-09 00:00:00'
-                AND status = 'scheduled'
+            location_id IN (
+                2420,370,2422,2385,276,373,367,399,2414,2446,2447,2415,2423,2417,2448,2416,274,369, 372, 2421
+            )
+            AND scheduled_dt > '2021-01-27 00:00:00'
+            AND scheduled_dt < '2021-01-28 00:00:00'
+            AND status = 'scheduled'
         """
 
         return read_rows(sql)
@@ -415,7 +419,10 @@ def get_appointments():
 
 
 def prepare_sms_text(appointment):
-    return """Hi {}, due to inclement weather, we’ve had to delay opening the testing location where you have registered to 10am. This may change depending on the weather. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to register for a new appointment.
+    #return """Hi {}, the testing location where you have registered will be closed on January 18th, 20th, and 21st. We apologize for the inconvenience this may cause. Please visit GoGetTested.com/Kansas to register for a new appointment.
+    #""".format(appointment["first_name"])
+
+    return """Hi {}, due to inclement weather, the location where you have registered for your COVID-19 test will be CLOSED. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to register for a new appointment.
     """.format(appointment["first_name"])
 
 

@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Set, Dict, Tuple, Optional
 from contextlib import suppress
 from datetime import date
@@ -30,6 +31,95 @@ from ggt.models.data_models.data_types import (
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
+def ggv_get_schedule_locations_available_near_lat_lng(group_code, lat, lng, radius):
+    try:
+        sql = """SELECT
+                    l.id AS location_id,
+                    l.name,
+                    l.addr1,
+                    l.addr2,
+                    l.city,
+                    l.st,
+                    l.zip,
+                    l.lat,
+                    l.lng,
+                    smc.first_available_slot,
+                    CAST(smc.first_available_slot AS DATE) available_date,
+                    smc.last_available_slot,
+                    mg.max_last_available_slot,
+                    smc.available_slots_count AS slot_count,
+                    c.service_code,
+                    (3963 * ACOS(COS(RADIANS(%s)) * COS(RADIANS(l.lat)) * COS(RADIANS(l.lng) - RADIANS(%s)) + SIN(RADIANS(%s)) * SIN(RADIANS(l.lat)))) AS distance
+                    FROM
+                        locations l
+                            LEFT JOIN
+                        services_to_locations_mapping m ON (m.location_id = l.id)
+                            LEFT JOIN
+                        services_catalog c ON (c.id = m.service_id)
+                            LEFT JOIN
+                        ggv_schedules_metrics_cache smc ON (smc.location_id = l.id)
+                            LEFT JOIN
+                        locations_metrics_cache lmc ON (lmc.location_id = l.id)
+                            LEFT JOIN
+                        (
+                            SELECT MAX(last_available_slot) as max_last_available_slot,
+                                    location_id
+                            FROM ggv_schedules_metrics_cache
+                            GROUP BY location_id
+                            
+                        ) mg on l.id = mg.location_id
+                    WHERE
+                        1 = 1 AND l.status = 'enabled'
+                            AND smc.available_slots_count > 0
+                            AND smc.first_available_slot IS NOT NULL
+                            AND smc.first_available_slot >= CONVERT_TZ(NOW(), '+00:00', '-06:00')
+                            AND (3963 * ACOS(COS(RADIANS(%s)) * COS(RADIANS(l.lat)) * COS(RADIANS(l.lng) - RADIANS(%s)) + SIN(RADIANS(%s)) * SIN(RADIANS(l.lat)))) < %s
+                            AND DATEDIFF(mg.max_last_available_slot, smc.first_available_slot) > 20
+                            AND c.service_code LIKE "%VACCINE%"
+                            AND l.id IN (SELECT 
+                                glm.location_id
+                            FROM
+                                group_codes_to_locations_mapping glm
+                                    INNER JOIN
+                                groups g ON (g.id = glm.group_id)
+                            WHERE
+                                g.group_code = %s)
+                    ORDER BY distance;"""
+        vals = (lat, lng, lat, lat, lng, lat, radius, group_code)
+        res = replica_read_rows(sql, vals)
+
+        location_ids = []
+        for r in res:
+            location_ids.append(r['location_id'])
+
+        lst = str(tuple(set(location_ids)))
+        if len(set(location_ids)) == 1:
+            lst = lst.replace(",", "")
+
+        sql2 = """SELECT 
+                        location_id,
+                        CAST(first_available_slot AS DATE) as first_available_slot
+                    FROM
+                        ggv_schedules_metrics_cache
+                    WHERE
+                        location_id IN {};""".format(lst)
+        res2 = replica_read_rows(sql2)
+
+        res3, valid_next_available_dates = __filter_response(res, res2)
+        return __format_ggv_available_locations(res3, valid_next_available_dates)
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            lat=lat,
+            lng=lng,
+            group_code=group_code,
+            radius=radius,
+            error=err
+        )
+        return None
+
+
 def create_schedule_entry(location_id, start_dt, end_dt, duration, status):
     try:
         sql = """
@@ -78,7 +168,8 @@ def get_schedule_generation_rules_by_location_id(location_id):
                 r.sat,
                 r.slot_multiplier,
                 r.active_local_start_dt, 
-                r.active_local_end_dt
+                r.active_local_end_dt,
+                r.category
             FROM
                 schedule_generation_rules r
                 join locations l on (l.id = r.location_id)
@@ -119,10 +210,11 @@ def add_schedule_generation_rule(data):
             sat,
             slot_multiplier,
             active_local_start_dt,
-            active_local_end_dt
+            active_local_end_dt,
+            category
         )
         VALUES
-        (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s )
+        (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s )
         """
         vals = (
             data.location_id,
@@ -139,7 +231,8 @@ def add_schedule_generation_rule(data):
             data.sat,
             data.slot_multiplier,
             data.active_local_start_dt,
-            data.active_local_end_dt)
+            data.active_local_end_dt,
+            data.category)
 
         if exec_insert(sql, vals):
             return True
@@ -219,8 +312,23 @@ def delete_schedule_entries_by_location_id(location_id):
             AND status = 'available'
             AND id <> 0
         """
+        sql2 = """
+        DELETE FROM 
+            ggv_schedules
+        WHERE
+            location_id = %s
+            AND status = 'available'
+            AND id <> 0
+        """
         vals = (location_id,)
-        return exec_delete(sql, vals)
+
+        test = exec_delete(sql, vals)
+        vax = exec_delete(sql2, vals)
+
+        if test or vax:
+            return True
+        else:
+            return False
 
     except Exception as err:
         log_generic(
@@ -255,15 +363,19 @@ def trim_schedule_generation_rules_start_dt(location_id, new_dt):
         return None
 
 
-def delete_schedule_entries_by_location_id_for_date(location_id, date_str):
+def delete_schedule_entries_by_location_id_for_date(location_id, date_str, category):
     try:
+        table = "schedules"
+        if category == "vax":
+            table = "ggv_schedules"
+
         sql = """
-        DELETE FROM schedules 
+        DELETE FROM {} 
         WHERE
             location_id = %s
             AND DATE(start_dt) = %s
             AND id <> 0
-        """
+        """.format(table)
         vals = (location_id, date_str)
         return exec_delete(sql, vals)
 
@@ -409,7 +521,39 @@ def get_available_times(location_id, date):
         return None
 
 
-def get_slot_information(slot_id):
+def get_second_shot_available_times(location_id, date):
+    try:
+        sql = """
+            SELECT DISTINCT 
+                time(start_dt) as start_time, 
+                id, 
+                start_dt, 
+                end_dt, 
+                status 
+            FROM 
+                schedules 
+            WHERE 
+                location_id = {} 
+                AND status = 'available' 
+                AND date(start_dt) IN {}
+                AND start_dt >= CONVERT_TZ(NOW(), '+00:00', '-06:00')
+            ORDER BY id
+        """.format(location_id, date)
+        return replica_read_rows(sql)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def get_slot_information(slot_id, slot_type="test"):
+    table = "schedules"
+    if slot_type == "vax":
+        table = "ggv_schedules"
     try:
         sql = """
             SELECT 
@@ -421,10 +565,10 @@ def get_slot_information(slot_id):
                 status, 
                 appointment_id 
             FROM 
-                schedules 
+                {} 
             WHERE 
                 id = %s
-        """
+        """.format(table)
         vals = (slot_id,)
 
         row = replica_read_row(sql, vals)
@@ -458,17 +602,20 @@ def get_slot_information(slot_id):
         return None
 
 
-def update_slot_information(slot_id, appointment_id):
+def update_slot_information(slot_id, appointment_id, slot_type='test'):
+    table = "schedules"
+    if slot_type == "vax":
+        table = "ggv_schedules"
     try:
         sql = """
             UPDATE 
-                schedules 
+                {} 
             SET 
                 appointment_id = %s, 
                 status = 'booked'
             WHERE 
                 id = %s
-        """
+        """.format(table)
         vals = (appointment_id, slot_id)
         return exec_update(sql, vals)
 
@@ -483,11 +630,14 @@ def update_slot_information(slot_id, appointment_id):
         return None
 
 
-def add_schedule_entries(rows):
+def add_schedule_entries(rows, category):
     try:
+        table = "schedules"
+        if category == "vax":
+            table = "ggv_schedules"
         sql = """
             INSERT INTO 
-                schedules (
+                {} (
                     location_id, 
                     start_dt, 
                     end_dt, 
@@ -497,18 +647,21 @@ def add_schedule_entries(rows):
                     status
                 )
             VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """
+        """.format(table)
         return exec_batch_execute(sql, rows)
 
     except Exception as err:
         print(c.ERROR, err)
 
 
-def get_slots_matching_dt_list(dt_list, location_id):
+def get_slots_matching_dt_list(dt_list, location_id, category):
     slot_list = []
     try:
         format_strings = ','.join(['%s'] * len(dt_list))
 
+        table = "schedules"
+        if category == "vax":
+            table = "ggv_schedules"
         sql = """
             SELECT 
                 id,
@@ -519,11 +672,11 @@ def get_slots_matching_dt_list(dt_list, location_id):
                 status,
                 appointment_id
             FROM
-                schedules
+                {}
             WHERE
                 location_id = {}
                 AND start_dt IN ({})
-        """.format(location_id, format_strings)
+        """.format(table, location_id, format_strings)
 
         vals = tuple(dt_list)
 
@@ -553,6 +706,116 @@ def get_slots_matching_dt_list(dt_list, location_id):
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
+def __days_between(d1, d2):
+    return (d2 - d1).days
+
+
+def __filter_response(res, res2):
+    _location_id_available_dates = {}
+    valid_available_dates = {}
+    valid_next_available_dates = {}
+    valid_responses = []
+
+    for r in res2:
+        if r['location_id'] in _location_id_available_dates.keys():
+            _location_id_available_dates[r['location_id']].append(r['first_available_slot'])
+        else:
+            _location_id_available_dates[r['location_id']] = [r['first_available_slot'], ]
+
+    for r in res:
+        available_date = r['available_date']
+        location_id = r['location_id']
+        if location_id in _location_id_available_dates.keys():
+            for dt in _location_id_available_dates[location_id]:
+                diff = __days_between(available_date, dt)
+                if 20 < diff < 29:
+                    if available_date not in valid_available_dates.keys():
+                        valid_available_dates[available_date] = [location_id,]
+                        valid_responses.append(r)
+                    else:
+                        if location_id not in valid_available_dates[available_date]:
+                            valid_available_dates[available_date].append(location_id)
+                            valid_responses.append(r)
+
+                    if str(available_date) not in valid_next_available_dates.keys():
+                        valid_next_available_dates[str(available_date)] = {
+                            location_id: [str(dt), ]
+                        }
+                    else:
+                        if location_id not in valid_next_available_dates[str(available_date)].keys():
+                            valid_next_available_dates[str(available_date)][location_id] = [str(dt), ]
+                        elif str(dt) not in valid_next_available_dates[str(available_date)][location_id]:
+                            valid_next_available_dates[str(available_date)][location_id].append(str(dt))
+
+    return valid_responses, valid_next_available_dates
+
+
+def __format_ggv_available_locations(res, valid_next_available_dates):
+    _locations = {}
+    _dates = {}
+    dates = []
+
+    for r in res:
+        date = str(r['first_available_slot'])[0:10]
+        start_time = str(r['first_available_slot'])[11:19]
+        end_time = str(r['last_available_slot'])[11:19]
+
+        if r['location_id'] in _locations.keys():
+            pass
+        else:
+            _locations[r['location_id']] = {
+                "id": r['location_id'],
+                "name": r['name'],
+                "address": "{}, {}, {}, {}, {}".format(r['addr1'], r['addr2'], r['city'], r['st'], r['zip']),
+                "lat": r['lat'],
+                "lng": r['lng'],
+                "distance": r['distance']
+            }
+
+        if date in _dates.keys():
+            _dates[date]['locations'].append({
+                "id": r['location_id'],
+                "slots_available": r['slot_count'],
+                "starting_at": start_time,
+                "ending_at": end_time
+            })
+        else:
+            _dates[date] = {
+                "locations": [{
+                    "id": r['location_id'],
+                    "slots_available": r['slot_count'],
+                    "starting_at": start_time,
+                    "ending_at": end_time
+            }]
+            }
+    for key in _dates.keys():
+        dates.append({
+            "date": key,
+            "locations": _dates[key]['locations']
+        })
+    dates = __sort_by_field(dates)
+
+    for d in dates:
+        dt = d['date']
+        for idx, x in enumerate(d['locations']):
+            if dt in valid_next_available_dates.keys():
+                temp = valid_next_available_dates[dt]
+                location_id = x['id']
+                if location_id in temp.keys():
+                    d['locations'][idx]['next_available_dates'] = temp[location_id]
+
+    return {
+        "dates": dates,
+        "locations": list(_locations.values())
+    }
+
+
+def __sort_by_field(task_list):
+    new_list = sorted(
+        task_list, key=lambda x: x['date'], reverse=False)
+    return new_list
+
+
 def __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, group_code, map_thumbnail):
     try:
         map_thumbnail_field = 'l.image_thumbnail,' if map_thumbnail else "'' as image_thumbnail,"

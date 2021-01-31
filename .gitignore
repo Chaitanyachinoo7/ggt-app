@@ -9,4 +9,6 @@ __pycache__/
 application.log
 application.log.*
 venv/
+venv1/
 .DS_Store
+

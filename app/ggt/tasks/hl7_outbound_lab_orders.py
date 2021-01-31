@@ -37,13 +37,13 @@ import ggt.lib.constants as c
 
 session_id = generate_session_id()
 local_outbound_file_path = cfg(
-    'vendors.healthtrackrx_outbound.local_outbound_file_path')
+    'vendors.healthtrackrx.outbound.local_outbound_file_path')
 outbound_file_prefix = cfg(
-    'vendors.healthtrackrx_outbound.outbound_file_prefix')
+    'vendors.healthtrackrx.outbound.outbound_file_prefix')
 local_insurance_card_file_path = cfg(
-    'vendors.healthtrackrx_outbound.local_insurance_card_file_path')
+    'vendors.healthtrackrx.outbound.local_insurance_card_file_path')
 
-
+#TODO: write processing log to files, raw log, success log, error log, summary log
 def task_process_hl7_lab_orders():
     print('\n\n************************************************\n\n')
     log_generic(
@@ -61,24 +61,6 @@ def task_process_hl7_lab_orders():
         else:
             break
 
-    #print('looking up ready to transmit orders')
-    #orders = get_orders_ready_to_transmit(100)
-
-    # upload_insurance_files_from_gstore(orders)
-    '''
-    if len(orders) > 0:
-        print('generating outbound file')
-        #filename, local_file_path = create_outbound_file(orders)
-        processed_orders = create_outbound_files(orders)
-
-        #print('uploading file to FTP server')
-        # upload_file_to_ftp(filename, local_file_path)
-
-        #print('marking records to "with_lab" status')
-        update_to_with_lab_status(processed_orders)
-    else:
-        print('no orders to process')
-    '''
     log_generic(
         type=c.INFO,
         function=whoami(),
@@ -112,11 +94,11 @@ def upload_insurance_files_from_gstore(orders):
                 except Exception as err:
                     print(err)
 
-        print('uploading insurance files to FTP')
+        print_ok1('uploading insurance files to FTP')
         upload_file_list_to_ftp(file_buffer)
 
     except Exception as err:
-        print(err)
+        print_error(err)
 
 
 def get_insurance_photo_base64(appointment_id):
@@ -393,16 +375,21 @@ def create_outbound_files(orders):
                 hl7file.write(_str)
             '''
             
-            if order['sample_collection_location_id'] == 2415:
-                write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8','ignore'), 'mawdpath')
-            else:
-                write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8','ignore'), 'healthtrackrx_merth')
+            if order['lab_id'] == 2 or str(order['sample_code']).startswith('MAWD'): #MAWD
+                if write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8','ignore'), 'mawdpath'):
+                    processed_orders.append(order)
+                else:
+                    raise ValueError('S3 write failed for MAWD')
 
-            processed_orders.append(order)
+            if order['lab_id'] == 1: #AIT
+                if write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8','ignore'), 'healthtrackrx_merth'):
+                    processed_orders.append(order)
+                else:
+                    raise ValueError('S3 write failed for AIT')
 
         except Exception as err:
-                print(err)
-                print('Error generating HL7 for Order ID:',order['id'])
+                #print_error(err)
+                print_error('Error generating HL7 for Order ID: {}'.format(order['id']))
     
     return processed_orders
                 
@@ -413,9 +400,11 @@ def write_to_s3(filename, body, lab_folder_path):
     bucket_name = 'ggt-sftp'
     prefix = '{}/prod/orders/'.format(lab_folder_path)
     if write_text_file(bucket_name, prefix+filename, body):
-        print('success {}'.format(bucket_name+prefix+filename))
+        print_ok1('success {}'.format(bucket_name+'/'+prefix+filename))
+        return True
     else:
-        print('FAILED {}'.format(bucket_name+prefix+filename))
+        print_error('FAILED {}'.format(bucket_name+'/'+prefix+filename))
+        return False
 
 
 
@@ -433,25 +422,29 @@ def get_orders_ready_to_transmit(limit=100):
                 ELSE 'U'
             END) AS gender,
             (CASE
-                WHEN (t.sample_collection_start_dt IS NOT NULL) THEN 
+                WHEN
+                    (t.sample_collection_start_dt IS NOT NULL)
+                THEN
                     DATE_FORMAT(CONVERT_TZ(t.sample_collection_start_dt,
-                            '+00:00',
-                            '-06:00'),
-                    '%Y%m%d')
-                WHEN (t.sample_collection_end_dt IS NOT NULL) THEN 
+                                    '+00:00',
+                                    '-06:00'),
+                            '%Y%m%d%h%m%s')
+                WHEN
+                    (t.sample_collection_end_dt IS NOT NULL)
+                THEN
                     DATE_FORMAT(CONVERT_TZ(t.sample_collection_end_dt,
-                            '+00:00',
-                            '-06:00'),
-                    '%Y%m%d')
-                WHEN (t.pre_ship_label_scan_dt IS NOT NULL) THEN 
+                                    '+00:00',
+                                    '-06:00'),
+                            '%Y%m%d%h%m%s')
+                WHEN
+                    (t.pre_ship_label_scan_dt IS NOT NULL)
+                THEN
                     DATE_FORMAT(CONVERT_TZ(t.pre_ship_label_scan_dt,
-                            '+00:00',
-                            '-06:00'),
-                    '%Y%m%d')
-                ELSE DATE_FORMAT(CONVERT_TZ(NOW(),
-                            '+00:00',
-                            '-06:00'),
-                    '%Y%m%d')
+                                    '+00:00',
+                                    '-06:00'),
+                            '%Y%m%d%h%m%s')
+                ELSE DATE_FORMAT(CONVERT_TZ(NOW(), '+00:00', '-06:00'),
+                        '%Y%m%d%h%m%s')
             END) AS date_of_collection,
             (CASE
                 WHEN (p.race = 'race_american_indian') THEN '1002-5'
@@ -519,8 +512,9 @@ def get_orders_ready_to_transmit(limit=100):
             'Unknown' AS is_in_icu,
             'Unknown' AS is_congregate_resident,
             'Unknown' AS is_pregnant,
-            l.st as test_location_st,
-            t.sample_collection_location_id
+            l.st AS test_location_st,
+            t.sample_collection_location_id,
+            t.lab_id
         FROM
             (((test_samples t
             JOIN patients p ON ((t.patient_id = p.id)))
@@ -528,76 +522,11 @@ def get_orders_ready_to_transmit(limit=100):
             JOIN patient_questionnaires q ON ((p.id = q.patient_id)))
         WHERE
             (t.status = 'ready_to_tx')
+            AND t.vial_id IS NOT NULL
+            AND t.lab_id IN (1, 2)
         LIMIT {}
             """.format(limit)
     return read_rows(sql,)
-
-
-def upload_file_list_to_ftp(file_list):
-    try:
-        hostname = cfg('vendors.healthtrackrx_outbound.hostname')
-        username = cfg('vendors.healthtrackrx_outbound.username')
-        password = cfg('vendors.healthtrackrx_outbound.password')
-        port = cfg('vendors.healthtrackrx_outbound.port')
-
-        ssh_client = paramiko.SSHClient()
-        ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh_client.connect(
-            hostname=hostname,
-            username=username,
-            password=password,
-            port=port
-        )
-
-        ftp_client = ssh_client.open_sftp()
-
-        for f in file_list:
-            filename = f[0]
-            local_file_path = f[1]
-            remotepath = "{}/{}".format('', filename)
-            ftp_client.put(local_file_path, remotepath)
-
-    except Exception as err:
-        log_generic(
-            type=c.ERROR,
-            function=whoami(),
-            task_session_id=session_id,
-            error=err
-        )
-    finally:
-        ftp_client.close()
-
-
-def upload_file_to_ftp(filename, local_file_path):
-    try:
-        hostname = cfg('vendors.healthtrackrx_outbound.hostname')
-        username = cfg('vendors.healthtrackrx_outbound.username')
-        password = cfg('vendors.healthtrackrx_outbound.password')
-        port = cfg('vendors.healthtrackrx_outbound.port')
-
-        ssh_client = paramiko.SSHClient()
-        ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh_client.connect(
-            hostname=hostname,
-            username=username,
-            password=password,
-            port=port
-        )
-
-        ftp_client = ssh_client.open_sftp()
-
-        remotepath = "{}/{}".format('', filename)
-        ftp_client.put(local_file_path, remotepath)
-
-    except Exception as err:
-        log_generic(
-            type=c.ERROR,
-            function=whoami(),
-            task_session_id=session_id,
-            error=err
-        )
-    finally:
-        ftp_client.close()
 
 
 def update_to_with_lab_status(orders):
@@ -620,3 +549,45 @@ def update_to_with_lab_status(orders):
         """ % format_strings
 
     exec_update(sql, tuple(list_of_ids))
+
+
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+
+    def disable(self):
+        self.HEADER = ''
+        self.OKBLUE = ''
+        self.OKGREEN = ''
+        self.WARNING = ''
+        self.FAIL = ''
+        self.ENDC = ''
+
+
+def print_header(message):
+    print('{.HEADER}{}{.ENDC}'.format(bcolors, message, bcolors))
+
+
+def print_ok1(message):
+    print('{.OKGREEN}{}{.ENDC}'.format(bcolors, message, bcolors))
+
+
+def print_ok2(message):
+    print('{.OKBLUE}{}{.ENDC}'.format(bcolors, message, bcolors))
+
+
+def print_warning(message):
+    print('{.WARNING}{}{.ENDC}'.format(bcolors, message, bcolors))
+
+
+def print_error(message):
+    print('{.FAIL}{}{.ENDC}'.format(bcolors, message, bcolors))
+
+
+def print_progress_bar_message(message):
+    print('{.OKBLUE}{}{.ENDC}\r'.format(bcolors, message, bcolors), end="")
