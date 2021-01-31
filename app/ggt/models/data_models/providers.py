@@ -56,7 +56,7 @@ def get_provider_processing_list_db(offset, consultation_status, consultation_no
             where_conditions = "{} AND t.id = {}".format(
                 where_conditions, test_id)
 
-        sql = """SELECT 
+        sql = """SELECT
             p.id AS patient_id,
             p.first_name AS first_name,
             p.middle_name AS middle_name,
@@ -179,7 +179,7 @@ def get_provider_processing_list_db(offset, consultation_status, consultation_no
         ggt_users u ON u.external_id = c.provider_external_id
     WHERE
         {}
-    ORDER BY t.create_dt ASC 
+    ORDER BY t.create_dt ASC
     LIMIT {} OFFSET {};
 """.format(where_conditions, limit, offset)
         rows = replica_read_rows(sql)
@@ -341,7 +341,7 @@ FROM
 	organizations o ON o.id = l.org_id
     WHERE
         {}
-    ORDER BY t.create_dt ASC 
+    ORDER BY t.create_dt ASC
     LIMIT {} OFFSET {}""".format(where_conditions, limit, offset)
         rows = replica_read_rows(sql)
         return process_consultations(rows)
@@ -366,7 +366,7 @@ def provider_lock_task(test_id):
                  WHERE
                      id = %s AND (consultation_status != %s OR consultation_status is null);
                 """
-        in_progress = ConsultationStatusEnum.in_progress
+        in_progress = ConsultationStatusEnum.in_progress.value
         vals = (
             in_progress,
             test_id,
@@ -454,8 +454,8 @@ def provider_complete_task(test_id):
                      WHERE
                          id = %s AND consultation_status = %s;
                     """
-        completed = ConsultationStatusEnum.completed
-        in_progress = ConsultationStatusEnum.in_progress
+        completed = ConsultationStatusEnum.completed.value
+        in_progress = ConsultationStatusEnum.in_progress.value
         vals = (
             completed,
             test_id,
@@ -481,7 +481,7 @@ def provider_rollback_to_pending_task(test_id):
                      WHERE
                          id = %s;
                     """
-        pending = ConsultationStatusEnum.pending
+        pending = ConsultationStatusEnum.pending.value
         vals = (
             pending,
             test_id

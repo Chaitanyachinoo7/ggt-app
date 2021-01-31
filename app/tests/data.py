@@ -58,6 +58,8 @@ groups = [
         "upfront_payment_req": 0,
         "screen_seq": "is-patient,gender,race,ethnicity,symptoms,contact-tracing,public-places,patient-details,patient-address,patient-contact,patient-vitals,pre-existing-conditions,consent,date,location,time,insurance-card",
         "required_screens": "insurance-card",
+        "ggv_screen_seq": "",
+        "ggv_required_screens": "",
         "display_group_consent": None,
         "consent_party_name": None,
         "intro_text": None,
@@ -129,6 +131,8 @@ patients = [
         "email": "dhimalroman@gmail.com",
         "email_verified": None,
         "token": "8aa37097-2762-431f-b78c-1e9e582c4a19",
+        "result_token": None,
+        "token_expire": "2021-06-30 16:55:05",
         "create_dt": "2020-06-30 16:55:05",
         "update_dt": "2020-06-30 16:55:05"
     }
@@ -146,7 +150,7 @@ appointments = [
         "location_id": 1,
         "group_code": None,
         "patient_id": 1,
-        "patient_questionnaire_id": 796,
+        "patient_questionnaire_id": 1,
         "vial_id": None,
         "test_start_dt": None,
         "test_end_dt": None,
@@ -156,6 +160,9 @@ appointments = [
         "billed_amount": None,
         "status": "scheduled",
         "billing_status": "pending",
+        "vax_start_dt": "2020-07-06 16:40:09",
+        "vax_notes_dt": "2020-07-06 16:40:09",
+        "vax_end_dt": "2020-07-06 16:40:09",
         "create_dt": "2020-07-06 16:40:09",
         "update_dt": "2020-07-06 16:40:09"
     }
@@ -392,4 +399,102 @@ patient_consultations = [
         "create_dt": today,
         "update_dt": today
     }
+]
+
+ggt_users = [
+	{
+		"id" : 1,
+		"external_id" : 1,
+		"org_id" : 1,
+		"email" : "test@test.com",
+		"email_verified" : 0,
+		"family_name" : "Wijesinghe",
+		"given_name" : "Visitha",
+		"name" : "test@test.com",
+		"picture" : "https://s.gravatar.com/avatar/b642b4217b34b1e8d3bd915fc65c4452?s=480&r=pg&d=https%3A%2F%2Fcdn.auth0.com%2Favatars%2Fte.png",
+		"roles" : "billing_admin,care_provider,Care Provider,clinical_provider,Clinical Provider,Contact Center,customer_contact,Default,Portal Provider,site_admin,Site Admin,super_admin,Super Admin",
+		"is_active" : 1,
+		"permissions" : "add_schedule_generation_rule,add_schedule_generation_rule,api,api,archive_processed_notifications,archive_processed_notifications,assign_group,assign_group,assign_service,assign_service,call_patient,call_patient,create_group,create_group,create_insurance_record,create_insurance_record,create_location,create_location,delete_insurance_record,delete_insurance_record,delete_schedule,delete_schedule,delete_schedule_generation_rule,delete_schedule_generation_rule,edit_schedule_generation_rule,edit_schedule_generation_rule,general_search,general_search,generate_all_schedules,generate_all_schedules,generate_schedule,generate_schedule,get_all_groups,get_all_groups,get_all_services,get_all_services,get_all_test_results,get_all_test_results,get_billing_list,get_billing_list,get_locations,get_locations,get_provider_processing_list,get_provider_processing_list,get_schedule_generation_rules,get_schedule_generation_rules,get_workstations,get_workstations,location_search,location_search",
+		"update_dt" : "2021-01-31 09:58:04",
+		"create_dt" : "2020-12-31 00:54:10"
+	}
+]
+
+result_notification_campaigns = [
+	{
+		"test_id" : 1,
+		"patient_id" : 1,
+		"token" : "4fa341f3-8338-4ae4-8515-c9a915625a3f",
+		"phone_number" : "+18018602474",
+		"email" : "sureshd@gmail.com",
+		"first_name" : "Suresh",
+		"last_name" : "Subasinghe",
+		"dob" : "10311980",
+		"sms_sent" : 1,
+		"sms_dt" : None,
+		"email_sent" : 1,
+		"email_dt" : "2020-08-02 15:22:28",
+		"voice_sent" : 1,
+		"voice_dt" : None,
+		"group_notify" : None,
+		"overall_status" : "pending",
+		"create_dt" : "2020-07-19 14:05:23",
+		"update_dt" : "2020-08-02 15:22:28"
+	}
+]
+
+patient_questionnaires = [
+    {
+		"id" : 1,
+		"patient_id" : 1,
+		"token" : None,
+		"group_code" : None,
+		"symptom_fever" : 0,
+		"symptom_shortness_breath" : 1,
+		"symptom_cough" : 0,
+		"symptom_chest_pain" : 0,
+		"symptom_lack_of_smell" : None,
+		"symptom_other_breathing" : 0,
+		"covid_contact" : 1,
+		"prescription_use" : 0,
+		"heart_disease" : 0,
+		"diabetes" : 0,
+		"respiratory_diseases" : 0,
+		"autoimmune_disease" : 0,
+		"other_chronic" : 0,
+		"allergies" : 0,
+		"consent_signature" : "1",
+		"consent_date" : None,
+		"insurance_details" : None,
+		"has_insurance_photo" : 0,
+		"is_patient" : None,
+		"provider_consent_signature" : None,
+		"provider_consent_custom_field_1" : None,
+		"provider_consent_custom_field_2" : None,
+		"provider_consent_custom_field_3" : None,
+		"influenza_consent_signature" : None,
+		"public_places_bars_restaurants_cafes" : None,
+		"public_places_gas_stations" : None,
+		"public_places_medical_offices" : None,
+		"public_places_place_of_work" : None,
+		"public_places_retail_grocery_stores" : None,
+		"public_places_places_of_worship" : None,
+		"public_places_public_parks" : None,
+		"public_places_other" : None,
+		"service_covid19_test" : None,
+		"service_flu_shot" : None,
+		"service_consult" : None,
+		"flu_screen_severely_ill" : None,
+		"flu_screen_guillain_barre_syndrome" : None,
+		"flu_screen_life_threatening_reaction" : None,
+		"flu_screen_egg_allergy" : None,
+		"symptoms_vax" : None,
+		"pregnancy" : None,
+		"allergic_reaction" : None,
+		"covid19_confirmed_case" : None,
+		"egg_allergy" : None,
+		"guillian_barre" : None,
+		"create_dt" : "2020-06-30 15:58:11",
+		"update_dt" : "2020-06-30 15:58:11"
+	}
 ]

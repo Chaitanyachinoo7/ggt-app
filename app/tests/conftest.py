@@ -32,7 +32,7 @@ def cleanup_db():
             'patients', 'test_samples', 'states', 'services_catalog', 'services_to_locations_mapping', 'schedule_generation_rules',
             'workstations', 'users', 'insurance_info', 'appointment_services', 'organizations',
               'patient_questionnaires', 'locations_metrics_cache', 'schedules_metrics_cache', 'patient_consultations',
-              'group_codes_to_locations_mapping']
+              'group_codes_to_locations_mapping', 'ggt_users', 'result_notification_campaigns', 'patient_questionnaires']
     for table in tables[::-1]:
         print("Cleaning up table:", table)
         sql = """delete from {} where id > -1""".format(table)
@@ -79,3 +79,9 @@ def test_populate_db(cleanup_db):
         insert('patient_consultations', row)
     for row in data.group_codes_to_locations_mapping:
         insert('group_codes_to_locations_mapping', row)
+    for row in data.ggt_users:
+        insert('ggt_users', row)
+    for row in data.result_notification_campaigns:
+        insert('result_notification_campaigns', row)
+    for row in data.patient_questionnaires:
+        insert('patient_questionnaires', row)
