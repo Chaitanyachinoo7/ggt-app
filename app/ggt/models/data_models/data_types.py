@@ -1197,6 +1197,8 @@ class FilterUser(BaseModel):
     role: str
     name: str
     email: str
+    offset: int = 0
+    limit: int = 20
 
 
 class LabStatusUpdateRequest(BaseModel):

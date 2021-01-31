@@ -295,7 +295,7 @@ def list_user(req, user):
             where_statement = "{} AND email LIKE '%{}%'".format(where_statement, req.email)
         sql = """SELECT * FROM ggt_users
                     WHERE
-                    {}""".format(where_statement)
+                    {} LIMIT {} OFFSET {}""".format(where_statement, req.limit, req.offset)
         return read_rows(sql)
 
     except Exception as err:
