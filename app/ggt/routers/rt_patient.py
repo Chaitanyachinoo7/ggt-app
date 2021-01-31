@@ -183,44 +183,27 @@ async def api_verify_existing_patient(phone_number: str):
 #Validate user token and restrict access to a single patient by comparing other elements in the result
 @router.get("/lookup_appointments_by_phone/{phone_number}/{dob}")
 async def api_lookup_appointments_by_phone(phone_number: str, dob: str):
-    #return {
-    #    'status': 'failed'
-    #}
-    return site_admin_general_search(
-        '',
-        '',
-        '',
-        dob,
-        phone_number,
-        '',
-        '',
-        '',
-        '',
-        ''
-    )
-
-# TODO: Delete later if we decided to keep POST call
-# @router.get("/get_appointments_by_phone/{token}/{phone_number}/{dob}/{first_name}/{last_name}")
-# async def api_get_appointments_by_phone(token: str, phone_number: str, dob: str, first_name: str, last_name: str):
-#     return site_admin_general_search(
-#         first_name,
-#         '',
-#         last_name,
-#         dob,
-#         phone_number,
-#         '',
-#         '',
-#         '',
-#         '',
-#         '',
-#         group_vax_results=True,
-#         token=token
-#     )
+    return {
+       'status': 'failed'
+    }
+    # return site_admin_general_search(
+    #     '',
+    #     '',
+    #     '',
+    #     dob,
+    #     phone_number,
+    #     '',
+    #     '',
+    #     '',
+    #     '',
+    #     ''
+    # )
 
 
 @router.post("/get_appointments_by_phone")
 async def api_get_appointments_by_phone(req: PatientAppointmentLookup):
     return site_admin_general_search(
+        None,
         req.first_name,
         '',
         req.last_name,
@@ -232,7 +215,8 @@ async def api_get_appointments_by_phone(req: PatientAppointmentLookup):
         '',
         '',
         group_vax_results=True,
-        token=req.token
+        token=req.token,
+        is_patient=True
     )
 
 

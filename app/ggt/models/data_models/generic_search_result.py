@@ -154,12 +154,16 @@ class GenericSearchResult(BaseModel):
 class GenericSearchResults(BaseModel):
     search_results: Optional[GenericSearchResult] = None
 
-#tz = cfg(default_timezone)
 
+#tz = cfg(default_timezone)
 def find_patients(org_id, first_name='', middle_name='', last_name='', dob='', phone_number='',
-                        email='', appointment_id='', group_code='', appointment_date='', location_id='', vial_id='', sort_field="register_dt", sort_type="desc",  token=None):
+                        email='', appointment_id='', group_code='', appointment_date='', location_id='', vial_id='', sort_field="register_dt", sort_type="desc",
+                  token=None, is_patient=False):
     try:
-        where_conditions = 'o.id = {} AND o.is_active = 1'.format(org_id)
+        if not is_patient:
+            where_conditions = 'o.id = {} AND o.is_active = 1'.format(org_id)
+        else:
+            where_conditions = "1=1"
         if first_name != '':
             where_conditions = "{} AND p.first_name LIKE '%{}%'".format(
                 where_conditions, first_name)
