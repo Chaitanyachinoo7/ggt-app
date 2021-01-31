@@ -112,21 +112,19 @@ async def api_process_voice_queue(background_tasks: BackgroundTasks):
         DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
     }
 
-'''
-@router.post("/process_email_queue", dependencies=[Security(authorize_user, scopes=[p.PROCESS_EMAIL_QUEUE])])
-async def api_process_email_queue():
-    task_process_email_queue()
+
+@router.get("/process_email_queue/{batch_size}/{offset}", dependencies=[Security(authorize_user, scopes=[p.PROCESS_EMAIL_QUEUE])])
+async def api_process_email_queue(batch_size: int = 10000, offset: int = 0):
+    task_process_email_queue(batch_size, offset)
     return {STATUS: SUCCESS}
 
 
-
-@router.post("/process_sms_queue", dependencies=[Security(authorize_user, scopes=[p.PROCESS_SMS_QUEUE])])
-async def api_process_sms_queue():
-    task_process_sms_queue()
+@router.get("/process_sms_queue/{batch_size}/{offset}", dependencies=[Security(authorize_user, scopes=[p.PROCESS_SMS_QUEUE])])
+async def api_process_sms_queue(batch_size: int = 10000, offset: int = 0):
+    task_process_sms_queue(batch_size, offset)
     return {STATUS: SUCCESS}
+
 '''
-
-
 @router.get("/process_email_queue/{batch_size}/{offset}", dependencies=[Security(authorize_user, scopes=[p.PROCESS_EMAIL_QUEUE])])
 async def api_process_email_queue(background_tasks: BackgroundTasks, batch_size: int = 10000, offset: int = 0):
     background_tasks.add_task(task_process_email_queue, batch_size, offset)
@@ -143,7 +141,7 @@ async def api_process_sms_queue(background_tasks: BackgroundTasks, batch_size: i
         STATUS: SUCCESS,
         DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
     }
-
+'''
 
 @router.post("/notify_patients_relocate", dependencies=[Security(authorize_user, scopes=[p.NOTIFY_PATIENTS])])
 async def api_notify_patients(request: PatientRelocateNotificationRequest, background_tasks: BackgroundTasks):

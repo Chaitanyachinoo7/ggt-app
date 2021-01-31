@@ -51,14 +51,8 @@ import ggt.lib.constants as c
 
 session_id = generate_session_id()
 
-hostname = cfg('vendors.healthtrackrx_inbound.hostname')
-username = cfg('vendors.healthtrackrx_inbound.username')
-password = cfg('vendors.healthtrackrx_inbound.password')
-port = cfg('vendors.healthtrackrx_inbound.port')
-remote_downloads_folder = cfg('vendors.healthtrackrx_inbound.remote_downloads_folder')
-
-local_backups_path = cfg('vendors.healthtrackrx_inbound.local_backups_path')
-local_download_path = cfg('vendors.healthtrackrx_inbound.local_download_path')
+local_backups_path = cfg('vendors.healthtrackrx.inbound.local_backups_path')
+local_download_path = cfg('vendors.healthtrackrx.inbound.local_download_path')
 
 # ----What this does----
 # Delete/move files at the download directory
@@ -86,6 +80,9 @@ def task_process_inbound_lab_reports():
     # load_data_from_remote_db_to_cache()
 
     # clean_downloads_folder()
+    do_test()
+
+
     download_ftp_files()
     parse_csv_files()
 
@@ -102,6 +99,14 @@ def task_process_inbound_lab_reports():
 
     print_header(
         '\n\n****************** COMPLETED ******************************\nElapsed Time: {}\n'.format(time.time() - start))
+
+
+
+def do_test():
+    from ggt.lib.adapters.s3_adapter import (
+        move_file
+    )
+    move_file('healthtrackrx/Reports/2897750_706706_Negative.pdf', 'healthtrackrx/Reports/archived/2897750_706706_Negative.pdf', 'ggt-sftp')
 
 
 '''

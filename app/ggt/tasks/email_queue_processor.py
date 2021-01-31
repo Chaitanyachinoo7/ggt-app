@@ -30,6 +30,7 @@ def task_process_email_queue(batch_size=10000, offset=0):
     """
     row = replica_read_row(sql,)
     total_count = row['total']
+    print('{} in pending queue'.format(total_count))
 
     if batch_size < total_count:
         total_count = batch_size

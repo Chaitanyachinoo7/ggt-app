@@ -35,11 +35,18 @@ docs:
   redoc_url: /redoc
 
 aws:
+  dynamo_table_name: prod_available_slots
+  sqs_region: us-east-2
+  queue_count: 2
+  sqs_url: https://sqs.us-east-2.amazonaws.com/135292740376/available_slot_management_queue_{}
+  vax_sms_que: https://sqs.us-east-2.amazonaws.com/135292740376/vax_scheduled_sms_notification_queue
   region: us-east-1
   access_key_id: AKIAR7AATMMMGKHVWYP6
   secret_access_key: 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
   sqs_print_queue_base_url: https://sqs.us-east-1.amazonaws.com/135292740376/ggt-print-queue
-
+  lab_reports_bucket_name: ggt-labreports
+  default_link_expiration_time_limit: 300
+  
 gcp:
   project_id: ggt-pfe-prod
   service_account_file: gcp-service-account.json
@@ -121,41 +128,24 @@ vendors:
     management_sectret: Rwx8-mby99m5O-2aR14JKgoim0VV0FJuO6sefpDxXjKiQ18mys4JWf2oAO6_5Mha
     connection: Username-Password-Authentication
 
-  auth:
-    api_key_name: x-api-key
-    api_key_value: f63e3e17-e10a-4f57-b7b5-08a40d4b0d6b
-    
-  healthtrackrx_outbound:
-    hostname: sftp.healthtrackrx.com
-    username: wellpay
-    password: 9cTE3fh@8H
-    port: 22
-    remote_downloads_folder: /Reports
-    remote_insurance_images_path: /insurance_files
-    remote_backups_path: /backups
-    remote_processed_orders_path: /processed_order_files
-    local_download_path: /Users/suresh/ggt-tasks/downloads
-    local_outbound_file_path: /Users/suresh/ggt-tasks/outbound
-    local_insurance_card_file_path: /Users/suresh/ggt-tasks/insurance_images
-    local_process_summary_path: /Users/suresh/ggt-tasks/process_summary
-    local_backups_path: /Users/suresh/ggt-tasks/backups
-    outbound_file_prefix: ggt-outbound
-    
-  healthtrackrx_inbound:
-    hostname: sftp.gogettested.com
-    username: healthtrackrx
-    password: q-5QXfKMLR\dtM_c
-    port: 22
-    remote_downloads_folder: /ggt-sftp/healthtrackrx/Reports
-    remote_insurance_images_path: /ggt-sftp/healthtrackrx/insurance_files
-    remote_backups_path: /ggt-sftp/healthtrackrx/backups
-    remote_processed_orders_path: /ggt-sftp/healthtrackrx/processed_order_files
-    local_download_path: /Users/suresh/ggt-tasks/downloads/healthtrackrx/Reports
-    local_outbound_file_path: /Users/suresh/ggt-tasks/outbound
-    local_insurance_card_file_path: /Users/suresh/ggt-tasks/insurance_images
-    local_process_summary_path: /Users/suresh/ggt-tasks/process_summary
-    local_backups_path: /Users/suresh/ggt-tasks/backups
-    outbound_file_prefix: ggt-outbound
+  healthtrackrx:
+    ggt_api:
+      api_key_name: x-api-key
+      api_key_value: f63e3e17-e10a-4f57-b7b5-08a40d4b0d6b
+    inbound:
+      local_download_path: /Users/suresh/ggt-tasks/downloads/healthtrackrx/Reports  
+      local_backups_path: /Users/suresh/ggt-tasks/backups
+    outbound:
+      outbound_file_prefix: ggt-outbound
+      local_outbound_file_path: /Users/suresh/ggt-tasks/outbound
+      local_insurance_card_file_path: /Users/suresh/ggt-tasks/insurance_images
+
+  mawdpath:
+    inbound:
+      remote_downloads_folder: /ggt-sftp/mawdpath/results
+      remote_processed_orders_path: /ggt-sftp/mawdpath/results/archived
+    outbound:
+      outbound_file_prefix: ggt-outbound-mawd
 
   wellpay:
     endpoint: https://api.getwellpay.com/api/public/v1

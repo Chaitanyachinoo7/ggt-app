@@ -58,7 +58,7 @@ def task_process_sms_queue(batch_size=10000, offset=0):
     print('************************ END ************************\n\n')
 
 
-def __batch_process_sms_queue(micro_offset, micro_batch_size):
+def __batch_process_sms_queue(micro_batch_size, micro_offset):
     sql = """
     SELECT * 
     FROM sms_notification_queue 
@@ -71,21 +71,30 @@ def __batch_process_sms_queue(micro_offset, micro_batch_size):
     rows = replica_read_rows(sql)
 
     for row in rows:
-        _id = row['id']
-        status = row['status']
-        to_number = row['to_number']
-        message = row['message']
-        priority = row['priority']
-        if status == 'retry':
-            if send_sms(to_number, message,priority):
-                update_sms_status_to_processed(_id)
+        try:
+            _id = row['id']
+            status = row['status']
+            to_number = row['to_number']
+            message = row['message']
+            priority = row['priority']
+            if status == 'retry':
+                if send_sms(to_number, message, priority):
+                    update_sms_status_to_processed(_id)
+                else:
+                    update_sms_status_to_error(_id)
             else:
-                update_sms_status_to_error(_id)
-        else:
-            if send_sms(to_number, message, priority):
-                update_sms_status_to_processed(_id)
-            else:
-                update_sms_status_to_retry(_id)
+                if send_sms(to_number, message, priority):
+                    update_sms_status_to_processed(_id)
+                else:
+                    update_sms_status_to_retry(_id)
+
+        except Exception as err:
+            log_generic(
+                type=ERROR,
+                to_number=to_number,
+                function=whoami(),
+                error=err
+            )
 
 
 def update_sms_status_to_processed(id):

@@ -1,3 +1,4 @@
+import ujson
 import logging
 # import googlecloudprofiler
 import random
@@ -38,6 +39,10 @@ def get_config_val(key):
         return cfg[key_list[0]][key_list[1]]
     elif key_depth == 3:
         return cfg[key_list[0]][key_list[1]][key_list[2]]
+    elif key_depth == 4:
+        return cfg[key_list[0]][key_list[1]][key_list[2]][key_list[3]]
+    elif key_depth == 5:
+        return cfg[key_list[0]][key_list[1]][key_list[2]][key_list[3]][key_list[4]]
     else:
         return ""
 
@@ -231,3 +236,11 @@ def get_random_password():
     for c in range(20):
         password += random.choice(chars)
     return password
+
+
+def get_sqs_queue_url(schedule_id):
+    if get_config_val('env') != 'PROD':
+        return get_config_val('aws.sqs_url')
+    else:
+        r = int(schedule_id) % int(get_config_val('aws.queue_count'))
+        return get_config_val('aws.sqs_url').format(r)

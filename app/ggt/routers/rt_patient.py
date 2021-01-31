@@ -11,7 +11,9 @@ from ggt.models.data_models.data_types import (
     LookupAppointmentRequest,
     VerifyExistingPatientRequest,
     PermissionsEnum as p,
-    InsuranceEligibilityRequest
+    InsuranceEligibilityRequest,
+    InsurancePayersListRequest, SecondAvailableDate, FinalizeGGVRegistrationRequest, FinalizeGGVPreRegistrationRequest,
+    PatientAppointmentLookup
 )
 
 from ggt.models.workflow_models.patient_portal_flow import (
@@ -31,7 +33,9 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
     lookup_appointment,
     lookup_test_result,
     get_all_available_locations_and_times,
-    insurance_eligibility
+    insurance_eligibility, get_ggv_schedule_locations_available,
+    insurance_search_payer, get_ggv_screen_flow_seq, get_second_shot_available_times, ggv_finalize_registration,
+    get_ggv_schedule_times_available, ggv_finalize_pre_registration
 )
 
 # TODO: [GGT-193] Move this to a dedicated API
@@ -41,6 +45,39 @@ from ggt.models.workflow_models.clinical_test_site_admin_flow import (
 
 
 router = APIRouter()
+
+
+@router.get("/ggv/get_screen_flow_seq/{group_code}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_ggv_get_screen_flow_seq(group_code: str):
+    return get_ggv_screen_flow_seq(group_code)
+
+
+@router.get("/ggv/get_available_locations/{group_code}/{lat}/{lng}/{radius}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_ggv_get_available_locations(group_code: str, lat: float, lng: float, radius: int):
+    return get_ggv_schedule_locations_available(group_code, lat, lng, radius)
+
+
+@router.post("/ggv/get_second_shot_available_times", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_get_second_shot_available_times(req: SecondAvailableDate):
+    return get_second_shot_available_times(req)
+
+
+@router.get("/ggv/get_available_times/{location_id}/{date}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_ggv_get_available_times_for_today(location_id: str, date: str):
+    return get_ggv_schedule_times_available(
+        location_id,
+        date
+    )
+
+
+@router.post("/ggv/finalize_registration", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_ggv_finalize_registration(finalize_registration_request: FinalizeGGVRegistrationRequest):
+    return ggv_finalize_registration(finalize_registration_request)
+
+
+@router.post("/ggv/finalize_pre_registration", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_ggv_finalize_pre_registration(finalize_registration_request: FinalizeGGVPreRegistrationRequest):
+    return ggv_finalize_pre_registration(finalize_registration_request)
 
 
 @router.get("/get_screen_flow_seq/{group_code}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
@@ -142,12 +179,13 @@ async def api_verify_existing_patient(phone_number: str):
         None
     )
 
-
+#TODO: Calling this API is dangerous, create dedicated much more restricted API that is geared towards a single user.
+#Validate user token and restrict access to a single patient by comparing other elements in the result
 @router.get("/lookup_appointments_by_phone/{phone_number}/{dob}")
 async def api_lookup_appointments_by_phone(phone_number: str, dob: str):
-    return {
-        'status': 'failed'
-    }
+    #return {
+    #    'status': 'failed'
+    #}
     return site_admin_general_search(
         '',
         '',
@@ -161,7 +199,47 @@ async def api_lookup_appointments_by_phone(phone_number: str, dob: str):
         ''
     )
 
+# TODO: Delete later if we decided to keep POST call
+# @router.get("/get_appointments_by_phone/{token}/{phone_number}/{dob}/{first_name}/{last_name}")
+# async def api_get_appointments_by_phone(token: str, phone_number: str, dob: str, first_name: str, last_name: str):
+#     return site_admin_general_search(
+#         first_name,
+#         '',
+#         last_name,
+#         dob,
+#         phone_number,
+#         '',
+#         '',
+#         '',
+#         '',
+#         '',
+#         group_vax_results=True,
+#         token=token
+#     )
+
+
+@router.post("/get_appointments_by_phone")
+async def api_get_appointments_by_phone(req: PatientAppointmentLookup):
+    return site_admin_general_search(
+        req.first_name,
+        '',
+        req.last_name,
+        req.dob,
+        req.phone_number,
+        '',
+        '',
+        '',
+        '',
+        '',
+        group_vax_results=True,
+        token=req.token
+    )
+
 
 @router.post("/insurance_eligibility")
 def api_insurance_eligibility(req: InsuranceEligibilityRequest):
     return insurance_eligibility(req)
+
+@router.post("/search_payers_list")
+def api_insurance_search_payer(req: InsurancePayersListRequest):
+    return insurance_search_payer(req)

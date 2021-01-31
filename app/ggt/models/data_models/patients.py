@@ -1,7 +1,7 @@
 from ggt.lib.utils import (
     get_config_val,
     log_generic,
-    whoami
+    whoami, generate_token
 )
 
 from ggt.lib.constants import (
@@ -51,10 +51,12 @@ def create_patient_record(patient):
                     phone_number, 
                     phone_number_verified, 
                     email, 
-                    token
+                    token,
+                    result_token,
+                    token_expire
                 )
             VALUES 
-                (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, DATE_ADD(NOW(), interval 10 minute))
         """
 
         vals = (
@@ -74,6 +76,7 @@ def create_patient_record(patient):
             patient.phone_number, 
             patient.phone_number_verified, 
             patient.email,
+            patient.token,
             patient.token
         )
 
@@ -105,6 +108,107 @@ def add_to_ggd_waiting_queue(patient_id):
             type=ERROR,
             vals=vals,
             patient=patient_id,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def create_pre_registration(patient_id):
+    try:
+        sql = """
+            INSERT INTO 
+                vax_pre_registrations (patient_id)
+            VALUES (%s)
+        """
+        vals = (patient_id,)
+        return exec_insert(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            vals=vals,
+            patient=patient_id,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def get_existing_patients(phone_number="", first_name="", last_name="", dob="", token=""):
+
+    where_statement = "phone_number_verified = 1"
+    if phone_number != "":
+        where_statement = "{} AND phone_number = '{}'".format(where_statement, phone_number)
+    if first_name != "":
+        where_statement = "{} AND first_name = '{}'".format(where_statement, first_name)
+    if last_name != "":
+        where_statement = "{} AND last_name = '{}'".format(where_statement, last_name)
+    if dob != "":
+        where_statement = "{} AND dob = '{}'".format(where_statement, dob)
+    if token != "":
+        where_statement = "{} AND token = '{}'".format(where_statement, token)
+    try:
+        sql = """SELECT 
+                        *
+                    FROM
+                        patients
+                    WHERE
+                        {};""".format(where_statement)
+        return replica_read_row(sql)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            vals=vals,
+            phone_number=phone_number,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def get_existing_patient_questionnaire(patient_id):
+    try:
+        sql = """SELECT 
+                        *
+                    FROM
+                        patient_questionnaires
+                    WHERE
+                        patient_id = %s;"""
+        vals = (patient_id,)
+        return replica_read_row(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            vals=vals,
+            patient_id=patient_id,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def unlock_patient_info_patients(phone_number):
+    try:
+        result_token = generate_token()
+        sql = """UPDATE patients 
+                    SET 
+                        result_token = %s,
+                        token_expire = DATE_ADD(NOW(), interval 10 minute)
+                    WHERE
+                        phone_number = %s"""
+        vals = (result_token, phone_number)
+        if exec_update(sql, vals):
+            return result_token
+        else:
+            return None
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            vals=vals,
+            phone_number=phone_number,
             function=whoami(),
             error=err
         )

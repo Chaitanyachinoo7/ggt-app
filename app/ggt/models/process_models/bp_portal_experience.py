@@ -70,13 +70,17 @@ def bp_get_all_test_results():
 
 @cached(cache=TTLCache(maxsize=1024, ttl=60))
 def bp_get_general_search_results(org_id, first_name, middle_name, last_name, dob, phone_number, email, appointment_id,
-                                  group_code, appointment_date, location_id, vial_id='', sort_field="register_dt", sort_type="desc"):
+                                  group_code, appointment_date, location_id, vial_id='', sort_field="register_dt", sort_type="desc", group_vax_results=False, token=None):
     try:
         if appointment_date != '':
             appointment_date = datetime.strptime(appointment_date, "%m%d%Y")
 
-        return find_patients(org_id, first_name, middle_name, last_name, dob, phone_number,
-                             email, appointment_id, group_code, appointment_date, location_id, vial_id, sort_field, sort_type)
+        search_results = find_patients(org_id, first_name, middle_name, last_name, dob, phone_number,
+                             email, appointment_id, group_code, appointment_date, location_id, vial_id, sort_field, sort_type, token=token)
+        if group_vax_results:
+            return __group_vax_results(search_results)
+
+        return search_results
 
     except Exception as err:
         log_generic(
@@ -325,3 +329,27 @@ def bp_lab_status_update(lab_status_update_request):
             function=whoami(),
             error=err
         )
+
+
+def __group_vax_results(results):
+    grouped_results = []
+    vaccine_appointment_found = False
+    grouped_vax_result = {
+        "service": "COVID_19_VAX",
+        "doses": []
+    }
+
+    for result in results:
+        if result["service_code"] == c.SERVICE_CODE_COVID19_TEST:
+            grouped_results.append(dict(result, service=c.SERVICE_CODE_COVID19_TEST))
+        if result["service_code"] in [c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_1,
+                                    c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_2,
+                                    c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_1,
+                                    c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_2]:
+            grouped_vax_result["doses"].append(result)
+            vaccine_appointment_found = True
+
+    if vaccine_appointment_found:
+        grouped_results.append(grouped_vax_result)
+
+    return grouped_results
