@@ -1,22 +1,20 @@
 import ujson
 import logging
+# import googlecloudprofiler
+import random
 import sys
 import uuid
 from datetime import datetime
-from pprint import pformat
 from pathlib import Path
-
-import phonenumbers
-import pyotp
+from pprint import pformat
 
 import google.cloud.logging
-#import googlecloudprofiler
-import random
+import phonenumbers
+import pyotp
+import ujson
 
-from ggt.configs.config_loader import cfg
 import ggt.lib.constants as c
-
-
+from ggt.configs.config_loader import cfg
 # TODO: Enahance logging context with user session and client device/ip info etc.
 from ggt.models.data_models.data_types import User
 

@@ -1,5 +1,6 @@
 from cachetools import cached, LRUCache, TTLCache
 
+from ggt.lib.adapters.auth0_adapter import get_organization_id
 from ggt.lib.utils import (
     log_generic,
     x_response,
@@ -32,12 +33,18 @@ import ggt.lib.constants as c
 ########################################################################################################
 
 
-@cached(cache=TTLCache(maxsize=1024, ttl=60))
-def site_admin_general_search(first_name, middle_name, last_name, dob, phone_number, email, appointment_id,
-                                    group_code, appointment_date, location_id, vial_id="", sort_field="register_dt", sort_type="desc",
-                                    group_vax_results=False):
+# @cached(cache=TTLCache(maxsize=1024, ttl=60))
+def site_admin_general_search(user, first_name, middle_name, last_name, dob, phone_number, email, appointment_id,
+                                    group_code, appointment_date, location_id, vial_id="", sort_field="register_dt",
+                              sort_type="desc", group_vax_results=False, token=None, is_patient=False):
+    if not is_patient:
+        org_id = get_organization_id(user)
+    else:
+        org_id = None
+
     return y_response(
         bp_get_general_search_results(
+            org_id,
             first_name,
             middle_name,
             last_name,
@@ -51,23 +58,27 @@ def site_admin_general_search(first_name, middle_name, last_name, dob, phone_num
             vial_id,
             sort_field,
             sort_type,
-            group_vax_results=group_vax_results
+            group_vax_results=group_vax_results,
+            token=token,
+            is_patient=is_patient
         )
     )
 
 
 # @cached(cache=TTLCache(maxsize=1024, ttl=60))
-def site_admin_location_search(account, group_code, site_code, location_name):
+def site_admin_location_search(account, group_code, site_code, location_name, st, user):
+    org_id = get_organization_id(user)
     return y_response(
         bp_get_location_search_results(
-            account, group_code, site_code, location_name
+            account, group_code, site_code, location_name, st, org_id
         )
     )
 
 
-def create_location(location):
+def create_location(location, user):
+    org_id = get_organization_id(user)
     return y_response(
-        bp_create_location(location)
+        bp_create_location(location, org_id)
     )
 
 
@@ -119,15 +130,16 @@ def remove_service(req):
     )
 
 
-def update_location(location):
+def update_location(location, user):
+    org_id = get_organization_id(user)
     return y_response(
-        bp_update_location(location)
+        bp_update_location(location, org_id)
     )
 
 
-def get_all_groups():
+def get_all_groups(user):
     return y_response(
-        bp_get_all_groups()
+        bp_get_all_groups(user)
     )
 
 

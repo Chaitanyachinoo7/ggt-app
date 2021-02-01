@@ -99,7 +99,7 @@ sendgrid:
 
 google:
   maps:
-    api_key: AIzaSyBJmU3ueSBRmXz4mU1MRgdOxAWcfImbQNQ
+    api_key: AIzaSyBH2PDb_3WMu7MxHpG5DlwZ66PyJ0rv5aQ
     base_url: https://maps.googleapis.com/maps/api/staticmap
     geo_url: https://maps.googleapis.com/maps/api/geocode/json
     zoom_level: 10

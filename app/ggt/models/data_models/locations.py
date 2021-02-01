@@ -1,5 +1,6 @@
 from typing import List, Set, Dict, Tuple, Optional
 
+from ggt.lib.adapters.auth0_config import META_KEY, ORGANIZATION_KEY
 from ggt.lib.adapters.google_maps import get_gps_coordinates
 from ggt.lib.utils import (
     get_config_val,
@@ -206,9 +207,9 @@ def get_all_locations():
         return None
 
 
-def search_locations(account, group_code, site_code, location_name, id=None):
+def search_locations(account, group_code, site_code, location_name, org_id, id=None, st=""):
     try:
-        where_conditions = ''
+        where_conditions = 'AND org.id = {} and org.is_active = 1'.format(org_id)
         if account != '':
             where_conditions = "{} AND g.account LIKE '%{}%'".format(
                 where_conditions, account)
@@ -223,10 +224,14 @@ def search_locations(account, group_code, site_code, location_name, id=None):
                 where_conditions, location_name)
         if id:
             where_conditions = "{} AND l.id = {}".format(where_conditions, id)
+        if st != "":
+            where_conditions = "{} AND l.st = '{}'".format(where_conditions, st)
 
         limit = 500
 
-        sql = """ SELECT DISTINCT
+        sql = """SELECT DISTINCT
+					org.id as org_di,
+                    org.name as org_name,
                     l.name AS location_name,
                     l.id AS location_id,
                     l.site_code,
@@ -280,9 +285,9 @@ def search_locations(account, group_code, site_code, location_name, id=None):
                         group_codes_to_locations_mapping gm
                     LEFT JOIN groups g ON gm.group_id = g.id
                     GROUP BY gm.location_id) gp ON l.id = gp.location_id
+                    JOIN organizations org ON l.org_id = org.id
                         WHERE 1=1
                             {}
-                        ORDER BY l.id DESC
                         LIMIT {}
         """.format(where_conditions, limit)
         res = replica_read_rows(sql)
@@ -297,12 +302,15 @@ def search_locations(account, group_code, site_code, location_name, id=None):
         return None
 
 
-def create_location(location):
+def create_location(location, organization_id):
     try:
+        if organization_id is None:
+            return None
         sql = """
                INSERT INTO locations
                (
                    site_code,
+                   org_id,
                    name,
                    addr1,
                    addr2,
@@ -331,10 +339,11 @@ def create_location(location):
                    is_external
                )
                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 
-               %s, %s, %s)
+               %s, %s, %s, %s)
                """
         vals = (
             location.site_code,
+            organization_id,
             location.name,
             location.addr1,
             location.addr2,
@@ -366,11 +375,11 @@ def create_location(location):
 
         site_code = 'GGT{}{}'.format(location.st, location_id)
         
-        #geo = get_gps_coordinates(
-        #    location.addr1, location.city, location.st, location.zip, location.addr2)
-        geo={}
-        geo['lat']=0
-        geo['lng']=0
+        geo = get_gps_coordinates(
+           location.addr1, location.city, location.st, location.zip, location.addr2)
+        # geo={}
+        # geo['lat']=0
+        # geo['lng']=0
         sql_2 = """UPDATE locations
                 SET 
                     site_code = %s,
