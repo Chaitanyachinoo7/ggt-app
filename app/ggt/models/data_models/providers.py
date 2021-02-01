@@ -366,7 +366,7 @@ def provider_lock_task(test_id):
                  WHERE
                      id = %s AND (consultation_status != %s OR consultation_status is null);
                 """
-        in_progress = ConsultationStatusEnum.in_progress.value
+        in_progress = ConsultationStatusEnum.in_progress
         vals = (
             in_progress,
             test_id,
@@ -454,8 +454,8 @@ def provider_complete_task(test_id):
                      WHERE
                          id = %s AND consultation_status = %s;
                     """
-        completed = ConsultationStatusEnum.completed.value
-        in_progress = ConsultationStatusEnum.in_progress.value
+        completed = ConsultationStatusEnum.completed
+        in_progress = ConsultationStatusEnum.in_progress
         vals = (
             completed,
             test_id,
@@ -481,7 +481,7 @@ def provider_rollback_to_pending_task(test_id):
                      WHERE
                          id = %s;
                     """
-        pending = ConsultationStatusEnum.pending.value
+        pending = ConsultationStatusEnum.pending
         vals = (
             pending,
             test_id
