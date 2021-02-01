@@ -3,7 +3,45 @@ image: python:3.7.2
 pipelines:
   branches:
 
+# TODO: Remove this when merging to DEV2
+    temp:
+      - step:
+          name: Development Deployment
+          deployment: development
+          caches:
+            - docker
+          script:
+            - cp app/ggt/configs/config-dev.yml app/ggt/configs/config.yml
+            - cp app/ggt/configs/log-config-dev.yml app/ggt/configs/log-config.yml
+            - cp app/ggt/configs/gcp-service-account-dev.json app/ggt/configs/gcp-service-account.json
+            - pip3 install awscli
+            - aws configure set aws_access_key_id "${AWS_KEY}"
+            - aws configure set aws_secret_access_key "${AWS_SECRET}"
+            - aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 135292740376.dkr.ecr.us-east-2.amazonaws.com
+            - docker build -t ggt-api:dev .
+            - docker tag ggt-api:dev 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:dev
+            - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:dev
+            - aws ecs update-service --region us-east-2 --cluster ggt-api-dev --service ggt-api-dev --force-new-deployment
+
+
     dev2:
+      - step:
+          name: DEV2 Testing
+          image: python:3.7.9
+          caches:
+            - pip
+          artifacts:
+            - pytest-logs.txt
+          script:
+            - cp app/ggt/configs/config-TEST.yml app/ggt/configs/config.yml
+            - cp app/ggt/configs/log-config-dev.yml app/ggt/configs/log-config.yml
+            - cp app/ggt/configs/gcp-service-account-dev.json app/ggt/configs/gcp-service-account.json
+            - apt-get update && apt-get -y install gcc
+            - pip install pipenv
+            - pipenv lock --requirements
+            - pipenv lock --requirements > app/requirements.txt
+            - pip install --no-cache-dir -r app/requirements.txt
+            - pytest -W ignore -s app/tests/
       - step:
           name: DEV2 Deployment
           deployment: staging

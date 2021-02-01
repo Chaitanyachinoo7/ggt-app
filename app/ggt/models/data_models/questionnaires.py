@@ -1,6 +1,6 @@
 from ggt.lib.utils import (
     convert_to_bool,
-    log_generic
+    log_generic, whoami
 )
 
 from ggt.lib.db import (
@@ -143,7 +143,7 @@ def create_patient_questionnaire(booking_req):
     except Exception as err:
         log_generic(
             type=ERROR, 
-            data=data,
+            data="data",
             locals=locals(),
             function=whoami(), 
             error=err
