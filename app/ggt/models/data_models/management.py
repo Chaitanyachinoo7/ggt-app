@@ -1,4 +1,5 @@
 import ggt.lib.constants as c
+from ggt.lib.adapters.auth0_adapter import get_organization_id
 from ggt.lib.adapters.auth0_config import META_KEY, ORGANIZATION_KEY
 from ggt.lib.db import (
     exec_insert,
@@ -280,10 +281,7 @@ def get_user_by_ext_id(user_id):
 
 def list_user(req, user):
     try:
-
-        if user is None:
-            return None
-        organization_id = user[META_KEY][ORGANIZATION_KEY] if user[META_KEY] else None
+        organization_id = get_organization_id(user)
         if organization_id is None:
             return None
         where_statement = "org_id = {}".format(organization_id)

@@ -214,5 +214,7 @@ def create_password_change_ticket(req, user):
 def get_organization_id(user):
     if user is None:
         return None
-    organization_id = user[META_KEY][ORGANIZATION_KEY] if user[META_KEY] else None
+    # TODO: Uncomment 1st line to get organization id, the existing code is a temp fix
+    # organization_id = user[META_KEY][ORGANIZATION_KEY] if user[META_KEY] else None
+    organization_id = user[META_KEY][ORGANIZATION_KEY] if user[META_KEY] else 1
     return organization_id

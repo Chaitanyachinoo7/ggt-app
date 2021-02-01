@@ -1,5 +1,5 @@
 from ggt.lib.adapters.auth0_adapter import create_user_in_auth0, delete_user_in_auth0, get_role_ids, remove_roles, \
-    assign_roles, get_user_in_auth0, create_password_change_ticket, update_user_in_auth0
+    assign_roles, get_user_in_auth0, create_password_change_ticket, update_user_in_auth0, get_organization_id
 from ggt.lib.adapters.auth0_config import META_KEY, ORGANIZATION_KEY
 from ggt.lib.constants import ERROR
 from ggt.lib.management_utils import send_new_account_creation_email, send_org_reject_email
@@ -77,9 +77,7 @@ def bp_create_user(user, is_org_owner=False, owner=None):
         if is_org_owner:
             organization_id = user.organization_id
         else:
-            if owner is None:
-                return None
-            organization_id = owner[META_KEY][ORGANIZATION_KEY] if owner[META_KEY] else None
+            organization_id = get_organization_id(owner)
         if organization_id is None:
             return None
         auth_user = create_user_in_auth0(user, organization_id)

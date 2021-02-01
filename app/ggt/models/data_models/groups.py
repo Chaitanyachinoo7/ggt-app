@@ -1,3 +1,4 @@
+from ggt.lib.adapters.auth0_adapter import get_organization_id
 from ggt.lib.adapters.auth0_config import META_KEY, ORGANIZATION_KEY
 from ggt.lib.db import (
     read_rows,
@@ -16,9 +17,7 @@ from ggt.lib.utils import (
 ########################################################################################################
 def get_all_groups(user):
     try:
-        if user is None:
-            return None
-        organization_id = user[META_KEY][ORGANIZATION_KEY] if user[META_KEY] else None
+        organization_id = get_organization_id(user)
         if organization_id is None:
             return None
 
