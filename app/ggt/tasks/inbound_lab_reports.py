@@ -82,15 +82,16 @@ def task_process_inbound_lab_reports():
         info='Begin Processing Inbound Lab Reports')
 
     process_pdf_results_for_lab_ait()
-    add_to_healthtrackrx_inbound_data_table()
-    update_test_samples_with_results()
+    #local_process_pdf_results_for_lab_ait()
+    #add_to_healthtrackrx_inbound_data_table()
 
     process_pdf_results_for_lab_mawd()
-    update_test_samples_with_results()
 
-    process_rpt_results_for_lab_crl() #part 1/2
-    process_pdf_reports_for_lab_crl() #part 2/2
-    add_to_crl_inbound_data_table()
+    process_results_for_lab_crl
+    #local_process_rpt_results_for_lab_crl() #part 1/2
+    #local_process_pdf_results_for_lab_crl() #part 2/2
+    #add_to_crl_inbound_data_table()
+
     update_test_samples_with_results()
     
 
@@ -161,10 +162,10 @@ def process_pdf_results_for_lab_ait():
     for filename in get_file_iterator(bucket='ggt-sftp', prefix='healthtrackrx/Reports/', suffix='.pdf'):
         try:
             requisition_id, order_number, test_result, test_status, labreport_filename = extract_report_info_ait(filename)
-            if requisition_id is None:
-                print_warning('skipping/archiving {}'.format(filename))
-                move_file(lab_inbound_bucket, filename, lab_archive_bucket, filename)
-                continue
+            #if requisition_id is None:
+            #    print_warning('skipping/archiving {}'.format(filename))
+            #    move_file(lab_inbound_bucket, filename, lab_archive_bucket, filename)
+            #    continue
 
             if order_number:
                 sql = """
@@ -217,7 +218,7 @@ def process_pdf_results_for_lab_ait():
 
 
 def local_process_pdf_results_for_lab_ait():
-    print('process_pdf_results_for_lab_ait')
+    print('local_process_pdf_results_for_lab_ait')
     try:
         file_count = 0
         for local_file_path in glob.iglob('{}/*.pdf'.format(local_download_path), recursive=True):
@@ -496,7 +497,7 @@ def local_process_rpt_results_for_lab_crl():
 
 
 
-def process_pdf_reports_for_lab_crl():
+def local_process_pdf_results_for_lab_crl():
     print('process_pdf_reports_for_lab_crl')
     local_download_path = '/Users/suresh/ggt-tasks/downloads/crllabs/prod/results'
     try:
