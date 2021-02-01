@@ -377,9 +377,9 @@ def bp_ggv_finalize_booking(booking_req: GgtBooking):
             # payment not required, confirm the appointment and notify
             update_appointment_with_confirmed_scheduled(appointment_1)
             update_appointment_with_confirmed_scheduled(appointment_2)
-            __send_qrcode_sms(appointment_1)
+            __send_ggv_qrcode_sms(appointment_1, "1")
             __send_qrcode_email(appointment_1)
-            __send_qrcode_sms(appointment_2)
+            __send_ggv_qrcode_sms(appointment_2, "2")
             __send_qrcode_email(appointment_2)
 
     except Exception as err:
@@ -657,6 +657,43 @@ def __send_qrcode_sms(appointment: GgtAppointment):
             "Please arrive 15 minutes prior to your appointment. Bring this QR code, and an Acceptable ID when you arrive at the test. " \
             "We will scan the QR code to check you in for testing. Please, no eating or drinking at least 15 minutes prior to testing as this may impact your test results."
         result_2 = send_sms(appointment.patient.phone_number, followup_message)
+
+        log_generic(
+            type=c.INFO,
+            appointment=appointment,
+            phone_number=appointment.patient.phone_number,
+            message=message,
+            function=whoami()
+        )
+
+        return True
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            appointment=appointment,
+            function=whoami(),
+            error=err
+        )
+
+    return None
+
+
+def __send_ggv_qrcode_sms(appointment: GgtAppointment, dose):
+    try:
+        message = "Hi {} " \
+                  "\nYour COVID-19 Vaccine Dose {} of 2 appointment is confirmed for {} at {}." \
+                  " Details at {}/provider/.  " \
+                  "Please arrive at least 15 minutes prior to your appointment with an acceptable ID. " \
+                  "\nReply Stop to cxl msgs".format(
+                appointment.patient.first_name,
+                dose,
+                appointment.date_text,
+                appointment.location_text,
+                cfg('base_url')
+            )
+        send_sms(appointment.patient.phone_number,
+                            message.replace('\t', ''))
 
         log_generic(
             type=c.INFO,
