@@ -92,6 +92,37 @@ def record_label_scan(appointment_id):
         )
         return None
 
+
+def lab_status_update(lab_status_update_request):
+    try:
+        sql = """
+                INSERT INTO status_updates_ait
+                (
+                    lab_code,
+                    requisition_id,
+                    order_id,
+                    status_code,
+                    remarks
+                )
+            VALUES (%s, %s, %s, %s, %s)
+            """
+        vals = (lab_status_update_request.lab_code,
+                lab_status_update_request.requisition_id,
+                lab_status_update_request.order_id,
+                lab_status_update_request.status_code,
+                lab_status_update_request.remarks)
+        if exec_insert(sql, vals):
+            return True
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err,
+            lab_status_update_request=lab_status_update_request
+        )
+        return None
+
+
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################

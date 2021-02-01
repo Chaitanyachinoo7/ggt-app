@@ -1,8 +1,8 @@
 app_name: COVID-19 Testing
 app_version: 1.1
 log_level: DEBUG
-base_url: https://start.GoGetTested.com
-env: DEV
+base_url: https://start-dev.GoGetTested.com
+env: TEST
 default_timezone: CST
 
 server:
@@ -13,7 +13,7 @@ server:
   email_queue_processor_port: 5030
   sms_queue_processor_port: 5040
 
-origins: 
+origins:
   - https://gogettested.com
   - https://schedule.gogettested.com
   - https://start.gogettested.com
@@ -46,27 +46,28 @@ aws:
   sqs_print_queue_base_url: https://sqs.us-east-1.amazonaws.com/135292740376/ggt-print-queue
   lab_reports_bucket_name: ggt-labreports
   default_link_expiration_time_limit: 300
-  
+
 gcp:
-  project_id: ggt-pfe-prod
+  project_id: ggt-pfe-dev2
   service_account_file: gcp-service-account.json
   default_link_expiration_time_limit: 300
   service_account_file_prod: gcp-service-account-prod.json
   all_inbound_files_bucket_name: ggt-all-inbound-files-prod
   lab_reports_bucket_name: ggt-lab-reports-prod
   insurance_cards_bucket_name: ggt-insurance-cards-prod
-  notification_archive_bucket_name: ggt-notification-archive-prod
+  notification_archive_bucket_name: ggt-notification-archive-dev2
   enable_cloud_profiler: false
   enable_cloud_logger: false
-  cloud_logger_log_level: 3 # 0-error, 1-warning, 2-info, 3-debug. 
+  cloud_logger_log_level: 3 # 0-error, 1-warning, 2-info, 3-debug.
 
 databases:
   mysql:
-    host: prod-ggt-aurora.cluster-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
-    read_replica_host: reader.cluster-custom-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+    host: ggt-dev-db.cluster-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+    read_replica_host: ggt-dev-db.cluster-ro-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
     username: admin
     password: hWMgl5Tfkqn30saQNp9M
-    db: ggt_prod
+    db: ggt_test
+
 
   sqlite:
     tasks_sqlite_db: /Users/suresh/ggt-tasks/ggt_tasks_local_cache.db
@@ -92,13 +93,13 @@ twilio:
   account_sid_short_code: ACa718334f24171c002bc3ee69c59aae9e
   auth_token_short_code: e9a391c21722705f3c7902fcde7522a4
   from_number_short_code: "80578"
-  
+
 sendgrid:
   sendgrid_api_key: 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
 
 google:
   maps:
-    api_key: AIzaSyAf7kDO2y7Hz7HYb3LHqvXimqJQcA6X8DQ
+    api_key: AIzaSyBH2PDb_3WMu7MxHpG5DlwZ66PyJ0rv5aQ
     base_url: https://maps.googleapis.com/maps/api/staticmap
     geo_url: https://maps.googleapis.com/maps/api/geocode/json
     zoom_level: 10
@@ -121,7 +122,7 @@ app:
 vendors:
   auth0:
     auth0_domain: gogettested.us.auth0.com
-    api_audience: https://pfe-api.gogettested.com/api
+    api_audience: https://role-base-auth.test/api
     algorithms: ['RS256']
     roles: http://roles.ggt/roles
     management_client_id: 6ok7VWNkeOA6An5sN30Jl9gHoH4oUT8j
@@ -133,7 +134,7 @@ vendors:
       api_key_name: x-api-key
       api_key_value: f63e3e17-e10a-4f57-b7b5-08a40d4b0d6b
     inbound:
-      local_download_path: /Users/suresh/ggt-tasks/downloads/healthtrackrx/Reports  
+      local_download_path: /Users/suresh/ggt-tasks/downloads/healthtrackrx/Reports
       local_backups_path: /Users/suresh/ggt-tasks/backups
     outbound:
       outbound_file_prefix: ggt-outbound
@@ -148,10 +149,11 @@ vendors:
       outbound_file_prefix: ggt-outbound-mawd
 
   wellpay:
-    endpoint: https://api.getwellpay.com/api/public/v1
+    endpoint: https://api-staging.getwellpay.com/api/public/v1
     auth_user: suresh@wellpay.com
-    auth_password: y7f{=/$>VfRF$vqE
+    auth_password: 8,tp{Na{76<~@.>(
     npi: 1780944496
+
   kdhe:
     hostname: sl64.endpoint.com
     username: sftpwellhealth

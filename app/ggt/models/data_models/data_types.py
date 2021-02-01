@@ -544,6 +544,7 @@ class PortalGeneralSearchRequest(BaseModel):
 class PortalLocationSearchRequest(BaseModel):
     account: str
     group_code: str
+    st: str
     site_code: str
     location_name: str
 
@@ -909,8 +910,7 @@ class GgtBooking(BaseModel):
     slot_2: GgtScheduleSlot = None
 
     #language: str = None
-    # science37:
-
+    #science37:
 
 '''
 class Science37(BaseModel):
@@ -935,7 +935,6 @@ class Science37(BaseModel):
 		}
 	},
 '''
-
 
 class GgtAppointment(BaseModel):
     id: int = None
@@ -1123,7 +1122,7 @@ class UserRolesEnum(str, Enum):
     org_admin = 'org_admin'
     ggt = 'ggt_admin'
 
-    # org_admin
+    #org_admin
 
 
 class CreateAuth0User(BaseModel):
@@ -1198,6 +1197,8 @@ class FilterUser(BaseModel):
     role: str
     name: str
     email: str
+    offset: int = 0
+    limit: int = 20
 
 
 class LabStatusUpdateRequest(BaseModel):
@@ -1208,6 +1209,21 @@ class LabStatusUpdateRequest(BaseModel):
     remarks: str = None
     status_dt: datetime.datetime = None
 
+
+class FilterOrg(BaseModel):
+    name: str
+
+
+class ChangeOrgStatus(BaseModel):
+    id: str
+    is_active: bool
+
+class StatusUpdatesRequest(BaseModel):
+    lab_code: str
+    requisition_id: str
+    order_id: str
+    status_code: str
+    remarks: str
 
 class InsuranceEligibilityRequest(BaseModel):
     first_name: str = None
@@ -1223,6 +1239,25 @@ class InsuranceEligibilityRequest(BaseModel):
     insurance_payer_id: str = None
     insurance_group_number: str = None
     level: str = None
+
+
+class PatientStatusEnum(str, Enum):
+    pending = 'pending'
+    total_scheduled = 'total_scheduled'
+    scheduled = 'scheduled'
+    checked_in = 'checked_in'
+    test_in_progress = 'test_in_progress'
+    test_completed = 'test_completed'
+    cancelled = 'cancelled'
+    scanned = 'scanned'
+    not_scanned = 'not_scanned'
+
+
+class PatientDrilldownRequest(BaseModel):
+    location_id: str
+    date: str
+    status: PatientStatusEnum
+
 
 
 class InsurancePayersListRequest(BaseModel):

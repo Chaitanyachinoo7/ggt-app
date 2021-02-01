@@ -10,6 +10,8 @@ from ggt.lib.utils import (
 )
 
 import ggt.lib.constants as c
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 
 
 def send_email(from_email, from_name, to_email, subject, html_content, text_content=""):
