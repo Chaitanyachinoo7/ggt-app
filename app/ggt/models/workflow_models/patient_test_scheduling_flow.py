@@ -230,6 +230,7 @@ def ggv_finalize_registration(finalize_registration_request):
     if finalize_registration_request.ggd_waitlist:
         bp_add_to_ggd_waiting_queue(patient_id)
     if appointment_1 and appointment_2:
+        #TODO : Remove lock_slot
         lock_slot(slot['id'])
         return {
             "session_token": result_token,
