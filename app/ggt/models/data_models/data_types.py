@@ -318,6 +318,17 @@ class InsuranceVerification(BaseModel):
     payer: Payer = None
 
 
+class Covid19vaxScreening(BaseModel):
+    allergies: bool = False
+    serious_reaction: bool = False
+    long_term_health: bool = False
+    immune_system: bool = False
+    immune_system_medications: bool = False
+    nervous_system: bool = False
+    blood_transfusion: bool = False
+    recent_vaccinations: bool = False
+
+
 class FinalizeGGVRegistrationRequest(BaseModel):
     groupCode: str = None
     phone_number: str = None
@@ -360,6 +371,7 @@ class FinalizeGGVRegistrationRequest(BaseModel):
     forceFinish: Optional[bool] = None
     appointmentOneTime: int
     appointmentTwoTime: int
+    covid19vaxScreening: Optional[Covid19vaxScreening] = None
 
 
 class FinalizeGGVPreRegistrationRequest(BaseModel):
@@ -836,6 +848,15 @@ class GgtBooking(BaseModel):
 
     is_patient: bool = True
     group_code: str = None
+
+    serious_reaction: bool = False
+    ggv_allergies: bool = False
+    long_term_health: bool = False
+    immune_system: bool = False
+    immune_system_medications: bool = False
+    nervous_system: bool = False
+    blood_transfusion: bool = False
+    recent_vaccinations: bool = False
 
     symptom_fever: bool = False
     symptom_shortbreath: bool = False

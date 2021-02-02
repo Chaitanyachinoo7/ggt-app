@@ -267,6 +267,15 @@ def ggv_finalize_pre_registration(finalize_registration_request):
 def __map_to_booking_req(finalize_registration_request, ggv=False):
     b = GgtBooking()
     try:
+        b.ggv_allergies = finalize_registration_request.covid19vaxScreening.allergies
+        b.serious_reaction = finalize_registration_request.covid19vaxScreening.serious_reaction
+        b.long_term_health = finalize_registration_request.covid19vaxScreening.long_term_health
+        b.immune_system = finalize_registration_request.covid19vaxScreening.immune_system
+        b.immune_system_medications = finalize_registration_request.covid19vaxScreening.immune_system_medications
+        b.nervous_system = finalize_registration_request.covid19vaxScreening.nervous_system
+        b.blood_transfusion = finalize_registration_request.covid19vaxScreening.blood_transfusion
+        b.recent_vaccinations = finalize_registration_request.covid19vaxScreening.recent_vaccinations
+
         b.token = finalize_registration_request.token
         b.phone_number = finalize_registration_request.phone_number.strip()
         b.first_name = finalize_registration_request.patientDetails.first_name.strip()
