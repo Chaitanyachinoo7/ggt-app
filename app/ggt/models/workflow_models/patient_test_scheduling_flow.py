@@ -8,6 +8,7 @@ from ggt.lib.utils import (
     x_response,
     whoami, y_response
 )
+from ggt.models.data_models.patients import is_available_slot, lock_slot
 
 from ggt.models.process_models.bp_patient_experience import (
     bp_get_screen_flow_seq,
@@ -216,11 +217,20 @@ def finalize_registration(finalize_registration_request):
 
 def ggv_finalize_registration(finalize_registration_request):
     booking_req = __map_to_booking_req(finalize_registration_request, ggv=True)
+
+    # TODO: Following is a tem logic to support GGV registration for selected individuals.
+    slot = is_available_slot(booking_req.email, booking_req.dob)
+    if slot and slot['is_available']:
+        pass
+    else:
+        return {"status": "This slot is not available"}
+
     appointment_1, appointment_2, status_message, patient_id, result_token = bp_ggv_finalize_booking(booking_req)
 
     if finalize_registration_request.ggd_waitlist:
         bp_add_to_ggd_waiting_queue(patient_id)
     if appointment_1 and appointment_2:
+        lock_slot(slot['id'])
         return {
             "session_token": result_token,
             "appointment_id_1": appointment_1.id,
@@ -267,6 +277,15 @@ def ggv_finalize_pre_registration(finalize_registration_request):
 def __map_to_booking_req(finalize_registration_request, ggv=False):
     b = GgtBooking()
     try:
+        b.ggv_allergies = finalize_registration_request.covid19vaxScreening.allergies
+        b.serious_reaction = finalize_registration_request.covid19vaxScreening.serious_reaction
+        b.long_term_health = finalize_registration_request.covid19vaxScreening.long_term_health
+        b.immune_system = finalize_registration_request.covid19vaxScreening.immune_system
+        b.immune_system_medications = finalize_registration_request.covid19vaxScreening.immune_system_medications
+        b.nervous_system = finalize_registration_request.covid19vaxScreening.nervous_system
+        b.blood_transfusion = finalize_registration_request.covid19vaxScreening.blood_transfusion
+        b.recent_vaccinations = finalize_registration_request.covid19vaxScreening.recent_vaccinations
+
         b.token = finalize_registration_request.token
         b.phone_number = finalize_registration_request.phone_number.strip()
         b.first_name = finalize_registration_request.patientDetails.first_name.strip()

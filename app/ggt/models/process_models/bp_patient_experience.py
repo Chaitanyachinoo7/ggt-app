@@ -104,13 +104,16 @@ def bp_get_ggv_screen_flow_seq(group_code: str):
                 "required": req
             }
 
+    # TODO: Move hardcoded provider name and intro_text to DB
     if group_info.display_group_consent:
         config = {
             "consent-provider": {
                 "content": {
                     "logo": [group_info.logo_1, group_info.logo_2],
-                    "intro_text": group_info.intro_text,
-                    "provider_name": group_info.consent_party_name,
+                    "intro_text": "I understand that, by granting the consent below, I am authorizing retention of my (or my child's) disaster-related information by DSHS beyond the 5 year retention period. I further understand that DSHS will include this information in the state's central immunization registry (ImmTrac2). Once in ImmTrac2, my (or my child's) disaster-related information may by law be accessed by: a state agency, for the purpose of aiding and coordinating communicable disease prevention and control efforts, and / or; a physician or other health-care provider legally authorized to administer immunizations, antivirals, and other medications, for treating the client as a patient; I understand that I may withdraw this consent to retain information in the ImmTrac2 Registry beyond the 5 year retention period and my consent to release information from the Registry, at any time by written communication to the Texas Department of State Health Services, ImmTrac2 Group – MC 1946, P. O. Box 149347, Austin, Texas 78714-9347. By my signature below, I GRANT consent to retain my disaster-related information (or my child's information if younger than age 18) in the Texas Immunization registry beyond the 5 year retention period.",
+                    # "intro_text": group_info.intro_text,
+                    "provider_name": "Texas Immtrac2",
+                    # "provider_name": group_info.consent_party_name,
                     "consent_url": group_info.consent_url if (group_info.consent_url and group_info.consent_url != '') else None,
                     "additional_fields": group_info.additional_fields
                 }
