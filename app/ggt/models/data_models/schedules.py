@@ -71,6 +71,7 @@ def ggv_get_schedule_locations_available_near_lat_lng(group_code, lat, lng, radi
                     WHERE
                         1 = 1 AND l.status = 'enabled'
                             AND smc.available_slots_count > 0
+                            AND c.service_code like "%VACCINE%"
                             AND smc.first_available_slot IS NOT NULL
                             AND smc.first_available_slot >= CONVERT_TZ(NOW(), '+00:00', '-06:00')
                             AND (3963 * ACOS(COS(RADIANS(%s)) * COS(RADIANS(l.lat)) * COS(RADIANS(l.lng) - RADIANS(%s)) + SIN(RADIANS(%s)) * SIN(RADIANS(l.lat)))) < %s
