@@ -355,6 +355,14 @@ patient_questionnaires = [
         "flu_screen_guillain_barre_syndrome": None,
         "flu_screen_life_threatening_reaction": None,
         "flu_screen_egg_allergy": None,
+        "serious_reaction": None,
+        "ggv_allergies": None,
+        "long_term_health": None,
+        "immune_system": None,
+        "immune_system_medications": None,
+        "nervous_system": None,
+        "blood_transfusion": None,
+        "recent_vaccinations": None,
         "create_dt": today,
         "update_dt": today
     }
