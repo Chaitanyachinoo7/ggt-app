@@ -381,9 +381,9 @@ def bp_ggv_finalize_booking(booking_req: GgtBooking):
             update_appointment_with_confirmed_scheduled(appointment_1)
             update_appointment_with_confirmed_scheduled(appointment_2)
             __send_ggv_qrcode_sms(appointment_1, "1")
-            __send_qrcode_email(appointment_1)
+            __send_ggv_qrcode_email(appointment_1)
             __send_ggv_qrcode_sms(appointment_2, "2")
-            __send_qrcode_email(appointment_2)
+            __send_ggv_qrcode_email(appointment_2)
 
     except Exception as err:
         status_message = str(err)
@@ -744,6 +744,55 @@ def __send_qrcode_email(appointment: GgtAppointment):
         )
 
         template_name = cfg('notifications.confirmation_template')
+        html_content = render_template(
+            template_name,
+            **template_vars
+        )
+
+        send_email(
+            from_email,
+            from_name,
+            appointment.patient.email,
+            subject,
+            html_content
+        )
+
+        return True
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            appointment=appointment,
+            function=whoami(),
+            error=err
+        )
+
+    return False
+
+
+def __send_ggv_qrcode_email(appointment: GgtAppointment):
+    try:
+        from_email = cfg('notifications.from_email')
+        from_name = cfg('notifications.from_name')
+
+        template_vars = {
+            "first_name": appointment.patient.first_name,
+            "date_text": appointment.date_text,
+            "location_text": appointment.location_text,
+            "base_url": cfg('base_url'),
+            "appointment_id": appointment.id,
+            "dob": appointment.patient.dob.strftime('%Y%m%d'),
+            "appointment_url": '{}/vax/schedule/start'.format(
+                cfg('base_url')
+            )
+        }
+
+        subject = render_from_string(
+            cfg('notifications.confirmation_subject_ggv'),
+            **template_vars
+        )
+
+        template_name = cfg('notifications.confirmation_template_ggv')
         html_content = render_template(
             template_name,
             **template_vars
