@@ -693,7 +693,7 @@ def __send_ggv_qrcode_sms(appointment: GgtAppointment, dose):
                 dose,
                 appointment.date_text,
                 appointment.location_text,
-                cfg('base_url'),
+                "https://ggv.gogettested.com",
                 appointment.id,
                 appointment.patient.dob.strftime('%Y%m%d')
             )
