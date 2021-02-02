@@ -104,8 +104,8 @@ def bp_get_ggv_screen_flow_seq(group_code: str):
                 "required": req
             }
 
-    # TODO: Move hardcoded provider name and intro_text to DB
-    if group_info.display_group_consent:
+    # TODO: Move hardcoded provider name and intro_text to DB, remove OR True
+    if group_info.display_group_consent or True:
         config = {
             "consent-provider": {
                 "content": {
