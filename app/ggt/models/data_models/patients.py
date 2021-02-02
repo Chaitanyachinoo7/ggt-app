@@ -190,6 +190,49 @@ def get_existing_patient_questionnaire(patient_id):
         return None
 
 
+def is_available_slot(email, dob):
+    try:
+        sql = """SELECT 
+                        *
+                    FROM
+                        temp_selected_patients
+                    WHERE
+                        email = %s AND dob = %s;"""
+        vals = (email, dob)
+        return replica_read_row(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            vals=vals,
+            email=email,
+            dob=dob,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def lock_slot(id):
+    try:
+        sql = """UPDATE
+                        temp_selected_patients
+                    SET
+                    is_available = False 
+                    WHERE id = %s;"""
+        vals = (id, )
+        return exec_update(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            vals=vals,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 def unlock_patient_info_patients(phone_number):
     try:
         result_token = generate_token()
