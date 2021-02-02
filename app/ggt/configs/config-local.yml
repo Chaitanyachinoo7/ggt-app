@@ -83,6 +83,8 @@ notifications:
   appointment_reminder_template: GGT-2-APPOINTMENT-REMINDER.html
   relocate_template: GGT-7-APPOINTMENT-RESCHEDULE-EMAIL.html
   reschedule_template: GGT-8-APPOINTMENT-RESCHEDULE-2-EMAIL.html
+  confirmation_template_ggv: GGV-1-APPOINTMENT-CONFIRMATION-EMAIL.html
+  confirmation_subject_ggv: '{{first_name}}, Your Covid-19 vaccination has been scheduled'
 
 twilio:
   account_sid: AC9cef9b4155030ee2683281ccc72d4001
