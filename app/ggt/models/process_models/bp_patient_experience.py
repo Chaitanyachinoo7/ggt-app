@@ -686,7 +686,7 @@ def __send_ggv_qrcode_sms(appointment: GgtAppointment, dose):
     try:
         message = "Hi {} " \
                   "\nYour COVID-19 Vaccine Dose {} of 2 appointment is confirmed for {} at {}." \
-                  " Details at {}/provider/.  " \
+                  " Details at {}/vax/schedule/start.  " \
                   "Please arrive at least 15 minutes prior to your appointment with an acceptable ID. " \
                   "\nReply Stop to cxl msgs".format(
                 appointment.patient.first_name,
