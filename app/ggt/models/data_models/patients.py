@@ -137,7 +137,7 @@ def create_pre_registration(patient_id):
 
 def get_existing_patients(phone_number="", first_name="", last_name="", dob="", token=""):
 
-    where_statement = "phone_number_verified = 1"
+    where_statement = "phone_number_verified = 1 AND token not like 'NOVERIFY%'"
     if phone_number != "":
         where_statement = "{} AND phone_number = '{}'".format(where_statement, phone_number)
     if first_name != "":

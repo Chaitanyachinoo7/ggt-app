@@ -693,7 +693,7 @@ def __send_ggv_qrcode_sms(appointment: GgtAppointment, dose):
                 dose,
                 appointment.date_text,
                 appointment.location_text,
-                cfg('base_url'),
+                "https://ggv.gogettested.com",
                 appointment.id,
                 appointment.patient.dob.strftime('%Y%m%d')
             )
@@ -781,11 +781,11 @@ def __send_ggv_qrcode_email(appointment: GgtAppointment):
             "first_name": appointment.patient.first_name,
             "date_text": appointment.date_text,
             "location_text": appointment.location_text,
-            "base_url": cfg('base_url'),
+            "base_url": "https://ggv.gogettested.com",
             "appointment_id": appointment.id,
             "dob": appointment.patient.dob.strftime('%Y%m%d'),
             "appointment_url": '{}/appointment/{}/{}'.format(
-                cfg('base_url'),
+                "https://ggv.gogettested.com",
                 appointment.id,
                 appointment.patient.dob.strftime('%Y%m%d')
             )
