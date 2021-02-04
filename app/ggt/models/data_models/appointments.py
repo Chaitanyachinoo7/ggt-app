@@ -443,12 +443,14 @@ def __get_mapped_dt_field(status: str) -> str:
 def __update_appointment_status(appointment: GgtAppointment, status: str, vial_id: str = None, user=None, workstation_id=None):
     vial_id = None if vial_id == '' else vial_id
     usuccess = False
+    reason_code = ''
 
     try:
         # Check if a vial has already been assigned, if so, don't allow update to proceed
         if appointment.vial_id and vial_id:
             print('vial has already been assigned')
-            return usuccess
+            reason_code = 'dupe'
+            return usuccess, reason_code
 
         if vial_id:
             #check if vial is a dupe
@@ -493,8 +495,9 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
         usuccess = exec_update(sql, vals)
         __create_provider_appointment_activity(user, appointment.id, whoami(), status, vial_id=vial_id, workstation_id=workstation_id)
 
-        if usuccess and (status == c.APPOINTMENT_STATUS_TEST_COMPLETED or status == c.APPOINTMENT_STATUS_VIAL_SCANNED):
-            return create_test_sample_from_appointment(appointment.id)
+        #Allow creating a test record only if the test is completed (or in the last step) with a valid vial_id attached
+        if usuccess and (status == c.APPOINTMENT_STATUS_TEST_COMPLETED or status == c.APPOINTMENT_STATUS_VIAL_SCANNED) and vial_id:
+            create_test_sample_from_appointment(appointment.id)
 
     except Exception as err:
         log_generic(
@@ -505,7 +508,7 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
             error=err
         )
 
-    return usuccess
+    return usuccess, reason_code
 
 
 def __has_insurance_info(patient_id):
@@ -519,6 +522,7 @@ def __has_insurance_info(patient_id):
 
 
 def __create_provider_appointment_activity(user, appointment_id, function, status, vial_id=None, workstation_id=None):
+    #fail gracefully
     try:
         if user:
             user_ext_id = user['sub']
@@ -535,16 +539,14 @@ def __create_provider_appointment_activity(user, appointment_id, function, statu
                         (%s, %s, %s, %s, %s, %s)"""
 
             vals = (appointment_id, user_ext_id, function, status, vial_id, workstation_id)
-            return exec_insert(sql, vals)
-        else:
-            return None
+            exec_insert(sql, vals)
+
     except Exception as err:
         log_generic(
             type=c.ERROR,
             function=whoami(),
             error=err
         )
-        return None
 
 
 def __map_row_to_appointment(row: dict) -> GgtAppointment:

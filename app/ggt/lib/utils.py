@@ -160,7 +160,13 @@ def init_cloud_profiler():
 def x_response(res, allow=True):
     try:
         if allow and res:
-            return success_response(res)
+            if is_failure_response_with_reason(res):
+                return failure_response(
+                    reason_code=res[c.REASON_CODE], 
+                    kv=res
+                )
+            else:
+                return success_response(res)
 
     except Exception as err:
         log_generic(
@@ -169,7 +175,7 @@ def x_response(res, allow=True):
             function=whoami(),
             error=err
         )
-    return failure_response()
+    return failure_response(reason_code=reason_code)
 
 
 def y_response(res, allow=True):
@@ -194,6 +200,20 @@ def success_response(kv=None):
     return kv
 
 
+def is_failure_response_with_reason(kv=None):
+    try:
+        if kv is None or kv is True:
+            return False
+        else:
+            if c.REASON_CODE in kv.keys(): 
+                return True
+    
+    except Exception as err:
+        print('Error @is_failure_response_with_reason')
+
+    return False
+
+
 def success_response_array(kv=None):
     if kv is None or kv is True:
         kv = {}
@@ -203,10 +223,11 @@ def success_response_array(kv=None):
     return res
 
 
-def failure_response(kv=None):
+def failure_response(reason_code='', kv=None):
     if kv is None:
         kv = {}
     kv[c.STATUS] = c.FAILED
+    kv[c.REASON_CODE] = reason_code
     return kv
 
 
