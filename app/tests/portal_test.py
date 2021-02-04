@@ -207,16 +207,16 @@ def test_add_schedule_generation_rule_vax():
     verify_response(response)
 
 
-def test_add_schedule_generation_rule_test():
-    location_id = get_location_id_by_name(location["name"])
-    schedule_generation_rule["location_id"] = location_id
-
-    response = client.post(
-        "/api/portal/site-admin/add_schedule_generation_rule",
-        headers={"X-Token": "coneofsilence", "Authorization": token},
-        json=schedule_generation_rule_test
-    )
-    verify_response(response)
+# def test_add_schedule_generation_rule_test():
+#     location_id = get_location_id_by_name(location["name"])
+#     schedule_generation_rule["location_id"] = location_id
+#
+#     response = client.post(
+#         "/api/portal/site-admin/add_schedule_generation_rule",
+#         headers={"X-Token": "coneofsilence", "Authorization": token},
+#         json=schedule_generation_rule_test
+#     )
+#     verify_response(response)
 
 
 def test_edit_schedule_generation_rule():
