@@ -449,7 +449,7 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
         # Check if a vial has already been assigned, if so, don't allow update to proceed
         if appointment.vial_id and vial_id:
             print('vial has already been assigned')
-            reason_code = 'dupe'
+            reason_code = 'already_assigned'
             return usuccess, reason_code
 
         if vial_id:
@@ -462,7 +462,8 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
 
             if row['count'] > 0:
                 print('duplicate vial ID')
-                return usuccess
+                reason_code = 'dupe'
+                return usuccess, reason_code
 
             #proceed with updating vial_id
             sql = """
