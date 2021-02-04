@@ -1,7 +1,18 @@
 import os
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+import ssl
 
+from ggt.lib.email import send_email, render_from_string, render_template
+from ggt.lib.utils import (
+    get_config_val as cfg,
+    generate_otp,
+    generate_token,
+    validate_phone_number_format,
+    log_generic,
+    whoami
+)
+ssl._create_default_https_context = ssl._create_unverified_context
 
 
 
@@ -22,56 +33,87 @@ def send_sendgrid_email(from_email, to_email, subject, html_content, text_conten
         print(response.headers)
 
     except Exception as err:
-        print(e.message)
+        # print(e.message)zz
         print("sending-email-failed: {}".format(err))
         print("from: {} / to: {} / subject: {} / html_content: {} / text_content: {};".format(from_email, to_email, subject, html_content, text_content))
         return False
 
+#
+# def render_template(template_folder, template, **kwargs):
+#     ''' renders a Jinja template into HTML '''
+#     file_dir = os.path.dirname(os.path.realpath('__file__'))
+#     template_path = file_dir + "/templates/email/"
+#
+#     # check if template exists
+#     if not os.path.exists(template_path):
+#         print("No template file present: {} / path: {}".format(template, template_path))
+#         return None
+#
+#
+#     import jinja2
+#     template_loader = jinja2.FileSystemLoader(searchpath=template_path)
+#     template_env = jinja2.Environment(loader=template_loader)
+#     templ = template_env.get_template(template)
+#     return templ.render(**kwargs)
 
-def render_template(template_folder, template, **kwargs):
-    ''' renders a Jinja template into HTML '''
-    file_dir = os.path.dirname(os.path.realpath('__file__'))
-    template_path = file_dir + "/templates/email/"
 
-    # check if template exists
-    if not os.path.exists(template_path):
-        print("No template file present: {} / path: {}".format(template, template_path))
-        return None
-
-
-    import jinja2    
-    template_loader = jinja2.FileSystemLoader(searchpath=template_path)
-    template_env = jinja2.Environment(loader=template_loader)
-    templ = template_env.get_template(template)
-    return templ.render(**kwargs)
-
-
-
-def send_email(from_email, to_email, subject, html_content, text_content=""):
-    return send_sendgrid_email(from_email, to_email, subject, html_content, text_content)
-
+#
+# def send_email(from_email, to_email, subject, html_content, text_content=""):
+#     return send_sendgrid_email(from_email, to_email, subject, html_content, text_content)
+#
 
 # MAIN
+# template_vars = {
+#         "first_name": "first_name",
+#         "email": "email",
+#         "password": "password"
+#     }
+#
+#
+# # generate HTML from template
+# template_folder = "/templates/email/"
+# template_name = 'GGT-19-NEW_ACCOUNT-EMAIL.html'
+# html_content = render_template(template_folder, template_name, **template_vars)
+#
+# from_email = "support@gogettested.com"
+# to_email = "visithamanujaya@gmail.com"
+# subject = "COVID-19 Testing Appointment Confirmation"
+#
+# send_email(from_email, to_email, subject, html_content)
+
+
+from_email = cfg('notifications.from_email')
+from_name = cfg('notifications.from_name')
 
 template_vars = {
-    "first_name": "Suresh",
-    "test_number": "f4gv34-001",
-    "test_location_line1": "Gregory Swanson",
-    "test_location_line2": "26 Caesar Canyon Suite 723,",
-    "test_location_line3": "West Newell, 62418",
-    "test_date": "August 01, 2020",
-    "test_time": "11:15AM to 11:30AM",
-    "appointment_link": "https://schedule.gogettested.com/a/1f4771ef-5b10-4b55-93e2-1db04d4269f7"
-}
+            "first_name": "Visitha",
+            "date_text": "2021-02-12",
+            "location_text": "Your home",
+            "base_url": cfg('base_url'),
+            "appointment_id": "12323",
+            "dob": "1992-08-28",
+            "appointment_url": '{}/appointment/{}/{}'.format(
+                cfg('base_url'),
+                "1234",
+                "232323"
+            )
+        }
 
+subject = render_from_string(
+            cfg('notifications.confirmation_subject'),
+            **template_vars
+        )
 
-# generate HTML from template
-template_folder = "/templates/email/"
-template_name = 'GGT-1-APPOINTMENT-CONFIRMATION-EMAIL.html'
-html_content = render_template(template_folder, template_name, **template_vars)
+template_name = cfg('notifications.confirmation_template_ggv')
+html_content = render_template(
+            template_name,
+            **template_vars
+        )
 
-from_email = "support@gogettested.com"
-to_email = "suresh@wellpay.com"
-subject = "COVID-19 Testing Appointment Confirmation"
-
-send_email(from_email, to_email, subject, html_content)
+send_email(
+            from_email,
+            from_name,
+            "visithamanujaya@gmail.com",
+            subject,
+            html_content
+        )

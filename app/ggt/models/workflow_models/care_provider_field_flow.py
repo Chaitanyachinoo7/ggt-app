@@ -1,5 +1,6 @@
 from cachetools import cached, LRUCache, TTLCache
 
+from ggt.lib.adapters.auth0_adapter import get_organization_id
 from ggt.lib.utils import (
     x_response,
     y_response
@@ -23,11 +24,12 @@ def get_provider_processing_list(provide_request):
     )
 
 
-def _get_provider_processing_list(provide_request):
+def _get_provider_processing_list(provide_request, user):
+    org_id = get_organization_id(user)
     return y_response(
         _bp_get_provider_processing_list(provide_request.offset, provide_request.consultation_status,
                                          provide_request.consultation_notes, provide_request.positive_call,
-                                         provide_request.limit, provide_request.start_date, provide_request.end_date)
+                                         provide_request.limit, provide_request.start_date, provide_request.end_date, org_id)
     )
 
 

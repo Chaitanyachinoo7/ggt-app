@@ -1,6 +1,6 @@
 from ggt.lib.utils import (
     convert_to_bool,
-    log_generic
+    log_generic, whoami
 )
 
 from ggt.lib.db import (
@@ -79,10 +79,18 @@ def create_patient_questionnaire(booking_req):
                 allergic_reaction,
                 covid19_confirmed_case,
                 egg_allergy,
-                guillian_barre
+                guillian_barre,
+                serious_reaction,
+                ggv_allergies,
+                long_term_health,
+                immune_system,
+                immune_system_medications,
+                nervous_system,
+                blood_transfusion,
+                recent_vaccinations
             )
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 
-        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,  %s, %s, %s, %s, %s, %s)
+        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,  %s, %s, %s, %s, %s, %s, %s, %s,  %s, %s, %s, %s, %s, %s)
         """
 
         vals = (
@@ -133,7 +141,16 @@ def create_patient_questionnaire(booking_req):
             booking_req.pregnancy,
             booking_req.allergicReaction,
             booking_req.eggAllergy,
-            booking_req.guillianBarre
+            booking_req.guillianBarre,
+
+            booking_req.serious_reaction,
+            booking_req.ggv_allergies,
+            booking_req.long_term_health,
+            booking_req.immune_system,
+            booking_req.immune_system_medications,
+            booking_req.nervous_system,
+            booking_req.blood_transfusion,
+            booking_req.recent_vaccinations
 
         )
 
@@ -143,7 +160,7 @@ def create_patient_questionnaire(booking_req):
     except Exception as err:
         log_generic(
             type=ERROR, 
-            data=data,
+            data="data",
             locals=locals(),
             function=whoami(), 
             error=err

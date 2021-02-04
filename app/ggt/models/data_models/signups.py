@@ -121,6 +121,7 @@ def get_signup_record_by_token(token):
             signups 
         WHERE 
             token = %s
+        order by create_dt DESC LIMIT 1
         """
         vals = (token,)
         return replica_read_row(sql, vals)

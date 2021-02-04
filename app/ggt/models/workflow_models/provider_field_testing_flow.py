@@ -61,9 +61,9 @@ def provider_lookup_appointment(appointment_id):
     )
 
 
-def provider_update_appointment(service, appointment_id, action, workstation_id, vial_id, user):
+def provider_update_appointment(appointment_id, action, workstation_id, vial_id, user):
     return x_response(
-        bp_appointment_update(service, appointment_id, action, workstation_id, user, vial_id)
+        bp_appointment_update(appointment_id, action, workstation_id, user, vial_id)
     )
 
 

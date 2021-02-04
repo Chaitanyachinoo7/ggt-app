@@ -30,7 +30,7 @@ from ggt.models.data_models.appointments import (
     update_appointment_with_scan_vial,
     update_appointment_with_test_completed, update_appointment_with_start_vax, update_appointment_with_notes_vax,
     update_appointment_with_scan_vial_vax, update_appointment_with_end_vax, __has_insurance_info,
-    update_appointment_with_verify_insurance
+    update_appointment_with_verify_insurance, get_service_type_by_appointment_id
 )
 
 from ggt.lib.sys_log import (write_syslog)
@@ -75,7 +75,7 @@ def bp_get_appointment_info(appointment_id, dob):
     return False
 
 
-def bp_appointment_update(service, appointment_id: int, action: str, workstation_id: int, user, vial_id: str = None):
+def bp_appointment_update(appointment_id: int, action: str, workstation_id: int, user, vial_id: str = None):
     usuccess = False
     try:
         appointment: GgtAppointment = get_appointment(appointment_id)
@@ -103,7 +103,13 @@ def bp_appointment_update(service, appointment_id: int, action: str, workstation
             usuccess = __appointment_begin_test(user, appointment, workstation_id)
 
         elif action == c.APPOINTMENT_ACTION_SCAN_VIAL:
-            usuccess = update_appointment_with_scan_vial(appointment, vial_id, user)
+            usuccess, reason_code = update_appointment_with_scan_vial(appointment, vial_id, user)
+            if not usuccess:
+                return {
+                    c.STATUS: c.FAILED,
+                    c.REASON_CODE: reason_code
+                }
+
 
         elif action == c.APPOINTMENT_ACTION_SCAN_VIAL_VAX:
             usuccess = update_appointment_with_scan_vial_vax(appointment, vial_id, user)
@@ -125,7 +131,7 @@ def bp_appointment_update(service, appointment_id: int, action: str, workstation
         if usuccess:
             return {
                 'appointment_id': appointment.id,
-                'next_action': __next_action(appointment, service, __is_pre_labeled(appointment, workstation_id))
+                'next_action': __next_action(appointment, __is_pre_labeled(appointment, workstation_id))
             }
 
     except Exception as err:
@@ -177,8 +183,10 @@ def __formatted_patient_dob(appointment):
     return appointment.patient.dob.strftime("%m/%d/%Y")
 
 
-def __next_action(appointment, service, pre_labeled=False, ):
-    if service == "test":
+def __next_action(appointment, pre_labeled=False):
+    service = get_service_type_by_appointment_id(appointment.id)
+
+    if service and service['appointment_type'] == "test":
         switcher = {
             c.APPOINTMENT_STATUS_SCHEDULED: c.APPOINTMENT_ACTION_CHECK_IN,
             c.APPOINTMENT_STATUS_CHECKED_IN: c.APPOINTMENT_ACTION_START_TEST,
@@ -194,7 +202,7 @@ def __next_action(appointment, service, pre_labeled=False, ):
                 c.APPOINTMENT_STATUS_TEST_IN_PROGRESS: c.APPOINTMENT_ACTION_END_TEST,
                 c.APPOINTMENT_STATUS_TEST_COMPLETED: c.APPOINTMENT_ACTION_NONE
             }
-    elif service == "vax":
+    elif service and service['appointment_type'] == "vax":
 
         if __has_insurance_info(appointment.patient.id):
             switcher = {

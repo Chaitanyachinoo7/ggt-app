@@ -318,11 +318,23 @@ class InsuranceVerification(BaseModel):
     payer: Payer = None
 
 
+class Covid19vaxScreening(BaseModel):
+    allergies: bool = False
+    serious_reaction: bool = False
+    long_term_health: bool = False
+    immune_system: bool = False
+    immune_system_medications: bool = False
+    nervous_system: bool = False
+    blood_transfusion: bool = False
+    recent_vaccinations: bool = False
+
+
 class FinalizeGGVRegistrationRequest(BaseModel):
     groupCode: str = None
     phone_number: str = None
     token: str = None
     ggd_waitlist: bool = True
+    pre_register: bool = False
     isPatient: Optional[bool] = True
     gender: str = None
     race: str = None
@@ -359,6 +371,49 @@ class FinalizeGGVRegistrationRequest(BaseModel):
     forceFinish: Optional[bool] = None
     appointmentOneTime: int
     appointmentTwoTime: int
+    covid19vaxScreening: Optional[Covid19vaxScreening] = None
+
+
+class FinalizeGGVPreRegistrationRequest(BaseModel):
+    groupCode: str = None
+    phone_number: str = None
+    token: str = None
+    ggd_waitlist: bool = True
+    pre_register: bool = False
+    isPatient: Optional[bool] = True
+    gender: str = None
+    race: str = None
+    ethnicity: str = None
+    symptoms: Symptoms = None
+    symptomsVax: Optional[bool] = False
+    covid19ConfirmedCase: Optional[bool] = False
+    pregnancy: Optional[bool] = False
+    allergicReaction: Optional[bool] = False
+    eggAllergy: Optional[bool] = False
+    guillianBarre: Optional[bool] = False
+    contactTracing: Optional[bool]
+    patientDetails: PatientDetails = None
+    patientAddress: PatientAddress = None
+    patientContact: PatientContact = None
+    patientVitals: PatientVitals = None
+    preExistingConditions: PreExistingConditions = None
+    insurancePhoto: Optional[str] = None
+    consent: Optional[Consent] = None
+    consent_provider: Optional[ConsentProvider] = None
+    influenzaConsent: Optional[InfluenzaConsent] = None
+
+    # we don't need serviceSelection for GGV request, because user cannot choose
+    # which vaccine he wants (depends on location)
+    serviceSelection: Optional[ServiceSelection] = None
+
+    insuranceVerification: Optional[InsuranceVerification] = None
+    influenzaScreening: Optional[InfluenzaScreening] = None
+    publicPlaces: Optional[PublicPlaces] = None
+    date: Optional[str] = None
+    location: Optional[int] = None
+    timeSlot: Optional[int] = None
+    hasInsurance: Optional[bool] = None
+    forceFinish: Optional[bool] = None
 
 
 
@@ -399,7 +454,6 @@ class ProviderUpdateAppointmentRequest(BaseModel):
     action: str = None
     workstation_id: int = None
     vial_id: Optional[str] = None
-    service: SgrCategoryEnum = 'test'
 
 
 class ProviderLookupAppointmentRequest(BaseModel):
@@ -452,6 +506,14 @@ class CCSendNotiRequest(BaseModel):
     to_number: str = None
 
 
+class PatientAppointmentLookup(BaseModel):
+    first_name: str
+    last_name: str
+    token: str
+    phone_number: str
+    dob: str
+
+
 class CCOutboundResultRequest(BaseModel):
     test_id: str = None
     first_name: str = None
@@ -494,6 +556,7 @@ class PortalGeneralSearchRequest(BaseModel):
 class PortalLocationSearchRequest(BaseModel):
     account: str
     group_code: str
+    st: str
     site_code: str
     location_name: str
 
@@ -766,6 +829,7 @@ class GgtDateTimeLocation(BaseModel):
 
 class GgtBooking(BaseModel):
     token: str = None
+    result_token: str = None
     gender: str = None
     dob: datetime.date = None
     height: str = None
@@ -785,6 +849,15 @@ class GgtBooking(BaseModel):
     is_patient: bool = True
     group_code: str = None
 
+    serious_reaction: bool = False
+    ggv_allergies: bool = False
+    long_term_health: bool = False
+    immune_system: bool = False
+    immune_system_medications: bool = False
+    nervous_system: bool = False
+    blood_transfusion: bool = False
+    recent_vaccinations: bool = False
+
     symptom_fever: bool = False
     symptom_shortbreath: bool = False
     symptom_coughing: bool = False
@@ -801,6 +874,7 @@ class GgtBooking(BaseModel):
     autoimmune_disease: bool = False
     other_chronic_disease: bool = False
     allergies: bool = False
+    pre_register: bool = False
 
     signature: str = None
 
@@ -857,8 +931,7 @@ class GgtBooking(BaseModel):
     slot_2: GgtScheduleSlot = None
 
     #language: str = None
-    # science37:
-
+    #science37:
 
 '''
 class Science37(BaseModel):
@@ -883,7 +956,6 @@ class Science37(BaseModel):
 		}
 	},
 '''
-
 
 class GgtAppointment(BaseModel):
     id: int = None
@@ -1071,7 +1143,7 @@ class UserRolesEnum(str, Enum):
     org_admin = 'org_admin'
     ggt = 'ggt_admin'
 
-    # org_admin
+    #org_admin
 
 
 class CreateAuth0User(BaseModel):
@@ -1146,6 +1218,8 @@ class FilterUser(BaseModel):
     role: str
     name: str
     email: str
+    offset: int = 0
+    limit: int = 20
 
 
 class LabStatusUpdateRequest(BaseModel):
@@ -1156,6 +1230,21 @@ class LabStatusUpdateRequest(BaseModel):
     remarks: str = None
     status_dt: datetime.datetime = None
 
+
+class FilterOrg(BaseModel):
+    name: str
+
+
+class ChangeOrgStatus(BaseModel):
+    id: str
+    is_active: bool
+
+class StatusUpdatesRequest(BaseModel):
+    lab_code: str
+    requisition_id: str
+    order_id: str
+    status_code: str
+    remarks: str
 
 class InsuranceEligibilityRequest(BaseModel):
     first_name: str = None
@@ -1171,6 +1260,25 @@ class InsuranceEligibilityRequest(BaseModel):
     insurance_payer_id: str = None
     insurance_group_number: str = None
     level: str = None
+
+
+class PatientStatusEnum(str, Enum):
+    pending = 'pending'
+    total_scheduled = 'total_scheduled'
+    scheduled = 'scheduled'
+    checked_in = 'checked_in'
+    test_in_progress = 'test_in_progress'
+    test_completed = 'test_completed'
+    cancelled = 'cancelled'
+    scanned = 'scanned'
+    not_scanned = 'not_scanned'
+
+
+class PatientDrilldownRequest(BaseModel):
+    location_id: str
+    date: str
+    status: PatientStatusEnum
+
 
 
 class InsurancePayersListRequest(BaseModel):

@@ -7,6 +7,7 @@ WARNING = 'warning'
 ERROR = 'error'
 NOT_FOUND = 'Not Found'
 DESCRIPTION = 'description'
+REASON_CODE = 'reason_code'
 
 BACKGROUND_TASK_INITIATE_MESSAGE = 'Background Task Initiated'
 

@@ -8,6 +8,7 @@ from ggt.lib.utils import (
     x_response,
     whoami, y_response
 )
+from ggt.models.data_models.patients import is_available_slot, lock_slot
 
 from ggt.models.process_models.bp_patient_experience import (
     bp_get_screen_flow_seq,
@@ -17,7 +18,8 @@ from ggt.models.process_models.bp_patient_experience import (
     bp_finalize_payment,
     bp_get_test_result, bp_add_to_ggd_waiting_queue,
     bp_get_wellpay_insurance_eligibility,
-    bp_search_insurance_payer_list, bp_get_ggv_screen_flow_seq, bp_ggv_finalize_booking
+    bp_search_insurance_payer_list, bp_get_ggv_screen_flow_seq, bp_ggv_finalize_booking, bp_ggv_finalize_pre_booking,
+    bp_create_pre_registration
 )
 
 from ggt.models.process_models.bp_schedules import (
@@ -191,12 +193,13 @@ def finalize_payment(finalize_payment_request):
 
 def finalize_registration(finalize_registration_request):
     booking_req = __map_to_booking_req(finalize_registration_request)
-    appointment, status_message, patient_id = bp_finalize_booking(booking_req)
+    appointment, status_message, patient_id, result_token = bp_finalize_booking(booking_req)
 
     if finalize_registration_request.ggd_waitlist:
         bp_add_to_ggd_waiting_queue(patient_id)
     if appointment:
         return {
+            "session_token": result_token,
             "appointment_id": appointment.id,
             "date": appointment.date_text,
             "location": appointment.location_text,
@@ -214,12 +217,23 @@ def finalize_registration(finalize_registration_request):
 
 def ggv_finalize_registration(finalize_registration_request):
     booking_req = __map_to_booking_req(finalize_registration_request, ggv=True)
-    appointment_1, appointment_2, status_message, patient_id = bp_ggv_finalize_booking(booking_req)
+
+    # TODO: Following is a tem logic to support GGV registration for selected individuals.
+    slot = is_available_slot(booking_req.email, booking_req.dob)
+    if slot and slot['is_available']:
+        pass
+    else:
+        return {"status": "This slot is not available"}
+
+    appointment_1, appointment_2, status_message, patient_id, result_token = bp_ggv_finalize_booking(booking_req)
 
     if finalize_registration_request.ggd_waitlist:
         bp_add_to_ggd_waiting_queue(patient_id)
     if appointment_1 and appointment_2:
+        #TODO : Remove lock_slot
+        lock_slot(slot['id'])
         return {
+            "session_token": result_token,
             "appointment_id_1": appointment_1.id,
             "date_1": appointment_1.date_text,
             "location_1": appointment_1.location_text,
@@ -241,9 +255,39 @@ def ggv_finalize_registration(finalize_registration_request):
         }
 
 
+def ggv_finalize_pre_registration(finalize_registration_request):
+    booking_req = __map_to_booking_req(finalize_registration_request, ggv=True)
+    status_message, patient_id = bp_ggv_finalize_pre_booking(booking_req)
+
+    if patient_id:
+        if finalize_registration_request.ggd_waitlist:
+            bp_add_to_ggd_waiting_queue(patient_id)
+        bp_create_pre_registration(patient_id)
+        return {
+            c.STATUS: c.SUCCESS,
+            "pre_register": True,
+            "patient_id": patient_id
+        }
+    else:
+        return {
+            c.STATUS: c.FAILED,
+            c.ERROR: status_message
+        }
+
+
 def __map_to_booking_req(finalize_registration_request, ggv=False):
     b = GgtBooking()
     try:
+        if "covid19vaxScreening" in dict(finalize_registration_request).keys():
+            b.ggv_allergies = finalize_registration_request.covid19vaxScreening.allergies
+            b.serious_reaction = finalize_registration_request.covid19vaxScreening.serious_reaction
+            b.long_term_health = finalize_registration_request.covid19vaxScreening.long_term_health
+            b.immune_system = finalize_registration_request.covid19vaxScreening.immune_system
+            b.immune_system_medications = finalize_registration_request.covid19vaxScreening.immune_system_medications
+            b.nervous_system = finalize_registration_request.covid19vaxScreening.nervous_system
+            b.blood_transfusion = finalize_registration_request.covid19vaxScreening.blood_transfusion
+            b.recent_vaccinations = finalize_registration_request.covid19vaxScreening.recent_vaccinations
+
         b.token = finalize_registration_request.token
         b.phone_number = finalize_registration_request.phone_number.strip()
         b.first_name = finalize_registration_request.patientDetails.first_name.strip()
@@ -321,6 +365,8 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
             b.eggAllergy = finalize_registration_request.eggAllergy
         if "guillianBarre" in finalize_registration_request.fields.keys():
             b.guillianBarre = finalize_registration_request.guillianBarre
+        if "pre_register" in finalize_registration_request.fields.keys():
+            b.pre_register = finalize_registration_request.pre_register
 
         with suppress(AttributeError):
             b.public_places_bars_restaurants_cafes = finalize_registration_request.publicPlaces.bars_restaurants_cafes

@@ -1,4 +1,5 @@
 import requests
+from fastapi import HTTPException
 from requests.auth import HTTPBasicAuth
 from cachetools import cached, LRUCache, TTLCache
 import ggt.lib.constants as c
@@ -30,7 +31,8 @@ from ggt.models.data_models.signups import (
 
 from ggt.models.data_models.patients import (
     create_patient_record,
-    get_patient_by_token, add_to_ggd_waiting_queue
+    get_patient_by_token, add_to_ggd_waiting_queue, create_pre_registration,
+    get_existing_patients, unlock_patient_info_patients, get_existing_patient_questionnaire
 )
 
 from ggt.models.data_models.questionnaires import (
@@ -102,13 +104,16 @@ def bp_get_ggv_screen_flow_seq(group_code: str):
                 "required": req
             }
 
-    if group_info.display_group_consent:
+    # TODO: Move hardcoded provider name and intro_text to DB, remove OR True
+    if group_info.display_group_consent or True:
         config = {
             "consent-provider": {
                 "content": {
                     "logo": [group_info.logo_1, group_info.logo_2],
-                    "intro_text": group_info.intro_text,
-                    "provider_name": group_info.consent_party_name,
+                    "intro_text": "I understand that, by granting the consent below, I am authorizing retention of my (or my child's) disaster-related information by DSHS beyond the 5 year retention period. I further understand that DSHS will include this information in the state's central immunization registry (ImmTrac2). Once in ImmTrac2, my (or my child's) disaster-related information may by law be accessed by: a state agency, for the purpose of aiding and coordinating communicable disease prevention and control efforts, and / or; a physician or other health-care provider legally authorized to administer immunizations, antivirals, and other medications, for treating the client as a patient; I understand that I may withdraw this consent to retain information in the ImmTrac2 Registry beyond the 5 year retention period and my consent to release information from the Registry, at any time by written communication to the Texas Department of State Health Services, ImmTrac2 Group – MC 1946, P. O. Box 149347, Austin, Texas 78714-9347. By my signature below, I GRANT consent to retain my disaster-related information (or my child's information if younger than age 18) in the Texas Immunization registry beyond the 5 year retention period.",
+                    # "intro_text": group_info.intro_text,
+                    "provider_name": "Texas Immtrac2",
+                    # "provider_name": group_info.consent_party_name,
                     "consent_url": group_info.consent_url if (group_info.consent_url and group_info.consent_url != '') else None,
                     "additional_fields": group_info.additional_fields
                 }
@@ -165,19 +170,25 @@ def bp_initiate_verification_flow(phone_number: str, with_otp: bool = True):
     # Create a temp record until phone number is validated
     try:
         phone_number = validate_phone_number_format(phone_number)
-        otp_code, token = __create_pending_entry(phone_number)
-
+        existing_patient = get_existing_patients(phone_number)
+        token = None
+        if existing_patient:
+            token = existing_patient['token']
+        otp_code, token = __create_pending_entry(phone_number, token)
+        print(otp_code)
         if otp_code is None:
             raise ValueError(
                 'NO OTP / Cannot create Pending Phone Verification record')
 
         else:
-            activation_url = "{}/{}/{}".format(
-                cfg('base_url'), phone_number, token)
+            # activation_url = "{}/{}/{}".format(
+            #     cfg('base_url'), phone_number, token)
 
             if with_otp:
-                message = "Enter Code: {}\nOr click {} \nReply STOP to cancel msgs".format(
-                    otp_code, activation_url)
+                # message = "Enter Code: {}\nOr click {} \nReply STOP to cancel msgs".format(
+                #     otp_code, activation_url)
+                message = "OTP Code: {} \nReply STOP to cancel msgs".format(
+                    otp_code)
             else:
                 return True
 
@@ -188,7 +199,7 @@ def bp_initiate_verification_flow(phone_number: str, with_otp: bool = True):
                     phone_number=phone_number,
                     otp_code=otp_code,
                     token=token,
-                    activation_url=activation_url,
+                    # activation_url=activation_url,
                     sms_message=message,
                     function=whoami(),
                     info='OTP SMS Sent'
@@ -212,13 +223,20 @@ def bp_validate_phone_number(phone_number: str, otp: str):
     try:
         # Override OTP under special circumstances
         override_otp_code = cfg('pfe.signup.override_otp_code')
+        patient = None
+        result_token = None
         if otp == override_otp_code:
             token = "NOVERIFY{}".format(generate_token()[8:])
         else:
             token = get_signup_record_by_phone_otp(phone_number, otp)
+            patient = get_existing_patients(phone_number)
 
         if token is None:
             raise ValueError('Invalid Token')
+
+        if patient:
+            '''Unlock patient record for 5 minutes.'''
+            result_token = unlock_patient_info_patients(phone_number)
 
         log_generic(
             type=c.INFO,
@@ -229,7 +247,8 @@ def bp_validate_phone_number(phone_number: str, otp: str):
         )
 
         return {
-            "token": token
+            "token": token,
+            "session_token": result_token
         }
 
     except Exception as err:
@@ -263,26 +282,33 @@ def bp_add_to_ggd_waiting_queue(patient_id):
     return False
 
 
+def bp_create_pre_registration(patient_id):
+    try:
+        return create_pre_registration(patient_id)
+        log_generic(
+            type=c.INFO,
+            patient_id=patient_id,
+            function=whoami()
+        )
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            patient_id=patient_id,
+            function=whoami(),
+            error=err
+        )
+
+    return False
+
+
 def bp_finalize_booking(booking_req: GgtBooking):
     appointment: GgtAppointment = None
     status_message = None
     try:
-        if not __is_valid_token(booking_req.token):
-            raise ValueError('Invalid Token')
-
-        # create patient
-        _patient = __extract_patient_from_booking_req(booking_req)
-        patient_id = create_patient_record(_patient)
-        booking_req.patient_id = patient_id
-        if not booking_req.patient_id:
-            raise ValueError('Invalid Patient ID')
-
-        # create questionnaire
-        booking_req.patient_questionnaire_id = create_patient_questionnaire(
-            booking_req)
-        if not booking_req.patient_questionnaire_id:
-            raise ValueError('Invalid Patient Questionnaire ID')
-
+        booking_req, status_message = __create_patient_and_questionnaire(booking_req)
+        if booking_req is None:
+            raise ValueError(status_message)
+        patient_id = booking_req.patient_id
         # determine if payment is required, if so, get billing info
         upfront_payment_info = __evaluate_upfront_payment(booking_req)
         booking_req.total_cost = upfront_payment_info.total_cost
@@ -315,32 +341,18 @@ def bp_finalize_booking(booking_req: GgtBooking):
             function=whoami(),
             error=err
         )
+        raise HTTPException(status_code=500)
 
-    return appointment, status_message, patient_id
+    return appointment, status_message, patient_id, booking_req.result_token
 
 
 def bp_ggv_finalize_booking(booking_req: GgtBooking):
-    appointment_1: GgtAppointment = None
-    appointment_2: GgtAppointment = None
-
-    status_message = None
     try:
-        if not __is_valid_token(booking_req.token):
-            raise ValueError('Invalid Token')
+        booking_req, status_message = __create_patient_and_questionnaire(booking_req)
+        if booking_req is None:
+            raise ValueError(status_message)
 
-        # create patient
-        _patient = __extract_patient_from_booking_req(booking_req)
-        patient_id = create_patient_record(_patient)
-        booking_req.patient_id = patient_id
-        if not booking_req.patient_id:
-            raise ValueError('Invalid Patient ID')
-
-        # create questionnaire
-        booking_req.patient_questionnaire_id = create_patient_questionnaire(
-            booking_req)
-        if not booking_req.patient_questionnaire_id:
-            raise ValueError('Invalid Patient Questionnaire ID')
-
+        patient_id = booking_req.patient_id
         # determine if payment is required, if so, get billing info
         upfront_payment_info = __evaluate_upfront_payment(booking_req)
         booking_req.total_cost = upfront_payment_info.total_cost
@@ -368,10 +380,10 @@ def bp_ggv_finalize_booking(booking_req: GgtBooking):
             # payment not required, confirm the appointment and notify
             update_appointment_with_confirmed_scheduled(appointment_1)
             update_appointment_with_confirmed_scheduled(appointment_2)
-            __send_qrcode_sms(appointment_1)
-            __send_qrcode_email(appointment_1)
-            __send_qrcode_sms(appointment_2)
-            __send_qrcode_email(appointment_2)
+            __send_ggv_qrcode_sms(appointment_1, "1")
+            __send_ggv_qrcode_email(appointment_1)
+            __send_ggv_qrcode_sms(appointment_2, "2")
+            __send_ggv_qrcode_email(appointment_2)
 
     except Exception as err:
         status_message = str(err)
@@ -381,8 +393,29 @@ def bp_ggv_finalize_booking(booking_req: GgtBooking):
             function=whoami(),
             error=err
         )
+        raise HTTPException(status_code=500)
 
-    return appointment_1, appointment_2, status_message, patient_id
+    return appointment_1, appointment_2, status_message, patient_id, booking_req.result_token
+
+
+def bp_ggv_finalize_pre_booking(booking_req: GgtBooking):
+    status_message = None
+    try:
+        booking_req, status_message = __create_patient_and_questionnaire(booking_req)
+        if booking_req is None:
+            raise ValueError(status_message)
+        patient_id = booking_req.patient_id
+    except Exception as err:
+        status_message = str(err)
+        log_generic(
+            type=c.ERROR,
+            booking_req=booking_req,
+            function=whoami(),
+            error=err
+        )
+        raise HTTPException(status_code=500)
+
+    return status_message, patient_id
 
 
 def bp_finalize_payment(appointment_id: int, wp_receipt_token: str):
@@ -570,14 +603,15 @@ def __generate_ggv_appointments(booking_req: GgtBooking):
     return appointment_1, appointment_2
 
 
-def __create_pending_entry(phone_number: str):
+def __create_pending_entry(phone_number: str, token):
     try:
         override, otp_code = __override_random_otp(phone_number)
 
         if not override:
             otp_code = generate_otp()
 
-        token = generate_token()
+        if token is None:
+            token = generate_token()
 
         log_generic(
             type=c.INFO,
@@ -626,6 +660,45 @@ def __send_qrcode_sms(appointment: GgtAppointment):
             "Please arrive 15 minutes prior to your appointment. Bring this QR code, and an Acceptable ID when you arrive at the test. " \
             "We will scan the QR code to check you in for testing. Please, no eating or drinking at least 15 minutes prior to testing as this may impact your test results."
         result_2 = send_sms(appointment.patient.phone_number, followup_message)
+
+        log_generic(
+            type=c.INFO,
+            appointment=appointment,
+            phone_number=appointment.patient.phone_number,
+            message=message,
+            function=whoami()
+        )
+
+        return True
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            appointment=appointment,
+            function=whoami(),
+            error=err
+        )
+
+    return None
+
+
+def __send_ggv_qrcode_sms(appointment: GgtAppointment, dose):
+    try:
+        message = "Hi {} " \
+                  "\nYour COVID-19 Vaccine Dose {} of 2 appointment is confirmed for {} at {}." \
+                  " Details at {}/appointment/{}/{}.  " \
+                  "Please arrive at least 15 minutes prior to your appointment with an acceptable ID. " \
+                  "\nReply Stop to cxl msgs".format(
+                appointment.patient.first_name,
+                dose,
+                appointment.date_text,
+                appointment.location_text,
+                "https://ggv.gogettested.com",
+                appointment.id,
+                appointment.patient.dob.strftime('%Y%m%d')
+            )
+        send_sms(appointment.patient.phone_number,
+                            message.replace('\t', ''))
 
         log_generic(
             type=c.INFO,
@@ -699,6 +772,57 @@ def __send_qrcode_email(appointment: GgtAppointment):
     return False
 
 
+def __send_ggv_qrcode_email(appointment: GgtAppointment):
+    try:
+        from_email = cfg('notifications.from_email')
+        from_name = cfg('notifications.from_name')
+
+        template_vars = {
+            "first_name": appointment.patient.first_name,
+            "date_text": appointment.date_text,
+            "location_text": appointment.location_text,
+            "base_url": "https://ggv.gogettested.com",
+            "appointment_id": appointment.id,
+            "dob": appointment.patient.dob.strftime('%Y%m%d'),
+            "appointment_url": '{}/appointment/{}/{}'.format(
+                "https://ggv.gogettested.com",
+                appointment.id,
+                appointment.patient.dob.strftime('%Y%m%d')
+            )
+        }
+
+        subject = render_from_string(
+            cfg('notifications.confirmation_subject_ggv'),
+            **template_vars
+        )
+
+        template_name = cfg('notifications.confirmation_template_ggv')
+        html_content = render_template(
+            template_name,
+            **template_vars
+        )
+
+        send_email(
+            from_email,
+            from_name,
+            appointment.patient.email,
+            subject,
+            html_content
+        )
+
+        return True
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            appointment=appointment,
+            function=whoami(),
+            error=err
+        )
+
+    return False
+
+
 def __send_otp_sms(phone_number: str, message: str) -> bool:
     try:
         log_generic(
@@ -743,14 +867,14 @@ def __override_random_otp(phone_number: str):
 
 def __is_valid_token(token: str) -> bool:
     try:
-        # Check Duplicate Token
-        if get_patient_by_token(token, expect_no_match=True):
-            print('Duplicate Token: {}', token)
-            return False
-
         # Allows overriding phone number validation
         if token.startswith("NOVERIFY"):
-            return True
+            # Check Duplicate Token
+            if get_patient_by_token(token, expect_no_match=True):
+                print('Duplicate Token: {}', token)
+                return False
+            else:
+                return True
         else:
             return get_signup_record_by_token(token)
 
@@ -1117,3 +1241,52 @@ def __bp_search_insurance_payer_list(insurance_search_payer_request):
         return {"response": response}
     except Exception as err:
         print(err)
+
+
+def __create_patient_and_questionnaire(booking_req):
+    try:
+        if not __is_valid_token(booking_req.token):
+            raise ValueError('Invalid Token')
+
+        # create patient
+        _patient = __extract_patient_from_booking_req(booking_req)
+        existing_patient = get_existing_patients(
+            phone_number=_patient.phone_number,
+            first_name=_patient.first_name,
+            last_name=_patient.last_name,
+            dob=_patient.dob
+        )
+        if existing_patient is None:
+            p = get_existing_patients(token=_patient.token)
+            if p:
+                _patient.token = generate_token()
+            patient_id = create_patient_record(_patient)
+            booking_req.result_token = unlock_patient_info_patients(_patient.phone_number)
+        else:
+            patient_id = existing_patient['id']
+            booking_req.result_token = unlock_patient_info_patients(existing_patient['phone_number'])
+        booking_req.patient_id = patient_id
+
+        if not booking_req.patient_id:
+            raise ValueError('Invalid Patient ID')
+
+        if not booking_req.result_token:
+            raise ValueError('Invalid result_token')
+
+        # create questionnaire
+        booking_req.patient_questionnaire_id = create_patient_questionnaire(
+                booking_req)
+        if not booking_req.patient_questionnaire_id:
+            raise ValueError('Invalid Patient Questionnaire ID')
+        return booking_req, None
+    except Exception as err:
+        status_message = str(err)
+        log_generic(
+            type=c.ERROR,
+            status_message=status_message,
+            booking_req=booking_req,
+            function=whoami(),
+            error=err
+        )
+        return None, status_message
+

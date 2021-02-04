@@ -1,8 +1,8 @@
-app_name: COVID-19 Testing
+app_name: ggt-api
 app_version: 1.1
 log_level: DEBUG
 base_url: https://start.GoGetTested.com
-env: DEV
+env: LOCAL-PROD
 default_timezone: CST
 
 server:
@@ -35,10 +35,10 @@ docs:
   redoc_url: /redoc
 
 aws:
-  dynamo_table_name: available_slots
+  dynamo_table_name: prod_available_slots
   sqs_region: us-east-2
   queue_count: 2
-  sqs_url: https://sqs.us-east-2.amazonaws.com/135292740376/available_time_requests
+  sqs_url: https://sqs.us-east-2.amazonaws.com/135292740376/available_slot_management_queue_{}
   vax_sms_que: https://sqs.us-east-2.amazonaws.com/135292740376/vax_scheduled_sms_notification_queue
   region: us-east-1
   access_key_id: AKIAR7AATMMMGKHVWYP6
@@ -63,7 +63,7 @@ gcp:
 databases:
   mysql:
     host: prod-ggt-aurora.cluster-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
-    read_replica_host: prod-ggt-aurora.cluster-csfqhv5lbvg2.us-east-2.rds.amazonaws.com #reader.cluster-custom-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+    read_replica_host: reader.cluster-custom-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
     username: admin
     password: hWMgl5Tfkqn30saQNp9M
     db: ggt_prod
@@ -84,6 +84,8 @@ notifications:
   appointment_reminder_template: GGT-2-APPOINTMENT-REMINDER.html
   relocate_template: GGT-7-APPOINTMENT-RESCHEDULE-EMAIL.html
   reschedule_template: GGT-8-APPOINTMENT-RESCHEDULE-2-EMAIL.html
+  confirmation_template_ggv: GGV-1-APPOINTMENT-CONFIRMATION-EMAIL.html
+  confirmation_subject_ggv: '{{first_name}}, Your Covid-19 vaccination has been scheduled'
 
 twilio:
   account_sid: AC9cef9b4155030ee2683281ccc72d4001

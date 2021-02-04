@@ -49,7 +49,11 @@ def ggv_get_schedule_locations_available_near_lat_lng(group_code, lat, lng, radi
                     mg.max_last_available_slot,
                     smc.available_slots_count AS slot_count,
                     c.service_code,
-                    (3963 * ACOS(COS(RADIANS(%s)) * COS(RADIANS(l.lat)) * COS(RADIANS(l.lng) - RADIANS(%s)) + SIN(RADIANS(%s)) * SIN(RADIANS(l.lat)))) AS distance
+                    (3963 * ACOS(COS(RADIANS(%s)) * COS(RADIANS(l.lat)) * COS(RADIANS(l.lng) - RADIANS(%s)) + SIN(RADIANS(%s)) * SIN(RADIANS(l.lat)))) AS distance,
+                    (CASE
+						WHEN c.service_code LIKE "%PFIZER%" THEN 21
+						WHEN c.service_code LIKE "%MODERNA%" THEN 28
+                    END) as date_diff
                     FROM
                         locations l
                             LEFT JOIN
@@ -62,20 +66,17 @@ def ggv_get_schedule_locations_available_near_lat_lng(group_code, lat, lng, radi
                         locations_metrics_cache lmc ON (lmc.location_id = l.id)
                             LEFT JOIN
                         (
-                            SELECT MAX(last_available_slot) as max_last_available_slot,
+                            SELECT last_available_slot as max_last_available_slot,
                                     location_id
                             FROM ggv_schedules_metrics_cache
-                            GROUP BY location_id
-                            
                         ) mg on l.id = mg.location_id
                     WHERE
                         1 = 1 AND l.status = 'enabled'
                             AND smc.available_slots_count > 0
+                            AND c.service_code like "%VACCINE%"
                             AND smc.first_available_slot IS NOT NULL
                             AND smc.first_available_slot >= CONVERT_TZ(NOW(), '+00:00', '-06:00')
                             AND (3963 * ACOS(COS(RADIANS(%s)) * COS(RADIANS(l.lat)) * COS(RADIANS(l.lng) - RADIANS(%s)) + SIN(RADIANS(%s)) * SIN(RADIANS(l.lat)))) < %s
-                            AND DATEDIFF(mg.max_last_available_slot, smc.first_available_slot) > 20
-                            AND c.service_code LIKE "%VACCINE%"
                             AND l.id IN (SELECT 
                                 glm.location_id
                             FROM
@@ -84,29 +85,12 @@ def ggv_get_schedule_locations_available_near_lat_lng(group_code, lat, lng, radi
                                 groups g ON (g.id = glm.group_id)
                             WHERE
                                 g.group_code = %s)
+                    HAVING
+						DATEDIFF(mg.max_last_available_slot, smc.first_available_slot) = date_diff
                     ORDER BY distance;"""
         vals = (lat, lng, lat, lat, lng, lat, radius, group_code)
         res = replica_read_rows(sql, vals)
-
-        location_ids = []
-        for r in res:
-            location_ids.append(r['location_id'])
-
-        lst = str(tuple(set(location_ids)))
-        if len(set(location_ids)) == 1:
-            lst = lst.replace(",", "")
-
-        sql2 = """SELECT 
-                        location_id,
-                        CAST(first_available_slot AS DATE) as first_available_slot
-                    FROM
-                        ggv_schedules_metrics_cache
-                    WHERE
-                        location_id IN {};""".format(lst)
-        res2 = replica_read_rows(sql2)
-
-        res3, valid_next_available_dates = __filter_response(res, res2)
-        return __format_ggv_available_locations(res3, valid_next_available_dates)
+        return __format_ggv_available_locations(res)
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -410,6 +394,46 @@ def delete_schedule_generation_rule(id):
         return None
 
 
+def delete_ggv_schedules_metrics_cache(rule_id):
+    try:
+        sql = """
+        DELETE FROM 
+            ggv_schedules_metrics_cache
+        WHERE
+            rule_id = %s
+        """
+        vals = (rule_id,)
+        return exec_delete(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def delete_schedules_metrics_cache(rule_id):
+    try:
+        sql = """
+        DELETE FROM 
+            schedules_metrics_cache
+        WHERE
+            rule_id = %s
+        """
+        vals = (rule_id,)
+        return exec_delete(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 def get_available_dates(group_code):
     try:
         sql = """
@@ -644,9 +668,10 @@ def add_schedule_entries(rows, category):
                     time_zone, 
                     time_zone_offset, 
                     duration, 
-                    status
+                    status,
+                    rule_id
                 )
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """.format(table)
         return exec_batch_execute(sql, rows)
 
@@ -710,55 +735,31 @@ def __days_between(d1, d2):
     return (d2 - d1).days
 
 
-def __filter_response(res, res2):
-    _location_id_available_dates = {}
-    valid_available_dates = {}
-    valid_next_available_dates = {}
-    valid_responses = []
-
-    for r in res2:
-        if r['location_id'] in _location_id_available_dates.keys():
-            _location_id_available_dates[r['location_id']].append(r['first_available_slot'])
-        else:
-            _location_id_available_dates[r['location_id']] = [r['first_available_slot'], ]
-
-    for r in res:
-        available_date = r['available_date']
-        location_id = r['location_id']
-        if location_id in _location_id_available_dates.keys():
-            for dt in _location_id_available_dates[location_id]:
-                diff = __days_between(available_date, dt)
-                if 20 < diff < 29:
-                    if available_date not in valid_available_dates.keys():
-                        valid_available_dates[available_date] = [location_id,]
-                        valid_responses.append(r)
-                    else:
-                        if location_id not in valid_available_dates[available_date]:
-                            valid_available_dates[available_date].append(location_id)
-                            valid_responses.append(r)
-
-                    if str(available_date) not in valid_next_available_dates.keys():
-                        valid_next_available_dates[str(available_date)] = {
-                            location_id: [str(dt), ]
-                        }
-                    else:
-                        if location_id not in valid_next_available_dates[str(available_date)].keys():
-                            valid_next_available_dates[str(available_date)][location_id] = [str(dt), ]
-                        elif str(dt) not in valid_next_available_dates[str(available_date)][location_id]:
-                            valid_next_available_dates[str(available_date)][location_id].append(str(dt))
-
-    return valid_responses, valid_next_available_dates
-
-
-def __format_ggv_available_locations(res, valid_next_available_dates):
+def __format_ggv_available_locations(res):
     _locations = {}
     _dates = {}
     dates = []
+    valid_next_available_dates = {}
 
     for r in res:
         date = str(r['first_available_slot'])[0:10]
+        next_available_date = str(r['max_last_available_slot'])[0:10]
         start_time = str(r['first_available_slot'])[11:19]
         end_time = str(r['last_available_slot'])[11:19]
+
+        vax_type = ""
+        if 'MODERNA' in r['service_code']:
+            vax_type = "MODERNA"
+        if 'PFIZER' in r['service_code']:
+            vax_type = 'PFIZER'
+
+        if r['location_id'] in valid_next_available_dates.keys():
+            if date in valid_next_available_dates[r['location_id']].keys():
+                valid_next_available_dates[r['location_id']][date].append(next_available_date)
+            else:
+                valid_next_available_dates[r['location_id']][date] = [next_available_date]
+        else:
+            valid_next_available_dates[r['location_id']] = {date: [next_available_date]}
 
         if r['location_id'] in _locations.keys():
             pass
@@ -769,16 +770,22 @@ def __format_ggv_available_locations(res, valid_next_available_dates):
                 "address": "{}, {}, {}, {}, {}".format(r['addr1'], r['addr2'], r['city'], r['st'], r['zip']),
                 "lat": r['lat'],
                 "lng": r['lng'],
-                "distance": r['distance']
+                "distance": r['distance'],
+                "vax_type": vax_type
             }
 
         if date in _dates.keys():
-            _dates[date]['locations'].append({
-                "id": r['location_id'],
-                "slots_available": r['slot_count'],
-                "starting_at": start_time,
-                "ending_at": end_time
-            })
+            found = False
+            for x in _dates[date]['locations']:
+                if x['id'] == r['location_id']:
+                    found = True
+            if not found:
+                _dates[date]['locations'].append({
+                    "id": r['location_id'],
+                    "slots_available": r['slot_count'],
+                    "starting_at": start_time,
+                    "ending_at": end_time
+                })
         else:
             _dates[date] = {
                 "locations": [{
@@ -786,7 +793,7 @@ def __format_ggv_available_locations(res, valid_next_available_dates):
                     "slots_available": r['slot_count'],
                     "starting_at": start_time,
                     "ending_at": end_time
-            }]
+                }]
             }
     for key in _dates.keys():
         dates.append({
@@ -798,11 +805,11 @@ def __format_ggv_available_locations(res, valid_next_available_dates):
     for d in dates:
         dt = d['date']
         for idx, x in enumerate(d['locations']):
-            if dt in valid_next_available_dates.keys():
-                temp = valid_next_available_dates[dt]
-                location_id = x['id']
-                if location_id in temp.keys():
-                    d['locations'][idx]['next_available_dates'] = temp[location_id]
+            location_id = x['id']
+            if location_id in valid_next_available_dates.keys():
+                temp = valid_next_available_dates[location_id]
+                if dt in temp.keys():
+                    d['locations'][idx]['next_available_dates'] = set(temp[dt])
 
     return {
         "dates": dates,
@@ -1046,17 +1053,17 @@ def __map_row_to_dtl(row):
         svc.service_code = row['service_code']
         svc.service_name = row['service_name']
         if row['price']:
-            svc.price = int(row['price']*100)
+            svc.price = int(row['price'] * 100)
         if row['selfpay_amount']:
-            svc.selfpay_amount = int(row['selfpay_amount']*100)
+            svc.selfpay_amount = int(row['selfpay_amount'] * 100)
         if row['copay_amount']:
-            svc.copay_amount = int(row['copay_amount']*100)
+            svc.copay_amount = int(row['copay_amount'] * 100)
         if row['insurance_amount']:
-            svc.insurance_amount = int(row['insurance_amount']*100)
+            svc.insurance_amount = int(row['insurance_amount'] * 100)
 
         svc.sku = row['service_code']
         if row['price']:
-            svc.cost = int(row['selfpay_amount']*100)
+            svc.cost = int(row['selfpay_amount'] * 100)
 
         if 'distance' in row:
             dtl.distance = row['distance']

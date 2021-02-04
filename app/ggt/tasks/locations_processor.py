@@ -50,7 +50,7 @@ def task_populate_location_thumbnails():
                 row['zip']
             )
 
-        map_thumbnail_url = 'https://maps.googleapis.com/maps/api/staticmap?center={}&zoom=10&size=110x110&markers=color:red|size:tiny|{}&maptype=roadmap&key=AIzaSyBJmU3ueSBRmXz4mU1MRgdOxAWcfImbQNQ'.format(location_text, location_text)
+        map_thumbnail_url = 'https://maps.googleapis.com/maps/api/staticmap?center={}&zoom=10&size=110x110&markers=color:red|size:tiny|{}&maptype=roadmap&key=AIzaSyBH2PDb_3WMu7MxHpG5DlwZ66PyJ0rv5aQ'.format(location_text, location_text)
         encoded_image = base64.b64encode(requests.get(map_thumbnail_url).content)
         update_location_thumbnails(location_id, encoded_image)
 
