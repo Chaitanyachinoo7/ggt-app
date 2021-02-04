@@ -68,7 +68,7 @@ def bp_get_all_test_results():
         # return False
 
 
-@cached(cache=TTLCache(maxsize=1024, ttl=60))
+#@cached(cache=TTLCache(maxsize=1024, ttl=60))
 def bp_get_general_search_results(org_id, first_name, middle_name, last_name, dob, phone_number, email, appointment_id,
                                   group_code, appointment_date, location_id, vial_id='', sort_field="register_dt", sort_type="desc", group_vax_results=False, token=None, is_patient=False):
     try:
