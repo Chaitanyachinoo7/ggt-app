@@ -12,7 +12,7 @@ sys.path.insert(0, myPath + '/../')
 from fastapi.testclient import TestClient
 from ggt.lib.db import read_rows, exec_delete
 from main import app
-from tests.resources import group, location, schedule_generation_rule, token
+from tests.resources import group, location, schedule_generation_rule, token, schedule_generation_rule_test
 
 client = TestClient(app)
 
@@ -195,7 +195,7 @@ def test_location_search():
     )
     verify_response(response)
 
-def test_add_schedule_generation_rule():
+def test_add_schedule_generation_rule_vax():
     location_id = get_location_id_by_name(location["name"])
     schedule_generation_rule["location_id"] = location_id
 
@@ -205,6 +205,19 @@ def test_add_schedule_generation_rule():
         json=schedule_generation_rule
     )
     verify_response(response)
+
+
+def test_add_schedule_generation_rule_test():
+    location_id = get_location_id_by_name(location["name"])
+    schedule_generation_rule["location_id"] = location_id
+
+    response = client.post(
+        "/api/portal/site-admin/add_schedule_generation_rule",
+        headers={"X-Token": "coneofsilence", "Authorization": token},
+        json=schedule_generation_rule_test
+    )
+    verify_response(response)
+
 
 def test_edit_schedule_generation_rule():
     location_id = get_location_id_by_name(location["name"])
