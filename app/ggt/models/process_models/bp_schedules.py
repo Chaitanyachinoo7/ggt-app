@@ -27,7 +27,8 @@ from ggt.models.data_models.schedules import (
     delete_schedule_generation_rule,
     get_all_available_dtl,
     trim_schedule_generation_rules_start_dt,
-    get_slots_matching_dt_list, ggv_get_schedule_locations_available_near_lat_lng, get_second_shot_available_times
+    get_slots_matching_dt_list, ggv_get_schedule_locations_available_near_lat_lng, get_second_shot_available_times,
+    delete_ggv_schedules_metrics_cache, delete_schedules_metrics_cache
 )
 
 from ggt.models.data_models.locations import (
@@ -464,6 +465,8 @@ def bp_generate_full_schedule(location_id):
         rules = get_schedule_generation_rules_by_location_id(location_id)
 
         for rule in rules:
+            delete_ggv_schedules_metrics_cache(rule['id'])
+            delete_schedules_metrics_cache(rule['id'])
             __process_schedule_rule(rule)
 
         print('END schedule generation / location id: {} / at: {}'.format(
@@ -531,7 +534,12 @@ def bp_update_schedule_generation_rule(data):
 
 def bp_delete_schedule_generation_rule(id):
     try:
-        return delete_schedule_generation_rule(id)
+        if delete_schedule_generation_rule(id):
+            delete_ggv_schedules_metrics_cache(id)
+            delete_schedules_metrics_cache(id)
+            return True
+        else:
+            return False
 
     except Exception as err:
         log_generic(
@@ -567,6 +575,7 @@ def bp_get_schedule_generation_rules(location_id):
 def __process_schedule_rule(rule):
     try:
         location_id = rule['location_id']
+        rule_id = rule['id']
         category = rule['category']
         rule_type = rule['rule_type']
         start_date = rule['active_local_start_dt']
@@ -600,7 +609,8 @@ def __process_schedule_rule(rule):
                             rule['time_zone'],
                             rule['time_zone_offset'],
                             slot_increment,
-                            'available'
+                            'available',
+                            rule_id
                         )
 
                         for _ in range(rule['slot_multiplier']):

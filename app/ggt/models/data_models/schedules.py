@@ -394,6 +394,46 @@ def delete_schedule_generation_rule(id):
         return None
 
 
+def delete_ggv_schedules_metrics_cache(rule_id):
+    try:
+        sql = """
+        DELETE FROM 
+            ggv_schedules_metrics_cache
+        WHERE
+            rule_id = %s
+        """
+        vals = (rule_id,)
+        return exec_delete(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def delete_schedules_metrics_cache(rule_id):
+    try:
+        sql = """
+        DELETE FROM 
+            schedules_metrics_cache
+        WHERE
+            rule_id = %s
+        """
+        vals = (rule_id,)
+        return exec_delete(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 def get_available_dates(group_code):
     try:
         sql = """
@@ -628,9 +668,10 @@ def add_schedule_entries(rows, category):
                     time_zone, 
                     time_zone_offset, 
                     duration, 
-                    status
+                    status,
+                    rule_id
                 )
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """.format(table)
         return exec_batch_execute(sql, rows)
 
