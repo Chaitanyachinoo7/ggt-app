@@ -1,6 +1,5 @@
 import ujson
 import logging
-# import googlecloudprofiler
 import random
 import sys
 import uuid
@@ -12,6 +11,9 @@ import google.cloud.logging
 import phonenumbers
 import pyotp
 import ujson
+
+#import google.cloud.logging
+#import googlecloudprofiler
 
 import ggt.lib.constants as c
 from ggt.configs.config_loader import cfg
