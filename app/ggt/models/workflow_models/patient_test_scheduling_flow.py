@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from contextlib import suppress
 
 from cachetools import cached, LRUCache, TTLCache
@@ -407,3 +407,11 @@ def insurance_eligibility(insurance_eligibility_request):
 
 def insurance_search_payer(insurance_search_payer_request):
     return bp_search_insurance_payer_list(insurance_search_payer_request)
+
+
+@cached(cache=TTLCache(maxsize=1024, ttl=180))
+def cache_test(t_id):
+    x = datetime.now()
+    while (datetime.now() - x).seconds < 5:
+        pass
+    return {"response": t_id}
