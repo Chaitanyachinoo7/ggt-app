@@ -10,5 +10,5 @@ application.log
 application.log.*
 venv/
 venv1/
+venv*
 .DS_Store
-
