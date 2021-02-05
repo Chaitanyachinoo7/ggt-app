@@ -92,7 +92,6 @@ def task_process_inbound_lab_reports():
     add_to_crl_inbound_data_table()
     update_test_samples_with_results()
     
-
     log_generic(
         type=c.INFO,
         function=whoami(),
