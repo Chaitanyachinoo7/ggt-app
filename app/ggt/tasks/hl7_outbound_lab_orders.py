@@ -11,7 +11,13 @@ from ggt.lib.utils import (
     get_config_val as cfg,
     log_generic,
     generate_session_id,
-    whoami
+    whoami,
+    print_header, 
+    print_ok1, 
+    print_ok2, 
+    print_warning, 
+    print_error, 
+    print_progress_bar_message
 )
 
 from ggt.lib.adapters.s3_adapter import (
@@ -549,45 +555,3 @@ def update_to_with_lab_status(orders):
         """ % format_strings
 
     exec_update(sql, tuple(list_of_ids))
-
-
-
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-
-    def disable(self):
-        self.HEADER = ''
-        self.OKBLUE = ''
-        self.OKGREEN = ''
-        self.WARNING = ''
-        self.FAIL = ''
-        self.ENDC = ''
-
-
-def print_header(message):
-    print('{.HEADER}{}{.ENDC}'.format(bcolors, message, bcolors))
-
-
-def print_ok1(message):
-    print('{.OKGREEN}{}{.ENDC}'.format(bcolors, message, bcolors))
-
-
-def print_ok2(message):
-    print('{.OKBLUE}{}{.ENDC}'.format(bcolors, message, bcolors))
-
-
-def print_warning(message):
-    print('{.WARNING}{}{.ENDC}'.format(bcolors, message, bcolors))
-
-
-def print_error(message):
-    print('{.FAIL}{}{.ENDC}'.format(bcolors, message, bcolors))
-
-
-def print_progress_bar_message(message):
-    print('{.OKBLUE}{}{.ENDC}\r'.format(bcolors, message, bcolors), end="")
