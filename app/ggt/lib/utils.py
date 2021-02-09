@@ -1,10 +1,11 @@
+import jwt
 import ujson
 import logging
 # import googlecloudprofiler
 import random
 import sys
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from pprint import pformat
 
@@ -160,7 +161,13 @@ def init_cloud_profiler():
 def x_response(res, allow=True):
     try:
         if allow and res:
-            return success_response(res)
+            if is_failure_response_with_reason(res):
+                return failure_response(
+                    reason_code=res[c.REASON_CODE], 
+                    kv=res
+                )
+            else:
+                return success_response(res)
 
     except Exception as err:
         log_generic(
@@ -169,7 +176,7 @@ def x_response(res, allow=True):
             function=whoami(),
             error=err
         )
-    return failure_response()
+    return failure_response(reason_code=reason_code)
 
 
 def y_response(res, allow=True):
@@ -194,6 +201,20 @@ def success_response(kv=None):
     return kv
 
 
+def is_failure_response_with_reason(kv=None):
+    try:
+        if kv is None or kv is True:
+            return False
+        else:
+            if c.REASON_CODE in kv.keys(): 
+                return True
+    
+    except Exception as err:
+        print('Error @is_failure_response_with_reason')
+
+    return False
+
+
 def success_response_array(kv=None):
     if kv is None or kv is True:
         kv = {}
@@ -203,10 +224,11 @@ def success_response_array(kv=None):
     return res
 
 
-def failure_response(kv=None):
+def failure_response(reason_code='', kv=None):
     if kv is None:
         kv = {}
     kv[c.STATUS] = c.FAILED
+    kv[c.REASON_CODE] = reason_code
     return kv
 
 
@@ -244,3 +266,31 @@ def get_sqs_queue_url(schedule_id):
     else:
         r = int(schedule_id) % int(get_config_val('aws.queue_count'))
         return get_config_val('aws.sqs_url').format(r)
+
+
+def get_ggv_tokens(number):
+    tokens = []
+    secret = get_config_val('security.ggv_secret')
+    start_time = datetime.now()
+    end_time = start_time + timedelta(days=20)
+    for x in range(0, number):
+        uu_id = generate_token()
+        encoded_jwt = jwt.encode({
+            "token": uu_id,
+            "exp": end_time
+        }, secret, algorithm="HS256")
+        tokens.append(encoded_jwt)
+    return tokens
+
+
+def get_user_token_from_jwt(token):
+    secret = get_config_val('security.ggv_secret')
+    try:
+        res = jwt.decode(token, secret, algorithms=["HS256"])
+        return res['token']
+    except Exception as err:
+        log_generic(
+            err=err,
+            function=whoami()
+        )
+        return None

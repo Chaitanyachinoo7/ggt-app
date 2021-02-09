@@ -333,6 +333,7 @@ class FinalizeGGVRegistrationRequest(BaseModel):
     groupCode: str = None
     phone_number: str = None
     token: str = None
+    verification_token: str = None
     ggd_waitlist: bool = True
     pre_register: bool = False
     isPatient: Optional[bool] = True
@@ -829,6 +830,7 @@ class GgtDateTimeLocation(BaseModel):
 
 class GgtBooking(BaseModel):
     token: str = None
+    verification_token: str = None
     result_token: str = None
     gender: str = None
     dob: datetime.date = None
