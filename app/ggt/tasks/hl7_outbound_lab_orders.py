@@ -143,7 +143,7 @@ def __get_msh(order):
         msh_4_sending_facility=order['client_site_code'],
         msh_5_receiving_application=lab_name,
         msh_6_receiving_facility=lab_name,
-        msh_7_datetime_of_message=dt,
+        msh_7_datetime_of_message=order['today_dt'],#dt,
         msh_9_message_type='ORM^O01',
         msh_10_message_control_id=int(time.time()*1000),
         msh_11_processing_id='P',
@@ -434,23 +434,23 @@ def get_orders_ready_to_transmit(limit=100):
                     DATE_FORMAT(CONVERT_TZ(t.sample_collection_start_dt,
                                     '+00:00',
                                     '-06:00'),
-                            '%Y%m%d%h%m%s')
+                            '%Y%m%d%H%m%s')
                 WHEN
                     (t.sample_collection_end_dt IS NOT NULL)
                 THEN
                     DATE_FORMAT(CONVERT_TZ(t.sample_collection_end_dt,
                                     '+00:00',
                                     '-06:00'),
-                            '%Y%m%d%h%m%s')
+                            '%Y%m%d%H%m%s')
                 WHEN
                     (t.pre_ship_label_scan_dt IS NOT NULL)
                 THEN
                     DATE_FORMAT(CONVERT_TZ(t.pre_ship_label_scan_dt,
                                     '+00:00',
                                     '-06:00'),
-                            '%Y%m%d%h%m%s')
+                            '%Y%m%d%H%m%s')
                 ELSE DATE_FORMAT(CONVERT_TZ(NOW(), '+00:00', '-06:00'),
-                        '%Y%m%d%h%m%s')
+                        '%Y%m%d%H%m%s')
             END) AS date_of_collection,
             (CASE
                 WHEN (p.race = 'race_american_indian') THEN '1002-5'
@@ -520,7 +520,9 @@ def get_orders_ready_to_transmit(limit=100):
             'Unknown' AS is_pregnant,
             l.st AS test_location_st,
             t.sample_collection_location_id,
-            t.lab_id
+            t.lab_id,
+            DATE_FORMAT(CONVERT_TZ(NOW(), '+00:00', '-06:00'),
+                        '%Y%m%d%H%m%s') as today_dt
         FROM
             (((test_samples t
             JOIN patients p ON ((t.patient_id = p.id)))

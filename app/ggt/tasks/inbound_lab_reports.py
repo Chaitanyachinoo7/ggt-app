@@ -568,6 +568,7 @@ def extract_report_info_mawd(file_path):
         #is a Rejected specimen
         if 'SPECIMEN_UNACCEPTABLE' in filename:
             test_status = 'Rejected'
+            test_result = 'Rejected'
         elif test_result == 'NOTDETECTED':
             test_status = 'Approved'
             test_result = 'Negative'
@@ -626,7 +627,6 @@ def update_test_samples_with_results():
             WHERE
                 test_samples.test_result IS NULL
                     AND test_samples.id = h.order_number
-                    AND h.status IS NOT NULL
             """
         vals = ()
         exec_update(sql, vals)
@@ -653,7 +653,6 @@ def update_test_samples_with_results():
             WHERE
                 test_samples.test_result IS NULL
                     AND test_samples.id = h.order_number
-                    AND h.status IS NOT NULL
             """
         vals = ()
         exec_update(sql, vals)
@@ -680,7 +679,6 @@ def update_test_samples_with_results():
             WHERE
                 test_samples.test_result IS NULL
                     AND test_samples.id = h.order_number
-                    AND h.status IS NOT NULL
             """
         vals = ()
         exec_update(sql, vals)
@@ -703,7 +701,7 @@ def lower_first(iterator):
 
 
 #to be depricated
-
+'''
 def local_process_pdf_results_for_lab_ait():
     print('local_process_pdf_results_for_lab_ait')
     try:
@@ -770,8 +768,6 @@ def local_process_pdf_results_for_lab_ait():
         print_error(err)
 
 
-
-
 def process_pdf_results_for_lab_mawd():
     print('process_pdf_results_for_lab_mawd')
     key_prefix = 'mawdpath/prod/results/'
@@ -804,7 +800,7 @@ def process_pdf_results_for_lab_mawd():
                 function=whoami(),
                 error=err
             )
-
+'''
 
 def process_pdf_results_for_lab_ait():
     print('process_pdf_results_for_lab_ait')
