@@ -176,3 +176,7 @@ pfe:
     special_phone_3: "4158888888"
     special_phone_4: "4159999999"
     override_otp_code: "000000"
+
+
+security:
+  ggv_secret: "thisistheggvtopsecret2021"
