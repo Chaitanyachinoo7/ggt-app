@@ -1,9 +1,10 @@
+import jwt
 import ujson
 import logging
 import random
 import sys
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from pprint import pformat
 
@@ -261,6 +262,34 @@ def get_sqs_queue_url(schedule_id):
     else:
         r = int(schedule_id) % int(get_config_val('aws.queue_count'))
         return get_config_val('aws.sqs_url').format(r)
+
+
+def get_ggv_tokens(number):
+    tokens = []
+    secret = get_config_val('security.ggv_secret')
+    start_time = datetime.now()
+    end_time = start_time + timedelta(days=20)
+    for x in range(0, number):
+        uu_id = generate_token()
+        encoded_jwt = jwt.encode({
+            "token": uu_id,
+            "exp": end_time
+        }, secret, algorithm="HS256")
+        tokens.append(encoded_jwt)
+    return tokens
+
+
+def get_user_token_from_jwt(token):
+    secret = get_config_val('security.ggv_secret')
+    try:
+        res = jwt.decode(token, secret, algorithms=["HS256"])
+        return res['token']
+    except Exception as err:
+        log_generic(
+            err=err,
+            function=whoami()
+        )
+        return None
 
 
 class bcolors:
