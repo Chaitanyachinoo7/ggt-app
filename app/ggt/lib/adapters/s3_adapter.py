@@ -145,6 +145,22 @@ def move_file(source_bucket, source_key, dest_bucket, dest_key):
     return False        
 
 
+def delete_file(source_bucket, source_key):
+    try:
+        s3 = __boto_connect_resource('s3')
+        if s3.Object(source_bucket, source_key).delete():
+            return True
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+    
+    return False     
+
+
 def get_temp_lab_report_url(filename: str):
     try:
         url = __boto_connect_client('s3').generate_presigned_url(
