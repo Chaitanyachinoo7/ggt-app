@@ -219,8 +219,10 @@ def ggv_finalize_registration(finalize_registration_request):
     booking_req = __map_to_booking_req(finalize_registration_request, ggv=True)
 
     # TODO: Following is a tem logic to support GGV registration for selected individuals.
-    slot = is_available_slot(booking_req.email, booking_req.dob)
-    if slot and slot['is_available']:
+    # slot = is_available_slot(booking_req.email, booking_req.dob)
+
+    slot = is_available_slot(booking_req.verification_token)
+    if slot is None:
         pass
     else:
         return {"status": "This slot is not available"}
@@ -231,7 +233,8 @@ def ggv_finalize_registration(finalize_registration_request):
         bp_add_to_ggd_waiting_queue(patient_id)
     if appointment_1 and appointment_2:
         #TODO : Remove lock_slot
-        lock_slot(slot['id'])
+        # lock_slot(slot['id'])
+        lock_slot(booking_req.verification_token)
         return {
             "session_token": result_token,
             "appointment_id_1": appointment_1.id,
@@ -351,6 +354,8 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
 
         if "appointmentOneTime" in finalize_registration_request.fields.keys():
             b.appointmentOneTime = finalize_registration_request.appointmentOneTime
+        if "verification_token" in finalize_registration_request.fields.keys():
+            b.verification_token = finalize_registration_request.verification_token
         if "appointmentTwoTime" in finalize_registration_request.fields.keys():
             b.appointmentTwoTime = finalize_registration_request.appointmentTwoTime
         if "symptomsVax" in finalize_registration_request.fields.keys():

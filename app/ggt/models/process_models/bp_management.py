@@ -3,7 +3,7 @@ from ggt.lib.adapters.auth0_adapter import create_user_in_auth0, delete_user_in_
 from ggt.lib.adapters.auth0_config import META_KEY, ORGANIZATION_KEY
 from ggt.lib.constants import ERROR
 from ggt.lib.management_utils import send_new_account_creation_email, send_org_reject_email
-from ggt.lib.utils import log_generic, whoami
+from ggt.lib.utils import log_generic, whoami, get_ggv_tokens
 from ggt.models.data_models.data_types import CreateAuth0User, UserRolesEnum, DbOrgRequestStatusEnum
 from ggt.models.data_models.management import create_new_organization_request, list_org_requests, process_org_request, \
     get_org_request_user, create_new_organization, create_new_user, delete_user, update_user_role, get_user_by_ext_id, \
@@ -222,6 +222,18 @@ def bp_change_org_status(req, user):
 def bp_password_change_ticket(req, user):
     try:
         return create_password_change_ticket(req, user)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def bp_get_ggv_tokens(number, user):
+    try:
+        return get_ggv_tokens(number)
     except Exception as err:
         log_generic(
             type=ERROR,
