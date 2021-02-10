@@ -30,7 +30,7 @@ from ggt.models.data_models.appointments import (
     update_appointment_with_scan_vial,
     update_appointment_with_test_completed, update_appointment_with_start_vax, update_appointment_with_notes_vax,
     update_appointment_with_scan_vial_vax, update_appointment_with_end_vax, __has_insurance_info,
-    update_appointment_with_verify_insurance, get_service_type_by_appointment_id
+    update_appointment_with_verify_insurance, get_service_type_by_appointment_id, create_consultation_note
 )
 
 from ggt.lib.sys_log import (write_syslog)
@@ -39,6 +39,7 @@ from ggt.lib.sys_log import (write_syslog)
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
+from ggt.models.process_models.bp_patient_experience import __save_insurance_image
 
 
 @cached(cache=TTLCache(maxsize=1024, ttl=30))
@@ -75,8 +76,11 @@ def bp_get_appointment_info(appointment_id, dob):
     return False
 
 
-def bp_appointment_update(appointment_id: int, action: str, workstation_id: int, user, vial_id: str = None):
+def bp_appointment_update(provider_update_appointment_request, user):
     usuccess = False
+    appointment_id = provider_update_appointment_request.appointment_id
+    action = provider_update_appointment_request.action
+    workstation_id = provider_update_appointment_request.workstation_id
     try:
         appointment: GgtAppointment = get_appointment(appointment_id)
 
@@ -85,6 +89,8 @@ def bp_appointment_update(appointment_id: int, action: str, workstation_id: int,
 
         if action == c.APPOINTMENT_ACTION_VERIFY_INSURANCE:
             usuccess = update_appointment_with_verify_insurance(appointment, user)
+            if usuccess:
+                __save_insurance_image(appointment_id, provider_update_appointment_request.insurance_photo)
 
         if action == c.APPOINTMENT_ACTION_END_VAX:
             usuccess = update_appointment_with_end_vax(appointment, user, workstation_id)
@@ -94,7 +100,11 @@ def bp_appointment_update(appointment_id: int, action: str, workstation_id: int,
                                                                  appointment.patient.phone_number)
 
         if action == c.APPOINTMENT_ACTION_NOTES_VAX:
-            usuccess = update_appointment_with_notes_vax(appointment, user, workstation_id)
+            usuccess = update_appointment_with_notes_vax(appointment, user, workstation_id,
+                                                         provider_update_appointment_request.injection_site,
+                                                         provider_update_appointment_request.no_adverse_reactions)
+            if usuccess:
+                create_consultation_note(user, appointment_id, provider_update_appointment_request.appointment_notes)
 
         if action == c.APPOINTMENT_ACTION_CHECK_IN:
             usuccess = update_appointment_with_checkin(appointment, user)
@@ -103,7 +113,7 @@ def bp_appointment_update(appointment_id: int, action: str, workstation_id: int,
             usuccess = __appointment_begin_test(user, appointment, workstation_id)
 
         elif action == c.APPOINTMENT_ACTION_SCAN_VIAL:
-            usuccess, reason_code = update_appointment_with_scan_vial(appointment, vial_id, user)
+            usuccess, reason_code = update_appointment_with_scan_vial(appointment, provider_update_appointment_request.vial_id, user)
             if not usuccess:
                 return {
                     c.STATUS: c.FAILED,
@@ -112,7 +122,7 @@ def bp_appointment_update(appointment_id: int, action: str, workstation_id: int,
 
 
         elif action == c.APPOINTMENT_ACTION_SCAN_VIAL_VAX:
-            usuccess = update_appointment_with_scan_vial_vax(appointment, vial_id, user)
+            usuccess = update_appointment_with_scan_vial_vax(appointment, provider_update_appointment_request.vial_id, user)
 
         elif action == c.APPOINTMENT_ACTION_END_TEST:
             usuccess = update_appointment_with_test_completed(appointment, user)
