@@ -30,6 +30,9 @@ from ggt.routers import (
 
 app_init()
 app = FastAPI(
+    title="GGT",
+    description="GGT API",
+    version="2.5.0",
     docs_url=cfg('docs.swagger_url'),
     redoc_url=cfg('docs.redoc_url')
 )

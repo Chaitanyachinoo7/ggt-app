@@ -165,8 +165,8 @@ def process_email_notifications():
 def formatted_email_message(row):
     from_email = cfg('notifications.from_email')
     from_name = cfg('notifications.from_name')
-    #subject = "IMPORTANT: {}, Important information regarding Covid-19 Testing".format(row['first_name'])
-    subject = "IMPORTANT: {}, Your Covid-19 Testing location has closed due to inclement weather".format(row['first_name'])
+    subject = "IMPORTANT: {}, Important information regarding Covid-19 Testing".format(row['first_name'])
+    #subject = "IMPORTANT: {}, Your Covid-19 Testing location has closed due to inclement weather".format(row['first_name'])
 
     template_vars = {
         "first_name": row['first_name']
@@ -185,6 +185,15 @@ def formatted_email_message(row):
     }
 
     return email_message
+
+
+def prepare_sms_text(appointment):
+    return """Hi {}, the location where you have registered for your COVID-19 test will be CLOSED the week of 02/08/2021 - 02/13/2021 due to inclement weather. We apologize for the inconvenience this might have caused. Please visit GoGetTested.com to register for a new appointment.
+    """.format(appointment["first_name"])
+
+    #return """Hi {}, due to inclement weather, we’ve had to delay opening the testing location where you have registered to 12 pm. This may change depending on the weather. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to register for a new appointment.
+    #""".format(appointment["first_name"])
+
 
 
 def batch_enqueue_email_notifications(data):
@@ -404,12 +413,23 @@ def get_appointments():
                 JOIN
             patients p ON a.patient_id = p.id
         WHERE
-            location_id IN (
-                2420,370,2422,2385,276,373,367,399,2414,2446,2447,2415,2423,2417,2448,2416,274,369, 372, 2421
-            )
-            AND scheduled_dt > '2021-01-27 00:00:00'
-            AND scheduled_dt < '2021-01-28 00:00:00'
-            AND status = 'scheduled'
+            location_id IN (2495 , 369,
+                2416,
+                2417,
+                371,
+                2447,
+                2414,
+                361,
+                2485,
+                399,
+                367,
+                372,
+                2385,
+                2422
+                )
+                AND scheduled_dt > '2021-02-08 00:00:00'
+                AND scheduled_dt < '2021-02-14 00:00:00'
+                AND status = 'scheduled'
         """
 
         return read_rows(sql)
@@ -418,12 +438,6 @@ def get_appointments():
         print(err)
 
 
-def prepare_sms_text(appointment):
-    #return """Hi {}, the testing location where you have registered will be closed on January 18th, 20th, and 21st. We apologize for the inconvenience this may cause. Please visit GoGetTested.com/Kansas to register for a new appointment.
-    #""".format(appointment["first_name"])
-
-    return """Hi {}, due to inclement weather, the location where you have registered for your COVID-19 test will be CLOSED. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to register for a new appointment.
-    """.format(appointment["first_name"])
 
 
 def sync_appointments_with_schedule_slots():

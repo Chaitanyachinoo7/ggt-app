@@ -372,9 +372,11 @@ def update_appointment_with_end_vax(appointment: GgtAppointment, user, workstati
                                        workstation_id=workstation_id)
 
 
-def update_appointment_with_notes_vax(appointment: GgtAppointment, user, workstation_id):
+def update_appointment_with_notes_vax(appointment: GgtAppointment, user, workstation_id, injection_site,
+                                      no_adverse_reactions):
     return __update_appointment_status(appointment, c.APPOINTMENT_ACTION_NOTES_VAX, user=user,
-                                       workstation_id=workstation_id)
+                                       workstation_id=workstation_id, injection_site=injection_site,
+                                       no_adverse_reactions=no_adverse_reactions)
 
 
 def update_appointment_with_test_start(user, appointment: GgtAppointment, workstation_id):
@@ -414,6 +416,23 @@ def get_service_type_by_appointment_id(appointment_id):
     vals = (appointment_id, )
     return replica_read_row(sql, vals)
 
+
+def create_consultation_note(user, appointment_id, appointment_notes):
+    provider_external_id = user['sub']
+    sql = """INSERT INTO `patient_consultations`
+                        (
+                        `provider_external_id`,
+                        `appointment_id`,
+                        `start_dt`,
+                        `end_dt`,
+                        `consultation_type_code`,
+                        `notes`
+                        )
+                    VALUES
+                        (%s, %s, NOW(), NOW(), %s, %s); """
+    vals = (provider_external_id, appointment_id, 'vax_consultation', appointment_notes)
+    return exec_insert(sql, vals)
+
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
@@ -440,7 +459,8 @@ def __get_mapped_dt_field(status: str) -> str:
     return dt_field
 
 
-def __update_appointment_status(appointment: GgtAppointment, status: str, vial_id: str = None, user=None, workstation_id=None):
+def __update_appointment_status(appointment: GgtAppointment, status: str, vial_id: str = None, user=None,
+                                workstation_id=None, injection_site=None, no_adverse_reactions=None):
     vial_id = None if vial_id == '' else vial_id
     usuccess = False
     reason_code = ''
@@ -481,17 +501,33 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
 
         else:
             #proceed with updating other info
-            sql = """
-                UPDATE appointments
-                SET
-                    {} = NOW(),
-                    update_dt = NOW(),
-                    status = %s
-                WHERE
-                    id = %s
-                """.format(__get_mapped_dt_field(status))
+            if injection_site and no_adverse_reactions:
+                sql = """
+                                UPDATE appointments
+                                SET
+                                    {} = NOW(),
+                                    update_dt = NOW(),
+                                    status = %s,
+                                    injection_site = %s,
+                                    no_adverse_reactions = %s
+                                WHERE
+                                    id = %s
+                                """.format(__get_mapped_dt_field(status))
+                vals = (status, injection_site, no_adverse_reactions, appointment.id)
 
-            vals = (status, appointment.id)
+            else:
+                sql = """
+                                UPDATE appointments
+                                SET
+                                    {} = NOW(),
+                                    update_dt = NOW(),
+                                    status = %s
+                                WHERE
+                                    id = %s
+                                """.format(__get_mapped_dt_field(status))
+
+                vals = (status, appointment.id)
+
 
         usuccess = exec_update(sql, vals)
         __create_provider_appointment_activity(user, appointment.id, whoami(), status, vial_id=vial_id, workstation_id=workstation_id)

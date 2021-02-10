@@ -333,6 +333,7 @@ class FinalizeGGVRegistrationRequest(BaseModel):
     groupCode: str = None
     phone_number: str = None
     token: str = None
+    verification_token: str = None
     ggd_waitlist: bool = True
     pre_register: bool = False
     isPatient: Optional[bool] = True
@@ -449,11 +450,22 @@ class SgrCategoryEnum(str, Enum):
     vax = 'vax'
 
 
+class InjectionSites(str, Enum):
+    left_arm = 'left_arm'
+    right_arm = 'right_arm'
+    left_thigh = 'left_thigh'
+    right_thigh = 'right_thigh'
+
+
 class ProviderUpdateAppointmentRequest(BaseModel):
     appointment_id: str = None
     action: str = None
     workstation_id: int = None
     vial_id: Optional[str] = None
+    insurance_photo: Optional[str] = None
+    appointment_notes: Optional[str] = None
+    injection_site: Optional[InjectionSites] = None
+    no_adverse_reactions: Optional[bool] = None
 
 
 class ProviderLookupAppointmentRequest(BaseModel):
@@ -829,6 +841,7 @@ class GgtDateTimeLocation(BaseModel):
 
 class GgtBooking(BaseModel):
     token: str = None
+    verification_token: str = None
     result_token: str = None
     gender: str = None
     dob: datetime.date = None
