@@ -172,8 +172,8 @@ def formatted_email_message(row):
         "first_name": row['first_name']
     }
 
-    template_name = 'GGT-14-APPOINTMENT-WEATHER-CLOSING-EMAIL.html'
-    #template_name = 'GGT-9-APPOINTMENT-DELAYED-EMAIL.html'
+    #template_name = 'GGT-14-APPOINTMENT-WEATHER-CLOSING-EMAIL.html'
+    template_name = 'GGT-9-APPOINTMENT-DELAYED-EMAIL.html'
     html_content = render_template(template_name, **template_vars)
 
     email_message = {
@@ -188,11 +188,11 @@ def formatted_email_message(row):
 
 
 def prepare_sms_text(appointment):
-    return """Hi {}, the location where you have registered for your COVID-19 test will be CLOSED the week of 02/08/2021 - 02/13/2021 due to inclement weather. We apologize for the inconvenience this might have caused. Please visit GoGetTested.com to register for a new appointment.
-    """.format(appointment["first_name"])
-
-    #return """Hi {}, due to inclement weather, we’ve had to delay opening the testing location where you have registered to 12 pm. This may change depending on the weather. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to register for a new appointment.
+    #return """Hi {}, the location where you have registered for your COVID-19 test will be CLOSED 02/10/2021 due to inclement weather. We apologize for the inconvenience this might have caused. Please visit GoGetTested.com to register for a new appointment.
     #""".format(appointment["first_name"])
+
+    return """Hi {}, due to inclement weather, we’ve had to delay opening the testing location where you have registered to 12 pm. This may change depending on the weather. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to register for a new appointment.
+    """.format(appointment["first_name"])
 
 
 
@@ -413,22 +413,11 @@ def get_appointments():
                 JOIN
             patients p ON a.patient_id = p.id
         WHERE
-            location_id IN (2495 , 369,
-                2416,
-                2417,
-                371,
-                2447,
-                2414,
-                361,
-                2485,
-                399,
-                367,
-                372,
-                2385,
-                2422
+            location_id IN (
+                66, 124, 318, 375, 266, 194, 222
                 )
-                AND scheduled_dt > '2021-02-08 00:00:00'
-                AND scheduled_dt < '2021-02-14 00:00:00'
+                AND scheduled_dt > '2021-02-10 00:00:00'
+                AND scheduled_dt < '2021-02-11 13:00:00'
                 AND status = 'scheduled'
         """
 

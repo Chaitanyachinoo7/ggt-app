@@ -701,6 +701,45 @@ def lower_first(iterator):
 
 
 #to be depricated
+
+
+def process_pdf_results_for_lab_ait():
+    print('process_pdf_results_for_lab_ait')
+    key_prefix = 'healthtrackrx/Reports/'
+    key_suffix = '.pdf'
+
+    for filename in get_file_iterator(bucket=lab_inbound_bucket, prefix=key_prefix, suffix=key_suffix):
+        lab_inbound_key = filename
+        lab_archive_key = lab_inbound_key
+
+        try:
+            requisition_id, order_number, test_result, test_status, labreport_filename = extract_report_info_ait(filename)
+            labreport_key = labreport_filename
+
+            if requisition_id is None:
+                print_warning('Invalid requisition_id.. skipping {}'.format(filename))
+                continue
+
+            add_to_inbound_data_table('healthtrackrx_inbound_data', requisition_id, order_number, test_result, test_status)
+
+            #is it a Rejected Sample? #is labreport in s3? #did labreport to copy to s3 successfully
+            archive = (test_result == 'Rejected') or \
+                file_exists(lab_inbound_bucket, labreport_key) or \
+                    copy_inbound_report_to_public_labreports_folder(lab_inbound_key, labreport_key) 
+                    
+            archive_inbound_file(archive, lab_inbound_key, lab_archive_key)
+
+        except Exception as err:
+            log_generic(
+                type=c.ERROR,
+                function=whoami(),
+                error=err
+            )
+
+
+
+
+
 '''
 def local_process_pdf_results_for_lab_ait():
     print('local_process_pdf_results_for_lab_ait')
@@ -801,41 +840,6 @@ def process_pdf_results_for_lab_mawd():
                 error=err
             )
 '''
-
-def process_pdf_results_for_lab_ait():
-    print('process_pdf_results_for_lab_ait')
-    key_prefix = 'healthtrackrx/Reports/'
-    key_suffix = '.pdf'
-
-    for filename in get_file_iterator(bucket=lab_inbound_bucket, prefix=key_prefix, suffix=key_suffix):
-        lab_inbound_key = filename
-        lab_archive_key = lab_inbound_key
-
-        try:
-            requisition_id, order_number, test_result, test_status, labreport_filename = extract_report_info_ait(filename)
-            labreport_key = labreport_filename
-
-            if requisition_id is None:
-                print_warning('Invalid requisition_id.. skipping {}'.format(filename))
-                continue
-
-            add_to_inbound_data_table('healthtrackrx_inbound_data', requisition_id, order_number, test_result, test_status)
-
-            #is it a Rejected Sample? #is labreport in s3? #did labreport to copy to s3 successfully
-            archive = (test_result == 'Rejected') or \
-                file_exists(lab_inbound_bucket, labreport_key) or \
-                    copy_inbound_report_to_public_labreports_folder(lab_inbound_key, labreport_key) 
-                    
-            archive_inbound_file(archive, lab_inbound_key, lab_archive_key)
-
-        except Exception as err:
-            log_generic(
-                type=c.ERROR,
-                function=whoami(),
-                error=err
-            )
-
-
 
 
 '''
