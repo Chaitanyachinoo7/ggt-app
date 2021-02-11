@@ -218,7 +218,7 @@ def preload_crl_rpt_data():
                             raise ValueError('Uknown result: {} / appointment_id {}'.format(r, _order_number))
 
                     result_cache[_order_number] = [_order_number, _requisition_id, _test_result, file_path]
-                    print(result_cache)
+                    print(_order_number, _requisition_id, _test_result, file_path)
                             
                 except Exception as err:
                     print_error('Error processing — {} — {}'.format(err, filename))
