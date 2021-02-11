@@ -1,26 +1,16 @@
-import os
-import os.path
-from os import path
-import glob
-import csv
 import datetime
 import time
-#import paramiko
-import itertools
-import shutil
-from pathlib import Path
-
 
 from ggt.lib.utils import (
     get_config_val as cfg,
     log_generic,
     generate_session_id,
     whoami,
-    print_header, 
-    print_ok1, 
-    print_ok2, 
-    print_warning, 
-    print_error, 
+    print_header,
+    print_ok1,
+    print_ok2,
+    print_warning,
+    print_error,
     print_progress_bar_message
 )
 
@@ -35,29 +25,13 @@ from ggt.lib.db import (
     replica_read_rows
 )
 
-from ggt.models.data_models.tasks_local_cache import (
-    init_local_cache,
-    add_to_lab_test_records_cache,
-    get_all_lab_records_from_cache,
-    add_to_all_inbound_files_cache,
-    file_exists_in_all_inbound_files_cache,
-    get_order_number_by_requisition_id,
-    add_to_files_in_remote_storage_cache,
-    file_exists_in_files_in_remote_storage_cache,
-    add_to_csv_pdf_sync_cache,
-    add_to_csv_pdf_sync_cache_v2,
-    add_to_lab_test_records_cache_v2
-)
-
 from ggt.lib.adapters.s3_adapter import (
-        move_file,
-        delete_file,
-        get_list_of_files, 
-        copy_file_from_s3_to_s3,
-        get_file_iterator,
-        file_exists,
-        read_file
-    )
+    move_file,
+    copy_file_from_s3_to_s3,
+    get_file_iterator,
+    file_exists,
+    read_file
+)
 
 import ggt.lib.constants as c
 
@@ -93,24 +67,13 @@ def task_process_inbound_lab_reports():
         task_session_id=session_id,
         info='Begin Processing Inbound Lab Reports')
 
-    process_pdf_results_for_lab(1) #AIT
-    process_pdf_results_for_lab(2) #MAWD
+    process_pdf_results_for_lab(1)  # AIT
+    process_pdf_results_for_lab(2)  # MAWD
     preload_crl_rpt_data()
-    process_pdf_results_for_lab(3) #CRL
-
-    #process_pdf_results_for_lab_ait()
-    #process_pdf_results_for_lab_mawd()
-    #process_results_for_lab_crl
-
-    #local_process_pdf_results_for_lab_ait()
-    #add_to_healthtrackrx_inbound_data_table()
-    '''
-    local_process_rpt_results_for_lab_crl() #part 1/2
-    local_process_pdf_results_for_lab_crl() #part 2/2
-    add_to_crl_inbound_data_table()
+    process_pdf_results_for_lab(3)  # CRL
 
     update_test_samples_with_results()
-    '''
+
     log_generic(
         type=c.INFO,
         function=whoami(),
@@ -120,19 +83,20 @@ def task_process_inbound_lab_reports():
     print_header(
         '\n\n****************** COMPLETED ******************************\nElapsed Time: {}\n'.format(time.time() - start))
 
+
 def process_pdf_results_for_lab(lab_id):
     print('process_pdf_results_for_lab #'+str(lab_id))
     key_suffix = '.pdf'
 
-    if lab_id == 1: #AIT
+    if lab_id == 1:  # AIT
         key_prefix = 'healthtrackrx/Reports/'
         table_name = 'healthtrackrx_inbound_data'
-    
-    elif lab_id == 2: #MAWD
+
+    elif lab_id == 2:  # MAWD
         key_prefix = 'mawdpath/prod/results/'
         table_name = 'mawdpath_inbound_data'
 
-    elif lab_id == 3: #CRL
+    elif lab_id == 3:  # CRL
         key_prefix = 'crllabs/prod/results/'
         table_name = 'crl_inbound_data'
         key_suffix = '.idx'
@@ -146,32 +110,40 @@ def process_pdf_results_for_lab(lab_id):
         lab_archive_key = lab_inbound_key
 
         try:
-            if lab_id == 1: #AIT
-                requisition_id, order_number, test_result, test_status, labreport_filename = extract_report_info_ait(filename)
-            elif lab_id == 2: #MAWD
-                requisition_id, order_number, test_result, test_status, labreport_filename = extract_report_info_mawd(filename)
-            elif lab_id == 3: #CRL
-                requisition_id, order_number, test_result, test_status, labreport_filename, original_labreport_filename = extract_report_info_crl(filename)
+            if lab_id == 1:  # AIT
+                requisition_id, order_number, test_result, test_status, labreport_filename = extract_report_info_ait(
+                    filename)
+            elif lab_id == 2:  # MAWD
+                requisition_id, order_number, test_result, test_status, labreport_filename = extract_report_info_mawd(
+                    filename)
+            elif lab_id == 3:  # CRL
+                requisition_id, order_number, test_result, test_status, labreport_filename, original_labreport_filename = extract_report_info_crl(
+                    filename)
             else:
                 raise ValueError('Unknown Lab')
 
             labreport_key = labreport_filename
 
             if requisition_id is None:
-                print_warning('Invalid requisition_id.. skipping {}'.format(filename))
+                print_warning(
+                    'Invalid requisition_id.. skipping {}'.format(filename))
                 continue
 
-            add_to_inbound_data_table(table_name, requisition_id, order_number, test_result, test_status)
+            add_to_inbound_data_table(
+                table_name, requisition_id, order_number, test_result, test_status)
 
-            #is it a Rejected Sample? #is labreport in s3? #did labreport to copy to s3 successfully
+            # is it a Rejected Sample? #is labreport in s3? #did labreport to copy to s3 successfully
             archive = (test_result == 'Rejected') or \
                 file_exists(lab_inbound_bucket, labreport_key) or \
-                    copy_inbound_report_to_public_labreports_folder(lab_inbound_key, labreport_key) 
-                    
-            archive_inbound_file(lab_id, archive, lab_inbound_key, lab_archive_key)
+                copy_inbound_report_to_public_labreports_folder(
+                    lab_inbound_key, labreport_key)
 
-            if lab_id == 3: #CRL
-                archive_inbound_file(lab_id, archive, original_labreport_filename, original_labreport_filename)
+            archive_inbound_file(
+                lab_id, archive, lab_inbound_key, lab_archive_key)
+
+            if lab_id == 3:  # CRL
+                archive_inbound_file(
+                    lab_id, archive, original_labreport_filename, original_labreport_filename)
 
         except Exception as err:
             log_generic(
@@ -195,15 +167,15 @@ def preload_crl_rpt_data():
             arr = file_path.split('/')
             filename = arr[len(arr)-1]
 
-            #is a folder name
+            # is a folder name
             if filename == '':
                 continue
 
-            #parse index file 
+            # parse index file
             for line in read_file(lab_inbound_bucket, file_path).splitlines():
                 line = line.decode("utf-8")
 
-                try:                        
+                try:
                     if line.startswith('PID'):
                         _requisition_id = line.split('|')[3]
                     elif line.startswith('OBR'):
@@ -214,20 +186,24 @@ def preload_crl_rpt_data():
                             _test_result = 'Negative'
                         elif r == 'DET':
                             _test_result = 'Positive'
+                        elif r == 'NSA':
+                            _test_result = 'Rejected'
+                        elif r == 'TNP':
+                            _test_result = 'Rejected'
                         else:
-                            raise ValueError('Uknown result: {} / appointment_id {}'.format(r, _order_number))
+                            raise ValueError(
+                                'Uknown result: {} / appointment_id {}'.format(r, _order_number))
 
-                    result_cache[_order_number] = [_order_number, _requisition_id, _test_result, file_path]
-                    print(_order_number, _requisition_id, _test_result, file_path)
-                            
                 except Exception as err:
-                    print_error('Error processing — {} — {}'.format(err, filename))
+                    print_error(
+                        'Error processing — {} — {}'.format(err, filename))
+
+            result_cache[_order_number] = [_order_number, _requisition_id, _test_result, file_path]
+            print(_order_number, _requisition_id, _test_result, file_path)
 
         except Exception as err:
-            print_error(err)    
+            print_error(err)
 
-
-        
 
 def add_to_inbound_data_table(table_name, requisition_id, order_number, test_result, test_status):
     if order_number:
@@ -247,7 +223,8 @@ def add_to_inbound_data_table(table_name, requisition_id, order_number, test_res
 
         vals = (requisition_id, order_number, test_status, test_result)
 
-        operation = 'requisition_id: {} order_number: {} test_status:{} test_result:{}'.format(requisition_id, order_number, test_status, test_result)
+        operation = 'requisition_id: {} order_number: {} test_status:{} test_result:{}'.format(
+            requisition_id, order_number, test_status, test_result)
         res = exec_insert(sql, vals)
         if res > 0:
             print_ok2('Insert SUCCESS for ' + operation)
@@ -261,16 +238,19 @@ def add_to_inbound_data_table(table_name, requisition_id, order_number, test_res
 
 
 def copy_inbound_report_to_public_labreports_folder(lab_inbound_key, labreport_key):
-    #copy labreport to s3
+    # copy labreport to s3
     if file_exists(labreport_bucket, labreport_key):
-        print_ok2('Report already exists, s3 copy SKIPPED for {}/{} ==> {}/{}'.format(lab_inbound_bucket, lab_inbound_key, labreport_bucket, labreport_key))
+        print_ok2('Report already exists, s3 copy SKIPPED for {}/{} ==> {}/{}'.format(
+            lab_inbound_bucket, lab_inbound_key, labreport_bucket, labreport_key))
         return True
 
     if copy_file_from_s3_to_s3(lab_inbound_bucket, lab_inbound_key, labreport_bucket, labreport_key):
-        print_ok2('s3 copy success for {}/{} ==> {}/{}'.format(lab_inbound_bucket, lab_inbound_key, labreport_bucket, labreport_key))
+        print_ok2('s3 copy success for {}/{} ==> {}/{}'.format(lab_inbound_bucket,
+                                                               lab_inbound_key, labreport_bucket, labreport_key))
         return True
     else:
-        print_error('s3 copy failed for {}/{} ==> {}/{}'.format(lab_inbound_bucket, lab_inbound_key, labreport_bucket, labreport_key))
+        print_error('s3 copy failed for {}/{} ==> {}/{}'.format(lab_inbound_bucket,
+                                                                lab_inbound_key, labreport_bucket, labreport_key))
         return False
 
 
@@ -286,21 +266,23 @@ def archive_inbound_file(lab_id, archive, lab_inbound_key, lab_archive_key):
         """
         vals = (lab_inbound_key, lab_id)
         if exec_insert(sql, vals):
-            #prevent override of previous file, add dt suffix
+            # prevent override of previous file, add dt suffix
             if file_exists(lab_archive_bucket, lab_archive_key):
-                lab_archive_key = lab_archive_key.replace('.', '-{}.'.format(datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S"))) 
+                lab_archive_key = lab_archive_key.replace(
+                    '.', '-{}.'.format(datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S")))
 
-            print_ok1('archiving {}/{} ==> {}/{}'.format(lab_inbound_bucket, lab_inbound_key, lab_archive_bucket, lab_archive_key))
-            move_file(lab_inbound_bucket, lab_inbound_key, lab_archive_bucket, lab_archive_key)
+            print_ok1('archiving {}/{} ==> {}/{}'.format(lab_inbound_bucket,
+                                                         lab_inbound_key, lab_archive_bucket, lab_archive_key))
+            move_file(lab_inbound_bucket, lab_inbound_key,
+                      lab_archive_bucket, lab_archive_key)
         else:
-            print_error('Skipping Archiving, Insert FAILED while adding to Processed Files >> ' + lab_inbound_key)
+            print_error(
+                'Skipping Archiving, Insert FAILED while adding to Processed Files >> ' + lab_inbound_key)
 
-        
 
-
-#'ggt-tasks/downloads/healthtrackrx/Reports/3561603_967995_Negative.pdf'
-#'ggt-tasks/downloads/healthtrackrx/Reports/3560192_962060_Positive.pdf'
-#'ggt-tasks/downloads/healthtrackrx/Reports/3553760__Rejected.pdf'
+# 'ggt-tasks/downloads/healthtrackrx/Reports/3561603_967995_Negative.pdf'
+# 'ggt-tasks/downloads/healthtrackrx/Reports/3560192_962060_Positive.pdf'
+# 'ggt-tasks/downloads/healthtrackrx/Reports/3553760__Rejected.pdf'
 def extract_report_info_ait(file_path):
     filename = None
     requisition_id = None
@@ -312,11 +294,11 @@ def extract_report_info_ait(file_path):
         arr = file_path.split('/')
         filename = arr[len(arr)-1]
 
-        #ignore old format reports
+        # ignore old format reports
         if filename.startswith('Final-Report') or filename.startswith('requisitionReport') or filename.startswith('Preliminary-Report'):
             return requisition_id, order_number, test_result, test_status, filename
 
-        filename_vars = filename.replace('.pdf','').split('_')
+        filename_vars = filename.replace('.pdf', '').split('_')
         requisition_id = filename_vars[0]
         order_number = filename_vars[1]
         test_result = filename_vars[2]
@@ -329,7 +311,7 @@ def extract_report_info_ait(file_path):
             #filename = ''
             test_status = 'Rejected'
         else:
-            test_status =  None
+            test_status = None
 
         return requisition_id, order_number, test_result, test_status, filename
 
@@ -348,30 +330,31 @@ def extract_report_info_mawd(file_path):
         arr = file_path.split('/')
         filename = arr[len(arr)-1]
 
-        #is a folder name
+        # is a folder name
         if filename == '':
             return vial_id, order_number, test_result, test_status, filename
 
-        filename_vars = filename.replace('.pdf','').split('_')
+        filename_vars = filename.replace('.pdf', '').split('_')
 
         file_version = 2
         try:
-            report_type = filename_vars[3] #C for Correction, F for Final
+            report_type = filename_vars[3]  # C for Correction, F for Final
         except Exception as err:
             print_warning('using file version 1 (old naming format)')
-            file_version = 1 
-
+            file_version = 1
 
         if file_version == 1:
             order_number = filename_vars[0]
-            vial_id = filename_vars[1] #This is actually the MAWD accession number
+            # This is actually the MAWD accession number
+            vial_id = filename_vars[1]
             test_result = filename_vars[2]
         else:
             order_number = filename_vars[1]
-            vial_id = filename_vars[0] #This is actually the MAWD accession number
+            # This is actually the MAWD accession number
+            vial_id = filename_vars[0]
             test_result = filename_vars[2]
 
-        #is a Rejected specimen
+        # is a Rejected specimen
         if 'SPECIMEN_UNACCEPTABLE' in filename:
             test_status = 'Rejected'
             test_result = 'Rejected'
@@ -384,12 +367,13 @@ def extract_report_info_mawd(file_path):
             test_result = 'Positive'
             filename = '{}.pdf'.format(order_number)
         else:
-            test_status =  None
+            test_status = None
 
         return vial_id, order_number, test_result, test_status, filename
 
     except Exception as err:
         print_error(err)
+
 
 '''
 NAME=JONES, JAYE?SON 
@@ -407,24 +391,24 @@ REPORT_CLASS=NONN
 CONTACT_ID=ZSKFTP1
 REASON_TYPE=NS
 '''
+
+
 def extract_report_info_crl(file_path):
     filename = None
-    vial_id = None
+    requisition_id = None
     order_number = None
     test_result = None
     test_status = None
-
-    requisition_id = None
 
     try:
         arr = file_path.split('/')
         filename = arr[len(arr)-1]
 
-        #is a folder name
+        # is a folder name
         if filename == '':
             return requisition_id, order_number, test_result, test_status, filename
 
-        #parse index file 
+        # parse index file
         for line in read_file(lab_inbound_bucket, file_path).splitlines():
             line = line.decode("utf-8")
 
@@ -440,38 +424,26 @@ def extract_report_info_crl(file_path):
         if not (pdf_filename and order_number and requisition_id):
             raise ValueError('Invalid Data')
 
-        pdf_file_path = '{}{}'.format(file_path.replace(filename, ''), pdf_filename)
+        pdf_file_path = '{}{}'.format(
+            file_path.replace(filename, ''), pdf_filename)
+        filename = '{}.pdf'.format(order_number)
 
         #result_cache[_order_number] = [_order_number, _requisition_id, _test_result, file_path]
         test_result = result_cache[order_number][2]
-        test_status = 'Approved'
-        filename = '{}.pdf'.format(order_number)
+        if test_result == 'Rejected':
+            test_status = 'Rejected'
+        else:
+            test_status = 'Approved'
 
-        #Archive the RPT file
+        # Archive the RPT file
         lab_inbound_key = result_cache[order_number][3]
         lab_archive_key = lab_inbound_key
         archive_inbound_file(3, True, lab_inbound_key, lab_archive_key)
-        
+
         return requisition_id, order_number, test_result, test_status, filename, pdf_file_path
-        
 
     except Exception as err:
         print_error(err)
-
-def add_to_crl_inbound_data_table():
-    print('syncing cached crl_inbound_data to remote DB')
-    rows = get_all_lab_records_from_cache('CRL')
-    try:
-        sql = """
-            INSERT INTO crl_inbound_data
-                (requisition_id, order_number, first_name, last_name, dob, assay_name, status, result)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
-            ON DUPLICATE KEY UPDATE requisition_id=requisition_id
-        """
-        exec_batch_execute(sql, rows)
-
-    except Exception as err:
-        print_error('Critical ERROR: {}'.format(err))
 
 
 def update_test_samples_with_results():
@@ -565,8 +537,23 @@ def extract_filename(file_path):
     return filename
 
 
+# soon to be depricated
+'''
+def add_to_crl_inbound_data_table():
+    print('syncing cached crl_inbound_data to remote DB')
+    rows = get_all_lab_records_from_cache('CRL')
+    try:
+        sql = """
+            INSERT INTO crl_inbound_data
+                (requisition_id, order_number, first_name, last_name, dob, assay_name, status, result)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+            ON DUPLICATE KEY UPDATE requisition_id=requisition_id
+        """
+        exec_batch_execute(sql, rows)
 
-#soon to be depricated
+    except Exception as err:
+        print_error('Critical ERROR: {}'.format(err))
+
 def process_results_for_lab_crl():
     print('process_results_for_lab_crl')
 
@@ -821,8 +808,9 @@ def local_process_pdf_results_for_lab_crl():
     except Exception as err:
         print_error(err)
 
-
-#to be depricated
+'''
+# to be depricated
+'''
 def process_pdf_results_for_lab_ait():
     print('process_pdf_results_for_lab_ait')
     key_prefix = 'healthtrackrx/Reports/'
@@ -855,7 +843,7 @@ def process_pdf_results_for_lab_ait():
                 function=whoami(),
                 error=err
             )
-
+'''
 
 '''
 def lower_first(iterator):
@@ -1128,8 +1116,6 @@ def upload_all_inbound_files_to_central_storage():
     except Exception as err:
         print(err)
 '''
-
-
 
 
 '''
