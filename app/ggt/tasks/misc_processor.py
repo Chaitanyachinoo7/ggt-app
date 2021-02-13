@@ -54,7 +54,7 @@ def task_process_misc():
         task_session_id=session_id,
         info='Begin Processing Misc Task')
 
-    process_bcg_locations_file()
+    #process_bcg_locations_file()
     #process_mx_locations_file()
     #update_schedules()
 
@@ -63,8 +63,8 @@ def task_process_misc():
     # upload_insurance_images_to_gcp_with_small_table()
     #process_email_notifications()
     #upload_insurance_files_from_gstore()
-    #process_sms_notifications()
-    #process_email_notifications()
+    process_sms_notifications()
+    process_email_notifications()
 
     log_generic(
         type=c.INFO,
@@ -418,10 +418,10 @@ def get_appointments():
             patients p ON a.patient_id = p.id
         WHERE
             location_id IN (
-                7, 66, 28, 94, 2488, 2489, 2490, 2891, 144, 172, 194, 180, 222, 226, 48, 218, 248, 258, 262, 266, 78, 318, 375, 2496, 124
+                2497
                 )
-                AND scheduled_dt > '2021-02-12 00:00:00'
-                AND scheduled_dt < '2021-02-17 00:00:00'
+                AND scheduled_dt > '2021-02-13 00:00:00'
+                AND scheduled_dt < '2021-02-14 00:00:00'
                 AND status = 'scheduled'
         """
 
