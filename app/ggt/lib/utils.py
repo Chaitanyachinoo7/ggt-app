@@ -154,7 +154,7 @@ def init_cloud_profiler():
         logging.error(exc)
 
 
-def x_response(res, allow=True):
+def x_response(res, allow=True, reason_code=None):
     try:
         if allow and res:
             if is_failure_response_with_reason(res):

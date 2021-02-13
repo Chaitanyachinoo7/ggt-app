@@ -415,7 +415,7 @@ class FinalizeGGVPreRegistrationRequest(BaseModel):
     timeSlot: Optional[int] = None
     hasInsurance: Optional[bool] = None
     forceFinish: Optional[bool] = None
-
+    covid19vaxScreening: Optional[Covid19vaxScreening] = None
 
 
 class PhoneData(BaseModel):
@@ -457,11 +457,22 @@ class InjectionSites(str, Enum):
     right_thigh = 'right_thigh'
 
 
+class VialElements(BaseModel):
+    lot_no: str
+    expiration_date: str
+    gtin: str
+
+
+class VialData(BaseModel):
+    vial_id: str
+    elements: Optional[VialElements] = None
+
+
 class ProviderUpdateAppointmentRequest(BaseModel):
     appointment_id: str = None
     action: str = None
     workstation_id: int = None
-    vial_id: Optional[str] = None
+    vial_data: Optional[VialData] = None
     insurance_photo: Optional[str] = None
     appointment_notes: Optional[str] = None
     injection_site: Optional[InjectionSites] = None
@@ -999,6 +1010,7 @@ class GgtAppointment(BaseModel):
     location: GgtLocation = GgtLocation()
 
     status: str = None
+    org_name: str = None
 
 
 class GgtTestSample(BaseModel):
