@@ -415,7 +415,7 @@ class FinalizeGGVPreRegistrationRequest(BaseModel):
     timeSlot: Optional[int] = None
     hasInsurance: Optional[bool] = None
     forceFinish: Optional[bool] = None
-
+    covid19vaxScreening: Optional[Covid19vaxScreening] = None
 
 
 class PhoneData(BaseModel):
@@ -1010,6 +1010,7 @@ class GgtAppointment(BaseModel):
     location: GgtLocation = GgtLocation()
 
     status: str = None
+    org_name: str = None
 
 
 class GgtTestSample(BaseModel):
