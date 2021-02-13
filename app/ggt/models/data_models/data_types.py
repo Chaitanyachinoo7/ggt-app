@@ -415,7 +415,7 @@ class FinalizeGGVPreRegistrationRequest(BaseModel):
     timeSlot: Optional[int] = None
     hasInsurance: Optional[bool] = None
     forceFinish: Optional[bool] = None
-
+    covid19vaxScreening: Optional[Covid19vaxScreening] = None
 
 
 class PhoneData(BaseModel):
