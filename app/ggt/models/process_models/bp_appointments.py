@@ -55,6 +55,7 @@ def bp_get_appointment_info(appointment_id, dob):
         else:
             return {
                 "appointment_id": appointment.id,
+                "org_name": appointment.org_name,
                 "date": __formatted_date_text(appointment),
                 "location": __formatted_location_text(appointment),
                 "patient_dob": __formatted_patient_dob(appointment),

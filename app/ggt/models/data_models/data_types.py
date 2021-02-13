@@ -1010,6 +1010,7 @@ class GgtAppointment(BaseModel):
     location: GgtLocation = GgtLocation()
 
     status: str = None
+    org_name: str = None
 
 
 class GgtTestSample(BaseModel):

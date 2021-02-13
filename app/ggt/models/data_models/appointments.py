@@ -145,7 +145,8 @@ def get_appointment(appointment_id: int) -> GgtAppointment:
             p.token,
             p.result_token,
             GROUP_CONCAT(c.service_code) as service_codes,
-            GROUP_CONCAT(s.service_description) as service_descriptions
+            GROUP_CONCAT(s.service_description) as service_descriptions,
+            org.name as org_name
         FROM
             appointments a
                 JOIN
@@ -156,6 +157,8 @@ def get_appointment(appointment_id: int) -> GgtAppointment:
             appointment_services s ON (s.appointment_id = a.id)
                 LEFT JOIN
             services_catalog c ON (c.id = s.service_id)
+				LEFT JOIN
+			organizations org ON org.id = l.org_id
         WHERE
                 a.id = %s
         """
@@ -627,6 +630,7 @@ def __map_row_to_appointment(row: dict) -> GgtAppointment:
         a = GgtAppointment()
         a.id = row['id']
         a.location_id = row['location_id']
+        a.org_name = row['org_name']
         a.scheduled_dt = row['scheduled_dt']
         a.group_code = row['group_code']
         a.patient_id = row['patient_id']
