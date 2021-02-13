@@ -113,16 +113,21 @@ def bp_appointment_update(provider_update_appointment_request, user):
             usuccess = __appointment_begin_test(user, appointment, workstation_id)
 
         elif action == c.APPOINTMENT_ACTION_SCAN_VIAL:
-            usuccess, reason_code = update_appointment_with_scan_vial(appointment, provider_update_appointment_request.vial_id, user)
+            usuccess, reason_code = update_appointment_with_scan_vial(appointment, provider_update_appointment_request.vial_data.vial_id, user)
             if not usuccess:
                 return {
                     c.STATUS: c.FAILED,
                     c.REASON_CODE: reason_code
                 }
 
-
         elif action == c.APPOINTMENT_ACTION_SCAN_VIAL_VAX:
-            usuccess = update_appointment_with_scan_vial_vax(appointment, provider_update_appointment_request.vial_id, user)
+            usuccess, reason_code = update_appointment_with_scan_vial_vax(appointment, provider_update_appointment_request.vial_data,
+                                                             user)
+            if not usuccess:
+                return {
+                    c.STATUS: c.FAILED,
+                    c.REASON_CODE: reason_code
+                }
 
         elif action == c.APPOINTMENT_ACTION_END_TEST:
             usuccess = update_appointment_with_test_completed(appointment, user)
