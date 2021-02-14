@@ -43,9 +43,9 @@ from ggt.models.process_models.bp_patient_experience import __save_insurance_ima
 
 
 @cached(cache=TTLCache(maxsize=1024, ttl=30))
-def bp_get_appointment_info(appointment_id, dob):
+def bp_get_appointment_info(appointment_id, dob, org_id=None):
     try:
-        appointment: GgtAppointment = get_appointment(appointment_id)
+        appointment: GgtAppointment = get_appointment(appointment_id, org_id=org_id)
         if dob != 'allowdoboverride' and appointment.patient.dob.strftime("%Y%m%d") != dob:
             raise ValueError('Invalid Appointment and DOB')
 
