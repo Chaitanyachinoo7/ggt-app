@@ -27,7 +27,7 @@ from ggt.lib.db import (
 def create_test_sample_from_appointment(appointment_id):
     try:
         sql = """
-            INSERT ignore INTO test_samples
+            INSERT INTO test_samples
             (   
                 id,
                 appointment_id,
@@ -54,7 +54,18 @@ def create_test_sample_from_appointment(appointment_id):
             FROM
                 appointments
             WHERE
-            id = %s;
+            id = %s
+            
+            ON DUPLICATE KEY 
+	        UPDATE 
+                group_code = VALUES(group_code),
+                patient_id = VALUES(patient_id),
+                vial_id = VALUES(vial_id),
+                patient_questionnaire_id = VALUES(patient_questionnaire_id),
+                sample_collection_location_id = VALUES(sample_collection_location_id),
+                sample_collection_start_dt = VALUES(sample_collection_start_dt),
+                sample_collection_end_dt = VALUES(sample_collection_end_dt),
+                status = VALUES(status)
         """
         vals = (appointment_id,)
         return exec_insert(sql, vals)

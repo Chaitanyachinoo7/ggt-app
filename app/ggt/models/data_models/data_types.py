@@ -318,10 +318,22 @@ class InsuranceVerification(BaseModel):
     payer: Payer = None
 
 
+class Covid19vaxScreening(BaseModel):
+    allergies: bool = False
+    serious_reaction: bool = False
+    long_term_health: bool = False
+    immune_system: bool = False
+    immune_system_medications: bool = False
+    nervous_system: bool = False
+    blood_transfusion: bool = False
+    recent_vaccinations: bool = False
+
+
 class FinalizeGGVRegistrationRequest(BaseModel):
     groupCode: str = None
     phone_number: str = None
     token: str = None
+    verification_token: str = None
     ggd_waitlist: bool = True
     pre_register: bool = False
     isPatient: Optional[bool] = True
@@ -360,6 +372,7 @@ class FinalizeGGVRegistrationRequest(BaseModel):
     forceFinish: Optional[bool] = None
     appointmentOneTime: int
     appointmentTwoTime: int
+    covid19vaxScreening: Optional[Covid19vaxScreening] = None
 
 
 class FinalizeGGVPreRegistrationRequest(BaseModel):
@@ -402,7 +415,7 @@ class FinalizeGGVPreRegistrationRequest(BaseModel):
     timeSlot: Optional[int] = None
     hasInsurance: Optional[bool] = None
     forceFinish: Optional[bool] = None
-
+    covid19vaxScreening: Optional[Covid19vaxScreening] = None
 
 class PhoneData(BaseModel):
     cellphone: str = None
@@ -436,11 +449,33 @@ class SgrCategoryEnum(str, Enum):
     vax = 'vax'
 
 
+class InjectionSites(str, Enum):
+    left_arm = 'left_arm'
+    right_arm = 'right_arm'
+    left_thigh = 'left_thigh'
+    right_thigh = 'right_thigh'
+
+
+class VialElements(BaseModel):
+    lot_no: str
+    expiration_date: str
+    gtin: str
+
+
+class VialData(BaseModel):
+    vial_id: str
+    elements: Optional[VialElements] = None
+
+
 class ProviderUpdateAppointmentRequest(BaseModel):
     appointment_id: str = None
     action: str = None
     workstation_id: int = None
-    vial_id: Optional[str] = None
+    vial_data: Optional[VialData] = None
+    insurance_photo: Optional[str] = None
+    appointment_notes: Optional[str] = None
+    injection_site: Optional[InjectionSites] = None
+    no_adverse_reactions: Optional[bool] = None
 
 
 class ProviderLookupAppointmentRequest(BaseModel):
@@ -820,6 +855,7 @@ class GgtDateTimeLocation(BaseModel):
 
 class GgtBooking(BaseModel):
     token: str = None
+    verification_token: str = None
     result_token: str = None
     gender: str = None
     dob: datetime.date = None
@@ -839,6 +875,15 @@ class GgtBooking(BaseModel):
 
     is_patient: bool = True
     group_code: str = None
+
+    serious_reaction: bool = False
+    ggv_allergies: bool = False
+    long_term_health: bool = False
+    immune_system: bool = False
+    immune_system_medications: bool = False
+    nervous_system: bool = False
+    blood_transfusion: bool = False
+    recent_vaccinations: bool = False
 
     symptom_fever: bool = False
     symptom_shortbreath: bool = False
@@ -970,6 +1015,7 @@ class GgtAppointment(BaseModel):
     location: GgtLocation = GgtLocation()
 
     status: str = None
+    org_name: str = None
 
 
 class GgtTestSample(BaseModel):

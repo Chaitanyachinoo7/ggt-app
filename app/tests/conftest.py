@@ -30,7 +30,7 @@ def cleanup_db():
         pytest.exit('NOT A TEST ENVIRONMENT')
     tables = ['locations', 'groups', 'schedules', 'appointments', 'group_codes_to_locations_mapping',
             'patients', 'test_samples', 'states', 'services_catalog', 'services_to_locations_mapping', 'schedule_generation_rules',
-            'workstations', 'users', 'insurance_info', 'appointment_services', 'organizations',
+            'workstations', 'users', 'insurance_info', 'appointment_services', 'organizations', 'organization_requests',
               'patient_questionnaires', 'locations_metrics_cache', 'schedules_metrics_cache', 'patient_consultations',
               'group_codes_to_locations_mapping', 'ggt_users', 'result_notification_campaigns', 'patient_questionnaires']
     for table in tables[::-1]:

@@ -104,13 +104,16 @@ def bp_get_ggv_screen_flow_seq(group_code: str):
                 "required": req
             }
 
-    if group_info.display_group_consent:
+    # TODO: Move hardcoded provider name and intro_text to DB, remove OR True
+    if group_info.display_group_consent or True:
         config = {
             "consent-provider": {
                 "content": {
                     "logo": [group_info.logo_1, group_info.logo_2],
-                    "intro_text": group_info.intro_text,
-                    "provider_name": group_info.consent_party_name,
+                    "intro_text": "I understand that, by granting the consent below, I am authorizing retention of my (or my child's) disaster-related information by DSHS beyond the 5 year retention period. I further understand that DSHS will include this information in the state's central immunization registry (ImmTrac2). Once in ImmTrac2, my (or my child's) disaster-related information may by law be accessed by: a state agency, for the purpose of aiding and coordinating communicable disease prevention and control efforts, and / or; a physician or other health-care provider legally authorized to administer immunizations, antivirals, and other medications, for treating the client as a patient; I understand that I may withdraw this consent to retain information in the ImmTrac2 Registry beyond the 5 year retention period and my consent to release information from the Registry, at any time by written communication to the Texas Department of State Health Services, ImmTrac2 Group – MC 1946, P. O. Box 149347, Austin, Texas 78714-9347. By my signature below, I GRANT consent to retain my disaster-related information (or my child's information if younger than age 18) in the Texas Immunization registry beyond the 5 year retention period.",
+                    # "intro_text": group_info.intro_text,
+                    "provider_name": "Texas Immtrac2",
+                    # "provider_name": group_info.consent_party_name,
                     "consent_url": group_info.consent_url if (group_info.consent_url and group_info.consent_url != '') else None,
                     "additional_fields": group_info.additional_fields
                 }
@@ -378,9 +381,9 @@ def bp_ggv_finalize_booking(booking_req: GgtBooking):
             update_appointment_with_confirmed_scheduled(appointment_1)
             update_appointment_with_confirmed_scheduled(appointment_2)
             __send_ggv_qrcode_sms(appointment_1, "1")
-            __send_qrcode_email(appointment_1)
+            __send_ggv_qrcode_email(appointment_1)
             __send_ggv_qrcode_sms(appointment_2, "2")
-            __send_qrcode_email(appointment_2)
+            __send_ggv_qrcode_email(appointment_2)
 
     except Exception as err:
         status_message = str(err)
@@ -683,14 +686,16 @@ def __send_ggv_qrcode_sms(appointment: GgtAppointment, dose):
     try:
         message = "Hi {} " \
                   "\nYour COVID-19 Vaccine Dose {} of 2 appointment is confirmed for {} at {}." \
-                  " Details at {}/provider/.  " \
+                  " Details at {}/appointment/{}/{}.  " \
                   "Please arrive at least 15 minutes prior to your appointment with an acceptable ID. " \
                   "\nReply Stop to cxl msgs".format(
                 appointment.patient.first_name,
                 dose,
                 appointment.date_text,
                 appointment.location_text,
-                cfg('base_url')
+                "https://ggv.gogettested.com",
+                appointment.id,
+                appointment.patient.dob.strftime('%Y%m%d')
             )
         send_sms(appointment.patient.phone_number,
                             message.replace('\t', ''))
@@ -741,6 +746,57 @@ def __send_qrcode_email(appointment: GgtAppointment):
         )
 
         template_name = cfg('notifications.confirmation_template')
+        html_content = render_template(
+            template_name,
+            **template_vars
+        )
+
+        send_email(
+            from_email,
+            from_name,
+            appointment.patient.email,
+            subject,
+            html_content
+        )
+
+        return True
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            appointment=appointment,
+            function=whoami(),
+            error=err
+        )
+
+    return False
+
+
+def __send_ggv_qrcode_email(appointment: GgtAppointment):
+    try:
+        from_email = cfg('notifications.from_email')
+        from_name = cfg('notifications.from_name')
+
+        template_vars = {
+            "first_name": appointment.patient.first_name,
+            "date_text": appointment.date_text,
+            "location_text": appointment.location_text,
+            "base_url": "https://ggv.gogettested.com",
+            "appointment_id": appointment.id,
+            "dob": appointment.patient.dob.strftime('%Y%m%d'),
+            "appointment_url": '{}/appointment/{}/{}'.format(
+                "https://ggv.gogettested.com",
+                appointment.id,
+                appointment.patient.dob.strftime('%Y%m%d')
+            )
+        }
+
+        subject = render_from_string(
+            cfg('notifications.confirmation_subject_ggv'),
+            **template_vars
+        )
+
+        template_name = cfg('notifications.confirmation_template_ggv')
         html_content = render_template(
             template_name,
             **template_vars

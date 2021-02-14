@@ -160,6 +160,28 @@ async def api_site_admin_general_search(portal_general_search_request: PortalGen
     )
 
 
+@router.post("/site-admin/m_to_m/general_search")
+async def api_site_admin_general_search(portal_general_search_request: PortalGeneralSearchRequest,
+                                        user=Security(authorize_user, scopes=[p.GENERAL_SEARCH])):
+    return site_admin_general_search(
+        user,
+        portal_general_search_request.first_name,
+        portal_general_search_request.middle_name,
+        portal_general_search_request.last_name,
+        portal_general_search_request.dob,
+        portal_general_search_request.phone_number,
+        portal_general_search_request.email,
+        portal_general_search_request.appointment_id,
+        portal_general_search_request.group_code,
+        portal_general_search_request.appointment_date,
+        portal_general_search_request.location_id,
+        portal_general_search_request.vial_id,
+        portal_general_search_request.sort_field,
+        portal_general_search_request.sort_type,
+        is_patient=True
+    )
+
+
 @router.get("/site-admin/generate_schedule/{location_id}", dependencies=[Security(authorize_user, scopes=[p.GENERATE_SCHEDULE])])
 async def api_generate_schedule(location_id: str, background_tasks: BackgroundTasks):
     background_tasks.add_task(generate_schedule, location_id)

@@ -145,7 +145,8 @@ def get_appointment(appointment_id: int) -> GgtAppointment:
             p.token,
             p.result_token,
             GROUP_CONCAT(c.service_code) as service_codes,
-            GROUP_CONCAT(s.service_description) as service_descriptions
+            GROUP_CONCAT(s.service_description) as service_descriptions,
+            org.name as org_name
         FROM
             appointments a
                 JOIN
@@ -156,6 +157,8 @@ def get_appointment(appointment_id: int) -> GgtAppointment:
             appointment_services s ON (s.appointment_id = a.id)
                 LEFT JOIN
             services_catalog c ON (c.id = s.service_id)
+				LEFT JOIN
+			organizations org ON org.id = l.org_id
         WHERE
                 a.id = %s
         """
@@ -372,9 +375,11 @@ def update_appointment_with_end_vax(appointment: GgtAppointment, user, workstati
                                        workstation_id=workstation_id)
 
 
-def update_appointment_with_notes_vax(appointment: GgtAppointment, user, workstation_id):
+def update_appointment_with_notes_vax(appointment: GgtAppointment, user, workstation_id, injection_site,
+                                      no_adverse_reactions):
     return __update_appointment_status(appointment, c.APPOINTMENT_ACTION_NOTES_VAX, user=user,
-                                       workstation_id=workstation_id)
+                                       workstation_id=workstation_id, injection_site=injection_site,
+                                       no_adverse_reactions=no_adverse_reactions)
 
 
 def update_appointment_with_test_start(user, appointment: GgtAppointment, workstation_id):
@@ -386,8 +391,14 @@ def update_appointment_with_scan_vial(appointment: GgtAppointment, vial_id: str,
     return __update_appointment_status(appointment, c.APPOINTMENT_STATUS_VIAL_SCANNED, vial_id, user=user)
 
 
-def update_appointment_with_scan_vial_vax(appointment: GgtAppointment, vial_id: str, user):
-    return __update_appointment_status(appointment, c.APPOINTMENT_ACTION_SCAN_VIAL_VAX, vial_id, user=user)
+def update_appointment_with_scan_vial_vax(appointment: GgtAppointment, vial_data, user):
+    return __update_appointment_status(appointment, c.APPOINTMENT_ACTION_SCAN_VIAL_VAX,
+                                       vial_id=vial_data.vial_id,
+                                       user=user,
+                                       lot_no=vial_data.elements.lot_no,
+                                       expiration_date=vial_data.elements.expiration_date,
+                                       gtin=vial_data.elements.gtin
+                                       )
 
 
 def update_appointment_with_test_completed(appointment: GgtAppointment, user):
@@ -413,6 +424,23 @@ def get_service_type_by_appointment_id(appointment_id):
                     a.id = %s"""
     vals = (appointment_id, )
     return replica_read_row(sql, vals)
+
+
+def create_consultation_note(user, appointment_id, appointment_notes):
+    provider_external_id = user['sub']
+    sql = """INSERT INTO `patient_consultations`
+                        (
+                        `provider_external_id`,
+                        `appointment_id`,
+                        `start_dt`,
+                        `end_dt`,
+                        `consultation_type_code`,
+                        `notes`
+                        )
+                    VALUES
+                        (%s, %s, NOW(), NOW(), %s, %s); """
+    vals = (provider_external_id, appointment_id, 'vax_consultation', appointment_notes)
+    return exec_insert(sql, vals)
 
 ########################################################################################################
 # [Protected] functions
@@ -440,15 +468,19 @@ def __get_mapped_dt_field(status: str) -> str:
     return dt_field
 
 
-def __update_appointment_status(appointment: GgtAppointment, status: str, vial_id: str = None, user=None, workstation_id=None):
+def __update_appointment_status(appointment: GgtAppointment, status: str, vial_id: str = None, user=None,
+                                workstation_id=None, injection_site=None, no_adverse_reactions=None, lot_no=None, expiration_date=None,
+                                gtin=None):
     vial_id = None if vial_id == '' else vial_id
     usuccess = False
+    reason_code = ''
 
     try:
         # Check if a vial has already been assigned, if so, don't allow update to proceed
         if appointment.vial_id and vial_id:
             print('vial has already been assigned')
-            return usuccess
+            reason_code = 'already_assigned'
+            return usuccess, reason_code
 
         if vial_id:
             #check if vial is a dupe
@@ -460,7 +492,8 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
 
             if row['count'] > 0:
                 print('duplicate vial ID')
-                return usuccess
+                reason_code = 'dupe'
+                return usuccess, reason_code
 
             #proceed with updating vial_id
             sql = """
@@ -469,32 +502,52 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
                     {} = NOW(),
                     update_dt = NOW(),
                     vial_id = %s,
-                    status = %s
+                    status = %s,
+                    lot_no = %s,
+                    expiration_date = %s,
+                    gtin = %s
                 WHERE
                     id = %s
                 """.format(__get_mapped_dt_field(status))
 
-            vals = (vial_id, status, appointment.id)
+            vals = (vial_id, status, lot_no, expiration_date, gtin, appointment.id)
 
         else:
             #proceed with updating other info
-            sql = """
-                UPDATE appointments
-                SET
-                    {} = NOW(),
-                    update_dt = NOW(),
-                    status = %s
-                WHERE
-                    id = %s
-                """.format(__get_mapped_dt_field(status))
+            if injection_site and no_adverse_reactions:
+                sql = """
+                                UPDATE appointments
+                                SET
+                                    {} = NOW(),
+                                    update_dt = NOW(),
+                                    status = %s,
+                                    injection_site = %s,
+                                    no_adverse_reactions = %s
+                                WHERE
+                                    id = %s
+                                """.format(__get_mapped_dt_field(status))
+                vals = (status, injection_site, no_adverse_reactions, appointment.id)
 
-            vals = (status, appointment.id)
+            else:
+                sql = """
+                                UPDATE appointments
+                                SET
+                                    {} = NOW(),
+                                    update_dt = NOW(),
+                                    status = %s
+                                WHERE
+                                    id = %s
+                                """.format(__get_mapped_dt_field(status))
+
+                vals = (status, appointment.id)
+
 
         usuccess = exec_update(sql, vals)
         __create_provider_appointment_activity(user, appointment.id, whoami(), status, vial_id=vial_id, workstation_id=workstation_id)
 
-        if usuccess and (status == c.APPOINTMENT_STATUS_TEST_COMPLETED or status == c.APPOINTMENT_STATUS_VIAL_SCANNED):
-            return create_test_sample_from_appointment(appointment.id)
+        #Allow creating a test record only if the test is completed (or in the last step) with a valid vial_id attached
+        if usuccess and (status == c.APPOINTMENT_STATUS_TEST_COMPLETED or status == c.APPOINTMENT_STATUS_VIAL_SCANNED) and vial_id:
+            create_test_sample_from_appointment(appointment.id)
 
     except Exception as err:
         log_generic(
@@ -505,7 +558,7 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
             error=err
         )
 
-    return usuccess
+    return usuccess, reason_code
 
 
 def __has_insurance_info(patient_id):
@@ -519,6 +572,7 @@ def __has_insurance_info(patient_id):
 
 
 def __create_provider_appointment_activity(user, appointment_id, function, status, vial_id=None, workstation_id=None):
+    #fail gracefully
     try:
         if user:
             user_ext_id = user['sub']
@@ -535,16 +589,14 @@ def __create_provider_appointment_activity(user, appointment_id, function, statu
                         (%s, %s, %s, %s, %s, %s)"""
 
             vals = (appointment_id, user_ext_id, function, status, vial_id, workstation_id)
-            return exec_insert(sql, vals)
-        else:
-            return None
+            exec_insert(sql, vals)
+
     except Exception as err:
         log_generic(
             type=c.ERROR,
             function=whoami(),
             error=err
         )
-        return None
 
 
 def __map_row_to_appointment(row: dict) -> GgtAppointment:
@@ -578,6 +630,7 @@ def __map_row_to_appointment(row: dict) -> GgtAppointment:
         a = GgtAppointment()
         a.id = row['id']
         a.location_id = row['location_id']
+        a.org_name = row['org_name']
         a.scheduled_dt = row['scheduled_dt']
         a.group_code = row['group_code']
         a.patient_id = row['patient_id']

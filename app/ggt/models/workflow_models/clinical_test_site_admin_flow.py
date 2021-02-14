@@ -34,7 +34,7 @@ import ggt.lib.constants as c
 ########################################################################################################
 
 
-# @cached(cache=TTLCache(maxsize=1024, ttl=60))
+# Do not cache
 def site_admin_general_search(user, first_name, middle_name, last_name, dob, phone_number, email, appointment_id,
                               group_code, appointment_date, location_id, vial_id="", sort_field="register_dt",
                               sort_type="desc", group_vax_results=False, token=None, is_patient=False):
@@ -73,6 +73,7 @@ def site_admin_get_f11(date):
 # @cached(cache=TTLCache(maxsize=1024, ttl=60))
 
 
+# Do not cache
 def site_admin_location_search(account, group_code, site_code, location_name, st, user):
     org_id = get_organization_id(user)
     return y_response(
