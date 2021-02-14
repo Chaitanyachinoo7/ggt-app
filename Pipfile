@@ -46,6 +46,7 @@ pytest-faulthandler = "*"
 gcloud = "*"
 cachetools = "*"
 pdfplumber = "*"
+pdfrw = "*"
 
 [requires]
 python_version = "3.7"
