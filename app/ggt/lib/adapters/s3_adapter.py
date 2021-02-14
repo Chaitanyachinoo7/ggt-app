@@ -1,3 +1,4 @@
+import os
 import boto3
 from botocore.client import Config
 
@@ -17,8 +18,10 @@ from ggt.lib.constants import (
 )
 
 
-default_link_expiration_time_limit = cfg('aws.default_link_expiration_time_limit')
+default_link_expiration_time_limit = cfg(
+    'aws.default_link_expiration_time_limit')
 lab_reports_bucket_name = cfg('aws.lab_reports_bucket_name')
+
 
 def __boto_connect_client(service):
     try:
@@ -37,7 +40,7 @@ def __boto_connect_client(service):
                 aws_secret_access_key=cfg('aws.secret_access_key'),
                 region_name=cfg('aws.region')
             )
-        
+
         return boto_client
 
     except Exception as err:
@@ -88,7 +91,7 @@ def __boto_connect_resource(service, region_name='us-east-1'):
 
 def create_folder(bucket_name, directory_name):
     try:
-        response = __boto_connect_service('s3').put_object(
+        response = __boto_connect_client('s3').put_object(
             Bucket=bucket_name,
             Key=(directory_name+'/')
         )
@@ -103,13 +106,12 @@ def create_folder(bucket_name, directory_name):
     except Exception as err:
         log_generic(
             type=ERROR,
-            queue_url=queue_url,
-            message=message,
+            bucket_name=bucket_name,
+            directory_name=directory_name,
             function=whoami(),
             error=err
         )
         return False
-
 
 
 def write_text_file(bucket, filename, body):
@@ -123,7 +125,7 @@ def write_text_file(bucket, filename, body):
             function=whoami(),
             error=err
         )
-    
+
     return False
 
 
@@ -131,13 +133,13 @@ def move_file(source, destination, bucketName):
     try:
         print(source, destination)
         copy = __boto_connect_client('s3').copy_object(
-            Bucket=bucketName, 
-            CopySource=source, 
-            Key=destination, 
+            Bucket=bucketName,
+            CopySource=source,
+            Key=destination,
             MetadataDirective="COPY"
         )
         delete = __boto_connect_client('s3').delete_object(
-            Bucket=bucketName, 
+            Bucket=bucketName,
             Key=source.replace(bucketName+"/", "")
         )
         return True
@@ -172,9 +174,6 @@ def get_temp_lab_report_url(filename: str):
         return None
 
 
-import boto3
-
-
 def iterate_bucket_items(bucket):
     """
     Generator that iterates over all objects in a given s3 bucket
@@ -185,7 +184,6 @@ def iterate_bucket_items(bucket):
     :return: dict of metadata for an object
     """
 
-
     client = __boto_connect_client('s3')
     paginator = client.get_paginator('list_objects_v2')
     page_iterator = paginator.paginate(Bucket=bucket)
@@ -194,3 +192,18 @@ def iterate_bucket_items(bucket):
         if page['KeyCount'] > 0:
             for item in page['Contents']:
                 yield item
+
+
+def uploadDirectory(path, bucketName):
+    try:
+        for root, dirs, files in os.walk(path):
+            for file in files:
+                __boto_connect_client('s3').upload_file(os.path.join(
+                    root, file), bucketName, "brownwoodv/"+path+'/'+file)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None

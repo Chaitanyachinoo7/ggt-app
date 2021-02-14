@@ -404,7 +404,6 @@ class FinalizeGGVPreRegistrationRequest(BaseModel):
     forceFinish: Optional[bool] = None
 
 
-
 class PhoneData(BaseModel):
     cellphone: str = None
 
@@ -473,6 +472,10 @@ class PortalCcTestLookupRequest(BaseModel):
 class PortalCcPatientLookupRequest(BaseModel):
     last_name: str = None
     dob: str = None
+
+
+class PortalAdminGetF11Request(BaseModel):
+    date: str = None
 
 
 class CCSendSMSRequest(BaseModel):
@@ -910,7 +913,8 @@ class GgtBooking(BaseModel):
     slot_2: GgtScheduleSlot = None
 
     #language: str = None
-    #science37:
+    # science37:
+
 
 '''
 class Science37(BaseModel):
@@ -935,6 +939,7 @@ class Science37(BaseModel):
 		}
 	},
 '''
+
 
 class GgtAppointment(BaseModel):
     id: int = None
@@ -1122,7 +1127,7 @@ class UserRolesEnum(str, Enum):
     org_admin = 'org_admin'
     ggt = 'ggt_admin'
 
-    #org_admin
+    # org_admin
 
 
 class CreateAuth0User(BaseModel):
@@ -1218,12 +1223,14 @@ class ChangeOrgStatus(BaseModel):
     id: str
     is_active: bool
 
+
 class StatusUpdatesRequest(BaseModel):
     lab_code: str
     requisition_id: str
     order_id: str
     status_code: str
     remarks: str
+
 
 class InsuranceEligibilityRequest(BaseModel):
     first_name: str = None
@@ -1257,7 +1264,6 @@ class PatientDrilldownRequest(BaseModel):
     location_id: str
     date: str
     status: PatientStatusEnum
-
 
 
 class InsurancePayersListRequest(BaseModel):

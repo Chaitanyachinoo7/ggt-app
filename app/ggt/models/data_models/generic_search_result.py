@@ -157,7 +157,7 @@ class GenericSearchResults(BaseModel):
 
 #tz = cfg(default_timezone)
 def find_patients(org_id, first_name='', middle_name='', last_name='', dob='', phone_number='',
-                        email='', appointment_id='', group_code='', appointment_date='', location_id='', vial_id='', sort_field="register_dt", sort_type="desc",
+                  email='', appointment_id='', group_code='', appointment_date='', location_id='', vial_id='', sort_field="register_dt", sort_type="desc",
                   token=None, is_patient=False):
     try:
         if not is_patient:
@@ -351,6 +351,62 @@ def find_patients(org_id, first_name='', middle_name='', last_name='', dob='', p
         rows = replica_read_rows(sql)
         return process_consultations(rows)
 
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def find_patients_for_vaccineation(date):
+    try:
+        sql = """
+            SELECT 
+            a.id,
+            a.scheduled_dt,
+            p.first_name,
+            p.last_name,
+            p.middle_name,
+            p.gender,
+            p.dob,
+            p.phone_number,
+            p.email,
+            p.addr1,
+            p.city,
+            p.st,
+            p.zip,
+            (CASE
+                WHEN (p.race = 'race_american_indian') THEN 'American Indian or Alaska Native'
+                WHEN (p.race = 'race_asian') THEN 'Asian'
+                WHEN (p.race = 'race_black') THEN 'Black or African American'
+                WHEN (p.race = 'race_hawaiian') THEN 'Native Hawaiian or Other Pacific Islander'
+                WHEN (p.race = 'race_other') THEN 'Other'
+                WHEN (p.race = 'race_white') THEN 'White'
+                ELSE 'Unknown'
+            END) AS race,
+            (CASE
+                WHEN (p.ethnicity = 'true') THEN 'Hispanic or Latino'
+                WHEN (p.ethnicity = 'false') THEN 'Not Hispanic or Latino'
+                WHEN (p.ethnicity = 'hispanic_latino_spanish') THEN 'Hispanic or Latino'
+                ELSE 'Unknown'
+            END) AS ethnicity
+        FROM
+            appointments a
+                JOIN
+            patients p ON (a.patient_id = p.id)
+        WHERE
+            a.id IN (SELECT 
+                    appointment_id
+                FROM
+                    ggt_prod.ggv_schedules
+                WHERE
+                    appointment_id > 0
+                        AND DATE(start_dt) = '{}')
+        """.format(date)
+        rows = replica_read_rows(sql)
+        return rows
     except Exception as err:
         log_generic(
             type=ERROR,
