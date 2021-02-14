@@ -33,6 +33,7 @@ def bp_get_next_label(workstation_id, workstation_token):
     else:
         return
 
+
 def bp_provider_get_workstations():
     hub_list = []
     printer_hubs = get_all_printer_hubs()
