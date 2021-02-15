@@ -192,7 +192,7 @@ def formatted_email_message(row):
 
 
 def prepare_sms_text(appointment):
-    return """Hi {}, the location where you have registered for your COVID-19 test will be CLOSED 02/12/2021 - 02/16/2021 due to inclement weather. We apologize for the inconvenience this might have caused. Please visit GoGetTested.com to register for a new appointment.
+    return """Hi {}, the location where you have registered for your COVID-19 test will be CLOSED 02/14/2021 - 02/15/2021 due to inclement weather. We apologize for the inconvenience this might have caused. Please visit GoGetTested.com to register for a new appointment.
     """.format(appointment["first_name"])
 
     #return """Hi {}, due to inclement weather, we’ve had to delay opening the testing location where you have registered to 12 pm. This may change depending on the weather. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to register for a new appointment.
@@ -418,10 +418,10 @@ def get_appointments():
             patients p ON a.patient_id = p.id
         WHERE
             location_id IN (
-                2497
+                7
                 )
-                AND scheduled_dt > '2021-02-13 00:00:00'
-                AND scheduled_dt < '2021-02-14 00:00:00'
+                AND scheduled_dt > '2021-02-14 00:00:00'
+                AND scheduled_dt < '2021-02-16 00:00:00'
                 AND status = 'scheduled'
         """
 
@@ -591,7 +591,7 @@ def remove_image_from_questionnnaires_table(id):
 
 def process_bcg_locations_file():
     import csv
-    with open('temp/bcg_location_list.txt', newline='') as csvfile:
+    with open('archived/bcg_location_list.txt', newline='') as csvfile:
         spamreader = csv.reader(csvfile, delimiter='\t')
         for row in spamreader:
             print(', '.join(row))
@@ -603,9 +603,9 @@ def process_bcg_locations_file():
             zip= row[5]
             operator= row[7]
             phone_number= row[8]
-            website= row[9]
+            website= row[8]
             open_hours = row[11]
-            add_to_locations(name, addr1, addr2, city, st, zip, operator, phone_number, website, open_hours)
+            add_to_locations(name+' | '+open_hours, addr1, addr2, city, st, zip, operator, phone_number, website, open_hours)
 
 
 def process_mx_locations_file():
