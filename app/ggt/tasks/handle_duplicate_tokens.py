@@ -26,7 +26,7 @@ def handle_duplicate_tokens():
                 LIMIT {} OFFSET {};
                 """
 
-    while offset < 100:
+    while offset < 50000:
         rows = replica_read_rows(sql_1.format(limit, offset))
         offset = offset + limit
         for row in rows:

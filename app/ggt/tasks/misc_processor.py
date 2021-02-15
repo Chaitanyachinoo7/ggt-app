@@ -193,7 +193,7 @@ def formatted_email_message(row):
 
 
 def prepare_sms_text(appointment):
-    return """Hi {}, the location where you have registered for your COVID-19 test will be CLOSED 02/14/2021 - 02/15/2021 due to inclement weather. We apologize for the inconvenience this might have caused. Please visit GoGetTested.com to register for a new appointment.
+    return """Hi {}, the location where you have registered for your COVID-19 test will be CLOSED 02/15/2021 through 02/17/2021 due to inclement weather. We apologize for the inconvenience this might have caused. Please visit GoGetTested.com to register for a new appointment.
     """.format(appointment["first_name"])
 
     #return """Hi {}, due to inclement weather, we’ve had to delay opening the testing location where you have registered to 12 pm. This may change depending on the weather. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to register for a new appointment.
@@ -419,10 +419,43 @@ def get_appointments():
             patients p ON a.patient_id = p.id
         WHERE
             location_id IN (
-                7
+                7,
+                18,
+                66,
+                124,
+                144,
+                94,
+                2488,
+                2489,
+                2490,
+                2491, 
+                172,
+                194,
+                222,
+                226,
+                250,
+                48,
+                218,
+                236,
+                248,
+                258,
+                262,
+                266,
+                78,
+                318,
+                375,
+                2496,
+                377,
+                2478,
+                403,
+                407, 
+                342,
+                2474, 
+                2493,
+                2741
                 )
-                AND scheduled_dt > '2021-02-14 00:00:00'
-                AND scheduled_dt < '2021-02-16 00:00:00'
+                AND scheduled_dt > '2021-02-15 00:00:00'
+                AND scheduled_dt < '2021-02-18 00:00:00'
                 AND status = 'scheduled'
         """
 
