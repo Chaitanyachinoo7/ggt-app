@@ -276,3 +276,18 @@ def read_file(bucket, filename):
 
     except Exception:
         return None
+
+
+def uploadDirectory(path, bucketName):
+    try:
+        for root, dirs, files in os.walk(path):
+            for file in files:
+                __boto_connect_client('s3').upload_file(os.path.join(
+                    root, file), bucketName, "brownwoodv/"+path+'/'+file)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
