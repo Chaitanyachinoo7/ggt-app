@@ -1,11 +1,11 @@
 import csv
 import pathlib
 from datetime import datetime
-from ggt.lib.adapters.mysql_adapter import exec_batch_execute, replica_read_rows, exec_update
+from ggt.lib.adapters.mysql_adapter import exec_batch_execute, replica_read_row, replica_read_rows, exec_update
 from ggt.lib.utils import generate_token
 
 
-def handle_duplicate_tokens():
+def handle_duplicate_tokens_old():
     """Get all duplicate tokens"""
     limit = 2
     offset = 0
@@ -63,3 +63,44 @@ def update_token_ques(patient_id, token):
 """
 In PROD we have 26522 records. One record takes around 7 seconds in local machine, it is just above 2 days
 """
+
+
+
+def handle_duplicate_tokens():
+    sql = """
+        SELECT 
+            result_token, COUNT(result_token) AS cnt
+        FROM
+            patients
+        GROUP BY result_token
+        HAVING COUNT(*) > 1
+    """
+    rows = replica_read_rows(sql)
+    
+    for row in rows:
+        try:
+            t_1 = datetime.now()
+            sql2 = """
+                SELECT 
+                    id
+                FROM
+                    patients
+                WHERE
+                    result_token = %s
+                LIMIT 1
+            """
+            vals2 = (row['result_token'],)
+            row2 = replica_read_row(sql2, vals2)
+
+            patient_id = row2['id']
+            token = generate_token()
+
+            s_1 = update_token_patient(patient_id, token)
+            #s_2 = update_token_ques(patient_id, token)
+
+            t_2 = datetime.now()
+            time_taken = (t_2 - t_1).seconds
+            print("patient - {}, token - {} : s1 - {}: time - {} seconds".format(patient_id, token, s_1, time_taken))
+        
+        except Exception:
+            pass
