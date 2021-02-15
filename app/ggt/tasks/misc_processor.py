@@ -63,8 +63,9 @@ def task_process_misc():
     # upload_insurance_images_to_gcp_with_small_table()
     #process_email_notifications()
     #upload_insurance_files_from_gstore()
-    process_sms_notifications()
-    process_email_notifications()
+    #process_sms_notifications()
+    #process_email_notifications()
+    dedupe_tokens()
 
     log_generic(
         type=c.INFO,
@@ -733,3 +734,9 @@ def update_schedules():
     locations = ['2631','2630','2629','2628','2627','2626','2625','2624','2623','2622','2621','2620','2619','2618','2617','2616','2615','2614','2613','2612','2611','2610','2609','2608','2607','2606','2605','2604','2603','2602','2601','2600','2599','2598','2597','2596','2595','2594','2593','2592','2591','2590','2589']
     for location_id in locations:
         add_sched_rule(location_id)
+
+def dedupe_tokens():
+    from ggt.tasks.handle_duplicate_tokens import (
+        handle_duplicate_tokens
+    )
+    handle_duplicate_tokens()

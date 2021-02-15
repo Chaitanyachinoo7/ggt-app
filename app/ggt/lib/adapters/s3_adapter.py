@@ -1,3 +1,4 @@
+import os
 import boto3
 from botocore.client import Config
 
@@ -90,7 +91,7 @@ def __boto_connect_resource(service, region_name='us-east-1'):
 
 def create_folder(bucket_name, directory_name):
     try:
-        response = __boto_connect_service('s3').put_object(
+        response = __boto_connect_client('s3').put_object(
             Bucket=bucket_name,
             Key=(directory_name+'/')
         )
@@ -105,8 +106,8 @@ def create_folder(bucket_name, directory_name):
     except Exception as err:
         log_generic(
             type=ERROR,
-            queue_url=queue_url,
-            message=message,
+            bucket_name=bucket_name,
+            directory_name=directory_name,
             function=whoami(),
             error=err
         )

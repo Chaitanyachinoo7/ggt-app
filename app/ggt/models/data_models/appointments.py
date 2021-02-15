@@ -117,7 +117,10 @@ def add_service_to_appointment(appointment_id: int, service_code: str) -> bool:
     return False
 
 
-def get_appointment(appointment_id: int) -> GgtAppointment:
+def get_appointment(appointment_id: int, org_id=None) -> GgtAppointment:
+    where_statement = "a.id = {}".format(appointment_id)
+    if org_id:
+        where_statement = "{} AND org.id = {}".format(where_statement, org_id)
     try:
         sql = """
         SELECT
@@ -160,11 +163,10 @@ def get_appointment(appointment_id: int) -> GgtAppointment:
 				LEFT JOIN
 			organizations org ON org.id = l.org_id
         WHERE
-                a.id = %s
-        """
+                {}
+        """.format(where_statement)
 
-        vals = (appointment_id,)
-        row = read_row(sql, vals)
+        row = read_row(sql)
 
         if not row:
             raise ValueError('No Appointment info')
