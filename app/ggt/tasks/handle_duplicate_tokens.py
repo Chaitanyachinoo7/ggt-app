@@ -78,29 +78,29 @@ def handle_duplicate_tokens():
     rows = replica_read_rows(sql)
     
     for row in rows:
-        try:
-            t_1 = datetime.now()
-            sql2 = """
-                SELECT 
-                    id
-                FROM
-                    patients
-                WHERE
-                    result_token = %s
-                LIMIT 1
-            """
-            vals2 = (row['result_token'],)
-            row2 = replica_read_row(sql2, vals2)
+        t_1 = datetime.now()
+        sql2 = """
+            SELECT 
+                id
+            FROM
+                patients
+            WHERE
+                result_token = %s
+        """
+        vals2 = (row['result_token'],)
+        rows2 = replica_read_rows(sql2, vals2)
 
-            patient_id = row2['id']
-            token = generate_token()
+        for row2 in rows2:
+            try:
+                patient_id = row2['id']
+                token = generate_token()
 
-            s_1 = update_token_patient(patient_id, token)
-            #s_2 = update_token_ques(patient_id, token)
+                s_1 = update_token_patient(patient_id, token)
+                #s_2 = update_token_ques(patient_id, token)
 
-            t_2 = datetime.now()
-            time_taken = (t_2 - t_1).seconds
-            print("patient - {}, token - {} : s1 - {}: time - {} seconds".format(patient_id, token, s_1, time_taken))
-        
-        except Exception:
-            pass
+                t_2 = datetime.now()
+                time_taken = (t_2 - t_1).seconds
+                print("patient - {}, token - {} : s1 - {}: time - {} seconds".format(patient_id, token, s_1, time_taken))
+    
+            except Exception:
+                pass
