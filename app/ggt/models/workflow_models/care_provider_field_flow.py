@@ -56,7 +56,7 @@ def provider_complete_task(complete_task):
         bp_update_consultation_note(complete_task.consultation_id, complete_task.note,
                                     complete_task.consultation_type_code,
                                     complete_task.resolution_code)
-        return y_response(get_provider_processing_list_db(0, 'any', 'any', 'any', 1, complete_task.test_id))
+        return y_response(get_provider_processing_list_db(0, 'any', 'any', 'any', test_id=complete_task.test_id))
     else:
         return y_response(None)
 
