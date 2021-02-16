@@ -44,7 +44,7 @@ def handle_duplicate_tokens_old():
 
 def update_token_patient(patient_id, token):
     sql = """UPDATE patients
-		     SET token = %s
+		     SET result_token = %s
 		     WHERE id = %s;"""
     vals = (token, patient_id)
     return exec_update(sql, vals)
