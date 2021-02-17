@@ -726,8 +726,8 @@ def __send_ggv_qrcode_sms(appointment: GgtAppointment, dose):
 def __send_ggv_pre_registration_sms(first_name, phone_number):
     try:
         message = "Hi {} " \
-                  "\nYou have been registered for the COVID-19 Vaccine waiting list. " \
-                  "We will inform you once your appointment is finalized.  " \
+                  "\nYou have successfully joined the waitlist for the COVID-19 vaccine.  " \
+                  "We will notify you once  you have been cleared to book an appointment." \
                   "\nReply Stop to cxl msgs".format(first_name)
         send_sms(phone_number,
                             message.replace('\t', ''))
