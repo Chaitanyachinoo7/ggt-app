@@ -405,6 +405,8 @@ def bp_ggv_finalize_pre_booking(booking_req: GgtBooking):
         if booking_req is None:
             raise ValueError(status_message)
         patient_id = booking_req.patient_id
+        __send_ggv_pre_registration_sms(booking_req.first_name, booking_req.phone_number)
+        __send_ggv_pre_registration_email(booking_req.first_name, booking_req.email)
     except Exception as err:
         status_message = str(err)
         log_generic(
@@ -721,6 +723,36 @@ def __send_ggv_qrcode_sms(appointment: GgtAppointment, dose):
     return None
 
 
+def __send_ggv_pre_registration_sms(first_name, phone_number):
+    try:
+        message = "Hi {} " \
+                  "\nYou have been registered for the COVID-19 Vaccine waiting list. " \
+                  "We will inform you once your appointment is finalized.  " \
+                  "\nReply Stop to cxl msgs".format(first_name)
+        send_sms(phone_number,
+                            message.replace('\t', ''))
+
+        log_generic(
+            type=c.INFO,
+            first_name=first_name,
+            phone_number=phone_number,
+            message=message,
+            function=whoami()
+        )
+
+        return True
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            phone_number=phone_number,
+            function=whoami(),
+            error=err
+        )
+
+    return None
+
+
 def __send_qrcode_email(appointment: GgtAppointment):
     try:
         from_email = cfg('notifications.from_email')
@@ -816,6 +848,48 @@ def __send_ggv_qrcode_email(appointment: GgtAppointment):
         log_generic(
             type=c.ERROR,
             appointment=appointment,
+            function=whoami(),
+            error=err
+        )
+
+    return False
+
+
+def __send_ggv_pre_registration_email(first_name, email):
+    try:
+        from_email = cfg('notifications.from_email')
+        from_name = cfg('notifications.from_name')
+
+        template_vars = {
+            "first_name": first_name,
+        }
+
+        subject = render_from_string(
+            "COVID-19 Vaccine pre registration confirmation",
+            **template_vars
+        )
+
+        template_name = "GGV-4-PRE_REGISTRATION_REQUEST-EMAIL.html"
+        html_content = render_template(
+            template_name,
+            **template_vars
+        )
+
+        send_email(
+            from_email,
+            from_name,
+            email,
+            subject,
+            html_content
+        )
+
+        return True
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            first_name=first_name,
+            email=email,
             function=whoami(),
             error=err
         )
