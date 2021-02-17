@@ -1185,7 +1185,7 @@ class CreateAuth0User(BaseModel):
     name: str = None
     nickname: str = None
     blocked: bool = False
-    email_verified: bool = False
+    email_verified: bool = True
 
 
 class UpdateAuth0UserInfo(BaseModel):
