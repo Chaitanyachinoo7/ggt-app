@@ -1316,3 +1316,7 @@ class InsurancePayersListRequest(BaseModel):
     search_query: str = None
     page: int = 1
     limit: int = 10
+
+
+class VerificationToken(BaseModel):
+    verification_token: str

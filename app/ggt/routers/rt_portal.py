@@ -160,6 +160,24 @@ async def api_site_admin_general_search(portal_general_search_request: PortalGen
     )
 
 
+@router.get("/site-admin/get_appointment/{appointment_id}")
+async def api_site_admin_general_search(appointment_id: int,
+                                        user=Security(authorize_user, scopes=[p.GENERAL_SEARCH])):
+    return site_admin_general_search(
+        user,
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        appointment_id,
+        "",
+        "",
+        ""
+    )
+
+
 @router.post("/site-admin/m_to_m/general_search")
 async def api_site_admin_general_search(portal_general_search_request: PortalGeneralSearchRequest,
                                         user=Security(authorize_user, scopes=[p.GENERAL_SEARCH])):
@@ -209,6 +227,19 @@ async def api_site_admin_location_search(portal_location_search: PortalLocationS
         portal_location_search.location_name,
         portal_location_search.st,
         user
+    )
+
+
+@router.get("/site-admin/get_location/{location_id}")
+async def api_site_admin_location_search(location_id: int, user=Security(authorize_user, scopes=[p.LOCATION_SEARCH])):
+    return site_admin_location_search(
+        '',
+        '',
+        '',
+        '',
+        '',
+        user,
+        location_id=location_id
     )
 
 

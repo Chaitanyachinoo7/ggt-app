@@ -32,7 +32,7 @@ from ggt.models.data_models.signups import (
 from ggt.models.data_models.patients import (
     create_patient_record,
     get_patient_by_token, add_to_ggd_waiting_queue, create_pre_registration,
-    get_existing_patients, unlock_patient_info_patients, get_existing_patient_questionnaire
+    get_existing_patients, unlock_patient_info_patients, get_existing_patient_questionnaire, is_un_available_slot
 )
 
 from ggt.models.data_models.questionnaires import (
@@ -517,6 +517,13 @@ def bp_get_wellpay_insurance_eligibility(insurance_eligibility_request):
 
 def bp_search_insurance_payer_list(insurance_search_payer_request):
     return __bp_search_insurance_payer_list(insurance_search_payer_request)
+
+
+def bp_verify_verification_token(token):
+    if is_un_available_slot(token) is None:
+        return True
+    else:
+        return False
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
@@ -726,8 +733,8 @@ def __send_ggv_qrcode_sms(appointment: GgtAppointment, dose):
 def __send_ggv_pre_registration_sms(first_name, phone_number):
     try:
         message = "Hi {} " \
-                  "\nYou have been registered for the COVID-19 Vaccine waiting list. " \
-                  "We will inform you once your appointment is finalized.  " \
+                  "\nYou have successfully joined the waitlist for the COVID-19 vaccine.  " \
+                  "We will notify you once  you have been cleared to book an appointment." \
                   "\nReply Stop to cxl msgs".format(first_name)
         send_sms(phone_number,
                             message.replace('\t', ''))
@@ -950,6 +957,7 @@ def __is_valid_token(token: str) -> bool:
             else:
                 return True
         else:
+            # return True
             return get_signup_record_by_token(token)
 
     except Exception as err:
