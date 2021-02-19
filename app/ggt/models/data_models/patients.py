@@ -213,10 +213,10 @@ def get_existing_patient_questionnaire(patient_id):
 #         return None
 
 
-def is_available_slot(token):
+def is_un_available_slot(token):
     u_token = get_user_token_from_jwt(token)
     if u_token is None:
-        return None
+        return {"status": "Invalid token"}
     try:
         sql = """SELECT 
                         *
@@ -235,7 +235,7 @@ def is_available_slot(token):
             function=whoami(),
             error=err
         )
-        return None
+        return {"status": "Invalid token"}
 
 #
 # def lock_slot(id):
