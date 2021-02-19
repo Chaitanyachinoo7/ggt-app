@@ -459,9 +459,9 @@ def bp_get_all_services():
         )
 
 
-def bp_get_location_search_results(account, group_code, site_code, location_name, st, org_id):
+def bp_get_location_search_results(account, group_code, site_code, location_name, st, org_id, location_id=None):
     try:
-        return search_locations(account, group_code, site_code, location_name, org_id, st=st)
+        return search_locations(account, group_code, site_code, location_name, org_id, st=st, id=location_id)
 
     except Exception as err:
         log_generic(
