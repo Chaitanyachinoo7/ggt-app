@@ -37,8 +37,6 @@ from reportlab.pdfbase.ttfonts import TTFont
 import os
 import shutil
 from ggt.lib.adapters.s3_adapter import uploadDirectory, create_folder, get_temp_vaccine_consent_url
-import re
-import string
 
 ########################################################################################################
 # [Public] functions
