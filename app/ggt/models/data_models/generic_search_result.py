@@ -205,6 +205,7 @@ def find_patients(org_id, first_name='', middle_name='', last_name='', dob='', p
 
         sql = """
         SELECT
+            q.id AS q_id,
             p.id AS patient_id,
             p.first_name AS first_name,
             p.middle_name AS middle_name,
