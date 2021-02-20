@@ -368,8 +368,12 @@ def find_patients(org_id, first_name='', middle_name='', last_name='', dob='', p
         return None
 
 
-def find_patients_for_vaccineation(date):
+def find_patients_for_vaccineation(appointment_ids):
     try:
+        where_condition = ""
+        for appointment_id in appointment_ids:
+            where_condition = where_condition + """ v.appointment_id = {} or """.format(appointment_id)
+        where_condition = where_condition[:-4]
         sql = """
             SELECT 
             a.id,
@@ -401,18 +405,38 @@ def find_patients_for_vaccineation(date):
                 ELSE 'Unknown'
             END) AS ethnicity
         FROM
-            appointments a
+			ggv_schedules v
+				JOIN
+			appointments a ON(v.appointment_id = a.id)
                 JOIN
             patients p ON (a.patient_id = p.id)
-        WHERE
-            a.id IN (SELECT 
-                    appointment_id
-                FROM
-                    ggt_prod.ggv_schedules
-                WHERE
-                    appointment_id > 0
-                        AND DATE(start_dt) = '{}')
-        """.format(date)
+        Where {}
+        """.format(where_condition)
+        rows = replica_read_rows(sql)
+        return rows
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def find_patients_by_patient_ids(patient_ids):
+    try:
+        where_condition = ""
+        for patient_id in patient_ids:
+            where_condition = """ p.id = {} or """.format(patient_id)
+        where_condition = where_condition[:-4]
+        sql = """
+        SELECT 
+            p.first_name,
+            p.last_name,
+            p.dob
+        FROM patients p
+        WHERE {};
+        """.format(where_condition)
         rows = replica_read_rows(sql)
         return rows
     except Exception as err:

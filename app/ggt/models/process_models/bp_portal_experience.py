@@ -1,6 +1,6 @@
 from datetime import datetime
 from cachetools import cached, LRUCache, TTLCache
-
+from datetime import datetime
 import ggt.lib.constants as c
 from ggt.lib.utils import (
     log_generic,
@@ -17,7 +17,8 @@ from ggt.models.data_models.clinical_test_sample import (
 )
 from ggt.models.data_models.generic_search_result import (
     find_patients,
-    find_patients_for_vaccineation
+    find_patients_for_vaccineation,
+    find_patients_by_patient_ids
 )
 from ggt.models.data_models.groups import get_all_groups, create_group, update_group, get_group_by_id
 from ggt.models.data_models.locations import (
@@ -35,7 +36,9 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 import os
 import shutil
-from ggt.lib.adapters.s3_adapter import uploadDirectory, create_folder
+from ggt.lib.adapters.s3_adapter import uploadDirectory, create_folder, get_temp_vaccine_consent_url
+import re
+import string
 
 ########################################################################################################
 # [Public] functions
@@ -77,7 +80,7 @@ def bp_get_all_test_results():
         # return False
 
 
-#@cached(cache=TTLCache(maxsize=1024, ttl=60))
+# @cached(cache=TTLCache(maxsize=1024, ttl=60))
 def bp_get_general_search_results(org_id, first_name, middle_name, last_name, dob, phone_number, email, appointment_id,
                                   group_code, appointment_date, location_id, vial_id='', sort_field="register_dt",
                                   sort_type="desc", group_vax_results=False, token=None, is_patient=False):
@@ -86,7 +89,7 @@ def bp_get_general_search_results(org_id, first_name, middle_name, last_name, do
             appointment_date = datetime.strptime(appointment_date, "%m%d%Y")
 
         search_results = find_patients(org_id, first_name, middle_name, last_name, dob, phone_number,
-                             email, appointment_id, group_code, appointment_date, location_id, vial_id, sort_field,
+                                       email, appointment_id, group_code, appointment_date, location_id, vial_id, sort_field,
                                        sort_type, token=token, is_patient=is_patient)
         if group_vax_results:
             return __group_vax_results(search_results)
@@ -101,43 +104,72 @@ def bp_get_general_search_results(org_id, first_name, middle_name, last_name, do
         )
 
 
-def bp_get_f11(date):
+def bp_get_f11(appointment_ids):
     try:
-        patients = find_patients_for_vaccineation(date)
-        os.mkdir(date)
-        os.mkdir(date+'/f11_overlay/')
-        os.mkdir(date+'/consent_overlay/')
-        os.mkdir(date+'/f11/')
-        os.mkdir(date+'/consent/')
-        # patient = patients[0]
-        for patient in patients:
-            if patient:
-                data_dict = {}
-                create_overlay(date, str(patient["id"]), patient, data_dict)
-                create_overlay_consent_form(date, str(patient["id"]), patient)
-                merge_pdfs('ggt/configs/vaccine-pdfs/F11-12956.pdf',
-                        './'+date+'/f11_overlay/simple_form_overlay_' +
-                        str(patient["id"])+'.pdf',
-                        './'+date+'/f11/'+patient["last_name"].upper(
-                        )+'_'+patient["first_name"].upper()+'_'+str(patient["dob"])+'_immtrac.pdf', data_dict)
-
-                merge_pdfs('ggt/configs/vaccine-pdfs/COVID Concent Form.pdf',
-                        './'+date+'/consent_overlay/consent_form_simple_form_overlay_' +
-                        str(patient["id"])+'.pdf',
-                        './'+date+'/consent/'+patient["last_name"].upper(
-                        )+'_'+patient["first_name"].upper()+'_'+str(patient["dob"])+'_consent.pdf')
-        shutil.rmtree(date+'/f11_overlay/')
-        shutil.rmtree(date+'/consent_overlay/')
-        create_folder("ggt-sftp", "brownwoodv/"+date)
-        uploadDirectory(date, "ggt-sftp")
+        patients = find_patients_for_vaccineation(appointment_ids)
+        date = create_temp_folder_structure()
+        mergePDFs(patients, date)
+        delete_temp_folder_structure(date)
+        upload_to_S3(date)
         shutil.rmtree(date)
-        return True
+        return get_consent_form_URLs(patients, date)
     except Exception as err:
         log_generic(
             type=c.ERROR,
             function=whoami(),
             error=err
         )
+
+def delete_temp_folder_structure(date):
+    shutil.rmtree(date+'/f11_overlay/')
+    shutil.rmtree(date+'/consent_overlay/')
+
+def upload_to_S3(date):
+    create_folder("ggt-sftp", "brownwoodv/"+date)
+    uploadDirectory(date, "ggt-sftp")
+
+def get_consent_form_URLs(patients, date):
+    response_URLs = []
+    for patient in patients:
+        response_URLs.append(get_temp_vaccine_consent_url('brownwoodv/'+date+'/'+patient["last_name"].upper(
+        )+'_'+patient["first_name"].upper()+'_'+str(patient["dob"])+'_immtrac.pdf', "ggt-sftp"))
+        response_URLs.append(get_temp_vaccine_consent_url('brownwoodv/'+date+'/'+patient["last_name"].upper(
+        )+'_'+patient["first_name"].upper()+'_'+str(patient["dob"])+'_consent.pdf', "ggt-sftp"))
+    return response_URLs
+
+def create_temp_folder_structure():
+    date = datetime.now().strftime('%Y%m%d%H%M%S')
+    os.mkdir(date)
+    os.mkdir(date+'/f11_overlay/')
+    os.mkdir(date+'/consent_overlay/')
+    os.mkdir(date+'/f11/')
+    os.mkdir(date+'/consent/')
+    return date
+
+def mergePDFs(patients, date):
+    for patient in patients:
+        if patient:
+            data_dict = {}
+            create_overlay(date, str(patient["id"]), patient, data_dict)
+            create_overlay_consent_form(date, str(patient["id"]), patient)
+            merge_pdfs('ggt/configs/vaccine-pdfs/F11-12956.pdf',
+                       './'+date+'/f11_overlay/simple_form_overlay_' +
+                       str(patient["id"])+'.pdf',
+                       './'+date+'/f11/'+patient["last_name"].upper(
+                       )+'_'+patient["first_name"].upper()+'_'+str(patient["dob"])+'_immtrac.pdf', data_dict)
+
+            merge_pdfs('ggt/configs/vaccine-pdfs/COVID Concent Form.pdf',
+                       './'+date+'/consent_overlay/consent_form_simple_form_overlay_' +
+                       str(patient["id"])+'.pdf',
+                       './'+date+'/consent/'+patient["last_name"].upper(
+                       )+'_'+patient["first_name"].upper()+'_'+str(patient["dob"])+'_consent.pdf')
+
+
+def bp_get_consent_forms(patient_ids):
+    patients = find_patients_by_patient_ids(patient_ids)
+    files = []
+    for patient in patients:
+        files.append()
 
 
 def create_overlay(date, patient_id, patient, data_dict, mother_first_name="", mother_maiden_name=""):
@@ -231,6 +263,7 @@ def update_string_in_pdf(c, x, y, entry):
         c.drawString(x, y, char)
         x = x + 14.3
 
+
 ANNOT_KEY = '/Annots'           # key for all annotations within a page
 ANNOT_FIELD_KEY = '/T'          # Name of field. i.e. given ID of field
 ANNOT_FORM_type = '/FT'         # Form type (e.g. text/button)
@@ -238,6 +271,8 @@ ANNOT_FORM_button = '/Btn'      # ID for buttons, i.e. a checkbox
 ANNOT_FORM_text = '/Tx'         # ID for textbox
 SUBTYPE_KEY = '/Subtype'
 WIDGET_SUBTYPE_KEY = '/Widget'
+
+
 def merge_pdfs(form_pdf, overlay_pdf, output, data_dict=None):
     form = pdfrw.PdfReader(form_pdf)
     olay = pdfrw.PdfReader(overlay_pdf)
@@ -260,10 +295,11 @@ def merge_pdfs(form_pdf, overlay_pdf, output, data_dict=None):
                         if key in data_dict.keys():
                             if annotation[ANNOT_FORM_type] == ANNOT_FORM_button:
                                 # button field i.e. a checkbox
-                                annotation.update( pdfrw.PdfDict( V=pdfrw.PdfName(data_dict[key]) , AS=pdfrw.PdfName(data_dict[key]) ))
-        form.Root.AcroForm.update(pdfrw.PdfDict(NeedAppearances=pdfrw.PdfObject('true')))
+                                annotation.update(pdfrw.PdfDict(V=pdfrw.PdfName(
+                                    data_dict[key]), AS=pdfrw.PdfName(data_dict[key])))
+        form.Root.AcroForm.update(pdfrw.PdfDict(
+            NeedAppearances=pdfrw.PdfObject('true')))
     writer.write(output, form)
-
 
 
 def bp_create_group(group):

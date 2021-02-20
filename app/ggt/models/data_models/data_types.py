@@ -510,8 +510,10 @@ class PortalCcPatientLookupRequest(BaseModel):
 
 
 class PortalAdminGetF11Request(BaseModel):
-    date: str = None
+    appointment_ids: List[str] = None
 
+class PortalAdminGetVaccineConsentFormRequest(BaseModel):
+    patient_ids: List[str] = None
 
 class CCSendSMSRequest(BaseModel):
     first_name: str = None
