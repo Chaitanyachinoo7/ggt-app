@@ -209,12 +209,12 @@ def test_delete_user():
     )
     verify_response(response)
 
-def test_get_user_profile():
-    response = client.get(
-        "/api/management/user_profile",
-        headers={"X-Token": "coneofsilence", "Authorization": token}
-    )
-    verify_response(response)
+# def test_get_user_profile():
+#     response = client.get(
+#         "/api/management/user_profile",
+#         headers={"X-Token": "coneofsilence", "Authorization": token}
+#     )
+#     verify_response(response)
 
 # def test_password_change_ticket():
 #     response = client.get(
