@@ -169,6 +169,15 @@ class VerifyPhoneRequest(BaseModel):
     has_sms: bool = True
 
 
+class UpdateFirstAppointment(BaseModel):
+    otp: int
+    appointment_id_1: int
+    appointment_id_2: int
+    appointment_1_dt_id: int
+    appointment_2_dt_id: int
+    phone_number: str
+
+
 class ValidateOtpRequest(BaseModel):
     phone_number: str = None
     otp: str = None
