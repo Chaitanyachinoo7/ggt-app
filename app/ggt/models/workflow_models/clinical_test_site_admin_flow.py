@@ -13,6 +13,7 @@ from ggt.models.process_models.bp_portal_experience import (
     bp_get_location_search_results,
     bp_create_location, bp_get_all_groups, bp_update_location, bp_assign_group, bp_remove_group, bp_assign_service,
     bp_remove_service, bp_get_all_services, bp_get_locations, bp_create_group, bp_update_group, bp_get_states,
+    bp_get_f11
 )
 
 from ggt.models.process_models.bp_schedules import (
@@ -35,7 +36,7 @@ import ggt.lib.constants as c
 
 # Do not cache
 def site_admin_general_search(user, first_name, middle_name, last_name, dob, phone_number, email, appointment_id,
-                                    group_code, appointment_date, location_id, vial_id="", sort_field="register_dt",
+                              group_code, appointment_date, location_id, vial_id="", sort_field="register_dt",
                               sort_type="desc", group_vax_results=False, token=None, is_patient=False):
     if not is_patient:
         org_id = get_organization_id(user)
@@ -65,12 +66,19 @@ def site_admin_general_search(user, first_name, middle_name, last_name, dob, pho
     )
 
 
+def site_admin_get_f11(date):
+    return y_response(
+        bp_get_f11(date))
+
+# @cached(cache=TTLCache(maxsize=1024, ttl=60))
+
+
 # Do not cache
-def site_admin_location_search(account, group_code, site_code, location_name, st, user):
+def site_admin_location_search(account, group_code, site_code, location_name, st, user, location_id=None):
     org_id = get_organization_id(user)
     return y_response(
         bp_get_location_search_results(
-            account, group_code, site_code, location_name, st, org_id
+            account, group_code, site_code, location_name, st, org_id, location_id=location_id
         )
     )
 

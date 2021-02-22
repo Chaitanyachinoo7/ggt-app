@@ -117,7 +117,10 @@ def add_service_to_appointment(appointment_id: int, service_code: str) -> bool:
     return False
 
 
-def get_appointment(appointment_id: int) -> GgtAppointment:
+def get_appointment(appointment_id: int, org_id=None) -> GgtAppointment:
+    where_statement = "a.id = {}".format(appointment_id)
+    if org_id:
+        where_statement = "{} AND org.id = {}".format(where_statement, org_id)
     try:
         sql = """
         SELECT
@@ -145,7 +148,8 @@ def get_appointment(appointment_id: int) -> GgtAppointment:
             p.token,
             p.result_token,
             GROUP_CONCAT(c.service_code) as service_codes,
-            GROUP_CONCAT(s.service_description) as service_descriptions
+            GROUP_CONCAT(s.service_description) as service_descriptions,
+            org.name as org_name
         FROM
             appointments a
                 JOIN
@@ -156,12 +160,13 @@ def get_appointment(appointment_id: int) -> GgtAppointment:
             appointment_services s ON (s.appointment_id = a.id)
                 LEFT JOIN
             services_catalog c ON (c.id = s.service_id)
+				LEFT JOIN
+			organizations org ON org.id = l.org_id
         WHERE
-                a.id = %s
-        """
+                {}
+        """.format(where_statement)
 
-        vals = (appointment_id,)
-        row = read_row(sql, vals)
+        row = read_row(sql)
 
         if not row:
             raise ValueError('No Appointment info')
@@ -388,8 +393,14 @@ def update_appointment_with_scan_vial(appointment: GgtAppointment, vial_id: str,
     return __update_appointment_status(appointment, c.APPOINTMENT_STATUS_VIAL_SCANNED, vial_id, user=user)
 
 
-def update_appointment_with_scan_vial_vax(appointment: GgtAppointment, vial_id: str, user):
-    return __update_appointment_status(appointment, c.APPOINTMENT_ACTION_SCAN_VIAL_VAX, vial_id, user=user)
+def update_appointment_with_scan_vial_vax(appointment: GgtAppointment, vial_data, user):
+    return __update_appointment_status(appointment, c.APPOINTMENT_ACTION_SCAN_VIAL_VAX,
+                                       vial_id=vial_data.vial_id,
+                                       user=user,
+                                       lot_no=vial_data.elements.lot_no,
+                                       expiration_date=vial_data.elements.expiration_date,
+                                       gtin=vial_data.elements.gtin
+                                       )
 
 
 def update_appointment_with_test_completed(appointment: GgtAppointment, user):
@@ -460,7 +471,8 @@ def __get_mapped_dt_field(status: str) -> str:
 
 
 def __update_appointment_status(appointment: GgtAppointment, status: str, vial_id: str = None, user=None,
-                                workstation_id=None, injection_site=None, no_adverse_reactions=None):
+                                workstation_id=None, injection_site=None, no_adverse_reactions=None, lot_no=None, expiration_date=None,
+                                gtin=None):
     vial_id = None if vial_id == '' else vial_id
     usuccess = False
     reason_code = ''
@@ -492,12 +504,15 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
                     {} = NOW(),
                     update_dt = NOW(),
                     vial_id = %s,
-                    status = %s
+                    status = %s,
+                    lot_no = %s,
+                    expiration_date = %s,
+                    gtin = %s
                 WHERE
                     id = %s
                 """.format(__get_mapped_dt_field(status))
 
-            vals = (vial_id, status, appointment.id)
+            vals = (vial_id, status, lot_no, expiration_date, gtin, appointment.id)
 
         else:
             #proceed with updating other info
@@ -617,6 +632,7 @@ def __map_row_to_appointment(row: dict) -> GgtAppointment:
         a = GgtAppointment()
         a.id = row['id']
         a.location_id = row['location_id']
+        a.org_name = row['org_name']
         a.scheduled_dt = row['scheduled_dt']
         a.group_code = row['group_code']
         a.patient_id = row['patient_id']

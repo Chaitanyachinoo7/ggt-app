@@ -25,7 +25,8 @@ from ggt.models.data_models.data_types import (
     LocationToServiceMap,
     GgtThirdPartyDbGroup,
     GgtThirdPartyDbUpdateGroup,
-    PermissionsEnum as p
+    PermissionsEnum as p,
+    PortalAdminGetF11Request
 )
 from ggt.models.workflow_models.admin_flow import (
     admin_get_all_test_results
@@ -56,7 +57,8 @@ from ggt.models.workflow_models.clinical_test_site_admin_flow import (
     get_all_services,
     get_locations,
     create_group,
-    update_group, get_states
+    update_group, get_states,
+    site_admin_get_f11
 )
 
 router = APIRouter()
@@ -158,6 +160,24 @@ async def api_site_admin_general_search(portal_general_search_request: PortalGen
     )
 
 
+@router.get("/site-admin/get_appointment/{appointment_id}")
+async def api_site_admin_general_search(appointment_id: int,
+                                        user=Security(authorize_user, scopes=[p.GENERAL_SEARCH])):
+    return site_admin_general_search(
+        user,
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        appointment_id,
+        "",
+        "",
+        ""
+    )
+
+
 @router.post("/site-admin/m_to_m/general_search")
 async def api_site_admin_general_search(portal_general_search_request: PortalGeneralSearchRequest,
                                         user=Security(authorize_user, scopes=[p.GENERAL_SEARCH])):
@@ -210,6 +230,19 @@ async def api_site_admin_location_search(portal_location_search: PortalLocationS
     )
 
 
+@router.get("/site-admin/get_location/{location_id}")
+async def api_site_admin_location_search(location_id: int, user=Security(authorize_user, scopes=[p.LOCATION_SEARCH])):
+    return site_admin_location_search(
+        '',
+        '',
+        '',
+        '',
+        '',
+        user,
+        location_id=location_id
+    )
+
+
 @router.post("/site-admin/add_schedule_generation_rule",
              dependencies=[Security(authorize_user, scopes=[p.ADD_SCHEDULE_GENERATION_RULE])])
 async def api_add_schedule_generation_rule(schedule_generation_rule_request: ScheduleGenerationRule):
@@ -246,6 +279,9 @@ async def api_cc_patient_lookup(portal_cc_patient_lookup_request: PortalCcPatien
         portal_cc_patient_lookup_request.last_name,
         portal_cc_patient_lookup_request.dob
     )
+@router.post("/site-admin/generate_vaccine_forms_brownwood", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
+def generate_vaccine_forms_brownwood(portal_admin_get_f11_request: PortalAdminGetF11Request):
+    return site_admin_get_f11(portal_admin_get_f11_request.date)
 
 '''
 @router.post("/admin/get_all_test_results", dependencies=[Security(authorize_user, scopes=[p.GET_ALL_TEST_RESULTS])])

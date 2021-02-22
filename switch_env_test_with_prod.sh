@@ -11,7 +11,7 @@ PROJECT_ID='ggt-pfe-prod'
 SERVICE_NAME='ggt-pfe-services'
 REGION='us-central1'
 
-gcloud config configurations activate ggt-pfe-prod
+#gcloud config configurations activate ggt-pfe-prod
 
 export PIPENV_IGNORE_VIRTUALENVS=1
 pipenv lock --requirements > app/requirements.txt

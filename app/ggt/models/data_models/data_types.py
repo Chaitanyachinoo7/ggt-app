@@ -415,8 +415,7 @@ class FinalizeGGVPreRegistrationRequest(BaseModel):
     timeSlot: Optional[int] = None
     hasInsurance: Optional[bool] = None
     forceFinish: Optional[bool] = None
-
-
+    covid19vaxScreening: Optional[Covid19vaxScreening] = None
 
 class PhoneData(BaseModel):
     cellphone: str = None
@@ -457,11 +456,22 @@ class InjectionSites(str, Enum):
     right_thigh = 'right_thigh'
 
 
+class VialElements(BaseModel):
+    lot_no: str
+    expiration_date: str
+    gtin: str
+
+
+class VialData(BaseModel):
+    vial_id: str
+    elements: Optional[VialElements] = None
+
+
 class ProviderUpdateAppointmentRequest(BaseModel):
     appointment_id: str = None
     action: str = None
     workstation_id: int = None
-    vial_id: Optional[str] = None
+    vial_data: Optional[VialData] = None
     insurance_photo: Optional[str] = None
     appointment_notes: Optional[str] = None
     injection_site: Optional[InjectionSites] = None
@@ -497,6 +507,10 @@ class PortalCcTestLookupRequest(BaseModel):
 class PortalCcPatientLookupRequest(BaseModel):
     last_name: str = None
     dob: str = None
+
+
+class PortalAdminGetF11Request(BaseModel):
+    date: str = None
 
 
 class CCSendSMSRequest(BaseModel):
@@ -944,7 +958,8 @@ class GgtBooking(BaseModel):
     slot_2: GgtScheduleSlot = None
 
     #language: str = None
-    #science37:
+    # science37:
+
 
 '''
 class Science37(BaseModel):
@@ -969,6 +984,7 @@ class Science37(BaseModel):
 		}
 	},
 '''
+
 
 class GgtAppointment(BaseModel):
     id: int = None
@@ -999,6 +1015,7 @@ class GgtAppointment(BaseModel):
     location: GgtLocation = GgtLocation()
 
     status: str = None
+    org_name: str = None
 
 
 class GgtTestSample(BaseModel):
@@ -1156,7 +1173,7 @@ class UserRolesEnum(str, Enum):
     org_admin = 'org_admin'
     ggt = 'ggt_admin'
 
-    #org_admin
+    # org_admin
 
 
 class CreateAuth0User(BaseModel):
@@ -1168,7 +1185,7 @@ class CreateAuth0User(BaseModel):
     name: str = None
     nickname: str = None
     blocked: bool = False
-    email_verified: bool = False
+    email_verified: bool = True
 
 
 class UpdateAuth0UserInfo(BaseModel):
@@ -1252,12 +1269,14 @@ class ChangeOrgStatus(BaseModel):
     id: str
     is_active: bool
 
+
 class StatusUpdatesRequest(BaseModel):
     lab_code: str
     requisition_id: str
     order_id: str
     status_code: str
     remarks: str
+
 
 class InsuranceEligibilityRequest(BaseModel):
     first_name: str = None
@@ -1293,8 +1312,11 @@ class PatientDrilldownRequest(BaseModel):
     status: PatientStatusEnum
 
 
-
 class InsurancePayersListRequest(BaseModel):
     search_query: str = None
     page: int = 1
     limit: int = 10
+
+
+class VerificationToken(BaseModel):
+    verification_token: str

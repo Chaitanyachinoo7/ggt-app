@@ -107,23 +107,6 @@ def upload_insurance_files_from_gstore(orders):
         print_error(err)
 
 
-def get_insurance_photo_base64(appointment_id):
-    sql = """
-    SELECT 
-        q.insurance_photo
-    FROM
-        (appointments
-        JOIN patient_questionnaires q 
-            ON (appointments.patient_id = q.patient_id))
-    WHERE
-        appointments.id = %s
-    LIMIT 1
-    """
-    vals = (appointment_id,)
-    row = read_row(sql, vals)
-    return row['insurance_photo']
-
-
 def __get_msh(order):
     dt = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     cid = str(int(time.time()))
@@ -525,9 +508,9 @@ def get_orders_ready_to_transmit(limit=100):
                         '%Y%m%d%H%m%s') as today_dt
         FROM
             (((test_samples t
-            JOIN patients p ON ((t.patient_id = p.id)))
-            JOIN locations l ON ((t.sample_collection_location_id = l.id)))
-            JOIN patient_questionnaires q ON ((p.id = q.patient_id)))
+            JOIN patients p ON (t.patient_id = p.id))
+            JOIN locations l ON (t.sample_collection_location_id = l.id))
+            JOIN patient_questionnaires q ON (q.id = t.patient_questionnaire_id))
         WHERE
             (t.status = 'ready_to_tx')
             AND t.vial_id IS NOT NULL

@@ -1,26 +1,16 @@
-import os
-import os.path
-from os import path
-import glob
-import csv
 import datetime
 import time
-#import paramiko
-import itertools
-import shutil
-from pathlib import Path
-
 
 from ggt.lib.utils import (
     get_config_val as cfg,
     log_generic,
     generate_session_id,
     whoami,
-    print_header, 
-    print_ok1, 
-    print_ok2, 
-    print_warning, 
-    print_error, 
+    print_header,
+    print_ok1,
+    print_ok2,
+    print_warning,
+    print_error,
     print_progress_bar_message
 )
 
@@ -35,29 +25,13 @@ from ggt.lib.db import (
     replica_read_rows
 )
 
-from ggt.models.data_models.tasks_local_cache import (
-    init_local_cache,
-    add_to_lab_test_records_cache,
-    get_all_lab_records_from_cache,
-    add_to_all_inbound_files_cache,
-    file_exists_in_all_inbound_files_cache,
-    get_order_number_by_requisition_id,
-    add_to_files_in_remote_storage_cache,
-    file_exists_in_files_in_remote_storage_cache,
-    add_to_csv_pdf_sync_cache,
-    add_to_csv_pdf_sync_cache_v2,
-    add_to_lab_test_records_cache_v2
-)
-
 from ggt.lib.adapters.s3_adapter import (
-        move_file,
-        delete_file,
-        get_list_of_files, 
-        copy_file_from_s3_to_s3,
-        get_file_iterator,
-        file_exists,
-        read_file
-    )
+    move_file,
+    copy_file_from_s3_to_s3,
+    get_file_iterator,
+    file_exists,
+    read_file
+)
 
 import ggt.lib.constants as c
 
@@ -70,16 +44,7 @@ lab_inbound_bucket = 'ggt-sftp'
 labreport_bucket = 'ggt-labreports'
 lab_archive_bucket = 'ggt-sftp-archive'
 
-# ----What this does----
-# Delete/move files at the download directory
-# get a list of remote files
-# iterate over the files
-#       if file exists in cache, skip. Else download. Add name to cache
-# --
-# parse CSV files, add all records into the labrecords table in cache (insert ignore)
-# Take all the records in the cache and add to Mysql (results are available for reporting)
-# Scan the download folder and upload all the files to inboundfiles folder in GCP
-# Copy renamed PDF lab reports to GCP
+result_cache = {}
 
 
 def task_process_inbound_lab_reports():
@@ -92,24 +57,13 @@ def task_process_inbound_lab_reports():
         task_session_id=session_id,
         info='Begin Processing Inbound Lab Reports')
 
-    process_pdf_results_for_lab(1) #AIT
-    process_pdf_results_for_lab(2) #MAWD
-
-    #process_pdf_results_for_lab_ait()
-    #process_pdf_results_for_lab_mawd()
-    #process_results_for_lab_crl
-
-
-
-    #local_process_pdf_results_for_lab_ait()
-    #add_to_healthtrackrx_inbound_data_table()
-
-    local_process_rpt_results_for_lab_crl() #part 1/2
-    local_process_pdf_results_for_lab_crl() #part 2/2
-    add_to_crl_inbound_data_table()
+    process_pdf_results_for_lab(1)  # AIT
+    process_pdf_results_for_lab(2)  # MAWD
+    preload_crl_rpt_data()
+    process_pdf_results_for_lab(3)  # CRL
 
     update_test_samples_with_results()
-    
+
     log_generic(
         type=c.INFO,
         function=whoami(),
@@ -119,17 +73,24 @@ def task_process_inbound_lab_reports():
     print_header(
         '\n\n****************** COMPLETED ******************************\nElapsed Time: {}\n'.format(time.time() - start))
 
+
 def process_pdf_results_for_lab(lab_id):
     print('process_pdf_results_for_lab #'+str(lab_id))
     key_suffix = '.pdf'
 
-    if lab_id == 1: #AIT
+    if lab_id == 1:  # AIT
         key_prefix = 'healthtrackrx/Reports/'
         table_name = 'healthtrackrx_inbound_data'
-    
-    elif lab_id == 2: #MAWD
+
+    elif lab_id == 2:  # MAWD
         key_prefix = 'mawdpath/prod/results/'
         table_name = 'mawdpath_inbound_data'
+
+    elif lab_id == 3:  # CRL
+        key_prefix = 'crllabs/prod/results/'
+        table_name = 'crl_inbound_data'
+        key_suffix = '.idx'
+
     else:
         print_error('Unknown LAB')
         return
@@ -139,27 +100,40 @@ def process_pdf_results_for_lab(lab_id):
         lab_archive_key = lab_inbound_key
 
         try:
-            if lab_id == 1: #AIT
-                requisition_id, order_number, test_result, test_status, labreport_filename = extract_report_info_ait(filename)
-            elif lab_id == 2: #MAWD
-                requisition_id, order_number, test_result, test_status, labreport_filename = extract_report_info_mawd(filename)
+            if lab_id == 1:  # AIT
+                requisition_id, order_number, test_result, test_status, labreport_filename = extract_report_info_ait(
+                    filename)
+            elif lab_id == 2:  # MAWD
+                requisition_id, order_number, test_result, test_status, labreport_filename = extract_report_info_mawd(
+                    filename)
+            elif lab_id == 3:  # CRL
+                requisition_id, order_number, test_result, test_status, labreport_filename, original_labreport_filename = extract_report_info_crl(
+                    filename)
             else:
                 raise ValueError('Unknown Lab')
 
             labreport_key = labreport_filename
 
             if requisition_id is None:
-                print_warning('Invalid requisition_id.. skipping {}'.format(filename))
+                print_warning(
+                    'Invalid requisition_id.. skipping {}'.format(filename))
                 continue
 
-            add_to_inbound_data_table(table_name, requisition_id, order_number, test_result, test_status)
+            add_to_inbound_data_table(
+                table_name, requisition_id, order_number, test_result, test_status)
 
-            #is it a Rejected Sample? #is labreport in s3? #did labreport to copy to s3 successfully
+            # is it a Rejected Sample? #is labreport in s3? #did labreport to copy to s3 successfully
             archive = (test_result == 'Rejected') or \
                 file_exists(lab_inbound_bucket, labreport_key) or \
-                    copy_inbound_report_to_public_labreports_folder(lab_inbound_key, labreport_key) 
-                    
-            archive_inbound_file(lab_id, archive, lab_inbound_key, lab_archive_key)
+                copy_inbound_report_to_public_labreports_folder(
+                    lab_inbound_key, labreport_key)
+
+            archive_inbound_file(
+                lab_id, archive, lab_inbound_key, lab_archive_key)
+
+            if lab_id == 3:  # CRL
+                archive_inbound_file(
+                    lab_id, archive, original_labreport_filename, original_labreport_filename)
 
         except Exception as err:
             log_generic(
@@ -167,6 +141,60 @@ def process_pdf_results_for_lab(lab_id):
                 function=whoami(),
                 error=err
             )
+
+
+def preload_crl_rpt_data():
+    print('preload_crl_rpt_data')
+    key_prefix = 'crllabs/prod/results/'
+    key_suffix = '.rpt'
+
+    for file_path in get_file_iterator(bucket=lab_inbound_bucket, prefix=key_prefix, suffix=key_suffix):
+        _order_number = None
+        _test_result = None
+        _requisition_id = None
+
+        try:
+            arr = file_path.split('/')
+            filename = arr[len(arr)-1]
+
+            # is a folder name
+            if filename == '':
+                continue
+
+            # parse index file
+            for line in read_file(lab_inbound_bucket, file_path).splitlines():
+                line = line.decode("utf-8")
+
+                try:
+                    if line.startswith('PID'):
+                        _requisition_id = line.split('|')[3]
+                    elif line.startswith('OBR'):
+                        _order_number = line.split('|')[2]
+                    elif line.startswith('OBX'):
+                        r = line.split('|')[5]
+                        if r == 'NDD':
+                            _test_result = 'Negative'
+                        elif r == 'DET':
+                            _test_result = 'Positive'
+                        elif r == 'NSA':
+                            _test_result = 'Rejected'
+                        elif r == 'TNP':
+                            _test_result = 'Rejected'
+                        else:
+                            raise ValueError(
+                                'Uknown result: {} / appointment_id {}'.format(r, _order_number))
+
+                except Exception as err:
+                    print_error(
+                        'Error processing — {} — {}'.format(err, filename))
+
+            result_cache[_order_number] = [_order_number,
+                                           _requisition_id, _test_result, file_path]
+            print(_order_number, _requisition_id, _test_result, file_path)
+
+        except Exception as err:
+            print_error(err)
+
 
 def add_to_inbound_data_table(table_name, requisition_id, order_number, test_result, test_status):
     if order_number:
@@ -186,7 +214,8 @@ def add_to_inbound_data_table(table_name, requisition_id, order_number, test_res
 
         vals = (requisition_id, order_number, test_status, test_result)
 
-        operation = 'requisition_id: {} order_number: {} test_status:{} test_result:{}'.format(requisition_id, order_number, test_status, test_result)
+        operation = 'requisition_id: {} order_number: {} test_status:{} test_result:{}'.format(
+            requisition_id, order_number, test_status, test_result)
         res = exec_insert(sql, vals)
         if res > 0:
             print_ok2('Insert SUCCESS for ' + operation)
@@ -200,16 +229,19 @@ def add_to_inbound_data_table(table_name, requisition_id, order_number, test_res
 
 
 def copy_inbound_report_to_public_labreports_folder(lab_inbound_key, labreport_key):
-    #copy labreport to s3
+    # copy labreport to s3
     if file_exists(labreport_bucket, labreport_key):
-        print_ok2('Report already exists, s3 copy SKIPPED for {}/{} ==> {}/{}'.format(lab_inbound_bucket, lab_inbound_key, labreport_bucket, labreport_key))
+        print_ok2('Report already exists, s3 copy SKIPPED for {}/{} ==> {}/{}'.format(
+            lab_inbound_bucket, lab_inbound_key, labreport_bucket, labreport_key))
         return True
 
     if copy_file_from_s3_to_s3(lab_inbound_bucket, lab_inbound_key, labreport_bucket, labreport_key):
-        print_ok2('s3 copy success for {}/{} ==> {}/{}'.format(lab_inbound_bucket, lab_inbound_key, labreport_bucket, labreport_key))
+        print_ok2('s3 copy success for {}/{} ==> {}/{}'.format(lab_inbound_bucket,
+                                                               lab_inbound_key, labreport_bucket, labreport_key))
         return True
     else:
-        print_error('s3 copy failed for {}/{} ==> {}/{}'.format(lab_inbound_bucket, lab_inbound_key, labreport_bucket, labreport_key))
+        print_error('s3 copy failed for {}/{} ==> {}/{}'.format(lab_inbound_bucket,
+                                                                lab_inbound_key, labreport_bucket, labreport_key))
         return False
 
 
@@ -225,276 +257,23 @@ def archive_inbound_file(lab_id, archive, lab_inbound_key, lab_archive_key):
         """
         vals = (lab_inbound_key, lab_id)
         if exec_insert(sql, vals):
-            #prevent override of previous file, add dt suffix
+            # prevent override of previous file, add dt suffix
             if file_exists(lab_archive_bucket, lab_archive_key):
-                lab_archive_key = lab_archive_key.replace('.', '-{}.'.format(datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S"))) 
+                lab_archive_key = lab_archive_key.replace(
+                    '.', '-{}.'.format(datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S")))
 
-            print_ok1('archiving {}/{} ==> {}/{}'.format(lab_inbound_bucket, lab_inbound_key, lab_archive_bucket, lab_archive_key))
-            move_file(lab_inbound_bucket, lab_inbound_key, lab_archive_bucket, lab_archive_key)
+            print_ok1('archiving {}/{} ==> {}/{}'.format(lab_inbound_bucket,
+                                                         lab_inbound_key, lab_archive_bucket, lab_archive_key))
+            move_file(lab_inbound_bucket, lab_inbound_key,
+                      lab_archive_bucket, lab_archive_key)
         else:
-            print_error('Skipping Archiving, Insert FAILED while adding to Processed Files >> ' + lab_inbound_key)
-
-        
-
-
-def process_results_for_lab_crl():
-    print('process_results_for_lab_crl')
-
-    for filename in get_file_iterator(bucket=lab_inbound_bucket, prefix='crllabs/prod/results/', suffix='.rpt'):
-        order_number = None
-        test_result = None
-        requisition_id = None
-        first_name = None
-        last_name = None
-        assay_name = None
-
-        try:
-            #parse index file 
-            for line in read_file(lab_inbound_bucket, filename).splitlines():
-                if line.startswith('PID'):
-                    requisition_id = line.split('|')[3]
-                    names = line.split('|')[5].split('^')
-                    first_name = names[1]
-                    last_name = names[0]
-                elif line.startswith('PR1'):
-                    assay_name = line.split('|')[3]
-                elif line.startswith('OBR'):
-                    order_number = line.split('|')[2]
-                elif line.startswith('OBX'):
-                    r = line.split('|')[5]
-                    if r == 'NDD':
-                        test_result = 'Negative'
-                    elif r == 'DET':
-                        test_result = 'Positive'
-                    else:
-                        raise ValueError('Uknown result: {} / appointment_id {}'.format(r, _order_number))
-
-            if requisition_id is None:
-                print_warning('skipping/archiving {}'.format(filename))
-                move_file(lab_inbound_bucket, filename, lab_archive_bucket, filename)
-                continue
-
-            if order_number:
-                sql = """
-                INSERT IGNORE INTO crl_inbound_data
-                (
-                    requisition_id,
-                    order_number,
-                    first_name,
-                    last_name,
-                    assay_name,
-                    status,
-                    result
-                )
-                VALUES(%s, %s, %s, %s, %s, %s, %s);
-                """
-                vals = (requisition_id, order_number, first_name, last_name, assay_name, test_status, test_result)
-
-                if exec_insert(sql, vals):
-                    print_ok2('insert success for requisition_id: {} order_number: {} test_status:{} test_result:{}'.format(requisition_id, order_number, test_status, test_result))
-                else:
-                    print_error('insert failed for requisition_id: {} order_number: {} test_status:{} test_result:{}'.format(requisition_id, order_number, test_status, test_result))
-                
-                lab_inbound_key = filename
-                lab_archive_key = lab_inbound_key
-
-                archive = False
-
-                #archive files in s3
-                print_ok1('archiving {}/{} ==> {}/{}'.format(lab_inbound_bucket, lab_inbound_key, lab_archive_bucket, lab_archive_key))
-                move_file(lab_inbound_bucket, lab_inbound_key, lab_archive_bucket, lab_archive_key)
-
-            else:
-                print_ok2('Lab report upload skipped for rejected lab test')
-
-        except Exception as err:
-            print_error('Error processing — {} — {}'.format(err, filename))
-
-        print_ok2('{} 100%            '.format(PROGRESS_LABEL))
-
-            
-def __process_rpt_results_for_lab_crl():
-    print('process_rpt_results_for_lab_crl')
-    local_download_path = '/Users/suresh/ggt-tasks/downloads/crllabs/prod/results'
-    try:
-        file_count = 0
-        for local_file_path in glob.iglob('{}/*.rpt'.format(local_download_path), recursive=True):
-            file_count += 1
-
-        i = 0
-        p = 0
-        PROGRESS_LABEL = 'Processing result files [steps 1/2]'
-        for local_file_path in glob.iglob('{}/*.rpt'.format(local_download_path), recursive=True):
-            i += 1
-            p = i/file_count*100
-            print_progress_bar_message('{} {:.1f}%'.format(PROGRESS_LABEL, p))
-
-            _order_number = None
-            _test_result = None
-            _requisition_id = None
-            _first_name = None
-            _last_name = None
-            _dob = None
-            _assay_name = None
-
-            try:
-                if os.stat(local_file_path).st_size == 0:
-                    raise ValueError('Empty File')
-
-                file_handler = open(local_file_path, 'r') 
-                for line in file_handler.readlines():
-
-                    if line.startswith('PID'):
-                        _requisition_id = line.split('|')[3]
-                        names = line.split('|')[5].split('^')
-                        _first_name = names[1]
-                        _last_name = names[0]
-                    elif line.startswith('PR1'):
-                        _assay_name = line.split('|')[3]
-                    elif line.startswith('OBR'):
-                        _order_number = line.split('|')[2]
-                    elif line.startswith('OBX'):
-                        r = line.split('|')[5]
-                        if r == 'NDD':
-                            _test_result = 'Negative'
-                        elif r == 'DET':
-                            _test_result = 'Positive'
-                        else:
-                            raise ValueError('Uknown result: {} / appointment_id {}'.format(r, _order_number))
-                        
-                add_to_csv_pdf_sync_cache_v2(_requisition_id, _order_number, _test_result, 'Approved', 'CRL')
-                add_to_lab_test_records_cache_v2(_requisition_id, _order_number, _test_result, 'Approved', 'CRL')
-                            
-            except Exception as err:
-                print_error('Error processing — {} — {}'.format(err, local_file_path))
-
-        print_ok2('{} 100%            '.format(PROGRESS_LABEL))
-
-    except Exception as err:
-        print_error(err)
+            print_error(
+                'Skipping Archiving, Insert FAILED while adding to Processed Files >> ' + lab_inbound_key)
 
 
-def local_process_rpt_results_for_lab_crl():
-    print('process_rpt_results_for_lab_crl')
-    local_download_path = '/Users/suresh/ggt-tasks/downloads/crllabs/prod/results'
-    try:
-        file_count = 0
-        for local_file_path in glob.iglob('{}/*.rpt'.format(local_download_path), recursive=True):
-            file_count += 1
-
-        i = 0
-        p = 0
-        PROGRESS_LABEL = 'Processing result files [steps 1/2]'
-        for local_file_path in glob.iglob('{}/*.rpt'.format(local_download_path), recursive=True):
-            i += 1
-            p = i/file_count*100
-            print_progress_bar_message('{} {:.1f}%'.format(PROGRESS_LABEL, p))
-
-            _order_number = None
-            _test_result = None
-            _requisition_id = None
-            _first_name = None
-            _last_name = None
-            _dob = None
-            _assay_name = None
-
-            try:
-                if os.stat(local_file_path).st_size == 0:
-                    raise ValueError('Empty File')
-
-                file_handler = open(local_file_path, 'r') 
-                for line in file_handler.readlines():
-
-                    if line.startswith('PID'):
-                        _requisition_id = line.split('|')[3]
-                        names = line.split('|')[5].split('^')
-                        _first_name = names[1]
-                        _last_name = names[0]
-                    elif line.startswith('PR1'):
-                        _assay_name = line.split('|')[3]
-                    elif line.startswith('OBR'):
-                        _order_number = line.split('|')[2]
-                    elif line.startswith('OBX'):
-                        r = line.split('|')[5]
-                        if r == 'NDD':
-                            _test_result = 'Negative'
-                        elif r == 'DET':
-                            _test_result = 'Positive'
-                        else:
-                            raise ValueError('Uknown result: {} / appointment_id {}'.format(r, _order_number))
-                        
-                add_to_csv_pdf_sync_cache_v2(_requisition_id, _order_number, _test_result, 'Approved', 'CRL')
-                add_to_lab_test_records_cache_v2(_requisition_id, _order_number, _test_result, 'Approved', 'CRL')
-                            
-            except Exception as err:
-                print_error('Error processing — {} — {}'.format(err, local_file_path))
-
-        print_ok2('{} 100%            '.format(PROGRESS_LABEL))
-
-    except Exception as err:
-        print_error(err)
-
-
-
-def local_process_pdf_results_for_lab_crl():
-    print('process_pdf_reports_for_lab_crl')
-    local_download_path = '/Users/suresh/ggt-tasks/downloads/crllabs/prod/results'
-    try:
-        file_count = 0
-        for local_file_path in glob.iglob('{}/*.idx'.format(local_download_path), recursive=True):
-            file_count += 1
-
-        i = 0
-        p = 0
-        PROGRESS_LABEL = 'Processing result files [steps 2/2]'
-        for local_file_path in glob.iglob('{}/*.idx'.format(local_download_path), recursive=True):
-            i += 1
-            p = i/file_count*100
-            print_progress_bar_message('{} {:.1f}%'.format(PROGRESS_LABEL, p))
-
-            _pdf_filename = None
-            _order_number = None
-            _requisition_id = None
-            try:
-                if os.stat(local_file_path).st_size == 0:
-                    raise ValueError('Empty File')
-
-                for line in open(local_file_path).read().splitlines():
-                    if line.startswith('FILENAME='):
-                        _pdf_filename = line.split('=')[1]
-                    if line.startswith('REFERENCE_ID='):
-                        _order_number = line.split('=')[1]
-                    if line.startswith('SID='):
-                        _requisition_id = line.split('=')[1]
-
-                print(_pdf_filename, _order_number, _requisition_id)
-
-                if not (_pdf_filename and _order_number and _requisition_id):
-                    raise ValueError('Invalid Data')
-
-                pdf_file_path = '{}/{}'.format(local_download_path, _pdf_filename)
-                __destination_filename = '{}.pdf'.format(_order_number)
-
-                add_to_csv_pdf_sync_cache(
-                    {'requisition_id': _requisition_id}, 
-                    'pdf'
-                )
-
-                shutil.copyfile(pdf_file_path, '{}/{}'.format(local_backups_path, __destination_filename))
-
-                            
-            except Exception as err:
-                print_error('Error processing — {} — {}'.format(err, local_file_path))
-
-        print_ok2('{} 100%            '.format(PROGRESS_LABEL))
-
-    except Exception as err:
-        print_error(err)
-
-
-#'ggt-tasks/downloads/healthtrackrx/Reports/3561603_967995_Negative.pdf'
-#'ggt-tasks/downloads/healthtrackrx/Reports/3560192_962060_Positive.pdf'
-#'ggt-tasks/downloads/healthtrackrx/Reports/3553760__Rejected.pdf'
+# 'ggt-tasks/downloads/healthtrackrx/Reports/3561603_967995_Negative.pdf'
+# 'ggt-tasks/downloads/healthtrackrx/Reports/3560192_962060_Positive.pdf'
+# 'ggt-tasks/downloads/healthtrackrx/Reports/3553760__Rejected.pdf'
 def extract_report_info_ait(file_path):
     filename = None
     requisition_id = None
@@ -506,11 +285,11 @@ def extract_report_info_ait(file_path):
         arr = file_path.split('/')
         filename = arr[len(arr)-1]
 
-        #ignore old format reports
+        # ignore old format reports
         if filename.startswith('Final-Report') or filename.startswith('requisitionReport') or filename.startswith('Preliminary-Report'):
             return requisition_id, order_number, test_result, test_status, filename
 
-        filename_vars = filename.replace('.pdf','').split('_')
+        filename_vars = filename.replace('.pdf', '').split('_')
         requisition_id = filename_vars[0]
         order_number = filename_vars[1]
         test_result = filename_vars[2]
@@ -523,7 +302,7 @@ def extract_report_info_ait(file_path):
             #filename = ''
             test_status = 'Rejected'
         else:
-            test_status =  None
+            test_status = None
 
         return requisition_id, order_number, test_result, test_status, filename
 
@@ -542,30 +321,31 @@ def extract_report_info_mawd(file_path):
         arr = file_path.split('/')
         filename = arr[len(arr)-1]
 
-        #is a folder name
+        # is a folder name
         if filename == '':
             return vial_id, order_number, test_result, test_status, filename
 
-        filename_vars = filename.replace('.pdf','').split('_')
+        filename_vars = filename.replace('.pdf', '').split('_')
 
         file_version = 2
         try:
-            report_type = filename_vars[3] #C for Correction, F for Final
+            report_type = filename_vars[3]  # C for Correction, F for Final
         except Exception as err:
             print_warning('using file version 1 (old naming format)')
-            file_version = 1 
-
+            file_version = 1
 
         if file_version == 1:
             order_number = filename_vars[0]
-            vial_id = filename_vars[1] #This is actually the MAWD accession number
+            # This is actually the MAWD accession number
+            vial_id = filename_vars[1]
             test_result = filename_vars[2]
         else:
             order_number = filename_vars[1]
-            vial_id = filename_vars[0] #This is actually the MAWD accession number
+            # This is actually the MAWD accession number
+            vial_id = filename_vars[0]
             test_result = filename_vars[2]
 
-        #is a Rejected specimen
+        # is a Rejected specimen
         if 'SPECIMEN_UNACCEPTABLE' in filename:
             test_status = 'Rejected'
             test_result = 'Rejected'
@@ -578,7 +358,7 @@ def extract_report_info_mawd(file_path):
             test_result = 'Positive'
             filename = '{}.pdf'.format(order_number)
         else:
-            test_status =  None
+            test_status = None
 
         return vial_id, order_number, test_result, test_status, filename
 
@@ -586,20 +366,75 @@ def extract_report_info_mawd(file_path):
         print_error(err)
 
 
-def add_to_crl_inbound_data_table():
-    print('syncing cached crl_inbound_data to remote DB')
-    rows = get_all_lab_records_from_cache('CRL')
+'''
+NAME=JONES, JAYE?SON 
+DOB=2004-11-25
+SSN=
+COC=6029690306
+SID=29690306
+DOCTYPE=LABREPORT
+FILENAME=29690306_20210205-165927-214.pdf
+CLIENT_CODE=ZSK.EMCW
+REFERENCE_ID=1212958
+SAMPLE_TYPE=S
+REPORT_TYPE=INEG
+REPORT_CLASS=NONN
+CONTACT_ID=ZSKFTP1
+REASON_TYPE=NS
+'''
+
+
+def extract_report_info_crl(file_path):
+    filename = None
+    requisition_id = None
+    order_number = None
+    test_result = None
+    test_status = None
+
     try:
-        sql = """
-            INSERT INTO crl_inbound_data
-                (requisition_id, order_number, first_name, last_name, dob, assay_name, status, result)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
-            ON DUPLICATE KEY UPDATE requisition_id=requisition_id
-        """
-        exec_batch_execute(sql, rows)
+        arr = file_path.split('/')
+        filename = arr[len(arr)-1]
+
+        # is a folder name
+        if filename == '':
+            return requisition_id, order_number, test_result, test_status, filename
+
+        # parse index file
+        for line in read_file(lab_inbound_bucket, file_path).splitlines():
+            line = line.decode("utf-8")
+
+            if line.startswith('FILENAME='):
+                pdf_filename = line.split('=')[1]
+            if line.startswith('REFERENCE_ID='):
+                order_number = line.split('=')[1]
+            if line.startswith('SID='):
+                requisition_id = line.split('=')[1]
+
+        print(pdf_filename, order_number, requisition_id)
+
+        if not (pdf_filename and order_number and requisition_id):
+            raise ValueError('Invalid Data')
+
+        pdf_file_path = '{}{}'.format(
+            file_path.replace(filename, ''), pdf_filename)
+        filename = '{}.pdf'.format(order_number)
+
+        #result_cache[_order_number] = [_order_number, _requisition_id, _test_result, file_path]
+        test_result = result_cache[order_number][2]
+        if test_result == 'Rejected':
+            test_status = 'Rejected'
+        else:
+            test_status = 'Approved'
+
+        # Archive the RPT file
+        lab_inbound_key = result_cache[order_number][3]
+        lab_archive_key = lab_inbound_key
+        archive_inbound_file(3, True, lab_inbound_key, lab_archive_key)
+
+        return requisition_id, order_number, test_result, test_status, filename, pdf_file_path
 
     except Exception as err:
-        print_error('Critical ERROR: {}'.format(err))
+        print_error(err)
 
 
 def update_test_samples_with_results():
@@ -691,370 +526,3 @@ def extract_filename(file_path):
     arr = file_path.split('/')
     filename = arr[len(arr)-1]
     return filename
-
-
-def lower_first(iterator):
-    return itertools.chain([next(iterator).lower()], iterator)
-
-
-
-
-
-#to be depricated
-'''
-def local_process_pdf_results_for_lab_ait():
-    print('local_process_pdf_results_for_lab_ait')
-    try:
-        file_count = 0
-        for local_file_path in glob.iglob('{}/*.pdf'.format(local_download_path), recursive=True):
-            file_count += 1
-
-        i = 0
-        p = 0
-        PROGRESS_LABEL = 'Processing and uploading PDF lab reports'
-        for local_file_path in glob.iglob('{}/*.pdf'.format(local_download_path), recursive=True):
-            i += 1
-            p = i/file_count*100
-            print_progress_bar_message('{} {:.1f}% | {}/{}'.format(PROGRESS_LABEL, p, i, file_count))
-
-            try:
-                if os.stat(local_file_path).st_size == 0:
-                    raise ValueError('Empty File')
-
-                __requisition_id, __order_number, __test_result, __test_status, __destination_filename = extract_report_info_ait(local_file_path)
-
-                #skip old format file
-                if not __requisition_id:
-                    continue
-
-                #proceed to process new format file
-                add_to_csv_pdf_sync_cache_v2(__requisition_id, __order_number, __test_result, __test_status, 'AIT')
-                add_to_lab_test_records_cache_v2(__requisition_id, __order_number, __test_result, __test_status, 'AIT')
-
-                if __destination_filename:
-                    #~temp
-                    filename = local_file_path.replace('/Users/suresh/ggt-tasks/downloads/', '')
-                    labreport_filename = __destination_filename
-                    #~temp
-                    lab_inbound_key = filename
-                    labreport_key = labreport_filename
-                    lab_archive_key = lab_inbound_key
-
-                    #is labreport in s3?
-                    if file_exists(lab_inbound_bucket, labreport_key):
-                        print('{} exists in s3'.format(labreport_key))
-                        add_to_files_in_remote_storage_cache(labreport_key)
-                    else:
-                        #copy labreport to s3
-                        if copy_file_from_s3_to_s3(lab_inbound_bucket, lab_inbound_key, labreport_bucket, labreport_key):
-                            print_ok1('s3 copy success for {}/{} ==> {}/{}'.format(lab_inbound_bucket, lab_inbound_key, labreport_bucket, labreport_key))
-                            add_to_files_in_remote_storage_cache(labreport_key)
-                        else:
-                            print_error('s3 copy failed for {}/{} ==> {}/{}'.format(lab_inbound_bucket, lab_inbound_key, labreport_bucket, labreport_key))
-
-                    #Archive from s3. This change propagates to local folders
-                    if file_exists_in_files_in_remote_storage_cache(labreport_key):                        
-                        print_ok1('archiving {}/{} ==> {}/{}'.format(lab_inbound_bucket, lab_inbound_key,labreport_bucket,labreport_key))
-                        move_file(lab_inbound_bucket, lab_inbound_key, lab_archive_bucket, lab_archive_key)
-                    else:
-                        print_error('cache miss')
-                            
-            except Exception as err:
-                print_error('Error uploading — {} — {}'.format(err, local_file_path))
-
-        print_ok2('{} 100%'.format(PROGRESS_LABEL))
-
-    except Exception as err:
-        print_error(err)
-
-
-def process_pdf_results_for_lab_mawd():
-    print('process_pdf_results_for_lab_mawd')
-    key_prefix = 'mawdpath/prod/results/'
-    key_suffix = '.pdf'
-
-    for filename in get_file_iterator(bucket=lab_inbound_bucket, prefix=key_prefix, suffix=key_suffix):
-        lab_inbound_key = filename
-        lab_archive_key = lab_inbound_key
-
-        try:
-            requisition_id, order_number, test_result, test_status, labreport_filename = extract_report_info_mawd(filename)
-            labreport_key = labreport_filename
-
-            if requisition_id is None:
-                print_warning('Invalid requisition_id.. skipping {}'.format(filename))
-                continue
-
-            add_to_inbound_data_table('mawdpath_inbound_data', requisition_id, order_number, test_result, test_status)
-
-            #is it a Rejected Sample? #is labreport in s3? #did labreport to copy to s3 successfully
-            archive = (test_result == 'Rejected') or \
-                file_exists(lab_inbound_bucket, labreport_key) or \
-                    copy_inbound_report_to_public_labreports_folder(lab_inbound_key, labreport_key) 
-
-            archive_inbound_file(archive, lab_inbound_key, lab_archive_key)
-
-        except Exception as err:
-            log_generic(
-                type=c.ERROR,
-                function=whoami(),
-                error=err
-            )
-'''
-
-def process_pdf_results_for_lab_ait():
-    print('process_pdf_results_for_lab_ait')
-    key_prefix = 'healthtrackrx/Reports/'
-    key_suffix = '.pdf'
-
-    for filename in get_file_iterator(bucket=lab_inbound_bucket, prefix=key_prefix, suffix=key_suffix):
-        lab_inbound_key = filename
-        lab_archive_key = lab_inbound_key
-
-        try:
-            requisition_id, order_number, test_result, test_status, labreport_filename = extract_report_info_ait(filename)
-            labreport_key = labreport_filename
-
-            if requisition_id is None:
-                print_warning('Invalid requisition_id.. skipping {}'.format(filename))
-                continue
-
-            add_to_inbound_data_table('healthtrackrx_inbound_data', requisition_id, order_number, test_result, test_status)
-
-            #is it a Rejected Sample? #is labreport in s3? #did labreport to copy to s3 successfully
-            archive = (test_result == 'Rejected') or \
-                file_exists(lab_inbound_bucket, labreport_key) or \
-                    copy_inbound_report_to_public_labreports_folder(lab_inbound_key, labreport_key) 
-                    
-            archive_inbound_file(archive, lab_inbound_key, lab_archive_key)
-
-        except Exception as err:
-            log_generic(
-                type=c.ERROR,
-                function=whoami(),
-                error=err
-            )
-
-
-
-
-'''
-def upload_pdf_lab_reports():
-    print('uploading PDF lab reports')
-    try:
-        file_count = 0
-        for local_file_path in glob.iglob('{}/**/*.pdf'.format(local_download_path), recursive=True):
-            file_count += 1
-
-        i = 0
-        p = 0
-        PROGRESS_LABEL = 'uploading PDF lab reports'
-        for local_file_path in glob.iglob('{}/**/*.pdf'.format(local_download_path), recursive=True):
-            i += 1
-            p = i/file_count*100
-            print_progress_bar_message('{} {:.1f}%'.format(PROGRESS_LABEL, p))
-
-            try:
-                if os.stat(local_file_path).st_size == 0:
-                    raise ValueError('Empty File')
-
-                __requisition_id, __order_number, __destination_filename = generate_destination_filename(local_file_path)
-                add_to_csv_pdf_sync_cache(
-                    {'requisition_id': __requisition_id}, 
-                    'pdf'
-                )
-
-                shutil.copyfile(
-                    local_file_path, '{}/{}'.format(local_backups_path, __destination_filename))
-                if __destination_filename:
-                    if file_exists_in_files_in_remote_storage_cache(__destination_filename):
-                        #print_ok2('cache hit: {}'.format(__destination_filename))
-                        pass
-                    else:
-                        if __order_number:
-                            upload_status = upload_lab_report(
-                                local_file_path,
-                                __destination_filename
-                            )
-                            if upload_status is None:
-                                print('pdf_lab_report - Error Uploading.... {} ==> {}'.format(
-                                    local_file_path, __destination_filename))
-                            elif upload_status:
-                                print('pdf_lab_report - upload success {} ==> {}'.format(
-                                    local_file_path, __destination_filename))
-                            else:
-                                print('pdf_lab_report exists at destination... adding to local cache: {} ==> {}'.format(
-                                    local_file_path, __destination_filename))
-                                add_to_files_in_remote_storage_cache(
-                                    __destination_filename)
-                        else:
-                            #print_ok2('Lab report upload skipped for rejected lab test')
-                            handle_reject_report(local_file_path)
-                            
-            except Exception as err:
-                print('Error uploading — {} — {}'.format(err, local_file_path))
-
-        print_ok2('{} 100%            '.format(PROGRESS_LABEL))
-
-    except Exception as err:
-        print(err)
-
-
-def parse_report_comments():
-    print('Parsing PDF lab reports')
-    try:
-        file_count = 0
-        for local_file_path in glob.iglob('{}/**/*.pdf'.format(local_download_path), recursive=True):
-            file_count += 1
-
-        i = 0
-        p = 0
-        PROGRESS_LABEL = 'Parsing PDF lab reports'
-        for local_file_path in glob.iglob('{}/**/*.pdf'.format(local_download_path), recursive=True):
-            i += 1
-            p = i/file_count*100
-            print_progress_bar_message('{} {:.1f}%'.format(PROGRESS_LABEL, p))
-
-            try:
-                if os.stat(local_file_path).st_size == 0:
-                    raise ValueError('Empty File')
-
-                __requisition_id, __order_number, __destination_filename = generate_destination_filename(local_file_path)
-
-                import pdfplumber
-                with pdfplumber.open(local_file_path) as pdf:
-                    first_page = pdf.pages[0]
-                    print(first_page.extract_text(x_tolerance=3, y_tolerance=3).splitlines())
-                    for line in first_page.extract_text(x_tolerance=3, y_tolerance=3).splitlines():
-                        if line.startswith('Rejection Report'):
-                            is_reject_report=True
-                        if line.startswith('Comments:'):
-                            reject_reason = line.replace('Comments:','').strip()
-                
-                            
-            except Exception as err:
-                print('Error uploading — {} — {}'.format(err, local_file_path))
-
-        print_ok2('{} 100%            '.format(PROGRESS_LABEL))
-
-    except Exception as err:
-        print(err)
-
-
-def handle_reject_report(pdf_report_path):
-    import pdfplumber
-
-    with pdfplumber.open(pdf_report_path) as pdf:
-        is_reject_report = False
-        reject_reason = ''
-        first_page = pdf.pages[0]
-        print(first_page.extract_text(x_tolerance=3, y_tolerance=3).splitlines())
-        for line in first_page.extract_text(x_tolerance=3, y_tolerance=3).splitlines():
-            if line.startswith('Rejection Report'):
-                is_reject_report=True
-            if line.startswith('Comments:'):
-                reject_reason = line.replace('Comments:','').strip()
-        
-        print(is_reject_report, reject_reason)
-
-
-def upload_all_inbound_files_to_central_storage():
-    try:
-        file_count = 0
-        for local_file_path in glob.iglob('{}/**/*'.format(local_download_path), recursive=True):
-            file_count += 1
-
-        i = 0
-        p = 0
-        PROGRESS_LABEL = 'uploading all original inbound files to remote storage'
-        for local_file_path in glob.iglob('{}/**/*'.format(local_download_path), recursive=True):
-            i += 1
-            p = i/file_count*100
-            print_progress_bar_message('{} {:.1f}%'.format(PROGRESS_LABEL, p))
-
-            filename = extract_filename(local_file_path)
-            try:
-                if os.stat(local_file_path).st_size == 0:
-                    raise ValueError('Empty File')
-
-                if file_exists_in_files_in_remote_storage_cache(filename):
-                    #print('cache hit: ', filename)
-                    pass
-                else:
-                    if path.isdir(local_file_path):
-                        #print('Skipping uploading Directory {}'.format(local_file_path))
-                        pass
-                    else:
-                        upload_status = upload_to_all_inbound_files(local_file_path, filename)
-                        if upload_status is None:
-                            print_error(
-                                'Error Uploading.... {}'.format(filename))
-                        elif upload_status:
-                            print('upload success {}'.format(filename))
-                            pass
-                        else:
-                            #print('file exists... adding to local cache: {}'.format(filename))
-                            add_to_files_in_remote_storage_cache(filename)
-            except Exception as err:
-                print('Error uploading {}'.format(filename))
-
-        print_ok2('{} 100%            '.format(PROGRESS_LABEL))
-
-    except Exception as err:
-        print(err)
-'''
-
-
-
-
-'''
-def generate_destination_filename(file_path):
-    filename = None
-    requisition_id = None
-    order_number = None
-
-    try:
-        arr = file_path.split('/')
-        filename = arr[len(arr)-1]
-        requisition_id = filename.split('-')[3]
-
-        if filename.startswith('requisitionReport'):
-            #print_warning('Skipping reject file: {}'.format(filename))
-            pass
-        else:
-            order_number = get_order_number_by_requisition_id(requisition_id)
-            if order_number:
-                filename = '{}.pdf'.format(order_number)
-            else:
-                print_error('Requisition Not found - ID: {} —/— {}'.format(requisition_id, filename))
-                append_to_processing_summary('{} - no record found'.format(requisition_id))
-
-    except Exception as err:
-        print("err:", err)
-
-    return requisition_id, order_number, filename
-
-
-def append_to_processing_summary(txt):
-    # append mode
-    f = open(
-        "ggt-inbound-processing-summary.txt", "a")
-    f.write(txt + "\n")
-    f.close()
-
-
-def add_to_healthtrackrx_inbound_data_table():
-    print('syncing cached healthtrackrx_inbound_data to remote DB')
-    rows = get_all_lab_records_from_cache('AIT')
-    try:
-        sql = """
-            INSERT INTO healthtrackrx_inbound_data
-                (requisition_id, order_number, first_name, last_name, dob, assay_name, status, result)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
-            ON DUPLICATE KEY UPDATE requisition_id=requisition_id
-        """
-        exec_batch_execute(sql, rows)
-
-    except Exception as err:
-        print_error('Critical ERROR: {}'.format(err))
-'''

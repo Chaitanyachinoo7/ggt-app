@@ -54,13 +54,18 @@ def task_process_misc():
         task_session_id=session_id,
         info='Begin Processing Misc Task')
 
+    #process_bcg_locations_file()
+    #process_mx_locations_file()
+    #update_schedules()
+
     # upload_insurance_images_to_gcp()
     # sync_appointments_with_schedule_slots()
     # upload_insurance_images_to_gcp_with_small_table()
     #process_email_notifications()
     #upload_insurance_files_from_gstore()
-    process_sms_notifications()
-    process_email_notifications()
+    #process_sms_notifications()
+    #process_email_notifications()
+    dedupe_tokens()
 
     log_generic(
         type=c.INFO,
@@ -188,7 +193,7 @@ def formatted_email_message(row):
 
 
 def prepare_sms_text(appointment):
-    return """Hi {}, the location where you have registered for your COVID-19 test will be CLOSED the week of 02/08/2021 - 02/13/2021 due to inclement weather. We apologize for the inconvenience this might have caused. Please visit GoGetTested.com to register for a new appointment.
+    return """Hi {}, the location where you have registered for your COVID-19 test will be CLOSED 02/15/2021 through 02/17/2021 due to inclement weather. We apologize for the inconvenience this might have caused. Please visit GoGetTested.com to register for a new appointment.
     """.format(appointment["first_name"])
 
     #return """Hi {}, due to inclement weather, we’ve had to delay opening the testing location where you have registered to 12 pm. This may change depending on the weather. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to register for a new appointment.
@@ -413,22 +418,11 @@ def get_appointments():
                 JOIN
             patients p ON a.patient_id = p.id
         WHERE
-            location_id IN (2495 , 369,
-                2416,
-                2417,
-                371,
-                2447,
-                2414,
-                361,
-                2485,
-                399,
-                367,
-                372,
-                2385,
-                2422
+            location_id IN (
+                2452
                 )
-                AND scheduled_dt > '2021-02-08 00:00:00'
-                AND scheduled_dt < '2021-02-14 00:00:00'
+                AND scheduled_dt > '2021-02-15 00:00:00'
+                AND scheduled_dt < '2021-02-16 00:00:00'
                 AND status = 'scheduled'
         """
 
@@ -593,3 +587,156 @@ def remove_image_from_questionnnaires_table(id):
 
 
     
+
+
+
+def process_bcg_locations_file():
+    import csv
+    with open('archived/bcg_location_list.txt', newline='') as csvfile:
+        spamreader = csv.reader(csvfile, delimiter='\t')
+        for row in spamreader:
+            print(', '.join(row))
+            name = row[0]
+            addr1= row[1]
+            addr2= row[2]
+            city= row[3]
+            st= row[4] 
+            zip= row[5]
+            operator= row[7]
+            phone_number= row[8]
+            website= row[8]
+            open_hours = row[11]
+            add_to_locations(name+' | '+open_hours, addr1, addr2, city, st, zip, operator, phone_number, website, open_hours)
+
+
+def process_mx_locations_file():
+    import csv
+    with open('temp/mx_locations.txt', newline='') as csvfile:
+        spamreader = csv.reader(csvfile, delimiter='\t')
+        for row in spamreader:
+            print(', '.join(row))
+            name = row[0]
+            addr1= row[1]
+            addr2= ''
+            city= ''
+            st= ''
+            zip= ''
+            operator= 'Laboratorio medico Del Chopo'
+            phone_number= ''
+            website= ''
+            open_hours= ''
+            add_to_locations(name, addr1, addr2, city, st, zip, operator, phone_number, website, open_hours)
+
+
+
+def add_to_locations(name, addr1, addr2, city, st, zip, operator, phone_number, website, open_hours):
+    payload = {
+        "site_code": "GGT",
+        "group_code": "_DEFAULT_",
+        "name": name,
+        "addr1": addr1,
+        "addr2": addr2,
+        "addr3": "",
+        "city": city,
+        "st": st,
+        "zip": zip,
+        "lat": 0,
+        "lng": 0,
+        "time_zone": "CST",
+        "time_zone_offset": "-06:00",
+        "test_type_offered": "oral",
+        "status": "enabled",
+        "type": "drive_thru",
+        "billing_type": "client_bill",
+        "collect_insurance_info": 0,
+        "allow_insurance_skip": 1,
+        "collect_upfront_payment": 0,
+        "image_thumbnail": "",
+        "accepts_bookings": True,
+        "accepts_walkins": True,
+        "operator": operator,
+        "phone_number": phone_number,
+        "website": website,
+        "open_hours": open_hours,
+        "is_external": False,
+        "group_ids": [1],
+        "service_ids": [1]
+    }
+
+    try:
+        import requests
+        import ujson
+        print(ujson.dumps(payload))
+        url = 'http://localhost:5010/api/portal/site-admin/create_location'
+        r = requests.post(url, json=payload)
+        res = r.json()
+
+        location_id = res['results'][0]['location_id']
+        add_sched_rule(location_id)
+        update_location_org(location_id)
+
+    except Exception as err:
+        print(err)
+
+
+def add_sched_rule(location_id):
+    payload = {
+        "rule_type": "regular",
+        "time_zone": "string",
+        "time_zone_offset": "string",
+        "status": "enabled",
+        "location_id": location_id,
+        "category": "test",
+        "slot_increment": 10,
+        "slot_multiplier": 1,
+        "local_start_time": "09:00:00",
+        "local_end_time": "09:10:00",
+        "active_local_start_dt": "2021-12-31 09:00:00",
+        "active_local_end_dt": "2021-12-31 09:10:00",
+        "sun": True,
+        "mon": True,
+        "tue": True,
+        "wed": True,
+        "thu": True,
+        "fri": True,
+        "sat": True
+    }
+    try:
+        import ujson
+        import requests
+
+        print(ujson.dumps(payload))
+        url = 'http://localhost:5010/api/portal/site-admin/add_schedule_generation_rule'
+        r = requests.post(url, json=payload)
+        res = r.json()
+
+        location_id = res['results'][0]['location_id']
+
+    except Exception as err:
+        print(err)
+
+
+def update_location_org(location_id):
+    sql = """
+        UPDATE
+            locations l
+        SET
+            l.org_id = 2
+        WHERE
+            id = %s
+        """
+
+    vals = (location_id, )
+    return exec_update(sql, vals)
+
+
+def update_schedules():
+    locations = ['2631','2630','2629','2628','2627','2626','2625','2624','2623','2622','2621','2620','2619','2618','2617','2616','2615','2614','2613','2612','2611','2610','2609','2608','2607','2606','2605','2604','2603','2602','2601','2600','2599','2598','2597','2596','2595','2594','2593','2592','2591','2590','2589']
+    for location_id in locations:
+        add_sched_rule(location_id)
+
+def dedupe_tokens():
+    from ggt.tasks.handle_duplicate_tokens import (
+        handle_duplicate_tokens
+    )
+    handle_duplicate_tokens()
