@@ -63,9 +63,9 @@ def task_process_misc():
     # upload_insurance_images_to_gcp_with_small_table()
     #process_email_notifications()
     #upload_insurance_files_from_gstore()
-    #process_sms_notifications()
+    process_sms_notifications()
     #process_email_notifications()
-    dedupe_tokens()
+    #dedupe_tokens()
 
     log_generic(
         type=c.INFO,
@@ -193,8 +193,11 @@ def formatted_email_message(row):
 
 
 def prepare_sms_text(appointment):
-    return """Hi {}, the location where you have registered for your COVID-19 test will be CLOSED 02/15/2021 through 02/17/2021 due to inclement weather. We apologize for the inconvenience this might have caused. Please visit GoGetTested.com to register for a new appointment.
+    return """Hi {}, the location where you have registered for your COVID-19 test will be located at the following address for today.  509 E 11th Street Hutchinson KS 67501. Please arrive at this site for your appointment. We apologize for the inconvenience this might have caused.
     """.format(appointment["first_name"])
+
+    #return """Hi {}, the location where you have registered for your COVID-19 test will be CLOSED 02/19/2021 due to inclement weather. We apologize for the inconvenience this might have caused. Please visit GoGetTested.com to register for a new appointment.
+    #""".format(appointment["first_name"])
 
     #return """Hi {}, due to inclement weather, we’ve had to delay opening the testing location where you have registered to 12 pm. This may change depending on the weather. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to register for a new appointment.
     #""".format(appointment["first_name"])
@@ -419,10 +422,10 @@ def get_appointments():
             patients p ON a.patient_id = p.id
         WHERE
             location_id IN (
-                2452
+                2497
                 )
-                AND scheduled_dt > '2021-02-15 00:00:00'
-                AND scheduled_dt < '2021-02-16 00:00:00'
+                AND scheduled_dt > '2021-02-19 00:00:00'
+                AND scheduled_dt < '2021-02-20 00:00:00'
                 AND status = 'scheduled'
         """
 
@@ -592,7 +595,7 @@ def remove_image_from_questionnnaires_table(id):
 
 def process_bcg_locations_file():
     import csv
-    with open('archived/bcg_location_list.txt', newline='') as csvfile:
+    with open('archived/bcg_location_list_v2.txt', newline='') as csvfile:
         spamreader = csv.reader(csvfile, delimiter='\t')
         for row in spamreader:
             print(', '.join(row))
@@ -658,7 +661,7 @@ def add_to_locations(name, addr1, addr2, city, st, zip, operator, phone_number, 
         "phone_number": phone_number,
         "website": website,
         "open_hours": open_hours,
-        "is_external": False,
+        "is_external": True,
         "group_ids": [1],
         "service_ids": [1]
     }
