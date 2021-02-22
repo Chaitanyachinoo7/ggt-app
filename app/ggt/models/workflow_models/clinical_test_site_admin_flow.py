@@ -62,7 +62,7 @@ def site_admin_general_search(user, first_name, middle_name, last_name, dob, pho
             group_vax_results=group_vax_results,
             token=token,
             is_patient=is_patient
-        )
+        ), allow=True
     )
 
 

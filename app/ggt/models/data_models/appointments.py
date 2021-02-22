@@ -310,6 +310,73 @@ def update_positive_result_followup(id: int, date_time: datetime):
     return None
 
 
+def release_ggv_slot(appointment_id):
+    try:
+        sql = """UPDATE ggv_schedules 
+                    SET 
+                        status = %s,
+                        appointment_id = %s
+                    WHERE
+                        appointment_id = %s;"""
+
+        vals = ("available", None, appointment_id)
+        return exec_update(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            appointment_id=appointment_id,
+            function=whoami(),
+            error=err
+        )
+    return None
+
+
+def lock_ggv_slot(appointment_id, slot_id):
+    try:
+        sql = """UPDATE ggv_schedules 
+                    SET 
+                        status = %s,
+                        appointment_id = %s
+                    WHERE
+                        id = %s;"""
+
+        vals = ("booked", appointment_id, slot_id)
+        return exec_update(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            appointment_id=appointment_id,
+            function=whoami(),
+            error=err
+        )
+    return None
+
+
+def re_schedule_appointment(appointment_id, slot):
+    try:
+        sql = """UPDATE appointments
+                    SET
+                        scheduled_dt = %s,
+                        location_id = %s
+                    WHERE
+                        id = %s"""
+
+        vals = (slot.start_dt, slot.location_id, appointment_id)
+        exec_update(sql, vals)
+        return get_appointment(appointment_id)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            appointment_id=appointment_id,
+            function=whoami(),
+            error=err
+        )
+    return None
+
+
 def get_appointment_count_by_phone_dob(phone_number, dob):
     try:
         if dob:
