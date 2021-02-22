@@ -1,0 +1,81 @@
+Ford County Health Department	507 Avenue L		Dodge City	KS	67801	CST	Ford County Health Department		02/01/2020	07/01/2020	
+HealthCore Clinic	2707 E. 21ST St N		Wichita	KS	67210	CST	HealthCore Clinic		02/01/2020	07/01/2020	Mon-Fri 9 AM-5 PM; Sat 9 AM-12 PM
+Health Partnership Clinic - Olathe	407 S Clairborne Road		Olathe	KS	66062	CST	Health Partnership Clinic - Olathe		02/01/2020	07/01/2020	Mon-Fri 8 AM-5 PM
+Health Partnership Clinic - Ottawa	107 S. Main Street		Ottawa	KS	66067	CST	Health Partnership Clinic - Ottawa		02/01/2020	07/01/2020	Mon-Thu 8 AM-5 PM
+Health Partnership Clinic - Paola	1604 Industrial Park Drive		Paola	KS	66071	CST	Health Partnership Clinic - Paola		02/01/2020	07/01/2020	Mon-Fri 8 AM-5 PM
+Cherokee County Ambulance Association #3	311 Military Ave Baxter Springs KS 66713		Baxter Springs	KS	66713	CST	Cherokee County Ambulance Association #3	620-856-2561	02/01/2020	07/01/2020	Mon-Fri 8 AM-4 PM
+Ellsworth County Health Department	1603 Aylward Ave		Ellsworth	KS	67439	CST	Ellsworth County Health Department		02/01/2020	07/01/2020	Mon-Fri 8 AM-5 PM
+Franklin County Health Department	1418 S. Main		Ottawa	KS	66067	CST	Franklin County Health Department		02/01/2020	07/01/2020	Mon-Thu 8 AM-5:15 PM; Fri 8 AM-12 PM
+Lincoln County Health Department	114 W Court St		Lincoln	KS	67455	CST	Lincoln County Health Department	785-524-4406	02/01/2020	07/01/2020	Mon-Fri 8 AM-4:30 PM
+G&L Pharmacy	207 S Pennsylvania		Ness City	KS	67560	CST	G&L Pharmacy		02/01/2020	07/01/2020	Mon-Fri 9 AM-5:30 PM
+Greeley County Health Services - Greeley County Family Practice	321 E Harper		Tribune	KS	67879	CST	Greeley County Health Services - Greeley County Family Practice		02/01/2020	07/01/2020	Mon-Fri 8 AM-5 PM
+Greeley County Health Services - Wallace County Family Practice	504 E 6th		Sharon Springs	KS	67758	CST	Greeley County Health Services - Wallace County Family Practice		02/01/2020	07/01/2020	Mon-Fri 8 AM-5 PM
+Harvey Drug	115 W 5th St		Newton	KS	67114	CST	Harvey Drug	www.harveydrug.com	02/01/2020	07/01/2020	Mon-Fri 10 AM-12 PM; 1:30 PM-5 PM
+Hesston Pharmacy	101 S Main St		Hesston	KS	67062	CST	Hesston Pharmacy	www.hesstonpharmacy.com	02/01/2020	07/01/2020	Mon-Fri 10 AM-12 PM; 1:30 PM-5 PM
+Jayhawk Pharmacy	2860 SW Mission Woods Dr		Topeka	KS	66614	CST	Jayhawk Pharmacy	covidtesting@jayhawkpharmacy.com	02/01/2020	07/01/2020	Mon-Sat 9 AM-6 PM
+Orchards Drug	1410 Kasold Dr		Lawrence	KS	66049	CST	Orchards Drug	http://bit.ly/OrchardsCovidTest	02/01/2020	07/01/2020	Mon-Fri 8 AM-6 PM
+Professional Pharmacy	744 N Waco Ave		Wichita	KS	67203	CST	Professional Pharmacy	wichitapharmacy.com	02/01/2020	07/01/2020	Mon-Fri 10 AM-5 PM
+Rockers Pharmacy	304 Baptiste Dr		Paola	KS	66071	CST	Rockers Pharmacy		02/01/2020	07/01/2020	Mon-Fri 9 AM-6 PM; Sat 9 AM-2 PM
+Salina Family Health Center	651 E. Prescott Rd		Salina	KS	67401	CST	Salina Family Health Center	785-825-7251	02/01/2020	07/01/2020	Mon-Thu 8:00 AM-6:00 PM; Fri 8:00 AM-4:00 PM; Sat 8:00 AM-12:00 PM
+Salina Regional Health Center - COMCARE Ohio	2090 South Ohio St		Salina	KS	67401	CST	Salina Regional Health Center - COMCARE Ohio		02/01/2020	07/01/2020	Pop up on 1/16 10 AM - 2PM
+Vohs Pharmacy	100 W Crestview		Louisburg	KS	66053	CST	Vohs Pharmacy		02/01/2020	07/01/2020	Mon-Fri 8 AM-7 PM; Sat 8 AM-2 PM
+Butler County Health Department - Test Site 1	206 N Griffith St		El Dorado	KS	67042	CST	Butler County Health Department - Test Site 1		02/01/2020	07/01/2020	Tue and Thu 9 AM - 5PM
+Butler County Health Department - Test Site 2	909 North Andover Road		Andover	KS	67002	CST	Butler County Health Department - Test Site 2		02/01/2020	07/01/2020	Wed 10 AM - 5PM
+Jefferson County Health Department	1230 Walnut Street		Osklaoosa	KS	66066	CST	Jefferson County Health Department		02/01/2020	07/01/2020	Mon-Fri 9 AM-11 AM
+Guadalupe Clinic	940 S		Wichita	KS	67211	CST	Guadalupe Clinic		02/01/2020	07/01/2020	Mon-Fri 9 AM-4:30 PM
+Guadalupe Clinic - Plainview	2825 S Hillside St		Wichita	KS	67216	CST	Guadalupe Clinic - Plainview		02/01/2020	07/01/2020	Mon-Fri 1 PM-4:30 PM
+Pratt Regional Medical Center - Pratt	200 Commodore St		Pratt	KS	67124	CST	Pratt Regional Medical Center - Pratt		02/01/2020	07/01/2020	
+Dandurand Drug	7732 E. Central Ave		Wichita	KS	67206	CST	Dandurand Drug	danduranddrugs.com/covid	02/01/2020	07/01/2020	Mon-Thu 10 AM-3 PM
+Doniphan County Health Department	201 S. Main St. Troy KS 66807		Troy	KS	66807	CST	Doniphan County Health Department	785-985-3591	02/01/2020	07/01/2020	Mon-Fri 8:30 AM-5:50 PM
+Morris County Hospital	600 N Washington		Council Grove	KS	66846	CST	Morris County Hospital	620-767-5175	02/01/2020	07/01/2020	Mon-Thu 8 AM-4 PM
+Patterson Health Center	485 N KS Hwy 2		Anthony	KS	67003	CST	Patterson Health Center	620.914.1200	02/01/2020	07/01/2020	Mon-Fri 9 AM-5 PM by appointment; Mon and Fri 9 AM-10AM walk in
+Turner House Clinic dba Vibrant Health	21 N 12st St		Kansas City	KS	66102	CST	Turner House Clinic dba Vibrant Health		02/01/2020	07/01/2020	
+Marshall County Health Department	600 Broadway		Marysville	KS	66508	CST	Marshall County Health Department		02/01/2020	07/01/2020	Mon-Thu 8:30 AM-1:00 PM
+AuBurn Pharmacy #110	13351 Mission Rd		Leawood	KS	66209-1753	CST	AuBurn Pharmacy #110	913-469-9315	02/01/2020	07/01/2020	Mon-Fri 9 AM-7 PM; Sat 9 AM-4 PM
+AuBurn Pharmacy #115	6 S Metcalf Rd		Louisburg	KS	66053-4116	CST	AuBurn Pharmacy #115	913-837-5555	02/01/2020	07/01/2020	Mon-Fri 9 AM-7 PM; Sat 9 AM-4 PM
+AuBurn Pharmacy #125	625 Main St		Mound City	KS	66056-9100	CST	AuBurn Pharmacy #125	913-795-4435	02/01/2020	07/01/2020	Mon-Fri 8:30 AM-7 PM; Sat 8:30 AM-2 PM
+AuBurn Pharmacy #127	20375 W 151st St Ste 100A		Olathe	KS	66061-5353	CST	AuBurn Pharmacy #127	913-393-4440	02/01/2020	07/01/2020	Mon-Fri 8:30 AM-6 PM; Sat 8:30 AM-2 PM
+AuBurn Pharmacy #130	311 N Hospital Dr		Paola	KS	66071-1303	CST	AuBurn Pharmacy #130	913-294-3516	02/01/2020	07/01/2020	Mon-Fri 8:30 AM-8 PM; Sat 8:30 AM-5 PM; Sun 11 AM-4 PM
+AuBurn Pharmacy #140	310 E 15th St		Eudora	KS	66025-9540	CST	AuBurn Pharmacy #140	785-690-7575	02/01/2020	07/01/2020	Mon-Fri 8:30 AM-7 PM; Sat 8:30 AM-4 PM
+AuBurn Pharmacy #145	1012 Poplar Ste A		Wellsville	KS	66092-9201	CST	AuBurn Pharmacy #145	785-883-2462	02/01/2020	07/01/2020	Mon-Fri 8:30 AM-6:30 PM; Sat 8:30 AM-1 PM
+AuBurn Pharmacy #150	400 Ames St		Baldwin City	KS	66006-3099	CST	AuBurn Pharmacy #150	785-594-0340	02/01/2020	07/01/2020	Mon-Fri 8:30 AM-7 PM; Sat 8:30 AM-2 PM
+AuBurn Pharmacy #155	429 N Maple St		Garnett	KS	66032-1074	CST	AuBurn Pharmacy #155	785-448-6122	02/01/2020	07/01/2020	Mon-Fri 8:30 AM-7 PM; Sat 8:30 AM-2 PM
+AuBurn Pharmacy #160	2020 Main St		Parsons	KS	67357-2700	CST	AuBurn Pharmacy #160	620-421-2360	02/01/2020	07/01/2020	Mon-Fri 9 AM-7 PM; Sat 9 AM-2 PM; Sun 11 AM-4 PM
+AuBurn Pharmacy #165	211 Main St		Carbondale	KS	66414-9714	CST	AuBurn Pharmacy #165	785-836-7202	02/01/2020	07/01/2020	Mon-Fri 8:30 AM-5:30 PM; Sat 9 AM-1 PM
+AuBurn Pharmacy #170	890 Lakin St		Osage City	KS	66523-1152	CST	AuBurn Pharmacy #170	785-528-4415	02/01/2020	07/01/2020	Mon-Fri 8 AM-6 PM; Sat 8 AM-2 PM
+AuBurn Pharmacy #171	6 West Broadway		Lebo	KS	66856	CST	AuBurn Pharmacy #171	620-256-6122	02/01/2020	07/01/2020	Mon-Fri 8 AM-6 PM; Sat 8 AM-2 PM
+Auburn Pharmacy #175	1518 N Buckeye Ave		Abilene	KS	67410-1570	CST	Auburn Pharmacy #175	785-263-3770	02/01/2020	07/01/2020	Mon-Fri 9 AM-7 PM; Sat 9 AM-4 PM; Sun 11 AM-4 PM
+AuBurn Pharmacy #185	1526 Lincoln St		Concordia	KS	66901-4830	CST	AuBurn Pharmacy #185	785-243-1212	02/01/2020	07/01/2020	Mon-Fri 8:30 AM-6 PM; Sat 8:30 AM-2 PM
+AuBurn Pharmacy #190	216 N Harrison St 		Lindsborg	KS	67456-2216	CST	AuBurn Pharmacy #190	785-227-3374	02/01/2020	07/01/2020	Mon-Fri 9 AM-6 PM; Sat 9 AM-1 PM; Sun 5 PM-7 PM
+AuBurn Pharmacy #192	209 W 2nd St		Minneapolis	KS	67467-2311	CST	AuBurn Pharmacy #192	785-392-2213	02/01/2020	07/01/2020	Mon-Fri 9 AM-6 PM; Sat 9 AM-1 PM
+Clay County Health Department	820 Spellman Circle		Clay Center	KS	67432	CST	Clay County Health Department	785-632-3193	02/01/2020	07/01/2020	Mon-Fri 1:30 AM-11 AM
+Atchinson County Health Department	616 Commercial Street		Atchison Kansas 66002	KS	66002	CST	Atchinson County Health Department		02/01/2020	07/01/2020	
+Flint Hills Community Health Center	420 W 15th Ave		Emporia	KS	66801	CST	Flint Hills Community Health Center	620-208-3741	02/01/2020	07/01/2020	Mon-Fri 9 AM-12 AM; Wed 2 PM-4 PM for drive thu, Mon-Fri 9AM - 4PM for in house
+Gibson's Pharmacy	2401 Central Ave		Dodge City	KS	67801	CST	Gibson's Pharmacy	620-227-8193	02/01/2020	07/01/2020	Mon 9 AM-3 PM; Tue-Wed 9 AM-1 PM; Thu-Fri 9AM-12 PM
+Graves Drug	212 South Summit St		Arkansas City	KS	67005	CST	Graves Drug	620-442-2300	02/01/2020	07/01/2020	Mon-Fri 9 AM-4 PM
+Graves Drug	905 Main Street		Winfield	KS	67156	CST	Graves Drug	620-221-0080	02/01/2020	07/01/2020	Mon-Fri 9 AM-5 PM
+Rose Hill Pharmacy	323 N. Rose hill road		Rose Hill	KS	67133	CST	Rose Hill Pharmacy	316 776 1100	02/01/2020	07/01/2020	Mon-Fri 9 AM-6 PM
+Derby Drug	1101 N Rock Rd Derby Ks 67037			KS	67037	CST	Derby Drug	316-788-6669	02/01/2020	07/01/2020	Mon-Thu 9 AM-7 PM; Fri 9 AM-6 PM
+AuBurn Pharmacy #168	716 N 4th St		Burlington	KS	66839	CST	AuBurn Pharmacy #168	620-364-3388	02/01/2020	07/01/2020	Mon-Fri 9 AM-6 PM; Sat 9 AM-2 PM
+CHC/SEK Arma	601 E Washington Arma KS 66712		Arma	KS	66712	CST	CHC/SEK Arma	620.231.9873	02/01/2020	07/01/2020	Mon-Fri 8 AM-5 PM
+CHC/SEK Baxter	2990 Military Baxter Springs KS 66713		Baxter Springs	KS	66713	CST	CHC/SEK Baxter	620.231.9873	02/01/2020	07/01/2020	Mon-Tue, Thu 8 AM-7 PM; Wed 7:30 AM-5:30 PM; Fri 8 AM-5 PM
+CHC/SEK Coffeyville	801 W 8th Coffeyville KS 67337		Coffeyville	KS	67337	CST	CHC/SEK Coffeyville	620.231.9873	02/01/2020	07/01/2020	Mon-Sun 7 AM-7 PM
+CHC/SEK Columbus	101 W Sycamore Columbus KS 66725		Columbus	KS	66725	CST	CHC/SEK Columbus	620.231.9873	02/01/2020	07/01/2020	Mon-Thu 8 AM-7 PM; Fri 8 AM-5 PM; Sat 8 AM-3 PM
+CHC/SEK Fort Scott	401 Woodland Hills Blvd Fort Scott KS 66701		Fort Scott	KS	66701	CST	CHC/SEK Fort Scott	620.231.9873	02/01/2020	07/01/2020	Mon-Thu 8 AM-6 PM; Fri 8 AM-5 PM
+CHC/SEK Fort Scott WIC	1604 S National Fort Scott KS 66701		Fort Scott	KS	66701	CST	CHC/SEK Fort Scott WIC	620.231.9873	02/01/2020	07/01/2020	Mon-Sun 7 AM-7 PM
+CHC/SEK Iola	2051 N State Iola KS 66749		Iola	KS	66749	CST	CHC/SEK Iola	620.231.9873	02/01/2020	07/01/2020	Mon-Fri 7 AM-7 PM; Sat 9 AM-3 PM
+CHC/SEK Independence	3751 W Main Independence KS 67301		Independence	KS	67301	CST	CHC/SEK Independence	620.231.9873	02/01/2020	07/01/2020	Mon-Fri 7:30 AM-4:30 PM
+CHC/SEK Miami	106 NW Veterns Blvd Miami OK 74354			KS	74354	CST	CHC/SEK Miami	620.231.9873	02/01/2020	07/01/2020	Mon-Wed, Fri 8 AM-5 PM; Thu 8 AM-7 PM; Sat 9 AM-3 PM
+CHC/SEK Mound City	302 N First Mound City KS 66056		Mound City	KS	66056	CST	CHC/SEK Mound City	620.231.9873	02/01/2020	07/01/2020	Mon-Fri 8 AM-5 PM
+CHC/SEK Parsons	2011 Commerce Drive Parsons KS 67357		Parsons	KS	67357	CST	CHC/SEK Parsons	620.231.9873	02/01/2020	07/01/2020	Mon-Tue, Thu-Fri 8 AM-5 PM; Wed 8 AM-7 PM; Sat 9 AM-3 PM
+CHC/SEK Pittsburg	3011 N Michigan Pittsburg KS 66742		Pittsburg	KS	66742	CST	CHC/SEK Pittsburg	620.231.9873	02/01/2020	07/01/2020	Mon-Sun 7 AM-7 PM
+CHC/SEK Pleasanton	11155 Tucker Rd Pleasanton KS 66075		Pleasanton	KS	66075	CST	CHC/SEK Pleasanton	620.231.9873	02/01/2020	07/01/2020	Mon-Sat 7 AM-7 PM
+Bowen Pharmacy	1519 Main Street		Parsons	KS	67357	CST	Bowen Pharmacy	620-421-4950	02/01/2020	07/01/2020	Mon-Fri 9:30 AM-5 PM
+Andover Drug	307 W Highway 54 Ste 200		Andover	KS	67002	CST	Andover Drug	316-260-6030	02/01/2020	07/01/2020	Mon-Fri 9 AM-6 PM; Sat 9 AM-12 PM
+Kingman Drug	211 N Main St		Kingman	KS	67068	CST	Kingman Drug	KingmanRX.com	02/01/2020	07/01/2020	Mon-Fri 10 AM-4 PM
+Cloud County Health Department	910 W 11th St		Concordia	KS	66901	CST	Cloud County Health Department	785-243-8140	02/01/2020	07/01/2020	Mon-Thu 9 AM-2PM; Fri 9AM-12PM
+El Dorado True Care	205 N Vine		El Dorado KS 67042	KS	67042	CST	El Dorado True Care	https://www.eldoradotruecare.com/	02/01/2020	07/01/2020	Mon-Fri 9 AM - 3 PM
+Sigler Praire Star Pharmacy	23351 Prairie Star Pkwy		Lenexa	KS	66227	CST	Sigler Praire Star Pharmacy	www.siglerpharmacy.com	02/01/2020	07/01/2020	Mon-Fri 9AM - 4:15PM
+Sigler Pharmacy - 18th Street	4951 W 18th St		Lawrence	KS	66047	CST	Sigler Pharmacy - 18th Street	www.siglerpharmacy.com	02/01/2020	07/01/2020	Mon-Fri 9AM - 4:15PM
+Sigler Pharmacy	4525 W 6th St		Lawrence	KS	66049	CST	Sigler Pharmacy		02/01/2020	07/01/2020	
+Kollhoff Pharmacy	407 S Washington St		Junction City	KS	66441	CST	Kollhoff Pharmacy	785-238-1000	02/01/2020	07/01/2020	Mon-Fri 9AM-6PM; Sat 9AM-1PM

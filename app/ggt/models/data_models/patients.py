@@ -1,7 +1,7 @@
 from ggt.lib.utils import (
     get_config_val,
     log_generic,
-    whoami, generate_token
+    whoami, generate_token, get_user_token_from_jwt
 )
 
 from ggt.lib.constants import (
@@ -188,39 +188,86 @@ def get_existing_patient_questionnaire(patient_id):
             error=err
         )
         return None
+#
+#
+# def is_available_slot(email, dob):
+#     try:
+#         sql = """SELECT
+#                         *
+#                     FROM
+#                         temp_selected_patients
+#                     WHERE
+#                         email = %s AND dob = %s;"""
+#         vals = (email, dob)
+#         return replica_read_row(sql, vals)
+#
+#     except Exception as err:
+#         log_generic(
+#             type=ERROR,
+#             vals=vals,
+#             email=email,
+#             dob=dob,
+#             function=whoami(),
+#             error=err
+#         )
+#         return None
 
 
-def is_available_slot(email, dob):
+def is_un_available_slot(token):
+    u_token = get_user_token_from_jwt(token)
+    if u_token is None:
+        return {"status": "Invalid token"}
     try:
         sql = """SELECT 
                         *
                     FROM
-                        temp_selected_patients
+                        used_tokens
                     WHERE
-                        email = %s AND dob = %s;"""
-        vals = (email, dob)
+                        token = %s;"""
+        vals = (u_token,)
         return replica_read_row(sql, vals)
 
     except Exception as err:
         log_generic(
             type=ERROR,
             vals=vals,
-            email=email,
-            dob=dob,
+            token=token,
             function=whoami(),
             error=err
         )
-        return None
+        return {"status": "Invalid token"}
+
+#
+# def lock_slot(id):
+#     try:
+#         sql = """UPDATE
+#                         temp_selected_patients
+#                     SET
+#                     is_available = False
+#                     WHERE id = %s;"""
+#         vals = (id, )
+#         return exec_update(sql, vals)
+#
+#     except Exception as err:
+#         log_generic(
+#             type=ERROR,
+#             vals=vals,
+#             function=whoami(),
+#             error=err
+#         )
+#         return None
 
 
-def lock_slot(id):
+def lock_slot(token):
     try:
-        sql = """UPDATE
-                        temp_selected_patients
-                    SET
-                    is_available = False 
-                    WHERE id = %s;"""
-        vals = (id, )
+        u_token = get_user_token_from_jwt(token)
+        if u_token is None:
+            return None
+        sql = """INSERT INTO
+                        used_tokens
+                    (token)
+                    VALUES (%s)"""
+        vals = (u_token, )
         return exec_update(sql, vals)
 
     except Exception as err:

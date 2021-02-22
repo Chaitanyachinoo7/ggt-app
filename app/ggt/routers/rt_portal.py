@@ -25,7 +25,8 @@ from ggt.models.data_models.data_types import (
     LocationToServiceMap,
     GgtThirdPartyDbGroup,
     GgtThirdPartyDbUpdateGroup,
-    PermissionsEnum as p
+    PermissionsEnum as p,
+    PortalAdminGetF11Request
 )
 from ggt.models.workflow_models.admin_flow import (
     admin_get_all_test_results
@@ -56,7 +57,8 @@ from ggt.models.workflow_models.clinical_test_site_admin_flow import (
     get_all_services,
     get_locations,
     create_group,
-    update_group, get_states
+    update_group, get_states,
+    site_admin_get_f11
 )
 
 router = APIRouter()
@@ -158,6 +160,46 @@ async def api_site_admin_general_search(portal_general_search_request: PortalGen
     )
 
 
+@router.get("/site-admin/get_appointment/{appointment_id}")
+async def api_site_admin_general_search(appointment_id: int,
+                                        user=Security(authorize_user, scopes=[p.GENERAL_SEARCH])):
+    return site_admin_general_search(
+        user,
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        appointment_id,
+        "",
+        "",
+        ""
+    )
+
+
+@router.post("/site-admin/m_to_m/general_search")
+async def api_site_admin_general_search(portal_general_search_request: PortalGeneralSearchRequest,
+                                        user=Security(authorize_user, scopes=[p.GENERAL_SEARCH])):
+    return site_admin_general_search(
+        user,
+        portal_general_search_request.first_name,
+        portal_general_search_request.middle_name,
+        portal_general_search_request.last_name,
+        portal_general_search_request.dob,
+        portal_general_search_request.phone_number,
+        portal_general_search_request.email,
+        portal_general_search_request.appointment_id,
+        portal_general_search_request.group_code,
+        portal_general_search_request.appointment_date,
+        portal_general_search_request.location_id,
+        portal_general_search_request.vial_id,
+        portal_general_search_request.sort_field,
+        portal_general_search_request.sort_type,
+        is_patient=True
+    )
+
+
 @router.get("/site-admin/generate_schedule/{location_id}", dependencies=[Security(authorize_user, scopes=[p.GENERATE_SCHEDULE])])
 async def api_generate_schedule(location_id: str, background_tasks: BackgroundTasks):
     background_tasks.add_task(generate_schedule, location_id)
@@ -185,6 +227,19 @@ async def api_site_admin_location_search(portal_location_search: PortalLocationS
         portal_location_search.location_name,
         portal_location_search.st,
         user
+    )
+
+
+@router.get("/site-admin/get_location/{location_id}")
+async def api_site_admin_location_search(location_id: int, user=Security(authorize_user, scopes=[p.LOCATION_SEARCH])):
+    return site_admin_location_search(
+        '',
+        '',
+        '',
+        '',
+        '',
+        user,
+        location_id=location_id
     )
 
 
@@ -224,6 +279,9 @@ async def api_cc_patient_lookup(portal_cc_patient_lookup_request: PortalCcPatien
         portal_cc_patient_lookup_request.last_name,
         portal_cc_patient_lookup_request.dob
     )
+@router.post("/site-admin/generate_vaccine_forms_brownwood", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
+def generate_vaccine_forms_brownwood(portal_admin_get_f11_request: PortalAdminGetF11Request):
+    return site_admin_get_f11(portal_admin_get_f11_request.date)
 
 '''
 @router.post("/admin/get_all_test_results", dependencies=[Security(authorize_user, scopes=[p.GET_ALL_TEST_RESULTS])])

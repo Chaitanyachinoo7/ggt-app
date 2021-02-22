@@ -2,6 +2,7 @@ app_name: ggt-api
 app_version: 1.1
 log_level: INFO
 base_url: https://start.GoGetTested.com
+portal_url: https://portal-dev.gogettested.com
 env: DEV
 default_timezone: CST
 
@@ -173,3 +174,7 @@ pfe:
     special_phone_3: '4158888888'
     special_phone_4: '4159999999'
     override_otp_code: '000000'
+
+
+security:
+  ggv_secret: "thisistheggvtopsecret2021"

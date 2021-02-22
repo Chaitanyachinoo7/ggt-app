@@ -21,14 +21,14 @@ def get_all_groups(user):
         if organization_id is None:
             return None
 
-        sql = """SELECT * FROM groups"""
-        return replica_read_rows(sql)
+        # sql = """SELECT * FROM groups"""
+        # return replica_read_rows(sql)
 
         '''If groups are not shared Use this'''
-        # sql = """SELECT * FROM groups
-        #             WHERE org_id = %s"""
-        # vals = (organization_id, )
-        # return replica_read_rows(sql, vals)
+        sql = """SELECT * FROM groups
+                    WHERE org_id = %s OR group_code = '_DEFAULT_'"""
+        vals = (organization_id, )
+        return replica_read_rows(sql, vals)
 
     except Exception as err:
         log_generic(

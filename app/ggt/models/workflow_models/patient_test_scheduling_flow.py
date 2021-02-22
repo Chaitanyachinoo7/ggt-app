@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from contextlib import suppress
 
 from cachetools import cached, LRUCache, TTLCache
@@ -8,7 +8,7 @@ from ggt.lib.utils import (
     x_response,
     whoami, y_response
 )
-from ggt.models.data_models.patients import is_available_slot, lock_slot
+from ggt.models.data_models.patients import is_un_available_slot, lock_slot
 
 from ggt.models.process_models.bp_patient_experience import (
     bp_get_screen_flow_seq,
@@ -19,7 +19,7 @@ from ggt.models.process_models.bp_patient_experience import (
     bp_get_test_result, bp_add_to_ggd_waiting_queue,
     bp_get_wellpay_insurance_eligibility,
     bp_search_insurance_payer_list, bp_get_ggv_screen_flow_seq, bp_ggv_finalize_booking, bp_ggv_finalize_pre_booking,
-    bp_create_pre_registration
+    bp_create_pre_registration, bp_verify_verification_token
 )
 
 from ggt.models.process_models.bp_schedules import (
@@ -219,8 +219,10 @@ def ggv_finalize_registration(finalize_registration_request):
     booking_req = __map_to_booking_req(finalize_registration_request, ggv=True)
 
     # TODO: Following is a tem logic to support GGV registration for selected individuals.
-    slot = is_available_slot(booking_req.email, booking_req.dob)
-    if slot and slot['is_available']:
+    # slot = is_available_slot(booking_req.email, booking_req.dob)
+
+    slot = is_un_available_slot(booking_req.verification_token)
+    if slot is None:
         pass
     else:
         return {"status": "This slot is not available"}
@@ -231,7 +233,8 @@ def ggv_finalize_registration(finalize_registration_request):
         bp_add_to_ggd_waiting_queue(patient_id)
     if appointment_1 and appointment_2:
         #TODO : Remove lock_slot
-        lock_slot(slot['id'])
+        # lock_slot(slot['id'])
+        lock_slot(booking_req.verification_token)
         return {
             "session_token": result_token,
             "appointment_id_1": appointment_1.id,
@@ -351,6 +354,8 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
 
         if "appointmentOneTime" in finalize_registration_request.fields.keys():
             b.appointmentOneTime = finalize_registration_request.appointmentOneTime
+        if "verification_token" in finalize_registration_request.fields.keys():
+            b.verification_token = finalize_registration_request.verification_token
         if "appointmentTwoTime" in finalize_registration_request.fields.keys():
             b.appointmentTwoTime = finalize_registration_request.appointmentTwoTime
         if "symptomsVax" in finalize_registration_request.fields.keys():
@@ -405,5 +410,20 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
 def insurance_eligibility(insurance_eligibility_request):
     return bp_get_wellpay_insurance_eligibility(insurance_eligibility_request)
 
+
 def insurance_search_payer(insurance_search_payer_request):
     return bp_search_insurance_payer_list(insurance_search_payer_request)
+
+
+def verify_verification_token(toke_verification_request):
+    return x_response(
+        bp_verify_verification_token(toke_verification_request.verification_token)
+    )
+
+
+@cached(cache=TTLCache(maxsize=1024, ttl=180))
+def cache_test(t_id):
+    x = datetime.now()
+    while (datetime.now() - x).seconds < 5:
+        pass
+    return {"response": t_id}

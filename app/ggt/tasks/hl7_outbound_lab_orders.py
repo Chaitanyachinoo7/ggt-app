@@ -11,7 +11,13 @@ from ggt.lib.utils import (
     get_config_val as cfg,
     log_generic,
     generate_session_id,
-    whoami
+    whoami,
+    print_header, 
+    print_ok1, 
+    print_ok2, 
+    print_warning, 
+    print_error, 
+    print_progress_bar_message
 )
 
 from ggt.lib.adapters.s3_adapter import (
@@ -101,23 +107,6 @@ def upload_insurance_files_from_gstore(orders):
         print_error(err)
 
 
-def get_insurance_photo_base64(appointment_id):
-    sql = """
-    SELECT 
-        q.insurance_photo
-    FROM
-        (appointments
-        JOIN patient_questionnaires q 
-            ON (appointments.patient_id = q.patient_id))
-    WHERE
-        appointments.id = %s
-    LIMIT 1
-    """
-    vals = (appointment_id,)
-    row = read_row(sql, vals)
-    return row['insurance_photo']
-
-
 def __get_msh(order):
     dt = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     cid = str(int(time.time()))
@@ -137,7 +126,7 @@ def __get_msh(order):
         msh_4_sending_facility=order['client_site_code'],
         msh_5_receiving_application=lab_name,
         msh_6_receiving_facility=lab_name,
-        msh_7_datetime_of_message=dt,
+        msh_7_datetime_of_message=order['today_dt'],#dt,
         msh_9_message_type='ORM^O01',
         msh_10_message_control_id=int(time.time()*1000),
         msh_11_processing_id='P',
@@ -428,23 +417,23 @@ def get_orders_ready_to_transmit(limit=100):
                     DATE_FORMAT(CONVERT_TZ(t.sample_collection_start_dt,
                                     '+00:00',
                                     '-06:00'),
-                            '%Y%m%d%h%m%s')
+                            '%Y%m%d%H%m%s')
                 WHEN
                     (t.sample_collection_end_dt IS NOT NULL)
                 THEN
                     DATE_FORMAT(CONVERT_TZ(t.sample_collection_end_dt,
                                     '+00:00',
                                     '-06:00'),
-                            '%Y%m%d%h%m%s')
+                            '%Y%m%d%H%m%s')
                 WHEN
                     (t.pre_ship_label_scan_dt IS NOT NULL)
                 THEN
                     DATE_FORMAT(CONVERT_TZ(t.pre_ship_label_scan_dt,
                                     '+00:00',
                                     '-06:00'),
-                            '%Y%m%d%h%m%s')
+                            '%Y%m%d%H%m%s')
                 ELSE DATE_FORMAT(CONVERT_TZ(NOW(), '+00:00', '-06:00'),
-                        '%Y%m%d%h%m%s')
+                        '%Y%m%d%H%m%s')
             END) AS date_of_collection,
             (CASE
                 WHEN (p.race = 'race_american_indian') THEN '1002-5'
@@ -514,12 +503,14 @@ def get_orders_ready_to_transmit(limit=100):
             'Unknown' AS is_pregnant,
             l.st AS test_location_st,
             t.sample_collection_location_id,
-            t.lab_id
+            t.lab_id,
+            DATE_FORMAT(CONVERT_TZ(NOW(), '+00:00', '-06:00'),
+                        '%Y%m%d%H%m%s') as today_dt
         FROM
             (((test_samples t
-            JOIN patients p ON ((t.patient_id = p.id)))
-            JOIN locations l ON ((t.sample_collection_location_id = l.id)))
-            JOIN patient_questionnaires q ON ((p.id = q.patient_id)))
+            JOIN patients p ON (t.patient_id = p.id))
+            JOIN locations l ON (t.sample_collection_location_id = l.id))
+            JOIN patient_questionnaires q ON (q.id = t.patient_questionnaire_id))
         WHERE
             (t.status = 'ready_to_tx')
             AND t.vial_id IS NOT NULL
@@ -549,45 +540,3 @@ def update_to_with_lab_status(orders):
         """ % format_strings
 
     exec_update(sql, tuple(list_of_ids))
-
-
-
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-
-    def disable(self):
-        self.HEADER = ''
-        self.OKBLUE = ''
-        self.OKGREEN = ''
-        self.WARNING = ''
-        self.FAIL = ''
-        self.ENDC = ''
-
-
-def print_header(message):
-    print('{.HEADER}{}{.ENDC}'.format(bcolors, message, bcolors))
-
-
-def print_ok1(message):
-    print('{.OKGREEN}{}{.ENDC}'.format(bcolors, message, bcolors))
-
-
-def print_ok2(message):
-    print('{.OKBLUE}{}{.ENDC}'.format(bcolors, message, bcolors))
-
-
-def print_warning(message):
-    print('{.WARNING}{}{.ENDC}'.format(bcolors, message, bcolors))
-
-
-def print_error(message):
-    print('{.FAIL}{}{.ENDC}'.format(bcolors, message, bcolors))
-
-
-def print_progress_bar_message(message):
-    print('{.OKBLUE}{}{.ENDC}\r'.format(bcolors, message, bcolors), end="")

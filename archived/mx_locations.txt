@@ -1,0 +1,43 @@
+Chopo - Cuautitlán Centro	Calz. de Guadalupe 303, El Cerrito, 54800 Cuautitlán, Méx.
+Chopo - Plaza Milenium	Av. Hidalgo, Industrial Tlaxcolpan, 54030 Tlalnepantla de Baz, Méx.
+Chopo - Lindavista	Av. Wilfrido Massieu 294, Nueva Industrial Vallejo, Gustavo A. Madero, 07300 Ciudad de México, CDMX
+Chopo - Los Reyes la Paz	Carr. Internacional 18, Los Reyes, 56400 Los Reyes Acaquilpan, Méx.
+Chopo - Texcoco	Calle 16 de Septiembre 308, San Pedro, 56100 Texcoco, Méx.
+Chopo - Puente Colorado	Calz. de las Águilas 1285, Puente Colorado, Álvaro Obregón, 01730 Ciudad de México, CDMX
+Chopo - Chopo Polanco	Av. Homero 1910, Polanco, Polanco I Secc, Miguel Hidalgo, 11510 Ciudad de México, CDMX
+Chopo - Tacuba	Calz México-Tacuba 529, Popotla, Miguel Hidalgo, 11400 Ciudad de México, CDMX
+Chopo - Zapata	Gral. Emiliano Zapata 532, Barrio de Guadalupe, 20059 Aguascalientes, Ags.
+Chopo - Rincón de Romos	Francisco Guel Jiménez 108, Centro Histórico, 20400 Aguascalientes, Ags.
+Chopo - La Luna	Calle Av. De la luna lote 2, locales 1 y 2, 44, 77506 Cancún, Q.R.
+Chopo - Kukulcán	Colonia, Calle del Galeón 3A entre Boulevard Kukulcán y del Galeón, Zona Hotelera, 77500 México, Q.R.
+Chopo - Periférico	Perif. de la Juventud 7504, Colinas del Valle, Luis Donaldo Colosio, 31217 Chihuahua, Chih.
+Chopo - Pinocelli	Av. Miguel de la Madrid 7908, Lote Bravo, 32695 Cd Juárez, Chih.
+Chopo - Villa de Álvarez	Av J. Merced Cabrera 71, Centro, 28974 Villa de Álvarez, Col.
+Chopo - Poder Legislativo	Av. Poder Legislativo 205, El Empleado, 62250 Cuernavaca, Mor.
+Chopo - Pablo Neruda	Av Pablo Neruda 2365, Circunvalación Americas, 44630 Guadalajara, Jal.
+Chopo - Chapalita	Av. Niño Obrero 482, Chapalita Sur, 45046 Zapopan, Jal.
+Chopo - UM Plaza del Sol	Av. Adolfo López Mateos Sur 4205, La Giralda, 45087 Zapopan, Jal.
+Chopo - CADEM del Moral	Blvd. Adolfo López Mateos 2503, Jardines del Moral, 37160 León, Gto.
+Chopo - Jardines Irapuato	Av. Guerrero 1817-Loc 1, Gamez, 36660 Irapuato, Gto.
+Chopo - Plaza el Cantador	Calle del Cantador 31 Plaza el Cantador, local 3-A, Colonia, Zona Centro, 36000 Guanajuato, Gto.
+Chopo - Itzaes	Calle, Av. Itzáes # 476, Centro, 97000 Mérida, Yuc.
+Chopo - Cd. Deportiva	Cámara de Comercio, Calzada Cuauhtémoc 62, Aviación, 21230 Mexicali, B.C.
+Chopo - Plaza Animol	Av. Raúl Salinas Lozano 301, Joyas de Anahuac, 66055 Cd Gral Escobedo, N.L.
+Chopo - Pablo Livas	Avenida Pablo Livas S/N, Fraccionamiento 3 caminos 3er sector, 67190 Guadalupe, N.L.
+Chopo - Lincoln	Av Abraham Lincoln 5254, San Jorge, 64330 Monterrey, N.L.
+Chopo - Centro Unión	Calz. Ventura Puente 530, Cuauhtémoc, 58020 Morelia, Mich.
+Chopo - UAEH Pachuca	Carretera, Pachuca-Tulancingo #351, Taxistas, 42184 Pachuca de Soto, Hgo.
+Chopo - Forjadores	Santa Elena 1-Loc.101, San José del Puente, 72150 Puebla, Pue.
+Chopo - Pie de la Cuesta	Av. Pie de la Cuesta 408, Lomas de San Pablo, 76130 Santiago de Querétaro, Qro.
+Chopo - Plaza Madero	Calz Francisco I. Madero 1182, Zona Centro, 25000 Saltillo, Coah.
+Chopo - Himno Nacional	Av Himno Nacional 1224, Jardín, 78270 San Luis, S.L.P.
+Chopo - Cadem Arista	Mariano Arista 906, De Tequisquiapan, 78230 San Luis, S.L.P.
+Chopo - Pedro Moreno	Pedro Moreno 939, Los Reyes, 78170 San Luis, S.L.P.
+Chopo - La Loma	Av. Paseo de la Loma 219, Centro, 63000 Tepic, Nay.
+Chopo - Prado Ordaz	Av. las Rosas 13090, Del prado, 22105 Tijuana, B.C.
+Chopo - Cadem Zona Río	Blvrd Gral Rodolfo Sánchez Taboada, Zona Urbana Rio Tijuana, 22010 Tijuana, B.C.
+Chopo - Anexo Galerías	Calle Leona Vicario 703, Real de Arcos, 52154 Metepec, Méx.
+Chopo - Paseo la Rosita	Calzado, Calz Paseo de la Rosita 312, Residencial Campestre la Rosita, 27250 Torreón, Coah.
+Chopo - Cuauhtémoc	Av. Cuauhtémoc 1200, Formando Hogar, 91897 Veracruz, Ver.
+Chopo - Pedro Coronel	Av. Pedro Coronel 50, Cañada de la Bufa, 98619 Guadalupe, Zac.
+Chopo - García Salínas	Avenida García Salinas, Paseo de Las Colinas 309, 98098 Zacatecas, Zac.
