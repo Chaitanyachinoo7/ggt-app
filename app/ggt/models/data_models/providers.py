@@ -29,6 +29,8 @@ from ggt.models.data_models.data_types import (
 
 def get_provider_processing_list_db(offset, consultation_status, consultation_notes, positive_call, limit=20, test_id=None):
     try:
+
+        #TODO For demonstrations we return both test and vax data in the Same API, but we need 2 seperate APIs for Test and Vax
         where_conditions = '1=1'
         # where_conditions = '(TO_DAYS(NOW()) - TO_DAYS(t.create_dt)) <= 25'
         if consultation_status != ConsultationStatusEnum.any:
@@ -53,7 +55,7 @@ def get_provider_processing_list_db(offset, consultation_status, consultation_no
             where_conditions = "{} AND t.test_result ='pos' AND t.consultation_status = '{}'".format(
                 where_conditions, ConsultationStatusEnum.completed)
         if test_id is not None:
-            where_conditions = "{} AND t.id = {}".format(
+            where_conditions = "{} AND a.id = {}".format(
                 where_conditions, test_id)
 
         sql = """SELECT
@@ -170,11 +172,11 @@ def get_provider_processing_list_db(offset, consultation_status, consultation_no
             u.email_verified AS provider_email_verified,
             u.picture AS provider_image_url
     FROM
-        test_samples t
+        appointments a 
+			LEFT JOIN
+		test_samples t ON t.appointment_id = a.id
             INNER JOIN
-        appointments a ON t.appointment_id = a.id
-            INNER JOIN
-        patients p ON t.patient_id = p.id
+        patients p ON a.patient_id = p.id
             INNER JOIN
         patient_questionnaires q ON q.patient_id = p.id
             LEFT JOIN
@@ -187,7 +189,7 @@ def get_provider_processing_list_db(offset, consultation_status, consultation_no
         ggt_users u ON u.external_id = c.provider_external_id
     WHERE
         {}
-    ORDER BY t.create_dt ASC
+    ORDER BY a.create_dt ASC
     LIMIT {} OFFSET {};
 """.format(where_conditions, limit, offset)
         rows = replica_read_rows(sql)
@@ -580,13 +582,24 @@ def process_consultations(tasks):
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
+def __remove_duplicate_consultations(tasks):
+    for task in tasks:
+        consultations = task['consultations']
+        consultation_ids = []
+        unique_consultations = []
+        for c in consultations:
+            if c['consultation_id'] not in consultation_ids:
+                consultation_ids.append(c['consultation_id'])
+                unique_consultations.append(c)
+        task['consultations'] = unique_consultations
+    return tasks
 
 
 def __sort_consultations(tasks):
     for task in tasks:
         consultations = task['consultations']
         task['consultations'] = __sort_by_field(consultations)
-    return tasks
+    return __remove_duplicate_consultations(tasks)
 
 
 def __sort_by_field(consultations):
