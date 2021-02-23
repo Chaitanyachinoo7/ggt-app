@@ -34,6 +34,7 @@ class ResolutionCodesEnum(str, Enum):
 class ConsultationTypeCodesEnum(str, Enum):
     pre_covid_consultation = 'pre_covid_consultation'
     post_covid_consultation = 'post_covid_consultation'
+    vax_consultation = 'vax_consultation'
 
 
 class CompleteNoteReq(BaseModel):
