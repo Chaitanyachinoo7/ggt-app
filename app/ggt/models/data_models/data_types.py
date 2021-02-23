@@ -479,7 +479,8 @@ class VialData(BaseModel):
 class ProviderUpdateAppointmentRequest(BaseModel):
     appointment_id: str = None
     action: str = None
-    workstation_id: int = None
+    operator_location_id: int = None
+    workstation_id: Optional[int] = None
     vial_data: Optional[VialData] = None
     insurance_photo: Optional[str] = None
     appointment_notes: Optional[str] = None
