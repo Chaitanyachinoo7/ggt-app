@@ -44,7 +44,7 @@ from ggt.models.data_models.appointments import (
     get_appointment_count_by_phone_dob,
     create_appointment,
     update_appointment_with_confirmed_scheduled,
-    update_appointment_with_receipt_token
+    update_appointment_with_receipt_token, release_ggv_slot, lock_ggv_slot, re_schedule_appointment
 )
 
 from ggt.models.data_models.locations import (
@@ -187,7 +187,7 @@ def bp_initiate_verification_flow(phone_number: str, with_otp: bool = True):
             if with_otp:
                 # message = "Enter Code: {}\nOr click {} \nReply STOP to cancel msgs".format(
                 #     otp_code, activation_url)
-                message = "OTP Code: {} \nReply STOP to cancel msgs".format(
+                message = "Your GoGet verification code is: {} \nReply STOP to cancel msgs".format(
                     otp_code)
             else:
                 return True
@@ -506,6 +506,43 @@ def bp_has_appointments(phone_number: str, dob: str) -> bool:
     return False
 
 
+def bp_reschedule_first_appointment(otp, appointment_id_1, appointment_id_2, appointment_1_dt_id, appointment_2_dt_id, phone_number):
+    try:
+        if __validate_otp(phone_number, otp):
+            release_ggv_slot(appointment_id_1)
+            release_ggv_slot(appointment_id_2)
+            slot_1 = get_slot_information(appointment_1_dt_id, slot_type='vax')
+            slot_2 = get_slot_information(appointment_2_dt_id, slot_type='vax')
+            lock_ggv_slot(appointment_id_1, appointment_1_dt_id)
+            lock_ggv_slot(appointment_id_2, appointment_2_dt_id)
+            appointment_1 = re_schedule_appointment(appointment_id_1, slot_1)
+            appointment_2 = re_schedule_appointment(appointment_id_2, slot_2)
+            __send_ggv_qrcode_sms(appointment_1, "1")
+            __send_ggv_qrcode_email(appointment_1)
+            __send_ggv_qrcode_sms(appointment_2, "2")
+            __send_ggv_qrcode_email(appointment_2)
+            return True
+        else:
+            log_generic(
+                type=c.INFO,
+                phone_number=phone_number,
+                otp=otp,
+                message="Invalid OTP",
+                function=whoami()
+            )
+            return False
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            phone_number=phone_number,
+            function=whoami(),
+            error=err
+        )
+
+    return False
+
+
 @cached(cache=TTLCache(maxsize=1024, ttl=14.5))
 def bp_get_wellpay_api_key():
     return __get_wp_api_tokens()
@@ -531,6 +568,10 @@ def bp_verify_verification_token(token):
 # TODO: Prevent from looking up slots that are already assigned to an appointment
 # TODO, doesn't check if it's already booked
 # TEMP, not using fixed slots since operational conditions allow oversubscribing
+
+
+def __validate_otp(phone_number, otp):
+    return get_signup_record_by_phone_otp(phone_number, otp)
 
 
 def __generate_appointment(booking_req: GgtBooking):

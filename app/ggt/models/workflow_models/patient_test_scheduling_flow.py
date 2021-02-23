@@ -19,7 +19,7 @@ from ggt.models.process_models.bp_patient_experience import (
     bp_get_test_result, bp_add_to_ggd_waiting_queue,
     bp_get_wellpay_insurance_eligibility,
     bp_search_insurance_payer_list, bp_get_ggv_screen_flow_seq, bp_ggv_finalize_booking, bp_ggv_finalize_pre_booking,
-    bp_create_pre_registration, bp_verify_verification_token
+    bp_create_pre_registration, bp_verify_verification_token, bp_reschedule_first_appointment
 )
 
 from ggt.models.process_models.bp_schedules import (
@@ -65,6 +65,19 @@ def initiate_verification_flow(phone_number, with_otp=True):
         bp_initiate_verification_flow(
             phone_number,
             with_otp
+        )
+    )
+
+
+def reschedule_first_appointment(req):
+    return x_response(
+        bp_reschedule_first_appointment(
+            req.otp,
+            req.appointment_id_1,
+            req.appointment_id_2,
+            req.appointment_1_dt_id,
+            req.appointment_2_dt_id,
+            req.phone_number
         )
     )
 

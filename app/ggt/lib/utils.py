@@ -175,9 +175,9 @@ def x_response(res, allow=True, reason_code=None):
     return failure_response(reason_code=reason_code)
 
 
-def y_response(res, allow=True):
+def y_response(res, allow=False):
     try:
-        if allow and res:
+        if allow or res:
             return success_response_array(res)
 
     except Exception as err:
@@ -213,7 +213,7 @@ def is_failure_response_with_reason(kv=None):
 
 def success_response_array(kv=None):
     if kv is None or kv is True:
-        kv = {}
+        kv = []
     res = {}
     res[c.STATUS] = c.SUCCESS
     res['results'] = kv
