@@ -187,7 +187,7 @@ def bp_initiate_verification_flow(phone_number: str, with_otp: bool = True):
             if with_otp:
                 # message = "Enter Code: {}\nOr click {} \nReply STOP to cancel msgs".format(
                 #     otp_code, activation_url)
-                message = "OTP Code: {} \nReply STOP to cancel msgs".format(
+                message = "Your GoGet verification code is: {} \nReply STOP to cancel msgs".format(
                     otp_code)
             else:
                 return True
