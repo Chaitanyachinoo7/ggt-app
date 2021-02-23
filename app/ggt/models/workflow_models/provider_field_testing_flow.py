@@ -1,5 +1,6 @@
 from cachetools import cached, LRUCache, TTLCache
 
+from ggt.lib.adapters.auth0_adapter import get_organization_id
 from ggt.lib.utils import (
     x_response
 )
@@ -54,16 +55,16 @@ def provider_get_workstations():
     )
 
 
-@cached(cache=TTLCache(maxsize=1024, ttl=60))
-def provider_lookup_appointment(appointment_id):
+def provider_lookup_appointment(appointment_id, user):
+    org_id = get_organization_id(user)
     return x_response(
-        bp_get_appointment_info(appointment_id, 'allowdoboverride')
+        bp_get_appointment_info(appointment_id, 'allowdoboverride', org_id=org_id)
     )
 
 
-def provider_update_appointment(appointment_id, action, workstation_id, vial_id, user):
+def provider_update_appointment(provider_update_appointment_request, user):
     return x_response(
-        bp_appointment_update(appointment_id, action, workstation_id, user, vial_id)
+        bp_appointment_update(provider_update_appointment_request, user)
     )
 
 

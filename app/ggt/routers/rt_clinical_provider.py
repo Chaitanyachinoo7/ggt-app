@@ -25,19 +25,17 @@ async def api_provider_get_workstations():
     return provider_get_workstations()
 
 
-@router.post("/lookup_appointment", dependencies=[Security(authorize_user, scopes=[p.LOOKUP_APPOINTMENT])])
-async def api_provider_lookup_appointment(provider_lookup_appointment_request: ProviderLookupAppointmentRequest):
-    return provider_lookup_appointment(provider_lookup_appointment_request.appointment_id)
+@router.post("/lookup_appointment")
+async def api_provider_lookup_appointment(provider_lookup_appointment_request: ProviderLookupAppointmentRequest,
+                                          user=Security(authorize_user, scopes=[p.LOOKUP_APPOINTMENT])):
+    return provider_lookup_appointment(provider_lookup_appointment_request.appointment_id, user)
 
 
 @router.post("/update_appointment")
 async def api_provider_update_appointment(provider_update_appointment_request: ProviderUpdateAppointmentRequest,
                                           user=Security(authorize_user, scopes=[p.UPDATE_APPOINTMENT])):
     return provider_update_appointment(
-        provider_update_appointment_request.appointment_id,
-        provider_update_appointment_request.action,
-        provider_update_appointment_request.workstation_id,
-        provider_update_appointment_request.vial_id,
+        provider_update_appointment_request,
         user
     )
 

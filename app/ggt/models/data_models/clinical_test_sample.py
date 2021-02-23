@@ -38,23 +38,29 @@ def create_test_sample_from_appointment(appointment_id):
                 sample_collection_location_id,
                 sample_collection_start_dt,
                 sample_collection_end_dt,
-                status
+                status,
+                location_id,
+                lab_id
             )
             SELECT 
-                id,
-                id,
-                group_code,
-                patient_id,
-                vial_id,
-                patient_questionnaire_id,
-                location_id,
-                test_start_dt,
-                test_end_dt,
-                'ready_to_tx' AS status
+                a.id,
+                a.id,
+                a.group_code,
+                a.patient_id,
+                a.vial_id,
+                a.patient_questionnaire_id,
+                a.sample_collection_location_id,
+                a.test_start_dt,
+                a.test_end_dt,
+                'ready_to_tx' AS status,
+                a.location_id,
+                l.lab_id
             FROM
-                appointments
+                appointments a
+                    LEFT JOIN
+                locations l ON a.sample_collection_location_id = l.id
             WHERE
-            id = %s
+            a.id = %s
             
             ON DUPLICATE KEY 
 	        UPDATE 
@@ -65,7 +71,9 @@ def create_test_sample_from_appointment(appointment_id):
                 sample_collection_location_id = VALUES(sample_collection_location_id),
                 sample_collection_start_dt = VALUES(sample_collection_start_dt),
                 sample_collection_end_dt = VALUES(sample_collection_end_dt),
-                status = VALUES(status)
+                status = VALUES(status),
+                location_id = VALUES(location_id),
+                lab_id = VALUES(lab_id)
         """
         vals = (appointment_id,)
         return exec_insert(sql, vals)

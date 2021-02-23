@@ -176,8 +176,8 @@ def remove_user_after_30_inactive_days(users):
 
 for x in range(0, rounds):
     _existing_users: Response = requests.get(user_url.format(x), headers=headers)
-    # task_populate_users(_existing_users, x)
-    remove_user_after_30_inactive_days(_existing_users)
+    task_populate_users(_existing_users, x)
+    # remove_user_after_30_inactive_days(_existing_users)
     # add_organizations(_existing_users)
 
 
