@@ -130,9 +130,10 @@ def remove_group(req):
     )
 
 
-def get_locations():
+def get_locations(user):
+    org_id = get_organization_id(user)
     return y_response(
-        bp_get_locations()
+        bp_get_locations(org_id)
     )
 
 
