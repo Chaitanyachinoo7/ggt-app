@@ -13,7 +13,8 @@ from ggt.models.process_models.bp_portal_experience import (
     bp_get_location_search_results,
     bp_create_location, bp_get_all_groups, bp_update_location, bp_assign_group, bp_remove_group, bp_assign_service,
     bp_remove_service, bp_get_all_services, bp_get_locations, bp_create_group, bp_update_group, bp_get_states,
-    bp_get_f11
+    bp_get_f11,
+    bp_get_consent_forms
 )
 
 from ggt.models.process_models.bp_schedules import (
@@ -62,13 +63,16 @@ def site_admin_general_search(user, first_name, middle_name, last_name, dob, pho
             group_vax_results=group_vax_results,
             token=token,
             is_patient=is_patient
-        )
+        ), allow=True
     )
 
 
-def site_admin_get_f11(date):
+def site_admin_get_f11(appointment_ids):
     return y_response(
-        bp_get_f11(date))
+        bp_get_f11(appointment_ids))
+def site_admin_get_consent_forms(patient_ids):
+    return y_response(
+        bp_get_consent_forms(patient_ids))
 
 # @cached(cache=TTLCache(maxsize=1024, ttl=60))
 

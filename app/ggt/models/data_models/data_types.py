@@ -34,6 +34,7 @@ class ResolutionCodesEnum(str, Enum):
 class ConsultationTypeCodesEnum(str, Enum):
     pre_covid_consultation = 'pre_covid_consultation'
     post_covid_consultation = 'post_covid_consultation'
+    vax_consultation = 'vax_consultation'
 
 
 class CompleteNoteReq(BaseModel):
@@ -167,6 +168,15 @@ class ProviderProcessListRequest(BaseModel):
 class VerifyPhoneRequest(BaseModel):
     phone_number: str = None
     has_sms: bool = True
+
+
+class UpdateFirstAppointment(BaseModel):
+    otp: int
+    appointment_id_1: int
+    appointment_id_2: int
+    appointment_1_dt_id: int
+    appointment_2_dt_id: int
+    phone_number: str
 
 
 class ValidateOtpRequest(BaseModel):
@@ -470,7 +480,8 @@ class VialData(BaseModel):
 class ProviderUpdateAppointmentRequest(BaseModel):
     appointment_id: str = None
     action: str = None
-    workstation_id: int = None
+    operator_location_id: int = None
+    workstation_id: Optional[int] = None
     vial_data: Optional[VialData] = None
     insurance_photo: Optional[str] = None
     appointment_notes: Optional[str] = None
@@ -510,8 +521,10 @@ class PortalCcPatientLookupRequest(BaseModel):
 
 
 class PortalAdminGetF11Request(BaseModel):
-    date: str = None
+    appointment_ids: List[str] = None
 
+class PortalAdminGetVaccineConsentFormRequest(BaseModel):
+    patient_ids: List[str] = None
 
 class CCSendSMSRequest(BaseModel):
     first_name: str = None
