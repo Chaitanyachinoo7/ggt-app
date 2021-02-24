@@ -121,9 +121,9 @@ async def api_remove_group(req: LocationToGroupMap):
     return remove_group(req)
 
 
-@router.get("/site_admin/location/get_locations", dependencies=[Security(authorize_user, scopes=[p.GET_LOCATIONS])])
-async def api_get_locations():
-    return get_locations()
+@router.get("/site_admin/location/get_locations")
+async def api_get_locations(user=Security(authorize_user, scopes=[p.GET_LOCATIONS])):
+    return get_locations(user)
 
 
 @router.post("/site-admin/update_location")
