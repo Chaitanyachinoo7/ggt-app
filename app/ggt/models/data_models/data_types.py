@@ -321,11 +321,11 @@ class Payer(BaseModel):
 
 
 class InsuranceVerification(BaseModel):
-    state: str = None
-    member_id: str = None
-    group_no: str = None
-    relationship: str = None
-    payer: Payer = None
+    member_id: str
+    group_no: str
+    relationship: str
+    payer: str
+    level: str
 
 
 class Covid19vaxScreening(BaseModel):
@@ -521,8 +521,10 @@ class PortalCcPatientLookupRequest(BaseModel):
 
 
 class PortalAdminGetF11Request(BaseModel):
-    date: str = None
+    appointment_ids: List[str] = None
 
+class PortalAdminGetVaccineConsentFormRequest(BaseModel):
+    patient_ids: List[str] = None
 
 class CCSendSMSRequest(BaseModel):
     first_name: str = None
@@ -967,6 +969,12 @@ class GgtBooking(BaseModel):
     guillianBarre: bool = False
     slot_1: GgtScheduleSlot = None
     slot_2: GgtScheduleSlot = None
+
+    insurance_relationship: str = None
+    insurance_payer: str = None
+    insurance_member_id: str = None
+    insurance_group_no: str = None
+    insurance_level: str = None
 
     #language: str = None
     # science37:
