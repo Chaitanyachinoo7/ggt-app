@@ -26,7 +26,8 @@ from ggt.models.data_models.data_types import (
     GgtThirdPartyDbGroup,
     GgtThirdPartyDbUpdateGroup,
     PermissionsEnum as p,
-    PortalAdminGetF11Request
+    PortalAdminGetF11Request,
+    PortalAdminGetVaccineConsentFormRequest
 )
 from ggt.models.workflow_models.admin_flow import (
     admin_get_all_test_results
@@ -58,7 +59,8 @@ from ggt.models.workflow_models.clinical_test_site_admin_flow import (
     get_locations,
     create_group,
     update_group, get_states,
-    site_admin_get_f11
+    site_admin_get_f11,
+    site_admin_get_consent_forms
 )
 
 router = APIRouter()
@@ -281,7 +283,7 @@ async def api_cc_patient_lookup(portal_cc_patient_lookup_request: PortalCcPatien
     )
 @router.post("/site-admin/generate_vaccine_forms_brownwood", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
 def generate_vaccine_forms_brownwood(portal_admin_get_f11_request: PortalAdminGetF11Request):
-    return site_admin_get_f11(portal_admin_get_f11_request.date)
+    return site_admin_get_f11(portal_admin_get_f11_request.appointment_ids)
 
 '''
 @router.post("/admin/get_all_test_results", dependencies=[Security(authorize_user, scopes=[p.GET_ALL_TEST_RESULTS])])

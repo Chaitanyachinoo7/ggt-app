@@ -32,7 +32,8 @@ from ggt.models.data_models.signups import (
 from ggt.models.data_models.patients import (
     create_patient_record,
     get_patient_by_token, add_to_ggd_waiting_queue, create_pre_registration,
-    get_existing_patients, unlock_patient_info_patients, get_existing_patient_questionnaire, is_un_available_slot
+    get_existing_patients, unlock_patient_info_patients, get_existing_patient_questionnaire, is_un_available_slot,
+    create_patient_insurance_record, get_insurance_record_by_id
 )
 
 from ggt.models.data_models.questionnaires import (
@@ -737,13 +738,14 @@ def __send_ggv_qrcode_sms(appointment: GgtAppointment, dose):
         message = "Hi {} " \
                   "\nYour COVID-19 Vaccine Dose {} of 2 appointment is confirmed for {} at {}." \
                   " Details at {}/appointment/{}/{}.  " \
-                  "Please arrive at least 15 minutes prior to your appointment with an acceptable ID. " \
+                  "Please arrive at the vaccine location 15 minutes early. Also make sure to bring an Acceptable ID, " \
+                  "and QR code. Though not required, please bring your health insurance card as well." \
                   "\nReply Stop to cxl msgs".format(
                 appointment.patient.first_name,
                 dose,
                 appointment.date_text,
                 appointment.location_text,
-                "https://ggv.gogettested.com",
+                "https://start.gogetvax.com",
                 appointment.id,
                 appointment.patient.dob.strftime('%Y%m%d')
             )
@@ -861,11 +863,11 @@ def __send_ggv_qrcode_email(appointment: GgtAppointment):
             "first_name": appointment.patient.first_name,
             "date_text": appointment.date_text,
             "location_text": appointment.location_text,
-            "base_url": "https://ggv.gogettested.com",
+            "base_url": "https://start.gogetvax.com",
             "appointment_id": appointment.id,
             "dob": appointment.patient.dob.strftime('%Y%m%d'),
             "appointment_url": '{}/appointment/{}/{}'.format(
-                "https://ggv.gogettested.com",
+                "https://start.gogetvax.com",
                 appointment.id,
                 appointment.patient.dob.strftime('%Y%m%d')
             )
@@ -1396,6 +1398,8 @@ def __create_patient_and_questionnaire(booking_req):
         if not booking_req.result_token:
             raise ValueError('Invalid result_token')
 
+        if not get_insurance_record_by_id(patient_id):
+            create_patient_insurance_record(booking_req)
         # create questionnaire
         booking_req.patient_questionnaire_id = create_patient_questionnaire(
                 booking_req)
