@@ -331,20 +331,22 @@ def __send_label_to_printer(appointment_id, queue_id):
 def __send_vax_completion_sms(name, to_number):
     msg = """Hi {} \nYour 15 minute observation period has begun.  Please alert the staff immediately if you feel 
     unwell.  If you are not near staff  call 911""".format(name)
-
-    # send_twilio_sms(to_number, msg)
-
-
-def __send_vax_completion_confirmation_in_15_minutes(name, to_number):
-    msg = """Hi {} \nThank you for getting your vaccine with GoGetVax.com.  Please alert the staff immediately if you 
-    currently feel unwell .  If you are not near staff, call 911.  Your Vaccine record is located here 
-    https://start.gogettested.com/provider.  Remember to still practice social distancing and continue to wear a mask.""".format(
-        name)
-
     r = {
         "message": msg,
         "to_number": to_number
     }
+    r = ujson.dumps(r)
+    push_sqs_message(get_config_val('aws.vax_sms_que'), r, delay_seconds=0)
 
+
+def __send_vax_completion_confirmation_in_15_minutes(name, to_number):
+    msg = """Hi {} \nCongratulations on getting vaccinated! Your 15 minute waiting period is now over. 
+    Please alert the staff immediately if you feel unwell or call 911 if you're not near staff. Your vaccine record is located here  
+    https://start.gogetvax.com/provider.  Remember to still practice social distancing and to continue wearing a mask.""".format(
+        name)
+    r = {
+        "message": msg,
+        "to_number": to_number
+    }
     r = ujson.dumps(r)
     push_sqs_message(get_config_val('aws.vax_sms_que'), r, delay_seconds=900)

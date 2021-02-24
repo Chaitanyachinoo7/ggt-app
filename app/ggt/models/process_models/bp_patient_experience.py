@@ -737,13 +737,14 @@ def __send_ggv_qrcode_sms(appointment: GgtAppointment, dose):
         message = "Hi {} " \
                   "\nYour COVID-19 Vaccine Dose {} of 2 appointment is confirmed for {} at {}." \
                   " Details at {}/appointment/{}/{}.  " \
-                  "Please arrive at least 15 minutes prior to your appointment with an acceptable ID. " \
+                  "Please arrive at the vaccine location 15 minutes early. Also make sure to bring an Acceptable ID, " \
+                  "and QR code. Though not required, please bring your health insurance card as well." \
                   "\nReply Stop to cxl msgs".format(
                 appointment.patient.first_name,
                 dose,
                 appointment.date_text,
                 appointment.location_text,
-                "https://ggv.gogettested.com",
+                "https://ggv.gogetvax.com",
                 appointment.id,
                 appointment.patient.dob.strftime('%Y%m%d')
             )
@@ -861,11 +862,11 @@ def __send_ggv_qrcode_email(appointment: GgtAppointment):
             "first_name": appointment.patient.first_name,
             "date_text": appointment.date_text,
             "location_text": appointment.location_text,
-            "base_url": "https://ggv.gogettested.com",
+            "base_url": "https://ggv.gogetvax.com",
             "appointment_id": appointment.id,
             "dob": appointment.patient.dob.strftime('%Y%m%d'),
             "appointment_url": '{}/appointment/{}/{}'.format(
-                "https://ggv.gogettested.com",
+                "https://ggv.gogetvax.com",
                 appointment.id,
                 appointment.patient.dob.strftime('%Y%m%d')
             )
