@@ -399,9 +399,9 @@ def bp_remove_group(req):
         )
 
 
-def bp_get_locations():
+def bp_get_locations(org_id):
     try:
-        return get_all_locations_without_thumbnail()
+        return get_all_locations_without_thumbnail(org_id)
 
     except Exception as err:
         log_generic(
