@@ -160,7 +160,6 @@ def get_existing_patients(phone_number="", first_name="", last_name="", dob="", 
     except Exception as err:
         log_generic(
             type=ERROR,
-            vals=vals,
             phone_number=phone_number,
             function=whoami(),
             error=err
@@ -299,6 +298,52 @@ def unlock_patient_info_patients(phone_number):
             type=ERROR,
             vals=vals,
             phone_number=phone_number,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def get_insurance_record_by_id(patient_id):
+    try:
+        sql = """SELECT * FROM
+                       patient_insurance_details 
+                   WHERE patient_id = %s
+               """
+        vals = (patient_id, )
+        return replica_read_row(sql, vals)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def create_patient_insurance_record(booking_req):
+    try:
+        sql = """INSERT INTO 
+                       patient_insurance_details 
+                       (
+                       `patient_id`,
+                       `relationship`,
+                       `payer`,
+                       `member_id`,
+                       `group_no`,
+                       `level`
+                       )
+                   VALUES (%s, %s ,%s, %s, %s, %s)
+               """
+        vals = (booking_req.patient_id, booking_req.insurance_relationship,
+                booking_req.insurance_payer, booking_req.insurance_member_id,
+                booking_req.insurance_group_no, booking_req.insurance_level)
+
+        return exec_update(sql, vals)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            vals=vals,
             function=whoami(),
             error=err
         )
