@@ -53,13 +53,13 @@ def test_begin_and_end_consultation():
     verify_response(response)
 
 
-def test_provider_rollback_to_pending_task():
-    response = client.post(
-        "/api/care_provider/provider_rollback_to_pending_task",
-        headers={"X-Token": "coneofsilence", "Authorization": token},
-        json={"test_id": 1}
-    )
-    verify_response(response)
+# def test_provider_rollback_to_pending_task():
+#     response = client.post(
+#         "/api/care_provider/provider_rollback_to_pending_task",
+#         headers={"X-Token": "coneofsilence", "Authorization": token},
+#         json={"test_id": 1}
+#     )
+#     verify_response(response)
 
 
 def test_get_provider_processing_list():
