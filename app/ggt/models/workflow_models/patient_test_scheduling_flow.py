@@ -295,11 +295,12 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
     b = GgtBooking()
     try:
         if "insuranceVerification" in dict(finalize_registration_request).keys():
-            b.insurance_relationship = finalize_registration_request.insuranceVerification.relationship
-            b.insurance_member_id = finalize_registration_request.insuranceVerification.member_id
-            b.insurance_group_no = finalize_registration_request.insuranceVerification.group_no
-            b.insurance_payer = finalize_registration_request.insuranceVerification.payer
-            b.insurance_level = finalize_registration_request.insuranceVerification.level
+            if finalize_registration_request.insuranceVerification:
+                b.insurance_relationship = finalize_registration_request.insuranceVerification.relationship
+                b.insurance_member_id = finalize_registration_request.insuranceVerification.member_id
+                b.insurance_group_no = finalize_registration_request.insuranceVerification.group_no
+                b.insurance_payer = finalize_registration_request.insuranceVerification.payer
+                b.insurance_level = finalize_registration_request.insuranceVerification.level
 
         if "covid19vaxScreening" in dict(finalize_registration_request).keys():
             b.ggv_allergies = finalize_registration_request.covid19vaxScreening.allergies
