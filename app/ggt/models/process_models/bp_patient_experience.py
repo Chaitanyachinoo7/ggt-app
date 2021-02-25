@@ -376,7 +376,7 @@ def bp_ggv_finalize_booking(booking_req: GgtBooking):
         appointment_2.payment_url = ''
         if upfront_payment_info.is_payment_required:
             appointment_1.payment_url = __inject_payment_flow(appointment_1)
-            appointment_1.payment_url = __inject_payment_flow(appointment_1)
+            appointment_2.payment_url = __inject_payment_flow(appointment_2)
         else:
             # payment not required, confirm the appointment and notify
             update_appointment_with_confirmed_scheduled(appointment_1)
