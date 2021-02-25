@@ -64,7 +64,8 @@ def task_process_misc():
     #process_email_notifications()
     #upload_insurance_files_from_gstore()
     process_sms_notifications()
-    process_email_notifications()
+    #process_email_notifications()
+    #dedupe_tokens()
 
     log_generic(
         type=c.INFO,
@@ -192,8 +193,11 @@ def formatted_email_message(row):
 
 
 def prepare_sms_text(appointment):
-    return """Hi {}, the location where you have registered for your COVID-19 test will be CLOSED 02/12/2021 - 02/16/2021 due to inclement weather. We apologize for the inconvenience this might have caused. Please visit GoGetTested.com to register for a new appointment.
+    return """Hi {}, the location where you have registered for your COVID-19 test will be located at the following address for today.  509 E 11th Street Hutchinson KS 67501. Please arrive at this site for your appointment. We apologize for the inconvenience this might have caused.
     """.format(appointment["first_name"])
+
+    #return """Hi {}, the location where you have registered for your COVID-19 test will be CLOSED 02/19/2021 due to inclement weather. We apologize for the inconvenience this might have caused. Please visit GoGetTested.com to register for a new appointment.
+    #""".format(appointment["first_name"])
 
     #return """Hi {}, due to inclement weather, we’ve had to delay opening the testing location where you have registered to 12 pm. This may change depending on the weather. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to register for a new appointment.
     #""".format(appointment["first_name"])
@@ -420,8 +424,8 @@ def get_appointments():
             location_id IN (
                 2497
                 )
-                AND scheduled_dt > '2021-02-13 00:00:00'
-                AND scheduled_dt < '2021-02-14 00:00:00'
+                AND scheduled_dt > '2021-02-19 00:00:00'
+                AND scheduled_dt < '2021-02-20 00:00:00'
                 AND status = 'scheduled'
         """
 
@@ -591,7 +595,7 @@ def remove_image_from_questionnnaires_table(id):
 
 def process_bcg_locations_file():
     import csv
-    with open('temp/bcg_location_list.txt', newline='') as csvfile:
+    with open('archived/bcg_location_list_v2.txt', newline='') as csvfile:
         spamreader = csv.reader(csvfile, delimiter='\t')
         for row in spamreader:
             print(', '.join(row))
@@ -603,9 +607,9 @@ def process_bcg_locations_file():
             zip= row[5]
             operator= row[7]
             phone_number= row[8]
-            website= row[9]
+            website= row[8]
             open_hours = row[11]
-            add_to_locations(name, addr1, addr2, city, st, zip, operator, phone_number, website, open_hours)
+            add_to_locations(name+' | '+open_hours, addr1, addr2, city, st, zip, operator, phone_number, website, open_hours)
 
 
 def process_mx_locations_file():
@@ -657,7 +661,7 @@ def add_to_locations(name, addr1, addr2, city, st, zip, operator, phone_number, 
         "phone_number": phone_number,
         "website": website,
         "open_hours": open_hours,
-        "is_external": False,
+        "is_external": True,
         "group_ids": [1],
         "service_ids": [1]
     }
@@ -733,3 +737,9 @@ def update_schedules():
     locations = ['2631','2630','2629','2628','2627','2626','2625','2624','2623','2622','2621','2620','2619','2618','2617','2616','2615','2614','2613','2612','2611','2610','2609','2608','2607','2606','2605','2604','2603','2602','2601','2600','2599','2598','2597','2596','2595','2594','2593','2592','2591','2590','2589']
     for location_id in locations:
         add_sched_rule(location_id)
+
+def dedupe_tokens():
+    from ggt.tasks.handle_duplicate_tokens import (
+        handle_duplicate_tokens
+    )
+    handle_duplicate_tokens()

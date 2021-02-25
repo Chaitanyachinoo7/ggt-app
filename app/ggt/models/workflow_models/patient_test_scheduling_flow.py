@@ -8,7 +8,7 @@ from ggt.lib.utils import (
     x_response,
     whoami, y_response
 )
-from ggt.models.data_models.patients import is_available_slot, lock_slot
+from ggt.models.data_models.patients import is_un_available_slot, lock_slot
 
 from ggt.models.process_models.bp_patient_experience import (
     bp_get_screen_flow_seq,
@@ -19,7 +19,7 @@ from ggt.models.process_models.bp_patient_experience import (
     bp_get_test_result, bp_add_to_ggd_waiting_queue,
     bp_get_wellpay_insurance_eligibility,
     bp_search_insurance_payer_list, bp_get_ggv_screen_flow_seq, bp_ggv_finalize_booking, bp_ggv_finalize_pre_booking,
-    bp_create_pre_registration
+    bp_create_pre_registration, bp_verify_verification_token, bp_reschedule_first_appointment
 )
 
 from ggt.models.process_models.bp_schedules import (
@@ -65,6 +65,19 @@ def initiate_verification_flow(phone_number, with_otp=True):
         bp_initiate_verification_flow(
             phone_number,
             with_otp
+        )
+    )
+
+
+def reschedule_first_appointment(req):
+    return x_response(
+        bp_reschedule_first_appointment(
+            req.otp,
+            req.appointment_id_1,
+            req.appointment_id_2,
+            req.appointment_1_dt_id,
+            req.appointment_2_dt_id,
+            req.phone_number
         )
     )
 
@@ -221,7 +234,7 @@ def ggv_finalize_registration(finalize_registration_request):
     # TODO: Following is a tem logic to support GGV registration for selected individuals.
     # slot = is_available_slot(booking_req.email, booking_req.dob)
 
-    slot = is_available_slot(booking_req.verification_token)
+    slot = is_un_available_slot(booking_req.verification_token)
     if slot is None:
         pass
     else:
@@ -281,6 +294,14 @@ def ggv_finalize_pre_registration(finalize_registration_request):
 def __map_to_booking_req(finalize_registration_request, ggv=False):
     b = GgtBooking()
     try:
+        '''
+        if "insuranceVerification" in dict(finalize_registration_request).keys():
+            b.insurance_relationship = finalize_registration_request.insuranceVerification.relationship
+            b.insurance_member_id = finalize_registration_request.insuranceVerification.member_id
+            b.insurance_group_no = finalize_registration_request.insuranceVerification.group_no
+            b.insurance_payer = finalize_registration_request.insuranceVerification.payer
+            b.insurance_level = finalize_registration_request.insuranceVerification.level
+        '''
         if "covid19vaxScreening" in dict(finalize_registration_request).keys():
             b.ggv_allergies = finalize_registration_request.covid19vaxScreening.allergies
             b.serious_reaction = finalize_registration_request.covid19vaxScreening.serious_reaction
@@ -410,8 +431,15 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
 def insurance_eligibility(insurance_eligibility_request):
     return bp_get_wellpay_insurance_eligibility(insurance_eligibility_request)
 
+
 def insurance_search_payer(insurance_search_payer_request):
     return bp_search_insurance_payer_list(insurance_search_payer_request)
+
+
+def verify_verification_token(toke_verification_request):
+    return x_response(
+        bp_verify_verification_token(toke_verification_request.verification_token)
+    )
 
 
 @cached(cache=TTLCache(maxsize=1024, ttl=180))

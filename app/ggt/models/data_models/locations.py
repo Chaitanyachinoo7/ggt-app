@@ -130,7 +130,7 @@ def get_states():
         return None
 
 
-def get_all_locations_without_thumbnail():
+def get_all_locations_without_thumbnail(org_id):
     try:
         sql = """SELECT 
                     l.id,
@@ -181,8 +181,10 @@ def get_all_locations_without_thumbnail():
                         LEFT JOIN
                     groups g ON gm.group_id = g.id
                     group by gm.location_id) gp on l.id = gp.location_id
+                WHERE l.org_id = %s
             """
-        return replica_read_rows(sql)
+        vals = (org_id, )
+        return replica_read_rows(sql, vals)
 
     except Exception as err:
         log_generic(

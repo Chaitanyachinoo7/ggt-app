@@ -43,9 +43,9 @@ from ggt.models.process_models.bp_patient_experience import __save_insurance_ima
 
 
 @cached(cache=TTLCache(maxsize=1024, ttl=30))
-def bp_get_appointment_info(appointment_id, dob):
+def bp_get_appointment_info(appointment_id, dob, org_id=None):
     try:
-        appointment: GgtAppointment = get_appointment(appointment_id)
+        appointment: GgtAppointment = get_appointment(appointment_id, org_id=org_id)
         if dob != 'allowdoboverride' and appointment.patient.dob.strftime("%Y%m%d") != dob:
             raise ValueError('Invalid Appointment and DOB')
 
@@ -82,19 +82,20 @@ def bp_appointment_update(provider_update_appointment_request, user):
     appointment_id = provider_update_appointment_request.appointment_id
     action = provider_update_appointment_request.action
     workstation_id = provider_update_appointment_request.workstation_id
+    operator_location_id = provider_update_appointment_request.operator_location_id
     try:
         appointment: GgtAppointment = get_appointment(appointment_id)
 
         if action == c.APPOINTMENT_ACTION_START_VAX:
-            usuccess = update_appointment_with_start_vax(appointment, user, workstation_id)
+            usuccess = update_appointment_with_start_vax(appointment, user, operator_location_id=operator_location_id)
 
         if action == c.APPOINTMENT_ACTION_VERIFY_INSURANCE:
-            usuccess = update_appointment_with_verify_insurance(appointment, user)
+            usuccess = update_appointment_with_verify_insurance(appointment, user, operator_location_id=operator_location_id)
             if usuccess:
                 __save_insurance_image(appointment_id, provider_update_appointment_request.insurance_photo)
 
         if action == c.APPOINTMENT_ACTION_END_VAX:
-            usuccess = update_appointment_with_end_vax(appointment, user, workstation_id)
+            usuccess = update_appointment_with_end_vax(appointment, user, workstation_id, operator_location_id=operator_location_id)
             if usuccess:
                 __send_vax_completion_sms(appointment.patient.first_name, appointment.patient.phone_number)
                 __send_vax_completion_confirmation_in_15_minutes(appointment.patient.first_name,
@@ -103,18 +104,21 @@ def bp_appointment_update(provider_update_appointment_request, user):
         if action == c.APPOINTMENT_ACTION_NOTES_VAX:
             usuccess = update_appointment_with_notes_vax(appointment, user, workstation_id,
                                                          provider_update_appointment_request.injection_site,
-                                                         provider_update_appointment_request.no_adverse_reactions)
+                                                         provider_update_appointment_request.no_adverse_reactions,
+                                                         operator_location_id=operator_location_id)
             if usuccess:
                 create_consultation_note(user, appointment_id, provider_update_appointment_request.appointment_notes)
 
         if action == c.APPOINTMENT_ACTION_CHECK_IN:
-            usuccess = update_appointment_with_checkin(appointment, user)
+            usuccess = update_appointment_with_checkin(appointment, user, operator_location_id=operator_location_id)
 
         elif action == c.APPOINTMENT_ACTION_START_TEST:
-            usuccess = __appointment_begin_test(user, appointment, workstation_id)
+            usuccess = __appointment_begin_test(user, appointment, workstation_id, operator_location_id=operator_location_id)
 
         elif action == c.APPOINTMENT_ACTION_SCAN_VIAL:
-            usuccess, reason_code = update_appointment_with_scan_vial(appointment, provider_update_appointment_request.vial_data.vial_id, user)
+            usuccess, reason_code = update_appointment_with_scan_vial(appointment,
+                                                                      provider_update_appointment_request.vial_data.vial_id,
+                                                                      user, operator_location_id=operator_location_id)
             if not usuccess:
                 return {
                     c.STATUS: c.FAILED,
@@ -123,7 +127,7 @@ def bp_appointment_update(provider_update_appointment_request, user):
 
         elif action == c.APPOINTMENT_ACTION_SCAN_VIAL_VAX:
             usuccess, reason_code = update_appointment_with_scan_vial_vax(appointment, provider_update_appointment_request.vial_data,
-                                                             user)
+                                                             user, operator_location_id=operator_location_id)
             if not usuccess:
                 return {
                     c.STATUS: c.FAILED,
@@ -131,7 +135,8 @@ def bp_appointment_update(provider_update_appointment_request, user):
                 }
 
         elif action == c.APPOINTMENT_ACTION_END_TEST:
-            usuccess = update_appointment_with_test_completed(appointment, user)
+            usuccess = update_appointment_with_test_completed(appointment, user,
+                                                              operator_location_id=operator_location_id)
             if usuccess:
                 __send_test_complete_sms(appointment)
 
@@ -166,7 +171,9 @@ def bp_appointment_update(provider_update_appointment_request, user):
 ########################################################################################################
 
 def __is_pre_labeled(appointment: GgtAppointment, workstation_id: int) -> bool:
-    return True if (appointment.location.test_type_offered == 'oral_fluid' or workstation_id > 10000) else False
+    return True
+    '''Now we dont use workstations to print labels, this code is to be depreciate'''
+    # return True if (appointment.location.test_type_offered == 'oral_fluid' or workstation_id > 10000) else False
 
 
 def __formatted_date_text(appointment):
@@ -225,16 +232,18 @@ def __next_action(appointment, pre_labeled=False):
                 c.APPOINTMENT_STATUS_SCHEDULED: c.APPOINTMENT_ACTION_CHECK_IN,
                 c.APPOINTMENT_STATUS_CHECKED_IN: c.APPOINTMENT_ACTION_VERIFY_INSURANCE,
                 c.APPOINTMENT_ACTION_VERIFY_INSURANCE: c.APPOINTMENT_ACTION_START_VAX,
-                c.APPOINTMENT_ACTION_START_VAX: c.APPOINTMENT_ACTION_SCAN_VIAL_VAX,
-                c.APPOINTMENT_ACTION_SCAN_VIAL_VAX: c.APPOINTMENT_ACTION_NOTES_VAX,
+                c.APPOINTMENT_ACTION_START_VAX: c.APPOINTMENT_ACTION_NOTES_VAX,
+                # c.APPOINTMENT_ACTION_START_VAX: c.APPOINTMENT_ACTION_SCAN_VIAL_VAX,
+                # c.APPOINTMENT_ACTION_SCAN_VIAL_VAX: c.APPOINTMENT_ACTION_NOTES_VAX,
                 c.APPOINTMENT_ACTION_NOTES_VAX: c.APPOINTMENT_ACTION_END_VAX
             }
         else:
             switcher = {
                 c.APPOINTMENT_STATUS_SCHEDULED: c.APPOINTMENT_ACTION_CHECK_IN,
                 c.APPOINTMENT_STATUS_CHECKED_IN: c.APPOINTMENT_ACTION_START_VAX,
-                c.APPOINTMENT_ACTION_START_VAX: c.APPOINTMENT_ACTION_SCAN_VIAL_VAX,
-                c.APPOINTMENT_ACTION_SCAN_VIAL_VAX: c.APPOINTMENT_ACTION_NOTES_VAX,
+                c.APPOINTMENT_ACTION_START_VAX: c.APPOINTMENT_ACTION_NOTES_VAX,
+                # c.APPOINTMENT_ACTION_START_VAX: c.APPOINTMENT_ACTION_SCAN_VIAL_VAX,
+                # c.APPOINTMENT_ACTION_SCAN_VIAL_VAX: c.APPOINTMENT_ACTION_NOTES_VAX,
                 c.APPOINTMENT_ACTION_NOTES_VAX: c.APPOINTMENT_ACTION_END_VAX
             }
 
@@ -257,8 +266,8 @@ def __send_test_complete_sms(appointment):
     return send_sms(appointment.patient.phone_number, message)
 
 
-def __appointment_begin_test(user, appointment, workstation_id=1):
-    update_appointment_with_test_start(user, appointment, workstation_id)
+def __appointment_begin_test(user, appointment, workstation_id=1, operator_location_id=None):
+    update_appointment_with_test_start(user, appointment, workstation_id, operator_location_id=operator_location_id)
 
     if __is_pre_labeled(appointment, workstation_id):
         return True
@@ -322,20 +331,22 @@ def __send_label_to_printer(appointment_id, queue_id):
 def __send_vax_completion_sms(name, to_number):
     msg = """Hi {} \nYour 15 minute observation period has begun.  Please alert the staff immediately if you feel 
     unwell.  If you are not near staff  call 911""".format(name)
-
-    # send_twilio_sms(to_number, msg)
-
-
-def __send_vax_completion_confirmation_in_15_minutes(name, to_number):
-    msg = """Hi {} \nThank you for getting your vaccine with GoGetVax.com.  Please alert the staff immediately if you 
-    currently feel unwell .  If you are not near staff, call 911.  Your Vaccine record is located here 
-    https://start.gogettested.com/provider.  Remember to still practice social distancing and continue to wear a mask.""".format(
-        name)
-
     r = {
         "message": msg,
         "to_number": to_number
     }
+    r = ujson.dumps(r)
+    push_sqs_message(get_config_val('aws.vax_sms_que'), r, delay_seconds=0)
 
+
+def __send_vax_completion_confirmation_in_15_minutes(name, to_number):
+    msg = """Hi {} \nCongratulations on getting vaccinated! Your 15 minute waiting period is now over. 
+    Please alert the staff immediately if you feel unwell or call 911 if you're not near staff. Your vaccine record is located here  
+    https://start.gogetvax.com/provider.  Remember to still practice social distancing and to continue wearing a mask.""".format(
+        name)
+    r = {
+        "message": msg,
+        "to_number": to_number
+    }
     r = ujson.dumps(r)
     push_sqs_message(get_config_val('aws.vax_sms_que'), r, delay_seconds=900)

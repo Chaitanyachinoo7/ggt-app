@@ -13,7 +13,7 @@ from ggt.models.data_models.data_types import (
     PermissionsEnum as p,
     InsuranceEligibilityRequest,
     InsurancePayersListRequest, SecondAvailableDate, FinalizeGGVRegistrationRequest, FinalizeGGVPreRegistrationRequest,
-    PatientAppointmentLookup
+    PatientAppointmentLookup, VerificationToken, UpdateFirstAppointment
 )
 
 from ggt.models.workflow_models.patient_portal_flow import (
@@ -35,7 +35,8 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
     get_all_available_locations_and_times,
     insurance_eligibility, get_ggv_schedule_locations_available,
     insurance_search_payer, get_ggv_screen_flow_seq, get_second_shot_available_times, ggv_finalize_registration,
-    get_ggv_schedule_times_available, ggv_finalize_pre_registration, cache_test
+    get_ggv_schedule_times_available, ggv_finalize_pre_registration, cache_test, verify_verification_token,
+    reschedule_first_appointment
 )
 
 # TODO: [GGT-193] Move this to a dedicated API
@@ -88,6 +89,11 @@ async def api_get_screen_flow_seq(group_code: str):
 @router.post("/verify_phone", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_verify_phone(req: VerifyPhoneRequest):
     return initiate_verification_flow(req.phone_number, req.has_sms)
+
+
+@router.post("/ggv/reschedule_first_appointment", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_reschedule_first_appointment(req: UpdateFirstAppointment):
+    return reschedule_first_appointment(req)
 
 
 @router.post("/validate_otp", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
@@ -224,6 +230,7 @@ async def api_get_appointments_by_phone(req: PatientAppointmentLookup):
 def api_insurance_eligibility(req: InsuranceEligibilityRequest):
     return insurance_eligibility(req)
 
+
 @router.post("/search_payers_list")
 def api_insurance_search_payer(req: InsurancePayersListRequest):
     return insurance_search_payer(req)
@@ -232,3 +239,8 @@ def api_insurance_search_payer(req: InsurancePayersListRequest):
 @router.get("/cache_test/{t_id}")
 def api_cache_test(t_id: int):
     return cache_test(t_id)
+
+
+@router.post("/verify_verification_token")
+def api_verify_verification_token(toke_verification_request: VerificationToken):
+    return verify_verification_token(toke_verification_request)

@@ -154,6 +154,78 @@ def aging_samples_with_lab_by_ship_date():
         return None
 
 
+def get_portal_stats_today(org_id):
+    try:
+        sql_1 = """SELECT 
+                        SUM(location_stats_for_dates.pending_signups) AS pending_signups,
+                        SUM(location_stats_for_dates.total_scheduled) AS total_appointments,
+                        SUM(location_stats_for_dates.remaining_scheduled) AS remaining_scheduled,
+                        SUM(location_stats_for_dates.checked_in) AS total_checked_in,
+                        SUM(location_stats_for_dates.tests_in_progress) AS tests_in_progress,
+                        SUM(location_stats_for_dates.vax_in_progress) AS vax_in_progress,
+                        SUM(location_stats_for_dates.vax_completed) AS vax_completed,
+                        SUM(location_stats_for_dates.test_completed) AS test_completed,
+                        SUM(location_stats_for_dates.cancelled) AS scanned,
+                        SUM(location_stats_for_dates.scanned) AS not_scanned,
+                        SUM(location_stats_for_dates.not_scanned) AS not_scanned
+                    FROM
+                        (SELECT 
+                            a.location_id AS location_id,
+                                l.site_code AS site_code,
+                                l.name AS name,
+                                SUM(IF((a.status = 'pending'), 1, 0)) AS pending_signups,
+                                COUNT(a.id) AS total_scheduled,
+                                SUM(IF((a.status = 'scheduled'), 1, 0)) AS remaining_scheduled,
+                                SUM(IF((a.status = 'checked_in'), 1, 0)) AS checked_in,
+                                SUM(IF((a.status = 'test_in_progress'), 1, 0)) AS tests_in_progress,
+                                SUM(IF((a.status = 'start_vax'), 1, 0)) AS vax_in_progress,
+                                SUM(IF((a.status = 'end_vax'), 1, 0)) AS vax_completed,
+                                SUM(IF((a.status = 'test_completed'), 1, 0)) AS test_completed,
+                                SUM(IF((a.status = 'cancelled'), 1, 0)) AS cancelled,
+                                SUM(IF((t.pre_ship_label_scan_dt IS NOT NULL), 1, 0)) AS scanned,
+                                SUM(IF((ISNULL(t.pre_ship_label_scan_dt)
+                                    AND (t.id IS NOT NULL)), 1, 0)) AS not_scanned,
+                            ROUND(((SUM(IF((t.pre_ship_label_scan_dt IS NOT NULL), 1, 0)) / IF(COUNT(t.id)=0, 1, COUNT(t.id))) * 100), 1) AS scan_percentage
+                        FROM
+                            ((appointments a
+                        JOIN locations l ON ((l.id = a.location_id)))
+                        LEFT JOIN test_samples t ON ((t.appointment_id = a.id))
+                        LEFT JOIN organizations org on l.org_id = org.id)
+                        WHERE
+                            ((CAST(a.scheduled_dt AS DATE) =  CAST(NOW() as DATE))
+                                OR (CAST(a.test_start_dt AS DATE) =  CAST(NOW() as DATE))
+                                OR (CAST(a.test_end_dt AS DATE) =  CAST(NOW() as DATE)))
+                                AND org.id = %s AND org.is_active = 1
+                        GROUP BY a.location_id
+                        ORDER BY l.name) AS location_stats_for_dates;"""
+        vals = (org_id, )
+        res_1 = replica_read_row(sql_1, vals)
+
+        sql_2 = """SELECT 
+                        COUNT(*) AS all_appointments,
+                        DATE_FORMAT(a.scheduled_dt, '%l %p') AS dt
+                    FROM
+                        appointments a
+                        join locations l on a.location_id = l.id
+                    WHERE
+                            (CAST(scheduled_dt AS DATE) = CAST(NOW() AS DATE)
+                            OR (CAST(test_start_dt AS DATE) = CAST(NOW() AS DATE))
+                            OR (CAST(test_end_dt AS DATE) = CAST(NOW() AS DATE)))
+                            AND l.org_id = %s
+                    GROUP BY dt
+                    ORDER BY dt;"""
+        res_2 = replica_read_rows(sql_2, vals)
+
+        return __format_daily_matrix(res_1, res_2)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 def get_stats_by_date(date, organization_id):
     try:
 
@@ -436,3 +508,15 @@ def get_patient_drill_down_by_date(location_id, date, status, org_id):
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
+
+
+def __format_daily_matrix(res_1, res_2):
+    appointments_by_hour = []
+    for x in res_2:
+        appointments_by_hour.append({"label": x['dt'], "total": x['all_appointments']})
+    keys = res_1.keys()
+    for key in keys:
+        res_1[key] = int(res_1[key]) if res_1[key] else 0;
+
+    res_1['appointments_by_hour'] = appointments_by_hour
+    return res_1

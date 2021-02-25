@@ -3,16 +3,30 @@ from ggt.lib.adapters.sendgrid_adapter import send_email
 from ggt.lib.email import render_template
 
 
+def send_new_account_registration_request_email(first_name, email):
+    from_email = cfg('notifications.from_email')
+    from_name = cfg('notifications.from_name')
+    subject = "GoGetVax provider account creation request received"
+    template_vars = {
+        "first_name": first_name
+    }
+    template_name = 'GGV-2-NEW_ACCOUNT_REQUEST-EMAIL.html'
+    html_content = render_template(template_name, **template_vars)
+    send_email(from_email, from_name, email, subject, html_content)
+
+
 def send_new_account_creation_email(first_name, email, password):
     from_email = cfg('notifications.from_email')
     from_name = cfg('notifications.from_name')
+    portal_url = cfg('portal_url')
     subject = "GoGetTested Account created"
     template_vars = {
         "first_name": first_name,
+        "portal_url": portal_url,
         "email": email,
         "password": password
     }
-    template_name = 'GGT-19-NEW_ACCOUNT-EMAIL.html'
+    template_name = 'GGV-3-NEW_ACCOUNT-EMAIL.html'
     html_content = render_template(template_name, **template_vars)
     send_email(from_email, from_name, email, subject, html_content)
 

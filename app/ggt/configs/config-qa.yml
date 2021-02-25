@@ -2,6 +2,7 @@ app_name: ggt-api
 app_version: 1.1
 log_level: INFO
 base_url: https://start-qa.GoGetTested.com
+portal_url: https://portal-qa.gogettested.com
 env: PROD
 default_timezone: CST
 
@@ -14,7 +15,7 @@ server:
   email_queue_processor_port: 5030
   sms_queue_processor_port: 5040
 
-origins:
+origins: 
   - https://gogettested.com
   - https://schedule.gogettested.com
   - https://start.gogettested.com
@@ -26,6 +27,28 @@ origins:
   - https://ops.gogettested.com
   - https://ops-dev.gogettested.com
   - https://ops-qa.gogettested.com
+  - https://gogetvax.com
+  - https://ops.gogetvax.com
+  - https://ops-dev.gogetvax.com
+  - https://ops-qa.gogetvax.com
+  - https://portal.gogetvax.com
+  - https://portal-dev.gogetvax.com
+  - https://portal-qa.gogetvax.com
+  - https://start.gogetvax.com
+  - https://start-dev.gogetvax.com
+  - https://start-qa.gogetvax.com
+  - https://schedule.gogetvax.com
+  - https://gogetdoc.com
+  - https://ops.gogetdoc.com
+  - https://ops-dev.gogetdoc.com
+  - https://ops-qa.gogetdoc.com
+  - https://portal.gogetdoc.com
+  - https://portal-dev.gogetdoc.com
+  - https://portal-qa.gogetdoc.com
+  - https://start.gogetdoc.com
+  - https://start-dev.gogetdoc.com
+  - https://start-qa.gogetdoc.com
+  - https://schedule.gogetdoc.com
   - http://localhost
   - http://localhost:3000
   - http://localhost:5000

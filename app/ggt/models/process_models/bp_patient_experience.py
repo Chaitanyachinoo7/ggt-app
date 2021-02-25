@@ -32,7 +32,8 @@ from ggt.models.data_models.signups import (
 from ggt.models.data_models.patients import (
     create_patient_record,
     get_patient_by_token, add_to_ggd_waiting_queue, create_pre_registration,
-    get_existing_patients, unlock_patient_info_patients, get_existing_patient_questionnaire
+    get_existing_patients, unlock_patient_info_patients, get_existing_patient_questionnaire, is_un_available_slot,
+    create_patient_insurance_record, get_insurance_record_by_id
 )
 
 from ggt.models.data_models.questionnaires import (
@@ -44,7 +45,7 @@ from ggt.models.data_models.appointments import (
     get_appointment_count_by_phone_dob,
     create_appointment,
     update_appointment_with_confirmed_scheduled,
-    update_appointment_with_receipt_token
+    update_appointment_with_receipt_token, release_ggv_slot, lock_ggv_slot, re_schedule_appointment
 )
 
 from ggt.models.data_models.locations import (
@@ -187,7 +188,7 @@ def bp_initiate_verification_flow(phone_number: str, with_otp: bool = True):
             if with_otp:
                 # message = "Enter Code: {}\nOr click {} \nReply STOP to cancel msgs".format(
                 #     otp_code, activation_url)
-                message = "OTP Code: {} \nReply STOP to cancel msgs".format(
+                message = "Your GoGet verification code is: {} \nReply STOP to cancel msgs".format(
                     otp_code)
             else:
                 return True
@@ -405,6 +406,8 @@ def bp_ggv_finalize_pre_booking(booking_req: GgtBooking):
         if booking_req is None:
             raise ValueError(status_message)
         patient_id = booking_req.patient_id
+        __send_ggv_pre_registration_sms(booking_req.first_name, booking_req.phone_number)
+        __send_ggv_pre_registration_email(booking_req.first_name, booking_req.email)
     except Exception as err:
         status_message = str(err)
         log_generic(
@@ -504,6 +507,43 @@ def bp_has_appointments(phone_number: str, dob: str) -> bool:
     return False
 
 
+def bp_reschedule_first_appointment(otp, appointment_id_1, appointment_id_2, appointment_1_dt_id, appointment_2_dt_id, phone_number):
+    try:
+        if __validate_otp(phone_number, otp):
+            release_ggv_slot(appointment_id_1)
+            release_ggv_slot(appointment_id_2)
+            slot_1 = get_slot_information(appointment_1_dt_id, slot_type='vax')
+            slot_2 = get_slot_information(appointment_2_dt_id, slot_type='vax')
+            lock_ggv_slot(appointment_id_1, appointment_1_dt_id)
+            lock_ggv_slot(appointment_id_2, appointment_2_dt_id)
+            appointment_1 = re_schedule_appointment(appointment_id_1, slot_1)
+            appointment_2 = re_schedule_appointment(appointment_id_2, slot_2)
+            __send_ggv_qrcode_sms(appointment_1, "1")
+            __send_ggv_qrcode_email(appointment_1)
+            __send_ggv_qrcode_sms(appointment_2, "2")
+            __send_ggv_qrcode_email(appointment_2)
+            return True
+        else:
+            log_generic(
+                type=c.INFO,
+                phone_number=phone_number,
+                otp=otp,
+                message="Invalid OTP",
+                function=whoami()
+            )
+            return False
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            phone_number=phone_number,
+            function=whoami(),
+            error=err
+        )
+
+    return False
+
+
 @cached(cache=TTLCache(maxsize=1024, ttl=14.5))
 def bp_get_wellpay_api_key():
     return __get_wp_api_tokens()
@@ -515,6 +555,13 @@ def bp_get_wellpay_insurance_eligibility(insurance_eligibility_request):
 
 def bp_search_insurance_payer_list(insurance_search_payer_request):
     return __bp_search_insurance_payer_list(insurance_search_payer_request)
+
+
+def bp_verify_verification_token(token):
+    if is_un_available_slot(token) is None:
+        return True
+    else:
+        return False
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
@@ -522,6 +569,10 @@ def bp_search_insurance_payer_list(insurance_search_payer_request):
 # TODO: Prevent from looking up slots that are already assigned to an appointment
 # TODO, doesn't check if it's already booked
 # TEMP, not using fixed slots since operational conditions allow oversubscribing
+
+
+def __validate_otp(phone_number, otp):
+    return get_signup_record_by_phone_otp(phone_number, otp)
 
 
 def __generate_appointment(booking_req: GgtBooking):
@@ -687,13 +738,14 @@ def __send_ggv_qrcode_sms(appointment: GgtAppointment, dose):
         message = "Hi {} " \
                   "\nYour COVID-19 Vaccine Dose {} of 2 appointment is confirmed for {} at {}." \
                   " Details at {}/appointment/{}/{}.  " \
-                  "Please arrive at least 15 minutes prior to your appointment with an acceptable ID. " \
+                  "Please arrive at the vaccine location 15 minutes early. Also make sure to bring an Acceptable ID, " \
+                  "and QR code. Though not required, please bring your health insurance card as well." \
                   "\nReply Stop to cxl msgs".format(
                 appointment.patient.first_name,
                 dose,
                 appointment.date_text,
                 appointment.location_text,
-                "https://ggv.gogettested.com",
+                "https://start.gogetvax.com",
                 appointment.id,
                 appointment.patient.dob.strftime('%Y%m%d')
             )
@@ -714,6 +766,36 @@ def __send_ggv_qrcode_sms(appointment: GgtAppointment, dose):
         log_generic(
             type=c.ERROR,
             appointment=appointment,
+            function=whoami(),
+            error=err
+        )
+
+    return None
+
+
+def __send_ggv_pre_registration_sms(first_name, phone_number):
+    try:
+        message = "Hi {} " \
+                  "\nYou have successfully joined the waitlist for the COVID-19 vaccine.  " \
+                  "We will notify you once  you have been cleared to book an appointment." \
+                  "\nReply Stop to cxl msgs".format(first_name)
+        send_sms(phone_number,
+                            message.replace('\t', ''))
+
+        log_generic(
+            type=c.INFO,
+            first_name=first_name,
+            phone_number=phone_number,
+            message=message,
+            function=whoami()
+        )
+
+        return True
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            phone_number=phone_number,
             function=whoami(),
             error=err
         )
@@ -781,11 +863,11 @@ def __send_ggv_qrcode_email(appointment: GgtAppointment):
             "first_name": appointment.patient.first_name,
             "date_text": appointment.date_text,
             "location_text": appointment.location_text,
-            "base_url": "https://ggv.gogettested.com",
+            "base_url": "https://start.gogetvax.com",
             "appointment_id": appointment.id,
             "dob": appointment.patient.dob.strftime('%Y%m%d'),
             "appointment_url": '{}/appointment/{}/{}'.format(
-                "https://ggv.gogettested.com",
+                "https://start.gogetvax.com",
                 appointment.id,
                 appointment.patient.dob.strftime('%Y%m%d')
             )
@@ -816,6 +898,48 @@ def __send_ggv_qrcode_email(appointment: GgtAppointment):
         log_generic(
             type=c.ERROR,
             appointment=appointment,
+            function=whoami(),
+            error=err
+        )
+
+    return False
+
+
+def __send_ggv_pre_registration_email(first_name, email):
+    try:
+        from_email = cfg('notifications.from_email')
+        from_name = cfg('notifications.from_name')
+
+        template_vars = {
+            "first_name": first_name,
+        }
+
+        subject = render_from_string(
+            "COVID-19 Vaccine pre registration confirmation",
+            **template_vars
+        )
+
+        template_name = "GGV-4-PRE_REGISTRATION_REQUEST-EMAIL.html"
+        html_content = render_template(
+            template_name,
+            **template_vars
+        )
+
+        send_email(
+            from_email,
+            from_name,
+            email,
+            subject,
+            html_content
+        )
+
+        return True
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            first_name=first_name,
+            email=email,
             function=whoami(),
             error=err
         )
@@ -876,6 +1000,7 @@ def __is_valid_token(token: str) -> bool:
             else:
                 return True
         else:
+            # return True
             return get_signup_record_by_token(token)
 
     except Exception as err:
@@ -1273,6 +1398,8 @@ def __create_patient_and_questionnaire(booking_req):
         if not booking_req.result_token:
             raise ValueError('Invalid result_token')
 
+        if not get_insurance_record_by_id(patient_id):
+            create_patient_insurance_record(booking_req)
         # create questionnaire
         booking_req.patient_questionnaire_id = create_patient_questionnaire(
                 booking_req)

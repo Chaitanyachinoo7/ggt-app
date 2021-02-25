@@ -5,6 +5,8 @@ from ggt.lib.utils import (
     x_response,
     y_response
 )
+from ggt.models.data_models.appointments import get_service_type_by_appointment_id
+from ggt.models.data_models.data_types import SgrCategoryEnum
 from ggt.models.data_models.providers import get_provider_processing_list_db
 
 from ggt.models.process_models.bp_care_provider_experience import (
@@ -29,12 +31,16 @@ def _get_provider_processing_list(provide_request, user):
     return y_response(
         _bp_get_provider_processing_list(provide_request.offset, provide_request.consultation_status,
                                          provide_request.consultation_notes, provide_request.positive_call,
-                                         provide_request.limit, provide_request.start_date, provide_request.end_date, org_id)
+                                         provide_request.limit, provide_request.start_date, provide_request.end_date,
+                                         org_id)
     )
 
 
 def lock_provider_task(lock_request):
-    updated = bp_lock_provider_task(lock_request.test_id)
+    appointment_type = get_service_type_by_appointment_id(lock_request.appointment_id)
+    updated = True
+    if appointment_type == SgrCategoryEnum.test.value:
+        updated = bp_lock_provider_task(lock_request.test_id)
     if updated:
         return y_response(bp_create_patient_test_consultation(lock_request.appointment_id, lock_request.user_id))
     else:
@@ -50,13 +56,16 @@ def call_patient(call_req):
 
 
 def provider_complete_task(complete_task):
-    updated = bp_provider_complete_task(complete_task.test_id)
+    appointment_type = get_service_type_by_appointment_id(complete_task.test_id)
+    updated = True
+    if appointment_type == SgrCategoryEnum.test.value:
+        updated = bp_provider_complete_task(complete_task.test_id)
 
     if updated:
         bp_update_consultation_note(complete_task.consultation_id, complete_task.note,
                                     complete_task.consultation_type_code,
                                     complete_task.resolution_code)
-        return y_response(get_provider_processing_list_db(0, 'any', 'any', 'any', 1, complete_task.test_id))
+        return y_response(get_provider_processing_list_db(0, 'any', 'any', 'any', test_id=complete_task.test_id))
     else:
         return y_response(None)
 

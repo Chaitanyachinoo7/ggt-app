@@ -1,3 +1,4 @@
+import os
 import boto3
 from botocore.client import Config
 
@@ -22,7 +23,7 @@ default_link_expiration_time_limit = cfg(
 lab_reports_bucket_name = cfg('aws.lab_reports_bucket_name')
 
 
-def __boto_connect_client(service):
+def __boto_connect_client(service, region_name='us-east-2'):
     try:
         if service == 's3':
             boto_client = boto3.client(
@@ -30,14 +31,14 @@ def __boto_connect_client(service):
                 aws_access_key_id=cfg('aws.access_key_id'),
                 aws_secret_access_key=cfg('aws.secret_access_key'),
                 config=Config(signature_version='s3v4'),
-                region_name='us-east-2'
+                region_name=region_name
             )
         else:
             boto_client = boto3.client(
                 service,
                 aws_access_key_id=cfg('aws.access_key_id'),
                 aws_secret_access_key=cfg('aws.secret_access_key'),
-                region_name=cfg('aws.region')
+                region_name=region_name
             )
 
         return boto_client
@@ -90,7 +91,7 @@ def __boto_connect_resource(service, region_name='us-east-1'):
 
 def create_folder(bucket_name, directory_name):
     try:
-        response = __boto_connect_service('s3').put_object(
+        response = __boto_connect_client('s3').put_object(
             Bucket=bucket_name,
             Key=(directory_name+'/')
         )
@@ -105,8 +106,8 @@ def create_folder(bucket_name, directory_name):
     except Exception as err:
         log_generic(
             type=ERROR,
-            queue_url=queue_url,
-            message=message,
+            bucket_name=bucket_name,
+            directory_name=directory_name,
             function=whoami(),
             error=err
         )
@@ -161,7 +162,7 @@ def delete_file(source_bucket, source_key):
     return False     
 
 
-def get_temp_lab_report_url(filename: str):
+def get_temp_lab_report_url(filename: str, lab_reports_bucket_name=lab_reports_bucket_name):
     try:
         url = __boto_connect_client('s3').generate_presigned_url(
             ClientMethod='get_object',
@@ -274,4 +275,39 @@ def read_file(bucket, filename):
         return body
 
     except Exception:
+        return None
+
+
+def uploadDirectory(path, bucketName):
+    try:
+        for root, dirs, files in os.walk(path):
+            for file in files:
+                __boto_connect_client('s3').upload_file(os.path.join(
+                    root, file), bucketName, "brownwoodv/"+path+'/'+file)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+def get_temp_vaccine_consent_url(filename: str, lab_reports_bucket_name=lab_reports_bucket_name):
+    try:
+        url = __boto_connect_client('s3','us-east-1').generate_presigned_url(
+            ClientMethod='get_object',
+            Params={
+                'Bucket': lab_reports_bucket_name,
+                'Key': filename
+            },
+            ExpiresIn=default_link_expiration_time_limit
+        )
+        return url
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
         return None
