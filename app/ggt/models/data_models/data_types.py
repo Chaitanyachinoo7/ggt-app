@@ -1333,3 +1333,23 @@ class InsurancePayersListRequest(BaseModel):
 
 class VerificationToken(BaseModel):
     verification_token: str
+
+
+class PaymentRequestLineItems(BaseModel):
+    unit_price: float
+    product_name: str
+    product_images: List[str] = None
+    quantity: int
+
+
+class PaymentRequestNavigation(BaseModel):
+    success_url: str
+    cancel_url: str
+
+
+class PaymentRequestBody(BaseModel):
+    payment_methods: List[str] = ['card']
+    currency: str = 'usd'
+    mode: str = 'payment'
+    line_items: List[PaymentRequestLineItems]
+    navigation: PaymentRequestNavigation
