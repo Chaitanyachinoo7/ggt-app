@@ -48,6 +48,7 @@ cachetools = "*"
 pdfplumber = "*"
 pdfrw = "*"
 reportlab = "*"
+stripe = "*"
 
 [requires]
 python_version = "3.7"
