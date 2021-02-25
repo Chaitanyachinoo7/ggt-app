@@ -294,6 +294,7 @@ def ggv_finalize_pre_registration(finalize_registration_request):
 def __map_to_booking_req(finalize_registration_request, ggv=False):
     b = GgtBooking()
     try:
+
         if "insuranceVerification" in dict(finalize_registration_request).keys():
             b.insurance_relationship = finalize_registration_request.insuranceVerification.relationship
             b.insurance_member_id = finalize_registration_request.insuranceVerification.member_id
