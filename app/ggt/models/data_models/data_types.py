@@ -321,11 +321,11 @@ class Payer(BaseModel):
 
 
 class InsuranceVerification(BaseModel):
-    member_id: str
-    group_no: str
-    relationship: str
-    payer: str
-    level: str
+    member_id: str = None
+    group_no: str = None
+    relationship: str = None
+    payer: str = None
+    level: str = None
 
 
 class Covid19vaxScreening(BaseModel):
