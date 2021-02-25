@@ -32,7 +32,8 @@ from ggt.models.data_models.signups import (
 from ggt.models.data_models.patients import (
     create_patient_record,
     get_patient_by_token, add_to_ggd_waiting_queue, create_pre_registration,
-    get_existing_patients, unlock_patient_info_patients, get_existing_patient_questionnaire, is_un_available_slot
+    get_existing_patients, unlock_patient_info_patients, get_existing_patient_questionnaire, is_un_available_slot,
+    create_patient_insurance_record, get_insurance_record_by_id
 )
 
 from ggt.models.data_models.questionnaires import (
@@ -1397,6 +1398,8 @@ def __create_patient_and_questionnaire(booking_req):
         if not booking_req.result_token:
             raise ValueError('Invalid result_token')
 
+        if not get_insurance_record_by_id(patient_id):
+            create_patient_insurance_record(booking_req)
         # create questionnaire
         booking_req.patient_questionnaire_id = create_patient_questionnaire(
                 booking_req)
