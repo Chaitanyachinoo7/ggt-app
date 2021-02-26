@@ -72,7 +72,10 @@ from ggt.models.data_models.data_types import (
     GgtBooking,
     GgtAppointment,
     GgtThirdPartyGroup,
-    GgtCustomField
+    GgtCustomField,
+    PaymentRequestBody,
+    PaymentRequestLineItem,
+    PaymentRequestNavigation
 )
 
 from ggt.lib.storage import (
@@ -81,6 +84,8 @@ from ggt.lib.storage import (
 )
 
 from ggt.lib.storage import get_temporary_lab_report_url
+
+from ggt.models.process_models.bp_payment import bp_create_checkout_session
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
@@ -328,6 +333,8 @@ def bp_finalize_booking(booking_req: GgtBooking):
         appointment.payment_url = ''
         if upfront_payment_info.is_payment_required:
             appointment.payment_url = __inject_payment_flow(appointment)
+            # Below is commented to avoid the execution of the flow
+            # appointment.payment_checkout_session = __inject_payment_checkout_session(booking_req, upfront_payment_info)
         else:
             # payment not required, confirm the appointment and notify
             update_appointment_with_confirmed_scheduled(appointment)
@@ -1132,12 +1139,20 @@ def __inject_payment_flow(appointment: GgtAppointment):
     return None
 
 
+
+# This util method will contain business logic to decide whether a patient needs
+# to do an upfront payment
+def __should_charge_upfront_payment(booking_req: GgtBooking):
+    return booking_req.service_flu_shot
+
+
+
 # Returns payment_required, total_cost, billed_amount
 def __evaluate_upfront_payment(booking_req: GgtBooking):
     try:
         r = UpfrontPaymemtResponse()
 
-        if booking_req.service_flu_shot:
+        if __should_charge_upfront_payment(booking_req):
             r.is_payment_required = True
             r.total_cost = 3000
             r.billed_amount = 3000
@@ -1417,3 +1432,35 @@ def __create_patient_and_questionnaire(booking_req):
         )
         return None, status_message
 
+
+# This function will inject the checkout session in to the payment object
+def __inject_payment_checkout_session(booking_req: GgtBooking, upfront_payment_info: UpfrontPaymemtResponse):
+    if not __should_charge_upfront_payment(booking_req):
+        raise ValueError('Checkout session is only be generated to upfront payments')
+
+    payment_request = PaymentRequestBody()
+    payment_request.line_items = __generate_payment_checkout_session_items(booking_req, upfront_payment_info)
+    payment_request.navigation = __generate_payment_checkout_session_navigation()
+
+    # Return the session object which contains session id
+    return bp_create_checkout_session(payment_request)
+
+
+def __generate_payment_checkout_session_items(booking_req: GgtBooking, upfront_payment_info: UpfrontPaymemtResponse):
+    line_item = PaymentRequestLineItem()
+
+    if booking_req.service_flu_shot:
+        line_item.product_name = 'Flu Shot'  # To be filled with correct name
+        line_item.unit_price = upfront_payment_info.total_cost
+        line_item.quantity = 1
+        line_item.product_images = cfg('image_urls.flu_shot')
+
+    return [line_item]
+
+
+def __generate_payment_checkout_session_navigation():
+    navigation = PaymentRequestNavigation()
+    navigation.success_url = cfg('payment.navigation.success_url')
+    navigation.cancel_url = cfg('payment.navigation.cancel_url')
+
+    return navigation

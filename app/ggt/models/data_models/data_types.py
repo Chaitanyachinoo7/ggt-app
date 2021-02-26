@@ -1036,6 +1036,8 @@ class GgtAppointment(BaseModel):
     status: str = None
     org_name: str = None
 
+    payment_checkout_session: str = None
+
 
 class GgtTestSample(BaseModel):
     id: int = None
@@ -1341,7 +1343,7 @@ class VerificationToken(BaseModel):
     verification_token: str
 
 
-class PaymentRequestLineItems(BaseModel):
+class PaymentRequestLineItem(BaseModel):
     unit_price: float
     product_name: str
     product_images: List[str] = None
@@ -1357,5 +1359,5 @@ class PaymentRequestBody(BaseModel):
     payment_methods: List[str] = ['card']
     currency: str = 'usd'
     mode: str = 'payment'
-    line_items: List[PaymentRequestLineItems]
+    line_items: List[PaymentRequestLineItem]
     navigation: PaymentRequestNavigation
