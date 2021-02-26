@@ -382,6 +382,12 @@ def create_outbound_files(orders):
                 else:
                     raise ValueError('S3 write failed for LAB3A')
 
+            if order['lab_id'] == 5: #CHOPO
+                if write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8','ignore'), 'chopolabs'):
+                    processed_orders.append(order)
+                else:
+                    raise ValueError('S3 write failed for CHOPO')
+
         except Exception as err:
                 #print_error(err)
                 print_error('Error generating HL7 for Order ID: {}'.format(order['id']))
@@ -517,7 +523,7 @@ def get_orders_ready_to_transmit(limit=100):
         WHERE
             (t.status = 'ready_to_tx')
             AND t.vial_id IS NOT NULL
-            AND t.lab_id IN (1, 2, 4)
+            AND t.lab_id IN (1, 2, 4, 5)
         LIMIT {}
             """.format(limit)
     return read_rows(sql,)

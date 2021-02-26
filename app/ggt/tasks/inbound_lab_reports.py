@@ -62,6 +62,7 @@ def task_process_inbound_lab_reports():
     preload_crl_rpt_data()
     process_pdf_results_for_lab(3)  # CRL
     process_pdf_results_for_lab(4)  # LAB3A
+    process_pdf_results_for_lab(5)  # CHOPO
 
     update_test_samples_with_results()
 
@@ -96,6 +97,10 @@ def process_pdf_results_for_lab(lab_id):
         key_prefix = 'lab3a/prod/results/'
         table_name = 'lab3a_inbound_data'
 
+    elif lab_id == 5:  # CHOPO
+        key_prefix = 'chopolabs/prod/results/'
+        table_name = 'chopolabs_inbound_data'
+
     else:
         print_error('Unknown LAB')
         return
@@ -115,6 +120,9 @@ def process_pdf_results_for_lab(lab_id):
                 requisition_id, order_number, test_result, test_status, labreport_filename, original_labreport_filename = extract_report_info_crl(
                     filename)
             elif lab_id == 4:  # LAB3A uses samefunction as mawd
+                requisition_id, order_number, test_result, test_status, labreport_filename = extract_report_info_mawd(
+                    filename)
+            elif lab_id == 5:  # CHOPO uses samefunction as mawd
                 requisition_id, order_number, test_result, test_status, labreport_filename = extract_report_info_mawd(
                     filename)
             else:
@@ -530,6 +538,32 @@ def update_test_samples_with_results():
             UPDATE test_samples
                     INNER JOIN
                 lab3a_inbound_data h ON (test_samples.id = h.order_number)
+            SET
+                test_samples.lab_result_receive_dt = NOW(),
+                test_samples.test_result = (CASE
+                    WHEN (h.result = 'Negative') THEN 'neg'
+                    WHEN (h.result = 'Positive') THEN 'pos'
+                    WHEN (h.result = 'inconclusive') THEN 'inconclusive'
+                    ELSE NULL
+                END),
+                test_samples.status = (CASE
+                    WHEN (h.status = 'Approved') THEN 'lab_result_received'
+                    WHEN (h.status = 'Resulted') THEN 'lab_result_received'
+                    WHEN (h.status = 'Rejected') THEN 'rejected'
+                    ELSE NULL
+                END),
+                test_samples.update_dt = NOW()
+            WHERE
+                test_samples.test_result IS NULL
+                    AND test_samples.id = h.order_number
+            """
+        vals = ()
+        exec_update(sql, vals)
+
+        sql = """
+            UPDATE test_samples
+                    INNER JOIN
+                chopolabs_inbound_data h ON (test_samples.id = h.order_number)
             SET
                 test_samples.lab_result_receive_dt = NOW(),
                 test_samples.test_result = (CASE
