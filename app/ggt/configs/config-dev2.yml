@@ -186,3 +186,12 @@ security:
 payment:
   stripe:
     secret_key: "sk_test_4eC39HqLyjWDarjtT1zdp7dc"
+  navigation:
+    success_url: "http://gogettested.com"
+    cancel_url: "http://gogettested.com"
+
+image_urls:
+  flu_shot:
+    - 'http://ggt-image-server.com/flu' # Add a URL of a stock photo or S3 bucket
+  payment:
+    - 'https://storage.googleapis.com/ggt-public-assets/images/GGT-GREEN-TRANSPARENT@2x-GM0.png' # Add a URL of a stock photo or S3 bucket
