@@ -1174,7 +1174,7 @@ def __evaluate_upfront_payment(booking_req: GgtBooking):
         # Get the total patient payment sum
         total = 0
         for payment in service_payments:
-            patient_upfront_payment.total_cost += total
+            total += payment.selfpay_amount
 
         # Here we consider all the service charges into one bill
         patient_upfront_payment.is_payment_required = total > 0
