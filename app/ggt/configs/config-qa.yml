@@ -193,3 +193,5 @@ payment:
 image_urls:
   flu_shot:
     - 'http://ggt-image-server.com/flu' # Add a URL of a stock photo or S3 bucket
+  payment:
+    - 'http://ggt-image-server.com/payment' # Add a URL of a stock photo or S3 bucket

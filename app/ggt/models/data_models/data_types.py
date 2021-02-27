@@ -279,6 +279,23 @@ class InfluenzaScreening(BaseModel):
     egg_allergy: bool = None
 
 
+class LocationServiceRequest(BaseModel):
+    id: int
+    service_code: str = None
+    service_name: str = None
+    price: int = None
+    selfpay_amount: int = None
+    copay_amount: int = None
+    insurance_amount: int = None
+    sku: str
+    cost: int = None
+
+
+# This is the DTO of the location services
+class LocationService(BaseModel):
+    service_code: str
+
+
 class SecondAvailableDate(BaseModel):
     location_id: str
     dates: List[str]
@@ -313,6 +330,7 @@ class FinalizeRegistrationRequest(BaseModel):
     timeSlot: Optional[int] = None
     hasInsurance: Optional[bool] = None
     forceFinish: Optional[bool] = None
+    locationService: Optional[LocationServiceRequest] = None
 
 
 class Payer(BaseModel):
@@ -976,6 +994,8 @@ class GgtBooking(BaseModel):
     insurance_group_no: str = None
     insurance_level: str = None
 
+    location_services: List[LocationService] = None
+
     #language: str = None
     # science37:
 
@@ -1361,3 +1381,16 @@ class PaymentRequestBody(BaseModel):
     mode: str = 'payment'
     line_items: List[PaymentRequestLineItem]
     navigation: PaymentRequestNavigation
+
+
+class PatientUpfrontPayment:
+    is_payment_required: bool = None
+    total_cost: int = None
+    billed_amount: int = None
+
+
+class ServicePayment:
+    id: int
+    service_code: str
+    service_name: str
+    selfpay_amount: int

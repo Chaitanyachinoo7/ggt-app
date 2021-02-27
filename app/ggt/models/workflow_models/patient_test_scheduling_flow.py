@@ -36,7 +36,8 @@ from ggt.models.process_models.bp_appointments import (
 )
 
 from ggt.models.data_models.data_types import (
-    GgtBooking
+    GgtBooking,
+    LocationService
 )
 
 import ggt.lib.constants as c
@@ -219,6 +220,7 @@ def finalize_registration(finalize_registration_request):
             'total_balance': int(appointment.billed_amount*100),
             'total_cost': int(appointment.total_cost*100),
             'payment_url': appointment.payment_url,
+            'payment_checkout_session': appointment.payment_checkout_session,
             c.STATUS: c.SUCCESS
         }
     else:
@@ -392,6 +394,15 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
             b.guillianBarre = finalize_registration_request.guillianBarre
         if "pre_register" in finalize_registration_request.fields.keys():
             b.pre_register = finalize_registration_request.pre_register
+
+        if "locationServices" in dict(finalize_registration_request).keys():
+            location_services = []
+            # Iterate through each location service item and get the LocationService object
+            for item in finalize_registration_request.locationServices:
+                location_service = LocationService()
+                location_service.service_code = item.sku
+                location_services.append(location_service)
+            b.location_services = location_services
 
         with suppress(AttributeError):
             b.public_places_bars_restaurants_cafes = finalize_registration_request.publicPlaces.bars_restaurants_cafes

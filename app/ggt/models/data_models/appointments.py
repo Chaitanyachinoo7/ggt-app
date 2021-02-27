@@ -1,5 +1,6 @@
 from datetime import datetime
 from contextlib import suppress
+from uuid import uuid4
 
 import ggt.lib.constants as c
 
@@ -47,8 +48,9 @@ def create_appointment(appointment_req: GgtBooking, ggv_slot=None):
             group_code,
             total_cost,
             billed_amount
+            wp_receipt_token,
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """
         vals = (
             appointment_req.timeslot.start_dt,
@@ -57,7 +59,8 @@ def create_appointment(appointment_req: GgtBooking, ggv_slot=None):
             appointment_req.patient_questionnaire_id,
             appointment_req.group_code,
             appointment_req.total_cost / 100,  # cents --> decimal
-            appointment_req.billed_amount / 100  # cents --> decimal
+            appointment_req.billed_amount / 100,  # cents --> decimal
+            str(uuid4())
         )
         appointment_id = exec_insert(sql, vals)
         __add_services_to_appointment(appointment_id, appointment_req, ggv_slot=ggv_slot)
