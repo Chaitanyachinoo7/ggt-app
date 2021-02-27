@@ -90,7 +90,6 @@ from ggt.models.process_models.bp_payment import bp_create_checkout_session
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-from main import app
 
 
 def bp_get_ggv_screen_flow_seq(group_code: str):
