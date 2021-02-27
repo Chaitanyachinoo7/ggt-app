@@ -293,7 +293,7 @@ class LocationServiceRequest(BaseModel):
 
 # This is the DTO of the location services
 class LocationService(BaseModel):
-    service_code: str
+    service_code: str = None
 
 
 class SecondAvailableDate(BaseModel):
@@ -330,7 +330,7 @@ class FinalizeRegistrationRequest(BaseModel):
     timeSlot: Optional[int] = None
     hasInsurance: Optional[bool] = None
     forceFinish: Optional[bool] = None
-    locationService: Optional[LocationServiceRequest] = None
+    locationServices: Optional[List[LocationServiceRequest]] = None
 
 
 class Payer(BaseModel):
@@ -1364,23 +1364,23 @@ class VerificationToken(BaseModel):
 
 
 class PaymentRequestLineItem(BaseModel):
-    unit_price: float
-    product_name: str
+    unit_price: int = 0
+    product_name: str = ""
     product_images: List[str] = None
-    quantity: int
+    quantity: int = 0
 
 
 class PaymentRequestNavigation(BaseModel):
-    success_url: str
-    cancel_url: str
+    success_url: str = None
+    cancel_url: str = None
 
 
 class PaymentRequestBody(BaseModel):
     payment_methods: List[str] = ['card']
     currency: str = 'usd'
     mode: str = 'payment'
-    line_items: List[PaymentRequestLineItem]
-    navigation: PaymentRequestNavigation
+    line_items: List[PaymentRequestLineItem] = None
+    navigation: PaymentRequestNavigation = None
 
 
 class PatientUpfrontPayment:

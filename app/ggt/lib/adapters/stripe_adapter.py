@@ -52,7 +52,7 @@ def create_checkout_session(payment_details):
     )
     # Only required item is the session id
     # Replace this by a util if more than one field is required
-    return {'id': stripe_response.id}
+    return stripe_response.id
 
 
 def retrieve_checkout_session(session_id):

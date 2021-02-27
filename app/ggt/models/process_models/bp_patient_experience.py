@@ -1153,6 +1153,7 @@ def __evaluate_upfront_payment(booking_req: GgtBooking):
         # Set initial value to false
         patient_upfront_payment.is_payment_required = False
         patient_upfront_payment.total_cost = 0
+        patient_upfront_payment.billed_amount = 0
 
         # Get the list of location services
         location_services = booking_req.location_services
@@ -1466,11 +1467,10 @@ def __inject_payment_checkout_session(booking_req: GgtBooking, upfront_payment_i
 def __generate_payment_checkout_session_items(booking_req: GgtBooking, upfront_payment_info: PatientUpfrontPayment):
     line_item = PaymentRequestLineItem()
 
-    if booking_req.service_flu_shot:
-        line_item.product_name = 'Registration Charges'  # To be filled with correct name
-        line_item.unit_price = upfront_payment_info.total_cost
-        line_item.quantity = 1
-        line_item.product_images = cfg('image_urls.payment')
+    line_item.product_name = 'Registration Charges'  # To be filled with correct name
+    line_item.unit_price = upfront_payment_info.total_cost
+    line_item.quantity = 1
+    line_item.product_images = cfg('image_urls.payment')
 
     return [line_item]
 

@@ -47,8 +47,8 @@ def create_appointment(appointment_req: GgtBooking, ggv_slot=None):
             patient_questionnaire_id,
             group_code,
             total_cost,
-            billed_amount
-            wp_receipt_token,
+            billed_amount,
+            wp_receipt_token
         )
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """
