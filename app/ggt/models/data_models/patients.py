@@ -1,3 +1,5 @@
+from typing import List
+
 from ggt.lib.utils import (
     get_config_val,
     log_generic,
@@ -23,7 +25,9 @@ from ggt.lib.db import (
 )
 
 from ggt.models.data_models.data_types import (
-    GgtPatient
+    GgtPatient,
+    PatientUpfrontPayment,
+    ServicePayment,
 )
 ########################################################################################################
 # [Public] functions
@@ -442,6 +446,52 @@ def get_patient_by_token(token, expect_no_match=False):
             error=err
         )
         return None
+
+
+def get_patient_upfront_payment(service_codes: List[str]):
+    try:
+        # Add quotes around service_codes to be injected to sql
+        quoted_service_code = map(lambda code: "'" + code + "'", service_codes)
+        # Join quoted codes by ','
+        service_codes_in = ",".join(quoted_service_code)
+        sql = """
+            SELECT 
+                selfpay_amount,
+                service_code,
+                service_name
+            FROM
+                services_catalog
+            WHERE
+                service_code in ({})
+        """.format(service_codes_in)
+
+        rows = replica_read_rows(sql)
+
+        if not rows:
+            return None
+
+        patient_payments = []
+
+        # Iterate over rows and generate service payment object
+        for row in rows:
+            service_payment = ServicePayment()
+            service_payment.service_code = row['service_code']
+            service_payment.service_name = row['service_name']
+            service_payment.selfpay_amount = row['selfpay_amount']
+
+            patient_payments.append(service_payment)
+
+        return patient_payments
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            id=id,
+            function=whoami(),
+            error=err
+        )
+        return None
+
 
 ########################################################################################################
 # [Protected] functions

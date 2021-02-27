@@ -33,7 +33,7 @@ from ggt.models.data_models.patients import (
     create_patient_record,
     get_patient_by_token, add_to_ggd_waiting_queue, create_pre_registration,
     get_existing_patients, unlock_patient_info_patients, get_existing_patient_questionnaire, is_un_available_slot,
-    create_patient_insurance_record, get_insurance_record_by_id
+    create_patient_insurance_record, get_insurance_record_by_id, get_patient_upfront_payment
 )
 
 from ggt.models.data_models.questionnaires import (
@@ -72,7 +72,11 @@ from ggt.models.data_models.data_types import (
     GgtBooking,
     GgtAppointment,
     GgtThirdPartyGroup,
-    GgtCustomField
+    GgtCustomField,
+    PaymentRequestBody,
+    PaymentRequestLineItem,
+    PaymentRequestNavigation,
+    PatientUpfrontPayment
 )
 
 from ggt.lib.storage import (
@@ -81,6 +85,8 @@ from ggt.lib.storage import (
 )
 
 from ggt.lib.storage import get_temporary_lab_report_url
+
+from ggt.models.process_models.bp_payment import bp_create_checkout_session
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
@@ -327,7 +333,9 @@ def bp_finalize_booking(booking_req: GgtBooking):
         # if a payment is required, generate a payment link
         appointment.payment_url = ''
         if upfront_payment_info.is_payment_required:
-            appointment.payment_url = __inject_payment_flow(appointment)
+            # Below method is commented due to the use of an undefined method
+            # appointment.payment_url = __inject_payment_flow(appointment)
+            appointment.payment_checkout_session = __inject_payment_checkout_session(booking_req, upfront_payment_info)
         else:
             # payment not required, confirm the appointment and notify
             update_appointment_with_confirmed_scheduled(appointment)
@@ -1132,22 +1140,47 @@ def __inject_payment_flow(appointment: GgtAppointment):
     return None
 
 
+# This util method will contain business logic to decide whether a patient needs
+# to do an upfront payment
+def __should_charge_upfront_payment(upfront_payment_info: PatientUpfrontPayment):
+    return upfront_payment_info.is_payment_required
+
+
 # Returns payment_required, total_cost, billed_amount
 def __evaluate_upfront_payment(booking_req: GgtBooking):
     try:
-        r = UpfrontPaymemtResponse()
+        patient_upfront_payment = PatientUpfrontPayment()
+        # Set initial value to false
+        patient_upfront_payment.is_payment_required = False
+        patient_upfront_payment.total_cost = 0
+        patient_upfront_payment.billed_amount = 0
 
-        if booking_req.service_flu_shot:
-            r.is_payment_required = True
-            r.total_cost = 3000
-            r.billed_amount = 3000
-        else:
-            # business decision to make all testing free 08/06/2020
-            r.is_payment_required = False
-            r.total_cost = 0
-            r.billed_amount = 0
+        # Get the list of location services
+        location_services = booking_req.location_services
+        # If no location services, return the empty payment object
+        if not location_services:
+            return patient_upfront_payment
 
-        return r
+        services_list = []
+        # Get the list of service codes
+        for service in location_services:
+            services_list.append(service.service_code)
+
+        # Get list of upfront payments
+        service_payments = get_patient_upfront_payment(services_list)
+
+        if not service_payments:
+            return patient_upfront_payment
+
+        # Get the total patient payment sum
+        total = 0
+        for payment in service_payments:
+            total += payment.selfpay_amount
+
+        # Here we consider all the service charges into one bill
+        patient_upfront_payment.is_payment_required = total > 0
+        patient_upfront_payment.billed_amount = total
+        patient_upfront_payment.total_cost = total
 
     except Exception as err:
         log_generic(
@@ -1157,7 +1190,7 @@ def __evaluate_upfront_payment(booking_req: GgtBooking):
             error=err
         )
 
-    return None
+    return patient_upfront_payment
 
 
 def __create_wp_bill(appointment: GgtAppointment):
@@ -1417,3 +1450,34 @@ def __create_patient_and_questionnaire(booking_req):
         )
         return None, status_message
 
+
+# This function will inject the checkout session in to the payment object
+def __inject_payment_checkout_session(booking_req: GgtBooking, upfront_payment_info: PatientUpfrontPayment):
+    if not __should_charge_upfront_payment(upfront_payment_info):
+        raise ValueError('Checkout session is only be generated to upfront payments')
+
+    payment_request = PaymentRequestBody()
+    payment_request.line_items = __generate_payment_checkout_session_items(booking_req, upfront_payment_info)
+    payment_request.navigation = __generate_payment_checkout_session_navigation()
+
+    # Return the session object which contains session id
+    return bp_create_checkout_session(payment_request)
+
+
+def __generate_payment_checkout_session_items(booking_req: GgtBooking, upfront_payment_info: PatientUpfrontPayment):
+    line_item = PaymentRequestLineItem()
+
+    line_item.product_name = 'Registration Charges'  # To be filled with correct name
+    line_item.unit_price = upfront_payment_info.total_cost
+    line_item.quantity = 1
+    line_item.product_images = cfg('image_urls.payment')
+
+    return [line_item]
+
+
+def __generate_payment_checkout_session_navigation():
+    navigation = PaymentRequestNavigation()
+    navigation.success_url = cfg('payment.navigation.success_url')
+    navigation.cancel_url = cfg('payment.navigation.cancel_url')
+
+    return navigation
