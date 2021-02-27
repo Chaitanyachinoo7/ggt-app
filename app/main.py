@@ -184,9 +184,8 @@ app.include_router(
 #############################################################
 if __name__ == '__main__':
     uvicorn.run(
-        "main:app",
+        app,
         host=cfg('server.host'),
         port=cfg('server.port'),
         debug=cfg('log_level'),
-        reload=True
     )
