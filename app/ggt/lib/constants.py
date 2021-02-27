@@ -40,6 +40,7 @@ MANAGEMENT_RT_TAG = 'Management'
 CARE_PROVIDER_RT_TAG = 'Care Provider'
 BILLING_RT_TAG = 'Billing App'
 VENDOR_RT_TAG = 'Vendor Integration'
+PAYMENT_RT_TAG = 'Payment Integration'
 
 #API Prefixes
 CLINICAL_PROVIDER_PATH_PREFIX = '/api/provider'
@@ -53,6 +54,7 @@ MANAGEMENT_PATH_PREFIX = '/api/management'
 CARE_PROVIDER_PATH_PREFIX = '/api/care_provider'
 BILLING_PATH_PREFIX = '/api/billing'
 VENDOR_PATH_PREFIX = '/api/vendor'
+PAYMENT_CHECKOUT_PREFIX='/api/payment'
 
 #Auth
 AUTH_FAILED_MESSAGE = 'Not Authorized'
@@ -76,3 +78,7 @@ APPOINTMENT_ACTION_SCAN_VIAL = 'scan_vial'
 APPOINTMENT_ACTION_END_TEST = 'end_test'
 APPOINTMENT_ACTION_REPRINT = 'reprint'
 APPOINTMENT_ACTION_NONE = ''
+
+# Payment APIs
+STRIPE = 'stripe'
+
