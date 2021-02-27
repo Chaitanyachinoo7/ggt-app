@@ -335,7 +335,7 @@ def bp_finalize_booking(booking_req: GgtBooking):
         if upfront_payment_info.is_payment_required:
             # Below method is commented due to the use of an undefined method
             # appointment.payment_url = __inject_payment_flow(appointment)
-            appointment.payment_checkout_session = __inject_payment_checkout_session(booking_req, upfront_payment_info)
+            appointment.payment_checkout_session = __inject_payment_checkout_session(appointment, upfront_payment_info)
         else:
             # payment not required, confirm the appointment and notify
             update_appointment_with_confirmed_scheduled(appointment)
@@ -1147,7 +1147,7 @@ def __should_charge_upfront_payment(upfront_payment_info: PatientUpfrontPayment)
 
 
 # Returns payment_required, total_cost, billed_amount
-def __evaluate_upfront_payment(booking_req: GgtBooking):
+def  __evaluate_upfront_payment(booking_req: GgtBooking):
     try:
         patient_upfront_payment = PatientUpfrontPayment()
         # Set initial value to false
@@ -1452,19 +1452,19 @@ def __create_patient_and_questionnaire(booking_req):
 
 
 # This function will inject the checkout session in to the payment object
-def __inject_payment_checkout_session(booking_req: GgtBooking, upfront_payment_info: PatientUpfrontPayment):
+def __inject_payment_checkout_session(appointment: GgtAppointment, upfront_payment_info: PatientUpfrontPayment):
     if not __should_charge_upfront_payment(upfront_payment_info):
         raise ValueError('Checkout session is only be generated to upfront payments')
 
     payment_request = PaymentRequestBody()
-    payment_request.line_items = __generate_payment_checkout_session_items(booking_req, upfront_payment_info)
-    payment_request.navigation = __generate_payment_checkout_session_navigation()
+    payment_request.line_items = __generate_payment_checkout_session_items(upfront_payment_info)
+    payment_request.navigation = __generate_payment_checkout_session_navigation(appointment)
 
     # Return the session object which contains session id
     return bp_create_checkout_session(payment_request)
 
 
-def __generate_payment_checkout_session_items(booking_req: GgtBooking, upfront_payment_info: PatientUpfrontPayment):
+def __generate_payment_checkout_session_items(upfront_payment_info: PatientUpfrontPayment):
     line_item = PaymentRequestLineItem()
 
     line_item.product_name = 'Registration Charges'  # To be filled with correct name
@@ -1475,9 +1475,9 @@ def __generate_payment_checkout_session_items(booking_req: GgtBooking, upfront_p
     return [line_item]
 
 
-def __generate_payment_checkout_session_navigation():
+def __generate_payment_checkout_session_navigation(appointment: GgtAppointment):
     navigation = PaymentRequestNavigation()
-    navigation.success_url = cfg('payment.navigation.success_url')
+    navigation.success_url = cfg('payment.navigation.success_url').format(appointment.id, appointment.wp_receipt_token)
     navigation.cancel_url = cfg('payment.navigation.cancel_url')
 
     return navigation

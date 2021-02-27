@@ -187,8 +187,8 @@ payment:
   stripe:
     secret_key: "sk_test_4eC39HqLyjWDarjtT1zdp7dc"
   navigation:
-    success_url: "http://gogettested.com"
-    cancel_url: "http://gogettested.com"
+    success_url: "https://start-dev.gogettested.com/appointment/{}/pay/success?token={}"
+    cancel_url: "https://start-dev.gogettested.com"
 
 image_urls:
   flu_shot:
