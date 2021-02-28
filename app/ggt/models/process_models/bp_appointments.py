@@ -83,6 +83,17 @@ def bp_appointment_update(provider_update_appointment_request, user):
     action = provider_update_appointment_request.action
     workstation_id = provider_update_appointment_request.workstation_id
     operator_location_id = provider_update_appointment_request.operator_location_id
+
+    log_generic(
+        position=1,
+        type=c.INFO,
+        appointment_id=appointment_id,
+        function=whoami(),
+        action=action,
+        workstation_id=workstation_id,
+        operator_location_id=operator_location_id
+    )
+
     try:
         appointment: GgtAppointment = get_appointment(appointment_id)
 
@@ -148,11 +159,25 @@ def bp_appointment_update(provider_update_appointment_request, user):
         # Ideally, this should be handled at the printer label processor
         if usuccess and (action != c.APPOINTMENT_ACTION_START_TEST or __is_pre_labeled(appointment, workstation_id)):
             appointment: GgtAppointment = get_appointment(appointment_id)
-
+        next_action = __next_action(appointment, __is_pre_labeled(appointment, workstation_id))
         if usuccess:
+            '''
+                Added this log to identify GGT-531 issue.
+            '''
+            log_generic(
+                position=2,
+                type=c.INFO,
+                appointment_id=appointment_id,
+                function=whoami(),
+                action=action,
+                next_action=next_action,
+                workstation_id=workstation_id,
+                operator_location_id=operator_location_id
+            )
+
             return {
                 'appointment_id': appointment.id,
-                'next_action': __next_action(appointment, __is_pre_labeled(appointment, workstation_id))
+                'next_action': next_action
             }
 
     except Exception as err:
