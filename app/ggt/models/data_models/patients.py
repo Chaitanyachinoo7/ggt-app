@@ -1,3 +1,5 @@
+from typing import List
+
 from ggt.lib.utils import (
     get_config_val,
     log_generic,
@@ -23,7 +25,9 @@ from ggt.lib.db import (
 )
 
 from ggt.models.data_models.data_types import (
-    GgtPatient
+    GgtPatient,
+    PatientUpfrontPayment,
+    ServicePayment,
 )
 ########################################################################################################
 # [Public] functions
@@ -160,7 +164,6 @@ def get_existing_patients(phone_number="", first_name="", last_name="", dob="", 
     except Exception as err:
         log_generic(
             type=ERROR,
-            vals=vals,
             phone_number=phone_number,
             function=whoami(),
             error=err
@@ -288,7 +291,7 @@ def unlock_patient_info_patients(phone_number):
                         result_token = %s,
                         token_expire = DATE_ADD(NOW(), interval 10 minute)
                     WHERE
-                        phone_number = %s"""
+                        phone_number = %s AND token NOT LIKE 'NOVERIFY%'"""
         vals = (result_token, phone_number)
         if exec_update(sql, vals):
             return result_token
@@ -299,6 +302,52 @@ def unlock_patient_info_patients(phone_number):
             type=ERROR,
             vals=vals,
             phone_number=phone_number,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def get_insurance_record_by_id(patient_id):
+    try:
+        sql = """SELECT * FROM
+                       patient_insurance_details 
+                   WHERE patient_id = %s
+               """
+        vals = (patient_id, )
+        return replica_read_row(sql, vals)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def create_patient_insurance_record(booking_req):
+    try:
+        sql = """INSERT INTO 
+                       patient_insurance_details 
+                       (
+                       `patient_id`,
+                       `relationship`,
+                       `payer`,
+                       `member_id`,
+                       `group_no`,
+                       `level`
+                       )
+                   VALUES (%s, %s ,%s, %s, %s, %s)
+               """
+        vals = (booking_req.patient_id, booking_req.insurance_relationship,
+                booking_req.insurance_payer, booking_req.insurance_member_id,
+                booking_req.insurance_group_no, booking_req.insurance_level)
+
+        return exec_update(sql, vals)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            vals=vals,
             function=whoami(),
             error=err
         )
@@ -397,6 +446,52 @@ def get_patient_by_token(token, expect_no_match=False):
             error=err
         )
         return None
+
+
+def get_patient_upfront_payment(service_codes: List[str]):
+    try:
+        # Add quotes around service_codes to be injected to sql
+        quoted_service_code = map(lambda code: "'" + code + "'", service_codes)
+        # Join quoted codes by ','
+        service_codes_in = ",".join(quoted_service_code)
+        sql = """
+            SELECT 
+                selfpay_amount,
+                service_code,
+                service_name
+            FROM
+                services_catalog
+            WHERE
+                service_code in ({})
+        """.format(service_codes_in)
+
+        rows = replica_read_rows(sql)
+
+        if not rows:
+            return None
+
+        patient_payments = []
+
+        # Iterate over rows and generate service payment object
+        for row in rows:
+            service_payment = ServicePayment()
+            service_payment.service_code = row['service_code']
+            service_payment.service_name = row['service_name']
+            service_payment.selfpay_amount = row['selfpay_amount']
+
+            patient_payments.append(service_payment)
+
+        return patient_payments
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            id=id,
+            function=whoami(),
+            error=err
+        )
+        return None
+
 
 ########################################################################################################
 # [Protected] functions

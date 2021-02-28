@@ -34,6 +34,7 @@ class ResolutionCodesEnum(str, Enum):
 class ConsultationTypeCodesEnum(str, Enum):
     pre_covid_consultation = 'pre_covid_consultation'
     post_covid_consultation = 'post_covid_consultation'
+    vax_consultation = 'vax_consultation'
 
 
 class CompleteNoteReq(BaseModel):
@@ -169,6 +170,15 @@ class VerifyPhoneRequest(BaseModel):
     has_sms: bool = True
 
 
+class UpdateFirstAppointment(BaseModel):
+    otp: int
+    appointment_id_1: int
+    appointment_id_2: int
+    appointment_1_dt_id: int
+    appointment_2_dt_id: int
+    phone_number: str
+
+
 class ValidateOtpRequest(BaseModel):
     phone_number: str = None
     otp: str = None
@@ -269,6 +279,23 @@ class InfluenzaScreening(BaseModel):
     egg_allergy: bool = None
 
 
+class LocationServiceRequest(BaseModel):
+    id: int
+    service_code: str = None
+    service_name: str = None
+    price: int = None
+    selfpay_amount: int = None
+    copay_amount: int = None
+    insurance_amount: int = None
+    sku: str
+    cost: int = None
+
+
+# This is the DTO of the location services
+class LocationService(BaseModel):
+    service_code: str = None
+
+
 class SecondAvailableDate(BaseModel):
     location_id: str
     dates: List[str]
@@ -303,6 +330,8 @@ class FinalizeRegistrationRequest(BaseModel):
     timeSlot: Optional[int] = None
     hasInsurance: Optional[bool] = None
     forceFinish: Optional[bool] = None
+    locationServices: Optional[List[LocationServiceRequest]] = None
+    language: Optional[str] = 'en'
 
 
 class Payer(BaseModel):
@@ -311,11 +340,11 @@ class Payer(BaseModel):
 
 
 class InsuranceVerification(BaseModel):
-    state: str = None
     member_id: str = None
     group_no: str = None
     relationship: str = None
-    payer: Payer = None
+    payer: str = None
+    level: str = None
 
 
 class Covid19vaxScreening(BaseModel):
@@ -470,7 +499,8 @@ class VialData(BaseModel):
 class ProviderUpdateAppointmentRequest(BaseModel):
     appointment_id: str = None
     action: str = None
-    workstation_id: int = None
+    operator_location_id: int = None
+    workstation_id: Optional[int] = None
     vial_data: Optional[VialData] = None
     insurance_photo: Optional[str] = None
     appointment_notes: Optional[str] = None
@@ -959,7 +989,15 @@ class GgtBooking(BaseModel):
     slot_1: GgtScheduleSlot = None
     slot_2: GgtScheduleSlot = None
 
-    #language: str = None
+    insurance_relationship: str = None
+    insurance_payer: str = None
+    insurance_member_id: str = None
+    insurance_group_no: str = None
+    insurance_level: str = None
+
+    location_services: List[LocationService] = None
+
+    language: str = 'en'
     # science37:
 
 
@@ -1018,6 +1056,8 @@ class GgtAppointment(BaseModel):
 
     status: str = None
     org_name: str = None
+
+    payment_checkout_session: str = None
 
 
 class GgtTestSample(BaseModel):
@@ -1322,3 +1362,37 @@ class InsurancePayersListRequest(BaseModel):
 
 class VerificationToken(BaseModel):
     verification_token: str
+
+
+class PaymentRequestLineItem(BaseModel):
+    unit_price: int = 0
+    product_name: str = ""
+    product_images: List[str] = None
+    quantity: int = 0
+
+
+class PaymentRequestNavigation(BaseModel):
+    success_url: str = None
+    cancel_url: str = None
+
+
+class PaymentRequestBody(BaseModel):
+    payment_methods: List[str] = ['card']
+    currency: str = 'usd'
+    mode: str = 'payment'
+    line_items: List[PaymentRequestLineItem] = None
+    navigation: PaymentRequestNavigation = None
+    locale: str = 'en'
+
+
+class PatientUpfrontPayment:
+    is_payment_required: bool = None
+    total_cost: int = None
+    billed_amount: int = None
+
+
+class ServicePayment:
+    id: int
+    service_code: str
+    service_name: str
+    selfpay_amount: int

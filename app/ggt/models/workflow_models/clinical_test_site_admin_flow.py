@@ -63,7 +63,7 @@ def site_admin_general_search(user, first_name, middle_name, last_name, dob, pho
             group_vax_results=group_vax_results,
             token=token,
             is_patient=is_patient
-        )
+        ), allow=True
     )
 
 
@@ -130,9 +130,10 @@ def remove_group(req):
     )
 
 
-def get_locations():
+def get_locations(user):
+    org_id = get_organization_id(user)
     return y_response(
-        bp_get_locations()
+        bp_get_locations(org_id)
     )
 
 

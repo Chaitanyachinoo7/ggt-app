@@ -19,7 +19,7 @@ from ggt.models.process_models.bp_patient_experience import (
     bp_get_test_result, bp_add_to_ggd_waiting_queue,
     bp_get_wellpay_insurance_eligibility,
     bp_search_insurance_payer_list, bp_get_ggv_screen_flow_seq, bp_ggv_finalize_booking, bp_ggv_finalize_pre_booking,
-    bp_create_pre_registration, bp_verify_verification_token
+    bp_create_pre_registration, bp_verify_verification_token, bp_reschedule_first_appointment
 )
 
 from ggt.models.process_models.bp_schedules import (
@@ -36,7 +36,8 @@ from ggt.models.process_models.bp_appointments import (
 )
 
 from ggt.models.data_models.data_types import (
-    GgtBooking
+    GgtBooking,
+    LocationService
 )
 
 import ggt.lib.constants as c
@@ -65,6 +66,19 @@ def initiate_verification_flow(phone_number, with_otp=True):
         bp_initiate_verification_flow(
             phone_number,
             with_otp
+        )
+    )
+
+
+def reschedule_first_appointment(req):
+    return x_response(
+        bp_reschedule_first_appointment(
+            req.otp,
+            req.appointment_id_1,
+            req.appointment_id_2,
+            req.appointment_1_dt_id,
+            req.appointment_2_dt_id,
+            req.phone_number
         )
     )
 
@@ -206,6 +220,7 @@ def finalize_registration(finalize_registration_request):
             'total_balance': int(appointment.billed_amount*100),
             'total_cost': int(appointment.total_cost*100),
             'payment_url': appointment.payment_url,
+            'payment_checkout_session': appointment.payment_checkout_session,
             c.STATUS: c.SUCCESS
         }
     else:
@@ -281,6 +296,14 @@ def ggv_finalize_pre_registration(finalize_registration_request):
 def __map_to_booking_req(finalize_registration_request, ggv=False):
     b = GgtBooking()
     try:
+        if "insuranceVerification" in dict(finalize_registration_request).keys():
+            if finalize_registration_request.insuranceVerification:
+                b.insurance_relationship = finalize_registration_request.insuranceVerification.relationship
+                b.insurance_member_id = finalize_registration_request.insuranceVerification.member_id
+                b.insurance_group_no = finalize_registration_request.insuranceVerification.group_no
+                b.insurance_payer = finalize_registration_request.insuranceVerification.payer
+                b.insurance_level = finalize_registration_request.insuranceVerification.level
+
         if "covid19vaxScreening" in dict(finalize_registration_request).keys():
             b.ggv_allergies = finalize_registration_request.covid19vaxScreening.allergies
             b.serious_reaction = finalize_registration_request.covid19vaxScreening.serious_reaction
@@ -372,6 +395,17 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
             b.guillianBarre = finalize_registration_request.guillianBarre
         if "pre_register" in finalize_registration_request.fields.keys():
             b.pre_register = finalize_registration_request.pre_register
+
+        if "locationServices" in dict(finalize_registration_request).keys():
+            location_services = []
+            # Iterate through each location service item and get the LocationService object
+            for item in finalize_registration_request.locationServices:
+                location_service = LocationService()
+                location_service.service_code = item.sku
+                location_services.append(location_service)
+            b.location_services = location_services
+
+        b.language = finalize_registration_request.language
 
         with suppress(AttributeError):
             b.public_places_bars_restaurants_cafes = finalize_registration_request.publicPlaces.bars_restaurants_cafes
