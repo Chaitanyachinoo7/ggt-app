@@ -1187,7 +1187,7 @@ class CreateAuth0User(BaseModel):
     name: str = None
     nickname: str = None
     blocked: bool = False
-    email_verified: bool = False
+    email_verified: bool = True
 
 
 class UpdateAuth0UserInfo(BaseModel):
@@ -1318,3 +1318,7 @@ class InsurancePayersListRequest(BaseModel):
     search_query: str = None
     page: int = 1
     limit: int = 10
+
+
+class VerificationToken(BaseModel):
+    verification_token: str

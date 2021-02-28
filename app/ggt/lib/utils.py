@@ -1,7 +1,6 @@
 import jwt
 import ujson
 import logging
-# import googlecloudprofiler
 import random
 import sys
 import uuid
@@ -14,21 +13,13 @@ import phonenumbers
 import pyotp
 import ujson
 
+#import google.cloud.logging
+#import googlecloudprofiler
+
 import ggt.lib.constants as c
 from ggt.configs.config_loader import cfg
 # TODO: Enahance logging context with user session and client device/ip info etc.
 from ggt.models.data_models.data_types import User
-
-
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
 
 
 def get_config_val(key):
@@ -92,7 +83,8 @@ def log_generic(**kwargs):
         globals()[key] = kwargs[key]
 
     if kwargs is not None and 'type' in kwargs:
-        kwargs['timestamp'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+        kwargs['timestamp'] = datetime.now().strftime(
+            "%Y-%m-%d %H:%M:%S.%f")[:-3]
 
         if kwargs['type'] == c.ERROR in kwargs:
             kwargs['.'] = '⛔️⛔️⛔️'
@@ -102,21 +94,21 @@ def log_generic(**kwargs):
             logging.warning(pformat(kwargs))
         elif kwargs['type'] == c.INFO in kwargs:
             kwargs['.'] = 'ℹ️'
-            #logging.info(pformat(kwargs))
+            # logging.info(pformat(kwargs))
             print(pformat(kwargs))
         else:
-            #logging.debug(pformat(kwargs))
+            # logging.debug(pformat(kwargs))
             print(pformat(kwargs))
-    
+
     else:
         logging.warning('Empty log value')
 
 
-def app_init():        
+def app_init():
     if get_config_val('gcp.enable_cloud_logger'):
         init_cloud_logger()
 
-    #if get_config_val('gcp.enable_cloud_profiler'):
+    # if get_config_val('gcp.enable_cloud_profiler'):
     #    init_cloud_profiler()
 
 
@@ -126,8 +118,10 @@ def init_cloud_logger():
     '''
     curr_file = Path(__file__)
     service_account_file = get_config_val('gcp.service_account_file')
-    service_account_file = curr_file.parent.parent.parent.joinpath('ggt/configs/{}'.format(service_account_file))
-    client = google.cloud.logging.Client.from_service_account_json(service_account_file)
+    service_account_file = curr_file.parent.parent.parent.joinpath(
+        'ggt/configs/{}'.format(service_account_file))
+    client = google.cloud.logging.Client.from_service_account_json(
+        service_account_file)
 
     client.get_default_handler()
     client.setup_logging()
@@ -140,8 +134,10 @@ def init_cloud_profiler():
     try:
         curr_file = Path(__file__)
         service_account_file = get_config_val('gcp.service_account_file')
-        service_account_file = curr_file.parent.parent.parent.joinpath('ggt/configs/{}'.format(service_account_file))
-        client = google.cloud.logging.Client.from_service_account_json(service_account_file)
+        service_account_file = curr_file.parent.parent.parent.joinpath(
+            'ggt/configs/{}'.format(service_account_file))
+        client = google.cloud.logging.Client.from_service_account_json(
+            service_account_file)
 
         googlecloudprofiler.start(
             service=get_config_val('app_name'),
@@ -163,7 +159,7 @@ def x_response(res, allow=True, reason_code=None):
         if allow and res:
             if is_failure_response_with_reason(res):
                 return failure_response(
-                    reason_code=res[c.REASON_CODE], 
+                    reason_code=res[c.REASON_CODE],
                     kv=res
                 )
             else:
@@ -206,9 +202,9 @@ def is_failure_response_with_reason(kv=None):
         if kv is None or kv is True:
             return False
         else:
-            if c.REASON_CODE in kv.keys(): 
+            if c.REASON_CODE in kv.keys():
                 return True
-    
+
     except Exception as err:
         print('Error @is_failure_response_with_reason')
 
@@ -294,3 +290,44 @@ def get_user_token_from_jwt(token):
             function=whoami()
         )
         return None
+
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+
+    def disable(self):
+        self.HEADER = ''
+        self.OKBLUE = ''
+        self.OKGREEN = ''
+        self.WARNING = ''
+        self.FAIL = ''
+        self.ENDC = ''
+
+
+def print_header(message):
+    print('{.HEADER}{}{.ENDC}'.format(bcolors, message, bcolors))
+
+
+def print_ok1(message):
+    print('{.OKGREEN}{}{.ENDC}'.format(bcolors, message, bcolors))
+
+
+def print_ok2(message):
+    print('{.OKBLUE}{}{.ENDC}'.format(bcolors, message, bcolors))
+
+
+def print_warning(message):
+    print('{.WARNING}{}{.ENDC}'.format(bcolors, message, bcolors))
+
+
+def print_error(message):
+    print('{.FAIL}{}{.ENDC}'.format(bcolors, message, bcolors))
+
+
+def print_progress_bar_message(message):
+    print('{.OKBLUE}{}{.ENDC}\r'.format(bcolors, message, bcolors), end="")

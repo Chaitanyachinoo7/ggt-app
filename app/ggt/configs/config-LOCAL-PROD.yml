@@ -2,6 +2,7 @@ app_name: ggt-api
 app_version: 1.1
 log_level: DEBUG
 base_url: https://start.GoGetTested.com
+portal_url: https://portal.gogettested.com
 env: LOCAL-PROD
 default_timezone: CST
 

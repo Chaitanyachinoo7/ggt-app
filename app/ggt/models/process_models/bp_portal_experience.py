@@ -105,11 +105,12 @@ def bp_get_general_search_results(org_id, first_name, middle_name, last_name, do
 def bp_get_f11(appointment_ids):
     try:
         patients = find_patients_for_vaccineation(appointment_ids)
+        print(patients)
         date = create_temp_folder_structure()
         mergePDFs(patients, date)
         delete_temp_folder_structure(date)
         upload_to_S3(date)
-        shutil.rmtree(date)
+        # shutil.rmtree(date)
         return get_consent_form_URLs(patients, date)
     except Exception as err:
         log_generic(
@@ -124,6 +125,7 @@ def delete_temp_folder_structure(date):
 
 def upload_to_S3(date):
     create_folder("ggt-sftp", "brownwoodv/"+date)
+    print('folder created now uploadimng')
     uploadDirectory(date, "ggt-sftp")
 
 def get_consent_form_URLs(patients, date):
@@ -246,6 +248,13 @@ def create_overlay_consent_form(date, patient_id, patient, mother_first_name="",
     c.drawString(50, 465, patient["city"].upper())
     c.drawString(300, 465, patient["st"])
     c.drawString(350, 465, patient["zip"])
+    c.drawString(62, 200, "x") # Moderna
+    c.drawString(200, 176, "x") # Intramuscular
+    if patient["injection_site"] == "right_arm":
+        c.drawString(73, 152, "x")
+    elif patient["injection_site"] == "left_arm":
+        c.drawString(253, 153, "x")
+    c.drawString(120, 129, str(patient["vax_end_dt"]))
     c.showPage()
     c.drawString(
         200, 720, patient["first_name"].upper() + " " + patient["middle_name"].upper()+" " + patient["last_name"].upper())
@@ -493,9 +502,9 @@ def bp_get_all_services():
         )
 
 
-def bp_get_location_search_results(account, group_code, site_code, location_name, st, org_id):
+def bp_get_location_search_results(account, group_code, site_code, location_name, st, org_id, location_id=None):
     try:
-        return search_locations(account, group_code, site_code, location_name, org_id, st=st)
+        return search_locations(account, group_code, site_code, location_name, org_id, st=st, id=location_id)
 
     except Exception as err:
         log_generic(

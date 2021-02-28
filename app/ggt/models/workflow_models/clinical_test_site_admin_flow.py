@@ -78,11 +78,11 @@ def site_admin_get_consent_forms(patient_ids):
 
 
 # Do not cache
-def site_admin_location_search(account, group_code, site_code, location_name, st, user):
+def site_admin_location_search(account, group_code, site_code, location_name, st, user, location_id=None):
     org_id = get_organization_id(user)
     return y_response(
         bp_get_location_search_results(
-            account, group_code, site_code, location_name, st, org_id
+            account, group_code, site_code, location_name, st, org_id, location_id=location_id
         )
     )
 

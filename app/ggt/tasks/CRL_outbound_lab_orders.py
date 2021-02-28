@@ -308,9 +308,9 @@ def get_orders_ready_to_transmit(limit=100):
             t.sample_collection_location_id
         FROM
             (((test_samples t
-            JOIN patients p ON ((t.patient_id = p.id)))
-            JOIN locations l ON ((t.sample_collection_location_id = l.id)))
-            JOIN patient_questionnaires q ON ((p.id = q.patient_id)))
+            JOIN patients p ON (t.patient_id = p.id))
+            JOIN locations l ON (t.sample_collection_location_id = l.id))
+            JOIN patient_questionnaires q ON (q.id = t.patient_questionnaire_id))
         WHERE
             (t.status = 'ready_to_tx')
             AND t.vial_id IS NOT NULL

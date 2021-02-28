@@ -8,7 +8,7 @@ __pycache__/
 .vscode
 application.log
 application.log.*
-venv*/
-venv-mbp-1/
+venv/
+venv1/
+venv*
 .DS_Store
-
