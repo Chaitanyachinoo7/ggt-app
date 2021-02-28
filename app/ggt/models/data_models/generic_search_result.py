@@ -373,7 +373,7 @@ def find_patients_for_vaccineation(appointment_ids):
     try:
         where_condition = ""
         for appointment_id in appointment_ids:
-            where_condition = where_condition + """ v.appointment_id = {} or """.format(appointment_id)
+            where_condition = where_condition + """ a.id = {} or """.format(appointment_id)
         where_condition = where_condition[:-4]
         sql = """
             SELECT 
@@ -408,9 +408,7 @@ def find_patients_for_vaccineation(appointment_ids):
                 ELSE 'Unknown'
             END) AS ethnicity
         FROM
-			ggv_schedules v
-				JOIN
-			appointments a ON(v.appointment_id = a.id)
+			appointments a
                 JOIN
             patients p ON (a.patient_id = p.id)
         Where {}
