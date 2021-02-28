@@ -176,6 +176,8 @@ def bp_get_screen_flow_seq(group_code: str):
 def bp_initiate_verification_flow(phone_number: str, with_otp: bool = True):
     # Create a temp record until phone number is validated
     try:
+        if not with_otp:
+            return True
         phone_number = validate_phone_number_format(phone_number)
         existing_patient = get_existing_patients(phone_number)
         token = None
@@ -188,12 +190,7 @@ def bp_initiate_verification_flow(phone_number: str, with_otp: bool = True):
                 'NO OTP / Cannot create Pending Phone Verification record')
 
         else:
-            # activation_url = "{}/{}/{}".format(
-            #     cfg('base_url'), phone_number, token)
-
             if with_otp:
-                # message = "Enter Code: {}\nOr click {} \nReply STOP to cancel msgs".format(
-                #     otp_code, activation_url)
                 message = "Your GoGet verification code is: {} \nReply STOP to cancel msgs".format(
                     otp_code)
             else:
@@ -206,7 +203,6 @@ def bp_initiate_verification_flow(phone_number: str, with_otp: bool = True):
                     phone_number=phone_number,
                     otp_code=otp_code,
                     token=token,
-                    # activation_url=activation_url,
                     sms_message=message,
                     function=whoami(),
                     info='OTP SMS Sent'
@@ -1022,6 +1018,13 @@ def __is_valid_token(token: str) -> bool:
     return False
 
 
+def __is_phone_number_verified(token):
+    if token.startswith("NOVERIFY"):
+        return False
+    else:
+        return True
+
+
 def __extract_patient_from_booking_req(booking_req: GgtBooking) -> GgtPatient:
     try:
         patient: GgtPatient = GgtPatient()
@@ -1032,7 +1035,7 @@ def __extract_patient_from_booking_req(booking_req: GgtBooking) -> GgtPatient:
         patient.middle_name = booking_req.middle_name
         patient.last_name = booking_req.last_name
         patient.gender = booking_req.gender
-        patient.phone_number_verified = True
+        patient.phone_number_verified = __is_phone_number_verified(booking_req.token)
         patient.addr1 = booking_req.address
         patient.city = booking_req.city
         patient.zip = booking_req.zip
@@ -1408,18 +1411,27 @@ def __create_patient_and_questionnaire(booking_req):
 
         # create patient
         _patient = __extract_patient_from_booking_req(booking_req)
-        existing_patient = get_existing_patients(
-            phone_number=_patient.phone_number,
-            first_name=_patient.first_name,
-            last_name=_patient.last_name,
-            dob=_patient.dob
-        )
+        prev_token = _patient.token
+
+        existing_patient = None
+
+        if not prev_token.startswith("NOVERIFY"):
+            existing_patient = get_existing_patients(
+                phone_number=_patient.phone_number,
+                first_name=_patient.first_name,
+                last_name=_patient.last_name,
+                dob=_patient.dob
+            )
+
         if existing_patient is None:
             p = get_existing_patients(token=_patient.token)
             if p:
                 _patient.token = generate_token()
             patient_id = create_patient_record(_patient)
-            booking_req.result_token = unlock_patient_info_patients(_patient.phone_number)
+            if not prev_token.startswith("NOVERIFY"):
+                booking_req.result_token = unlock_patient_info_patients(_patient.phone_number)
+            else:
+                booking_req.result_token = _patient.token
         else:
             patient_id = existing_patient['id']
             booking_req.result_token = unlock_patient_info_patients(existing_patient['phone_number'])

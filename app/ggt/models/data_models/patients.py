@@ -291,7 +291,7 @@ def unlock_patient_info_patients(phone_number):
                         result_token = %s,
                         token_expire = DATE_ADD(NOW(), interval 10 minute)
                     WHERE
-                        phone_number = %s"""
+                        phone_number = %s AND token NOT LIKE 'NOVERIFY%'"""
         vals = (result_token, phone_number)
         if exec_update(sql, vals):
             return result_token
