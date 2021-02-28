@@ -18,7 +18,3 @@ def api_payment_checkout_session(payment_details: PaymentRequestBody):
 def api_payment_session_id(session_id: str):
     return payment_get_checkout_session(session_id)
 
-
-@router.get("/test")
-def api_payment_test():
-    return get_patient_upfront_payment(['FLU_SHOT', 'CONSULT'])

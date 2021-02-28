@@ -11,7 +11,8 @@ from ggt.lib.utils import (
     generate_token,
     validate_phone_number_format,
     log_generic,
-    whoami
+    whoami,
+    get_translated_message
 )
 
 from ggt.lib.sms import (send_sms)
@@ -331,7 +332,8 @@ def bp_finalize_booking(booking_req: GgtBooking):
         if upfront_payment_info.is_payment_required:
             # Below method is commented due to the use of an undefined method
             # appointment.payment_url = __inject_payment_flow(appointment)
-            appointment.payment_checkout_session = __inject_payment_checkout_session(appointment, upfront_payment_info)
+            appointment.payment_checkout_session = \
+                __inject_payment_checkout_session(appointment, upfront_payment_info, booking_req)
         else:
             # payment not required, confirm the appointment and notify
             update_appointment_with_confirmed_scheduled(appointment)
@@ -1464,22 +1466,24 @@ def __create_patient_and_questionnaire(booking_req):
 
 
 # This function will inject the checkout session in to the payment object
-def __inject_payment_checkout_session(appointment: GgtAppointment, upfront_payment_info: PatientUpfrontPayment):
+def __inject_payment_checkout_session(appointment: GgtAppointment, upfront_payment_info: PatientUpfrontPayment,
+                                      booking_req: GgtBooking):
     if not __should_charge_upfront_payment(upfront_payment_info):
         raise ValueError('Checkout session is only be generated to upfront payments')
 
     payment_request = PaymentRequestBody()
-    payment_request.line_items = __generate_payment_checkout_session_items(upfront_payment_info)
+    payment_request.line_items = __generate_payment_checkout_session_items(upfront_payment_info, booking_req)
     payment_request.navigation = __generate_payment_checkout_session_navigation(appointment)
+    payment_request.locale = booking_req.language
 
     # Return the session object which contains session id
     return bp_create_checkout_session(payment_request)
 
 
-def __generate_payment_checkout_session_items(upfront_payment_info: PatientUpfrontPayment):
+def __generate_payment_checkout_session_items(upfront_payment_info: PatientUpfrontPayment, booking_req: GgtBooking):
     line_item = PaymentRequestLineItem()
 
-    line_item.product_name = 'Registration Charges'  # To be filled with correct name
+    line_item.product_name = get_translated_message('registration_charges')(booking_req.language)
     line_item.unit_price = upfront_payment_info.total_cost
     line_item.quantity = 1
     line_item.product_images = cfg('image_urls.payment')
