@@ -124,7 +124,6 @@ def delete_temp_folder_structure(date):
 
 def upload_to_S3(date):
     create_folder("ggt-sftp", "brownwoodv/"+date)
-    print('folder created now uploadimng')
     uploadDirectory(date, "ggt-sftp")
 
 def get_consent_form_URLs(patients, date):
