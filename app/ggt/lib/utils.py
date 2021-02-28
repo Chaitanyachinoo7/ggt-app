@@ -334,9 +334,9 @@ def print_progress_bar_message(message):
     print('{.OKBLUE}{}{.ENDC}\r'.format(bcolors, message, bcolors), end="")
 
 
-def get_translated_message(message_id = str):
+def get_translated_message(message_id: str):
     lang_configs = load_languages()
-    message_in_langs = lang_configs[message_id]
+    message_in_langs = lang_configs[message_id] if message_id in lang_configs else lang_configs['lorem_ipsum']
 
     # Define inner function to get the message in specified language such as en, es, ...
     def get_language(lang):

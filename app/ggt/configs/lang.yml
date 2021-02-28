@@ -10,3 +10,6 @@ registration_charges:
   en: 'Registration Charges'
   es: 'cargos de registro'
   default: 'Registration Charges'
+
+lorem_ipsum:
+  default: 'Lorem Ipsum'
