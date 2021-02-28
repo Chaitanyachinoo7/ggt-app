@@ -331,6 +331,7 @@ class FinalizeRegistrationRequest(BaseModel):
     hasInsurance: Optional[bool] = None
     forceFinish: Optional[bool] = None
     locationServices: Optional[List[LocationServiceRequest]] = None
+    language: Optional[str] = 'en'
 
 
 class Payer(BaseModel):
@@ -996,7 +997,7 @@ class GgtBooking(BaseModel):
 
     location_services: List[LocationService] = None
 
-    #language: str = None
+    language: str = 'en'
     # science37:
 
 
@@ -1381,6 +1382,7 @@ class PaymentRequestBody(BaseModel):
     mode: str = 'payment'
     line_items: List[PaymentRequestLineItem] = None
     navigation: PaymentRequestNavigation = None
+    locale: str = 'en'
 
 
 class PatientUpfrontPayment:
