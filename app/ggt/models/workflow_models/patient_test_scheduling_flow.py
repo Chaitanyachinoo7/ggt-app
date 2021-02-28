@@ -406,6 +406,8 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
                 location_services.append(location_service)
             b.location_services = location_services
 
+        b.language = finalize_registration_request.language
+
         with suppress(AttributeError):
             b.public_places_bars_restaurants_cafes = finalize_registration_request.publicPlaces.bars_restaurants_cafes
             b.public_places_gas_stations = finalize_registration_request.publicPlaces.gas_stations

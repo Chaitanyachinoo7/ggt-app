@@ -14,7 +14,8 @@ def generate_stripe_checkout_request_body(payment_details):
         'mode': payment_details.mode,
         'success_url': payment_details.navigation.success_url,
         'cancel_url': payment_details.navigation.cancel_url,
-        'line_items': []
+        'line_items': [],
+        'locale': payment_details.locale
     }
     for item in payment_details.line_items:
         line_item = {
@@ -48,7 +49,8 @@ def create_checkout_session(payment_details):
         line_items=stripe_checkout_request['line_items'],
         mode=stripe_checkout_request['mode'],
         success_url=stripe_checkout_request['success_url'],
-        cancel_url=stripe_checkout_request['cancel_url']
+        cancel_url=stripe_checkout_request['cancel_url'],
+        locale=stripe_checkout_request['locale']
     )
     # Only required item is the session id
     # Replace this by a util if more than one field is required
