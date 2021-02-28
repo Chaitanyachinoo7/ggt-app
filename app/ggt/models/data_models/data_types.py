@@ -331,7 +331,7 @@ class FinalizeRegistrationRequest(BaseModel):
     hasInsurance: Optional[bool] = None
     forceFinish: Optional[bool] = None
     locationServices: Optional[List[LocationServiceRequest]] = None
-    language = Optional[str] = 'en'
+    language: Optional[str] = 'en'
 
 
 class Payer(BaseModel):

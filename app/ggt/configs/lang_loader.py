@@ -1,6 +1,8 @@
 import yaml
+from pathlib import Path
 
-language_file = './lang.yml'
+curr_file = Path(__file__)
+language_file = curr_file.parent.joinpath("lang.yml")
 
 
 # This function loads the language file and convert the yaml into a dictionary
