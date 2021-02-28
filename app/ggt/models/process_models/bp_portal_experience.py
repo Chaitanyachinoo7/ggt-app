@@ -105,12 +105,11 @@ def bp_get_general_search_results(org_id, first_name, middle_name, last_name, do
 def bp_get_f11(appointment_ids):
     try:
         patients = find_patients_for_vaccineation(appointment_ids)
-        print(patients)
         date = create_temp_folder_structure()
         mergePDFs(patients, date)
         delete_temp_folder_structure(date)
         upload_to_S3(date)
-        # shutil.rmtree(date)
+        shutil.rmtree(date)
         return get_consent_form_URLs(patients, date)
     except Exception as err:
         log_generic(
