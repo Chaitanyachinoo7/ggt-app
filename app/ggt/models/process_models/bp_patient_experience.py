@@ -429,7 +429,7 @@ def bp_finalize_payment(appointment_id: int, wp_receipt_token: str):
     try:
         appointment = get_appointment(appointment_id)
         if appointment.wp_receipt_token == wp_receipt_token:
-            update_appointment_with_confirmed_scheduled(appointment_id)
+            update_appointment_with_confirmed_scheduled(appointment)
             __send_qrcode_sms(appointment)
             __send_qrcode_email(appointment)
             return True
