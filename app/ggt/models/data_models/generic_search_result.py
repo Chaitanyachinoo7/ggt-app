@@ -198,7 +198,7 @@ def find_patients(org_id, first_name='', middle_name='', last_name='', dob='', p
             where_conditions = "{} AND a.vial_id = '{}'".format(
                 where_conditions, vial_id)
         if token:
-            where_conditions = "{} AND p.result_token = '{}' AND p.token_expire > NOW() AND p.phone_number_verified = 1".format(
+            where_conditions = "{} AND p.result_token = '{}' AND p.token_expire > NOW()".format(
                 where_conditions, token)
 
         limit = 500
