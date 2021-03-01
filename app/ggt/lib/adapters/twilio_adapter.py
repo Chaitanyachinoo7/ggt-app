@@ -54,10 +54,14 @@ def send_twilio_sms(to_number: str, message_text: str):
 
 
 def send_twilio_sms_short_code(to_number: str, message_text: str):
-    account_sid = get_config_val('twilio.account_sid_short_code')
-    auth_token = get_config_val('twilio.auth_token_short_code')
-    from_number = get_config_val('twilio.from_number_short_code')
-
+    if to_number[0:3] != "+52":
+        account_sid = get_config_val('twilio.account_sid_short_code')
+        auth_token = get_config_val('twilio.auth_token_short_code')
+        from_number = get_config_val('twilio.from_number_short_code')
+    else:
+        account_sid = get_config_val('twilio.account_sid')
+        auth_token = get_config_val('twilio.auth_token')
+        from_number = get_config_val('twilio.from_number')
     try:
         client = Client(
             account_sid,
