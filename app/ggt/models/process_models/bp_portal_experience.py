@@ -145,22 +145,29 @@ def create_temp_folder_structure():
     return date
 
 def mergePDFs(patients, date):
-    for patient in patients:
-        if patient:
-            data_dict = {}
-            create_overlay(date, str(patient["id"]), patient, data_dict)
-            create_overlay_consent_form(date, str(patient["id"]), patient)
-            merge_pdfs('ggt/configs/vaccine-pdfs/F11-12956.pdf',
-                       './'+date+'/f11_overlay/simple_form_overlay_' +
-                       str(patient["id"])+'.pdf',
-                       './'+date+'/f11/'+patient["last_name"].upper(
-                       )+'_'+patient["first_name"].upper()+'_'+str(patient["dob"])+'_immtrac.pdf', data_dict)
+    try:
+        for patient in patients:
+            if patient:
+                data_dict = {}
+                create_overlay(date, str(patient["id"]), patient, data_dict)
+                create_overlay_consent_form(date, str(patient["id"]), patient)
+                merge_pdfs('ggt/configs/vaccine-pdfs/F11-12956.pdf',
+                        './'+date+'/f11_overlay/simple_form_overlay_' +
+                        str(patient["id"])+'.pdf',
+                        './'+date+'/f11/'+patient["last_name"].upper(
+                        )+'_'+patient["first_name"].upper()+'_'+str(patient["dob"])+'_immtrac.pdf', data_dict)
 
-            merge_pdfs('ggt/configs/vaccine-pdfs/COVID Concent Form.pdf',
-                       './'+date+'/consent_overlay/consent_form_simple_form_overlay_' +
-                       str(patient["id"])+'.pdf',
-                       './'+date+'/consent/'+patient["last_name"].upper(
-                       )+'_'+patient["first_name"].upper()+'_'+str(patient["dob"])+'_consent.pdf')
+                merge_pdfs('ggt/configs/vaccine-pdfs/COVID Concent Form.pdf',
+                        './'+date+'/consent_overlay/consent_form_simple_form_overlay_' +
+                        str(patient["id"])+'.pdf',
+                        './'+date+'/consent/'+patient["last_name"].upper(
+                        )+'_'+patient["first_name"].upper()+'_'+str(patient["dob"])+'_consent.pdf')
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
 
 
 def bp_get_consent_forms(patient_ids):
@@ -171,90 +178,110 @@ def bp_get_consent_forms(patient_ids):
 
 
 def create_overlay(date, patient_id, patient, data_dict, mother_first_name="", mother_maiden_name=""):
-    c = canvas.Canvas(
-        './'+date+'/f11_overlay/simple_form_overlay_'+patient_id+'.pdf')
-    update_string_in_pdf(c, 25, 678, patient["last_name"].upper())
-    update_string_in_pdf(c, 25, 646, patient["first_name"].upper())
-    update_string_in_pdf(c, 320, 646, patient["middle_name"].upper())
-    if patient["race"] == "American Indian or Alaska Native":
-        update_string_in_pdf(c, 319, 698, "x")
-        data_dict.update({'CheckBox1': 'Yes'})
-    elif patient["race"] == "Asian":
-        update_string_in_pdf(c, 319, 692, "x")
-        data_dict.update({'CheckBox2': 'Yes'})
-    elif patient["race"] == "Black or African American":
-        update_string_in_pdf(c, 319, 688, "x")
-        data_dict.update({'CheckBox3': 'Yes'})
-    elif patient["race"] == "Native Hawaiian or Other Pacific Islander":
-        update_string_in_pdf(c, 319, 682, "x")
-        data_dict.update({'CheckBox4': 'Yes'})
-    elif patient["race"] == "White":
-        update_string_in_pdf(c, 319, 678, "x")
-        data_dict.update({'CheckBox5': 'Yes'})
-    elif patient["race"] == "Other":
-        update_string_in_pdf(c, 319, 672, "x")
-        data_dict.update({'CheckBox6': 'Yes'})
-    if patient["ethnicity"] == "Hispanic or Latino":
-        data_dict.update({'CheckBox7': 'Yes'})
-    elif patient["ethnicity"] == "Not Hispanic or Latino":
-        data_dict.update({'CheckBox8': 'Yes'})
-    dob_splits = str(patient["dob"]).split('-')
-    update_string_in_pdf(c, 25, 608, dob_splits[1])
-    update_string_in_pdf(c, 68, 608, dob_splits[2])
-    update_string_in_pdf(c, 105, 608, dob_splits[0])
-    if patient["gender"] == "male":
-        update_string_in_pdf(c, 492, 603, "X")
-        data_dict.update({'Male': 'Yes'})
-    elif patient["gender"] == "female":
-        update_string_in_pdf(c, 541, 603, "X")
-        data_dict.update({'Female': 'Yes'})
-    update_string_in_pdf(c, 25, 577, patient["addr1"].upper())
-    # update_string_in_pdf(c, 320, 602, "1234")
-    phone = patient["phone_number"][2:]
-    update_string_in_pdf(c, 420, 577, phone[:3]+"-"+phone[3:6]+"-"+phone[6:])
-    update_string_in_pdf(c, 25, 545, patient["city"].upper())
-    update_string_in_pdf(c, 315, 545, patient["st"])
-    update_string_in_pdf(c, 360, 545, patient["zip"])
-    update_string_in_pdf(c, 450, 545, "USA")
-    # update_string_in_pdf(c, 25, 538, mother_first_name)
-    # update_string_in_pdf(c, 320, 540, mother_maiden_name)
-    c.drawString(
-        55, 195, str(patient["scheduled_dt"]))
-    c.drawString(
-        300, 223, patient["first_name"].upper() + " " + patient["middle_name"].upper()+" " + patient["last_name"].upper())
-    pdfmetrics.registerFont(
-        TTFont('Allura-Regular', 'ggt/configs/vaccine-pdfs/Allura-Regular.ttf'))
-    c.setFont("Allura-Regular", 15)
-    c.drawString(
-        300, 195, patient["first_name"] + " " + patient["middle_name"]+" " + patient["last_name"])
-    c.save()
+    try: 
+        c = canvas.Canvas(
+            './'+date+'/f11_overlay/simple_form_overlay_'+patient_id+'.pdf')
+        update_string_in_pdf(c, 25, 678, patient["last_name"].upper())
+        update_string_in_pdf(c, 25, 646, patient["first_name"].upper())
+        update_string_in_pdf(c, 320, 646, patient["middle_name"].upper())
+        if patient["race"] == "American Indian or Alaska Native":
+            update_string_in_pdf(c, 319, 698, "x")
+            data_dict.update({'CheckBox1': 'Yes'})
+        elif patient["race"] == "Asian":
+            update_string_in_pdf(c, 319, 692, "x")
+            data_dict.update({'CheckBox2': 'Yes'})
+        elif patient["race"] == "Black or African American":
+            update_string_in_pdf(c, 319, 688, "x")
+            data_dict.update({'CheckBox3': 'Yes'})
+        elif patient["race"] == "Native Hawaiian or Other Pacific Islander":
+            update_string_in_pdf(c, 319, 682, "x")
+            data_dict.update({'CheckBox4': 'Yes'})
+        elif patient["race"] == "White":
+            update_string_in_pdf(c, 319, 678, "x")
+            data_dict.update({'CheckBox5': 'Yes'})
+        elif patient["race"] == "Other":
+            update_string_in_pdf(c, 319, 672, "x")
+            data_dict.update({'CheckBox6': 'Yes'})
+        if patient["ethnicity"] == "Hispanic or Latino":
+            data_dict.update({'CheckBox7': 'Yes'})
+        elif patient["ethnicity"] == "Not Hispanic or Latino":
+            data_dict.update({'CheckBox8': 'Yes'})
+        dob_splits = str(patient["dob"]).split('-')
+        update_string_in_pdf(c, 25, 608, dob_splits[1])
+        update_string_in_pdf(c, 68, 608, dob_splits[2])
+        update_string_in_pdf(c, 105, 608, dob_splits[0])
+        if patient["gender"] == "male":
+            update_string_in_pdf(c, 492, 603, "X")
+            data_dict.update({'Male': 'Yes'})
+        elif patient["gender"] == "female":
+            update_string_in_pdf(c, 541, 603, "X")
+            data_dict.update({'Female': 'Yes'})
+        update_string_in_pdf(c, 25, 577, patient["addr1"].upper())
+        # update_string_in_pdf(c, 320, 602, "1234")
+        phone = patient["phone_number"][2:]
+        update_string_in_pdf(c, 420, 577, phone[:3]+"-"+phone[3:6]+"-"+phone[6:])
+        update_string_in_pdf(c, 25, 545, patient["city"].upper())
+        update_string_in_pdf(c, 315, 545, patient["st"])
+        update_string_in_pdf(c, 360, 545, patient["zip"])
+        update_string_in_pdf(c, 450, 545, "USA")
+        # update_string_in_pdf(c, 25, 538, mother_first_name)
+        # update_string_in_pdf(c, 320, 540, mother_maiden_name)
+        c.drawString(
+            55, 195, str(patient["scheduled_dt"]))
+        c.drawString(
+            300, 223, patient["first_name"].upper() + " " + patient["middle_name"].upper()+" " + patient["last_name"].upper())
+        pdfmetrics.registerFont(
+            TTFont('Allura-Regular', 'ggt/configs/vaccine-pdfs/Allura-Regular.ttf'))
+        c.setFont("Allura-Regular", 15)
+        c.drawString(
+            300, 195, patient["first_name"] + " " + patient["middle_name"]+" " + patient["last_name"])
+        c.save()
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
 
 
 def create_overlay_consent_form(date, patient_id, patient, mother_first_name="", mother_maiden_name=""):
-    c = canvas.Canvas(
-        './'+date+'/consent_overlay/consent_form_simple_form_overlay_'+patient_id+'.pdf')
-    c.drawString(50, 530, patient["last_name"].upper())
-    c.drawString(205, 530, patient["first_name"].upper())
-    c.drawString(350, 530, str(patient["dob"]))
-    if patient["gender"] == "male":
-        c.drawString(504, 530, "x")
-    elif patient["gender"] == "female":
-        c.drawString(504, 544, "x")
-    c.drawString(50, 502, patient["addr1"].upper())
-    phone = patient["phone_number"][2:]
-    c.drawString(350, 502, phone[:3]+"-"+phone[3:6]+"-"+phone[6:])
-    c.drawString(50, 465, patient["city"].upper())
-    c.drawString(300, 465, patient["st"])
-    c.drawString(350, 465, patient["zip"])
-    c.showPage()
-    c.drawString(
-        200, 720, patient["first_name"].upper() + " " + patient["middle_name"].upper()+" " + patient["last_name"].upper())
-    dob_splits = str(patient["dob"]).split('-')
-    c.drawString(205, 702, dob_splits[1])
-    c.drawString(245, 702, dob_splits[2])
-    c.drawString(282, 702, dob_splits[0])
-    c.save()
-
+    try:
+        c = canvas.Canvas(
+            './'+date+'/consent_overlay/consent_form_simple_form_overlay_'+patient_id+'.pdf')
+        c.drawString(50, 530, patient["last_name"].upper())
+        c.drawString(205, 530, patient["first_name"].upper())
+        c.drawString(350, 530, str(patient["dob"]))
+        if patient["gender"] == "male":
+            c.drawString(504, 530, "x")
+        elif patient["gender"] == "female":
+            c.drawString(504, 544, "x")
+        c.drawString(50, 502, patient["addr1"].upper())
+        phone = patient["phone_number"][2:]
+        c.drawString(350, 502, phone[:3]+"-"+phone[3:6]+"-"+phone[6:])
+        c.drawString(50, 465, patient["city"].upper())
+        c.drawString(300, 465, patient["st"])
+        c.drawString(350, 465, patient["zip"])
+        c.drawString(62, 200, "x") # Moderna
+        c.drawString(200, 176, "x") # Intramuscular
+        if patient["injection_site"] == "right_arm":
+            c.drawString(73, 152, "x")
+        elif patient["injection_site"] == "left_arm":
+            c.drawString(253, 153, "x")
+        c.drawString(120, 129, str(patient["vax_end_dt"]))
+        c.showPage()
+        c.drawString(
+            200, 720, patient["first_name"].upper() + " " + patient["middle_name"].upper()+" " + patient["last_name"].upper())
+        dob_splits = str(patient["dob"]).split('-')
+        c.drawString(205, 702, dob_splits[1])
+        c.drawString(245, 702, dob_splits[2])
+        c.drawString(282, 702, dob_splits[0])
+        c.save()
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
 
 def update_string_in_pdf(c, x, y, entry):
     for char in entry:
@@ -272,33 +299,39 @@ WIDGET_SUBTYPE_KEY = '/Widget'
 
 
 def merge_pdfs(form_pdf, overlay_pdf, output, data_dict=None):
-    form = pdfrw.PdfReader(form_pdf)
-    olay = pdfrw.PdfReader(overlay_pdf)
+    try:
+        form = pdfrw.PdfReader(form_pdf)
+        olay = pdfrw.PdfReader(overlay_pdf)
 
-    for form_page, overlay_page in zip(form.pages, olay.pages):
-        merge_obj = pdfrw.PageMerge()
-        overlay = merge_obj.add(overlay_page)[0]
-        pdfrw.PageMerge(form_page).add(overlay).render()
+        for form_page, overlay_page in zip(form.pages, olay.pages):
+            merge_obj = pdfrw.PageMerge()
+            overlay = merge_obj.add(overlay_page)[0]
+            pdfrw.PageMerge(form_page).add(overlay).render()
 
-    writer = pdfrw.PdfWriter()
-    if data_dict:
-        # write_fillable_pdf(form, output, data_dict)
-        # template_pdf = pdfrw.PdfReader(input_pdf_path)
-        for Page in form.pages:
-            if Page[ANNOT_KEY]:
-                for annotation in Page[ANNOT_KEY]:
-                    if annotation[ANNOT_FIELD_KEY] and annotation[SUBTYPE_KEY] == WIDGET_SUBTYPE_KEY:
-                        # Remove parentheses
-                        key = annotation[ANNOT_FIELD_KEY][1:-1]
-                        if key in data_dict.keys():
-                            if annotation[ANNOT_FORM_type] == ANNOT_FORM_button:
-                                # button field i.e. a checkbox
-                                annotation.update(pdfrw.PdfDict(V=pdfrw.PdfName(
-                                    data_dict[key]), AS=pdfrw.PdfName(data_dict[key])))
-        form.Root.AcroForm.update(pdfrw.PdfDict(
-            NeedAppearances=pdfrw.PdfObject('true')))
-    writer.write(output, form)
-
+        writer = pdfrw.PdfWriter()
+        if data_dict:
+            # write_fillable_pdf(form, output, data_dict)
+            # template_pdf = pdfrw.PdfReader(input_pdf_path)
+            for Page in form.pages:
+                if Page[ANNOT_KEY]:
+                    for annotation in Page[ANNOT_KEY]:
+                        if annotation[ANNOT_FIELD_KEY] and annotation[SUBTYPE_KEY] == WIDGET_SUBTYPE_KEY:
+                            # Remove parentheses
+                            key = annotation[ANNOT_FIELD_KEY][1:-1]
+                            if key in data_dict.keys():
+                                if annotation[ANNOT_FORM_type] == ANNOT_FORM_button:
+                                    # button field i.e. a checkbox
+                                    annotation.update(pdfrw.PdfDict(V=pdfrw.PdfName(
+                                        data_dict[key]), AS=pdfrw.PdfName(data_dict[key])))
+            form.Root.AcroForm.update(pdfrw.PdfDict(
+                NeedAppearances=pdfrw.PdfObject('true')))
+        writer.write(output, form)
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
 
 def bp_create_group(group):
     try:
