@@ -1179,13 +1179,20 @@ def  __evaluate_upfront_payment(booking_req: GgtBooking):
 
         # Get the total patient payment sum
         total = 0
+        currency = None
         for payment in service_payments:
             total += payment.selfpay_amount
+            if currency is None:
+                currency = payment.currency  # Set the first service's currency as the currency
+            else:
+                if currency != payment:
+                    raise ValueError('Currencies cannot mix')  # If two currencies have mixed raise an error
 
         # Here we consider all the service charges into one bill
         patient_upfront_payment.is_payment_required = total > 0
         patient_upfront_payment.billed_amount = total
         patient_upfront_payment.total_cost = total
+        patient_upfront_payment.currency = currency
 
     except Exception as err:
         log_generic(
@@ -1474,7 +1481,8 @@ def __inject_payment_checkout_session(appointment: GgtAppointment, upfront_payme
     payment_request = PaymentRequestBody()
     payment_request.line_items = __generate_payment_checkout_session_items(upfront_payment_info, booking_req)
     payment_request.navigation = __generate_payment_checkout_session_navigation(appointment)
-    payment_request.locale = booking_req.language
+    payment_request.locale = __inject_locale(booking_req.language)
+    payment_request.currency = upfront_payment_info.currency
 
     # Return the session object which contains session id
     return bp_create_checkout_session(payment_request)
@@ -1497,3 +1505,9 @@ def __generate_payment_checkout_session_navigation(appointment: GgtAppointment):
     navigation.cancel_url = cfg('payment.navigation.cancel_url')
 
     return navigation
+
+
+# Stripe requires 'es-419' as the locale for Latin American countries
+# Since in the context of GGT, es implies Latin America do the conversion here
+def __inject_locale(language):
+    return 'es-419' if language == 'es' else language
