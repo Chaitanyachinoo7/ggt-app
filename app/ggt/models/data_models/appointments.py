@@ -606,7 +606,7 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
                                 WHERE
                                     id = %s
                                 """.format(__get_mapped_dt_field(status))
-                vals = (status, injection_site, no_adverse_reactions, operator_location_id, appointment.id)
+                vals = (status, injection_site, operator_location_id, no_adverse_reactions, appointment.id)
 
             else:
                 sql = """
