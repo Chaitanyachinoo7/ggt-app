@@ -14,6 +14,17 @@ lorem_ipsum:
   default: 'Lorem Ipsum'
 
 
+# -- Begin of Complete registration SMS
+ggt_sms_registration_complete:
+  en: "Hi {}, thank you for completing your registration at GoGetTested.com\nYour appointment is confirmed for {} at {}. Details at {}/appointment/{}/{} \nReply STOP to cancel msgs"
+  es: "Hola {}, gracias por completar su registro en GoGetTested.com.\nSu cita está confirmada para {}. en {}. Detalles en {}/appointment/{}/{} \nResponde STOP para cancelar mensajes"
+
+ggt_sms_followup_message:
+  en: "Please arrive 15 minutes prior to your appointment. Bring this QR code, and an Acceptable ID when you arrive at the test. We will scan the QR code to check you in for testing. Please, no eating or drinking at least 15 minutes prior to testing as this may impact your test results."
+  es: "Por favor, llegue 15 minutos antes de su cita. Traiga este código QR y una identificación aceptable cuando llegue a la prueba. Escanearemos el código QR para registrarlo para la prueba. Por favor, no coma ni beba al menos 15 minutos antes de la prueba, ya que esto puede afectar los resultados de la prueba."
+# -- End of Complete registration SMS
+
+
 # -- Start of GGT-1-APPOINTMENT-CONFIRMATION-EMAIL.html template variables 
 
 ggt_1_subject_test_scheduled:

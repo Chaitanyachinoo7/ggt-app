@@ -699,10 +699,8 @@ def __create_pending_entry(phone_number: str, token):
 
 def __send_qrcode_sms(appointment: GgtAppointment):
     try:
-        message = "" \
-            "Hi {}, thank you for completing your registration at GoGetTested.com " \
-            "Your appointment is confirmed for {} at {}. Details at {}/appointment/{}/{} " \
-            "\nReply STOP to cancel msgs".format(
+        registration_complete_template = get_translated_message('ggt_sms_registration_complete')(appointment.language)
+        message = registration_complete_template.format(
                 appointment.patient.first_name,
                 appointment.date_text,
                 appointment.location_text,
@@ -713,9 +711,7 @@ def __send_qrcode_sms(appointment: GgtAppointment):
         result_1 = send_sms(appointment.patient.phone_number,
                             message.replace('\t', ''))
 
-        followup_message = "" \
-            "Please arrive 15 minutes prior to your appointment. Bring this QR code, and an Acceptable ID when you arrive at the test. " \
-            "We will scan the QR code to check you in for testing. Please, no eating or drinking at least 15 minutes prior to testing as this may impact your test results."
+        followup_message = get_translated_message('ggt_sms_followup_message')(appointment.language)
         result_2 = send_sms(appointment.patient.phone_number, followup_message)
 
         log_generic(
