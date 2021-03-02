@@ -279,6 +279,23 @@ class InfluenzaScreening(BaseModel):
     egg_allergy: bool = None
 
 
+class LocationServiceRequest(BaseModel):
+    id: int
+    service_code: str = None
+    service_name: str = None
+    price: int = None
+    selfpay_amount: int = None
+    copay_amount: int = None
+    insurance_amount: int = None
+    sku: str
+    cost: int = None
+
+
+# This is the DTO of the location services
+class LocationService(BaseModel):
+    service_code: str = None
+
+
 class SecondAvailableDate(BaseModel):
     location_id: str
     dates: List[str]
@@ -313,6 +330,8 @@ class FinalizeRegistrationRequest(BaseModel):
     timeSlot: Optional[int] = None
     hasInsurance: Optional[bool] = None
     forceFinish: Optional[bool] = None
+    locationServices: Optional[List[LocationServiceRequest]] = None
+    language: Optional[str] = 'en'
 
 
 class Payer(BaseModel):
@@ -976,7 +995,9 @@ class GgtBooking(BaseModel):
     insurance_group_no: str = None
     insurance_level: str = None
 
-    #language: str = None
+    location_services: List[LocationService] = None
+
+    language: str = 'en'
     # science37:
 
 
@@ -1035,6 +1056,8 @@ class GgtAppointment(BaseModel):
 
     status: str = None
     org_name: str = None
+
+    payment_checkout_session: str = None
 
 
 class GgtTestSample(BaseModel):
@@ -1339,3 +1362,37 @@ class InsurancePayersListRequest(BaseModel):
 
 class VerificationToken(BaseModel):
     verification_token: str
+
+
+class PaymentRequestLineItem(BaseModel):
+    unit_price: int = 0
+    product_name: str = ""
+    product_images: List[str] = None
+    quantity: int = 0
+
+
+class PaymentRequestNavigation(BaseModel):
+    success_url: str = None
+    cancel_url: str = None
+
+
+class PaymentRequestBody(BaseModel):
+    payment_methods: List[str] = ['card']
+    currency: str = 'usd'
+    mode: str = 'payment'
+    line_items: List[PaymentRequestLineItem] = None
+    navigation: PaymentRequestNavigation = None
+    locale: str = 'en'
+
+
+class PatientUpfrontPayment:
+    is_payment_required: bool = None
+    total_cost: int = None
+    billed_amount: int = None
+
+
+class ServicePayment:
+    id: int
+    service_code: str
+    service_name: str
+    selfpay_amount: int
