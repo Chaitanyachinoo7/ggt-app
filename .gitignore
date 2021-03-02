@@ -12,3 +12,5 @@ venv/
 venv1/
 venv*
 .DS_Store
+# Explicitly ignore config file
+app/ggt/configs/config.yml
