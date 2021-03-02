@@ -25,7 +25,8 @@ from ggt.routers import (
     rt_billing,
     rt_reporting, 
     rt_management,
-    rt_vendor
+    rt_vendor,
+    rt_payment,
 )
 
 app_init()
@@ -167,6 +168,17 @@ app.include_router(
     responses={404: {c.DESCRIPTION: c.NOT_FOUND}},
 )
 
+############################################################
+# rt_payment route is only payments                        #
+############################################################
+
+app.include_router(
+    rt_payment.router,
+    prefix=c.PAYMENT_CHECKOUT_PREFIX,
+    tags=[c.PAYMENT_RT_TAG],
+    responses={404: {c.DESCRIPTION: c.NOT_FOUND}},
+)
+
 #############################################################
 # To Run Locally                                             #
 #############################################################
@@ -175,5 +187,5 @@ if __name__ == '__main__':
         app,
         host=cfg('server.host'),
         port=cfg('server.port'),
-        debug=cfg('log_level')
+        debug=cfg('log_level'),
     )

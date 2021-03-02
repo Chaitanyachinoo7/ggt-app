@@ -1,0 +1,15 @@
+# Support for internationalization
+# Format of the file
+# key:
+#   en: '' -> English
+#   es: '' -> Spanish
+#   ...
+#   default: '' -> have this always, as the fallback
+
+registration_charges:
+  en: 'Registration Charges'
+  es: 'cargos de registro'
+  default: 'Registration Charges'
+
+lorem_ipsum:
+  default: 'Lorem Ipsum'

@@ -324,6 +324,33 @@ def delete_schedule_entries_by_location_id(location_id):
         return None
 
 
+def get_location_id_by_rule_id(rule_id):
+    try:
+        sql = """SELECT 
+                    location_id
+                FROM
+                    schedule_generation_rules
+                WHERE
+                    id = %s"""
+        vals = (rule_id,)
+
+        res = replica_read_row(sql, vals)
+
+        if res:
+            return res['location_id']
+        else:
+            return None
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            location_id=rule_id,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 def trim_schedule_generation_rules_start_dt(location_id, new_dt):
     try:
         sql = """
