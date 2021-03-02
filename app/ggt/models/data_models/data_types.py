@@ -1061,6 +1061,7 @@ class GgtAppointment(BaseModel):
 
     payment_checkout_session: str = None
     country: str = None
+    language: str = None
 
 
 class GgtTestSample(BaseModel):

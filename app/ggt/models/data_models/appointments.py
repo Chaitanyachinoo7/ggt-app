@@ -49,9 +49,10 @@ def create_appointment(appointment_req: GgtBooking, ggv_slot=None):
             country,
             total_cost,
             billed_amount,
-            wp_receipt_token
+            wp_receipt_token,
+            language
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         vals = (
             appointment_req.timeslot.start_dt,
@@ -62,7 +63,8 @@ def create_appointment(appointment_req: GgtBooking, ggv_slot=None):
             appointment_req.country,
             appointment_req.total_cost / 100,  # cents --> decimal
             appointment_req.billed_amount / 100,  # cents --> decimal
-            str(uuid4())
+            str(uuid4()),
+            appointment_req.language
         )
         appointment_id = exec_insert(sql, vals)
         __add_services_to_appointment(appointment_id, appointment_req, ggv_slot=ggv_slot)
@@ -722,6 +724,7 @@ def __map_row_to_appointment(row: dict) -> GgtAppointment:
         a.country = row['country']
         a.patient_id = row['patient_id']
         a.patient_questionnaire_id = row['patient_questionnaire_id']
+        a.language = row['language']
 
         a.check_in_dt = row['check_in_dt']
         a.test_start_dt = row['test_start_dt']
