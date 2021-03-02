@@ -826,7 +826,22 @@ def __send_qrcode_email(appointment: GgtAppointment):
                 appointment.id,
                 appointment.patient.dob.strftime('%Y%m%d')
             ),
-            "hide_phone_number": appointment.country is not None and appointment.country in cfg('notifications.hide_phone_number_in_countries')
+            "hide_phone_number": appointment.country is not None and appointment.country in cfg('notifications.hide_phone_number_in_countries'),
+
+            "subject_test_scheduled": get_translated_message('ggt_1_subject_test_scheduled')(appointment.language),
+            "thanks_scheduling": get_translated_message('ggt_1_thanks_scheduling')(appointment.language),
+            "appointment_number": get_translated_message('ggt_1_appointment_number')(appointment.language),
+            "test_scheduled": get_translated_message('ggt_1_test_scheduled')(appointment.language),
+            "your_date_time": get_translated_message('ggt_1_your_date_time')(appointment.language),
+            "please_arrive": get_translated_message('ggt_1_please_arrive')(appointment.language),
+            "no_eating": get_translated_message('ggt_1_no_eating')(appointment.language),
+            "even_if_better": get_translated_message('ggt_1_even_if_better')(appointment.language),
+            "test_location": get_translated_message('ggt_1_test_location')(appointment.language),
+            "test_date_time": get_translated_message('ggt_1_test_date_time')(appointment.language),
+            "view_appointment": get_translated_message('ggt_1_view_appointment')(appointment.language),
+            "about_us": get_translated_message('ggt_1_about_us')(appointment.language),
+            "about_us_details": get_translated_message('ggt_1_about_us_details')(appointment.language),
+            "start_test": get_translated_message('ggt_1_start_test')(appointment.language)
         }
 
         subject = render_from_string(
