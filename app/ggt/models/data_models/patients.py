@@ -458,7 +458,8 @@ def get_patient_upfront_payment(service_codes: List[str]):
             SELECT 
                 selfpay_amount,
                 service_code,
-                service_name
+                service_name,
+                currency
             FROM
                 services_catalog
             WHERE
@@ -478,6 +479,7 @@ def get_patient_upfront_payment(service_codes: List[str]):
             service_payment.service_code = row['service_code']
             service_payment.service_name = row['service_name']
             service_payment.selfpay_amount = row['selfpay_amount']
+            service_payment.currency = row['currency']
 
             patient_payments.append(service_payment)
 

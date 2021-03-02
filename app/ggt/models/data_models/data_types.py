@@ -1369,6 +1369,7 @@ class PaymentRequestLineItem(BaseModel):
     product_name: str = ""
     product_images: List[str] = None
     quantity: int = 0
+    currency: str = 'usd'
 
 
 class PaymentRequestNavigation(BaseModel):
@@ -1389,6 +1390,7 @@ class PatientUpfrontPayment:
     is_payment_required: bool = None
     total_cost: int = None
     billed_amount: int = None
+    currency: str = 'usd'
 
 
 class ServicePayment:
@@ -1396,3 +1398,4 @@ class ServicePayment:
     service_code: str
     service_name: str
     selfpay_amount: int
+    currency: str
