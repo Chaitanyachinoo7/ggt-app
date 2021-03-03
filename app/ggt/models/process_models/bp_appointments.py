@@ -16,7 +16,7 @@ from ggt.models.data_models.data_types import (
 from ggt.lib.utils import (
     get_config_val,
     log_generic,
-    whoami
+    whoami, is_international
 )
 
 from ggt.lib.sms import (
@@ -263,7 +263,8 @@ def __send_test_complete_sms(appointment):
         message=message,
         function='__send_test_complete_sms'
     )
-    return send_sms(appointment.patient.phone_number, message)
+    international = is_international(appointment.patient.phone_number)
+    return send_sms(appointment.patient.phone_number, message, international=international)
 
 
 def __appointment_begin_test(user, appointment, workstation_id=1, operator_location_id=None):
