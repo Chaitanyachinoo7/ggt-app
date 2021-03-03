@@ -4,6 +4,7 @@ from requests.auth import HTTPBasicAuth
 from cachetools import cached, LRUCache, TTLCache
 import ggt.lib.constants as c
 import datetime
+from typing import List
 
 from ggt.lib.utils import (
     get_config_val as cfg,
@@ -77,7 +78,8 @@ from ggt.models.data_models.data_types import (
     PaymentRequestBody,
     PaymentRequestLineItem,
     PaymentRequestNavigation,
-    PatientUpfrontPayment
+    PatientUpfrontPayment,
+    LocationService
 )
 
 from ggt.lib.storage import (
@@ -338,7 +340,7 @@ def bp_finalize_booking(booking_req: GgtBooking):
             # payment not required, confirm the appointment and notify
             update_appointment_with_confirmed_scheduled(appointment)
             __send_qrcode_sms(appointment)
-            __send_qrcode_email(appointment)
+            __send_qrcode_email(appointment, __get_country_from_location_services(booking_req.location_services))
 
     except Exception as err:
         status_message = str(err)
@@ -805,7 +807,7 @@ def __send_ggv_pre_registration_sms(first_name, phone_number):
     return None
 
 
-def __send_qrcode_email(appointment: GgtAppointment):
+def __send_qrcode_email(appointment: GgtAppointment, country: str = "US"):
     try:
         from_email = cfg('notifications.from_email')
         from_name = cfg('notifications.from_name')
@@ -822,7 +824,7 @@ def __send_qrcode_email(appointment: GgtAppointment):
                 appointment.id,
                 appointment.patient.dob.strftime('%Y%m%d')
             ),
-            "hide_phone_number": False,
+            "hide_phone_number": country in cfg('notifications.hide_phone_number_in_countries'),
 
             "subject_test_scheduled": get_translated_message('ggt_1_subject_test_scheduled')(appointment.language),
             "thanks_scheduling": get_translated_message('ggt_1_thanks_scheduling')(appointment.language),
@@ -1005,6 +1007,18 @@ def __override_random_otp(phone_number: str):
         )
 
     return False, None
+
+def __get_country_from_location_services(location_services: List[LocationService]) -> str:
+    if location_services is None or len(location_services) < 0:
+        return "US"
+    
+    # No need to specify US service codes
+    service_codes = {
+        "COVID_19_TEST_MEXICO_ANTIGEN": "MX",
+        "COVID_19_TEST_MEXICO": "MX"
+    }
+
+    return service_codes.get(location_services[0].service_code, "US")
 
 
 def __is_valid_token(token: str) -> bool:
