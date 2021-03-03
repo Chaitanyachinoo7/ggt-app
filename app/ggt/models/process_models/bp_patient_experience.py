@@ -822,7 +822,7 @@ def __send_qrcode_email(appointment: GgtAppointment):
                 appointment.id,
                 appointment.patient.dob.strftime('%Y%m%d')
             ),
-            "hide_phone_number": appointment.country is not None and appointment.country in cfg('notifications.hide_phone_number_in_countries'),
+            "hide_phone_number": False,
 
             "subject_test_scheduled": get_translated_message('ggt_1_subject_test_scheduled')(appointment.language),
             "thanks_scheduling": get_translated_message('ggt_1_thanks_scheduling')(appointment.language),
