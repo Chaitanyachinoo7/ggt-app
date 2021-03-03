@@ -3,7 +3,7 @@ from ggt.lib.utils import (
     get_config_val as cfg,
     log_generic,
     generate_session_id,
-    whoami
+    whoami, is_international
 )
 
 from ggt.lib.db import (
@@ -77,13 +77,14 @@ def __batch_process_sms_queue(micro_batch_size, micro_offset):
             to_number = row['to_number']
             message = row['message']
             priority = row['priority']
+            international = is_international(to_number)
             if status == 'retry':
-                if send_sms(to_number, message, priority):
+                if send_sms(to_number, message, priority=priority, international=international):
                     update_sms_status_to_processed(_id)
                 else:
                     update_sms_status_to_error(_id)
             else:
-                if send_sms(to_number, message, priority):
+                if send_sms(to_number, message, priority=priority, international=international):
                     update_sms_status_to_processed(_id)
                 else:
                     update_sms_status_to_retry(_id)
