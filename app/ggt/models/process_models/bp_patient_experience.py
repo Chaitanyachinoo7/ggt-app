@@ -12,7 +12,7 @@ from ggt.lib.utils import (
     validate_phone_number_format,
     log_generic,
     whoami,
-    get_translated_message
+    get_translated_message, is_international
 )
 
 from ggt.lib.sms import (send_sms)
@@ -710,13 +710,15 @@ def __send_qrcode_sms(appointment: GgtAppointment):
                 appointment.id,
                 appointment.patient.dob.strftime('%Y%m%d')
             )
+
+        international = is_international(appointment.patient.phone_number)
         result_1 = send_sms(appointment.patient.phone_number,
-                            message.replace('\t', ''))
+                            message.replace('\t', ''), international=international)
 
         followup_message = "" \
             "Please arrive 15 minutes prior to your appointment. Bring this QR code, and an Acceptable ID when you arrive at the test. " \
             "We will scan the QR code to check you in for testing. Please, no eating or drinking at least 15 minutes prior to testing as this may impact your test results."
-        result_2 = send_sms(appointment.patient.phone_number, followup_message)
+        result_2 = send_sms(appointment.patient.phone_number, followup_message, international=international)
 
         log_generic(
             type=c.INFO,
@@ -755,8 +757,9 @@ def __send_ggv_qrcode_sms(appointment: GgtAppointment, dose):
                 appointment.id,
                 appointment.patient.dob.strftime('%Y%m%d')
             )
+        international = is_international(appointment.patient.phone_number)
         send_sms(appointment.patient.phone_number,
-                            message.replace('\t', ''))
+                            message.replace('\t', ''), international=international)
 
         log_generic(
             type=c.INFO,
@@ -785,8 +788,9 @@ def __send_ggv_pre_registration_sms(first_name, phone_number):
                   "\nYou have successfully joined the waitlist for the COVID-19 vaccine.  " \
                   "We will notify you once  you have been cleared to book an appointment." \
                   "\nReply Stop to cxl msgs".format(first_name)
+        international = is_international(phone_number)
         send_sms(phone_number,
-                            message.replace('\t', ''))
+                            message.replace('\t', ''), international=international)
 
         log_generic(
             type=c.INFO,
@@ -961,7 +965,8 @@ def __send_otp_sms(phone_number: str, message: str) -> bool:
             message=message,
             function=whoami()
         )
-        return send_sms(phone_number, message, 1)
+        international = is_international(phone_number)
+        return send_sms(phone_number, message, international=international)
 
     except Exception as err:
         log_generic(
