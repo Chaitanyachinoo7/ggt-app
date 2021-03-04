@@ -4,6 +4,7 @@ from requests.auth import HTTPBasicAuth
 from cachetools import cached, LRUCache, TTLCache
 import ggt.lib.constants as c
 import datetime
+from typing import List
 
 from ggt.lib.utils import (
     get_config_val as cfg,
@@ -77,7 +78,8 @@ from ggt.models.data_models.data_types import (
     PaymentRequestBody,
     PaymentRequestLineItem,
     PaymentRequestNavigation,
-    PatientUpfrontPayment
+    PatientUpfrontPayment,
+    LocationService
 )
 
 from ggt.lib.storage import (
@@ -338,7 +340,7 @@ def bp_finalize_booking(booking_req: GgtBooking):
             # payment not required, confirm the appointment and notify
             update_appointment_with_confirmed_scheduled(appointment)
             __send_qrcode_sms(appointment)
-            __send_qrcode_email(appointment)
+            __send_qrcode_email(appointment, __get_country_from_location_services(booking_req.location_services))
 
     except Exception as err:
         status_message = str(err)
@@ -699,10 +701,8 @@ def __create_pending_entry(phone_number: str, token):
 
 def __send_qrcode_sms(appointment: GgtAppointment):
     try:
-        message = "" \
-            "Hi {}, thank you for completing your registration at GoGetTested.com " \
-            "Your appointment is confirmed for {} at {}. Details at {}/appointment/{}/{} " \
-            "\nReply STOP to cancel msgs".format(
+        registration_complete_template = get_translated_message('ggt_sms_registration_complete')(appointment.language)
+        message = registration_complete_template.format(
                 appointment.patient.first_name,
                 appointment.date_text,
                 appointment.location_text,
@@ -715,9 +715,7 @@ def __send_qrcode_sms(appointment: GgtAppointment):
         result_1 = send_sms(appointment.patient.phone_number,
                             message.replace('\t', ''), international=international)
 
-        followup_message = "" \
-            "Please arrive 15 minutes prior to your appointment. Bring this QR code, and an Acceptable ID when you arrive at the test. " \
-            "We will scan the QR code to check you in for testing. Please, no eating or drinking at least 15 minutes prior to testing as this may impact your test results."
+        followup_message = get_translated_message('ggt_sms_followup_message')(appointment.language)
         result_2 = send_sms(appointment.patient.phone_number, followup_message, international=international)
 
         log_generic(
@@ -813,7 +811,7 @@ def __send_ggv_pre_registration_sms(first_name, phone_number):
     return None
 
 
-def __send_qrcode_email(appointment: GgtAppointment):
+def __send_qrcode_email(appointment: GgtAppointment, country: str = "US"):
     try:
         from_email = cfg('notifications.from_email')
         from_name = cfg('notifications.from_name')
@@ -830,7 +828,22 @@ def __send_qrcode_email(appointment: GgtAppointment):
                 appointment.id,
                 appointment.patient.dob.strftime('%Y%m%d')
             ),
-            "hide_phone_number": appointment.country is not None and appointment.country in cfg('notifications.hide_phone_number_in_countries')
+            "hide_phone_number": country in cfg('notifications.hide_phone_number_in_countries'),
+
+            "subject_test_scheduled": get_translated_message('ggt_1_subject_test_scheduled')(appointment.language),
+            "thanks_scheduling": get_translated_message('ggt_1_thanks_scheduling')(appointment.language),
+            "appointment_number": get_translated_message('ggt_1_appointment_number')(appointment.language),
+            "test_scheduled": get_translated_message('ggt_1_test_scheduled')(appointment.language),
+            "your_date_time": get_translated_message('ggt_1_your_date_time')(appointment.language),
+            "please_arrive": get_translated_message('ggt_1_please_arrive')(appointment.language),
+            "no_eating": get_translated_message('ggt_1_no_eating')(appointment.language),
+            "even_if_better": get_translated_message('ggt_1_even_if_better')(appointment.language),
+            "test_location": get_translated_message('ggt_1_test_location')(appointment.language),
+            "test_date_time": get_translated_message('ggt_1_test_date_time')(appointment.language),
+            "view_appointment": get_translated_message('ggt_1_view_appointment')(appointment.language),
+            "about_us": get_translated_message('ggt_1_about_us')(appointment.language),
+            "about_us_details": get_translated_message('ggt_1_about_us_details')(appointment.language),
+            "start_test": get_translated_message('ggt_1_start_test')(appointment.language)
         }
 
         subject = render_from_string(
@@ -999,6 +1012,19 @@ def __override_random_otp(phone_number: str):
         )
 
     return False, None
+
+
+def __get_country_from_location_services(location_services: List[LocationService]) -> str:
+    if location_services is None or len(location_services) < 0:
+        return "US"
+
+    # No need to specify US service codes
+    service_codes = {
+        "COVID_19_TEST_MEXICO_ANTIGEN": "MX",
+        "COVID_19_TEST_MEXICO": "MX"
+    }
+
+    return service_codes.get(location_services[0].service_code, "US")
 
 
 def __is_valid_token(token: str) -> bool:
