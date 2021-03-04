@@ -61,7 +61,7 @@ def bp_get_appointment_info(appointment_id, dob, org_id=None):
                 "patient_dob": __formatted_patient_dob(appointment),
                 "patient_name": __formatted_patient_name(appointment),
                 "patient_address": __formatted_patient_address(appointment),
-                "next_action": __next_action(appointment),
+                "next_action": __next_action(appointment, appointment.service_selection_codes[0]),
                 "service_selection": appointment.service_selection,
                 "service_selection_codes": appointment.service_selection_codes
             }
@@ -213,7 +213,7 @@ def __formatted_patient_dob(appointment):
 def __next_action(appointment, service_code, pre_labeled=False):
     # service = get_service_type_by_appointment_id(appointment.id)
 
-    if service_code == c.SERVICE_CODE_COVID19_TEST:
+    if service_code == c.SERVICE_CODE_COVID19_TEST or service_code == c.SERVICE_CODE_COVID19_TEST_ANTIGEN:
         switcher = {
             c.APPOINTMENT_STATUS_SCHEDULED: c.APPOINTMENT_ACTION_CHECK_IN,
             c.APPOINTMENT_STATUS_CHECKED_IN: c.APPOINTMENT_ACTION_START_TEST,

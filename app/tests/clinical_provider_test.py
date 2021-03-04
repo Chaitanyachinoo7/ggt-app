@@ -45,7 +45,8 @@ def test_update_appointment():
         json={
             "appointment_id": 1,
             "action": "check_in",
-            "workstation_id": 1
+            "workstation_id": 1,
+            "service_code": "COVID_19_TEST"
         }
     )
     verify_response(response)
