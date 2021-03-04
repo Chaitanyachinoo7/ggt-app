@@ -98,7 +98,7 @@ databases:
 notifications:
   from_email: support@gogettested.com
   from_name: Go Get Tested
-  confirmation_subject: '{{first_name}}, Your Covid-19 test has been scheduled'
+  confirmation_subject: '{{first_name}}, {{subject_test_scheduled}}'
   result_subject: COVID-19 Testing Result Available
   appointment_reminder_sublect: GoGetTested COVID-19 Testing Appointment Reminder
   relocate_subject: COVID-19 Testing Appointment has Changed
@@ -110,6 +110,7 @@ notifications:
   reschedule_template: GGT-8-APPOINTMENT-RESCHEDULE-2-EMAIL.html
   confirmation_template_ggv: GGV-1-APPOINTMENT-CONFIRMATION-EMAIL.html
   confirmation_subject_ggv: '{{first_name}}, Your Covid-19 vaccination has been scheduled'
+  hide_phone_number_in_countries: MX # comma separated values
 
 twilio:
   account_sid: AC9cef9b4155030ee2683281ccc72d4001
@@ -206,7 +207,7 @@ security:
 
 payment:
   stripe:
-    secret_key: "sk_test_4eC39HqLyjWDarjtT1zdp7dc"
+    secret_key: "sk_test_KwLyiUKXNzDaqCjzCxHQ2xlo"
   navigation:
     success_url: "https://start-qa.gogettested.com/appointment/{}/pay/success?token={}"
     cancel_url: "https://start-qa.gogettested.com"

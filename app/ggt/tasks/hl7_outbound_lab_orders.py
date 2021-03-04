@@ -12,11 +12,11 @@ from ggt.lib.utils import (
     log_generic,
     generate_session_id,
     whoami,
-    print_header, 
-    print_ok1, 
-    print_ok2, 
-    print_warning, 
-    print_error, 
+    print_header,
+    print_ok1,
+    print_ok2,
+    print_warning,
+    print_error,
     print_progress_bar_message
 )
 
@@ -351,19 +351,19 @@ def create_outbound_files(orders):
 
             if order['bill'] == 'DB':
                 hl7_message.gt1 = __get_gt1(order)
-            
+
             filename = "{}-{}.hl7".format(
                 outbound_file_prefix,
                 order['id']
             )
             local_file_path = "{}/{}".format(local_outbound_file_path, filename)
-            
+
             '''
             with open(local_file_path, 'w', newline='') as hl7file:
                 _str = str(hl7_message).encode("utf-8").decode('utf-8','ignore')
                 hl7file.write(_str)
             '''
-            
+
             if order['lab_id'] == 2 or str(order['sample_code']).startswith('MAWD'): #MAWD
                 if write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8','ignore'), 'mawdpath'):
                     processed_orders.append(order)
@@ -376,14 +376,24 @@ def create_outbound_files(orders):
                 else:
                     raise ValueError('S3 write failed for AIT')
 
+            if order['lab_id'] == 4: #LAB3A
+                if write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8','ignore'), 'lab3a'):
+                    processed_orders.append(order)
+                else:
+                    raise ValueError('S3 write failed for LAB3A')
+
+            if order['lab_id'] == 5: #CHOPO
+                if write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8','ignore'), 'chopolabs'):
+                    processed_orders.append(order)
+                else:
+                    raise ValueError('S3 write failed for CHOPO')
+
         except Exception as err:
                 #print_error(err)
                 print_error('Error generating HL7 for Order ID: {}'.format(order['id']))
-    
-    return processed_orders
-                
 
-    
+    return processed_orders
+
 
 def write_to_s3(filename, body, lab_folder_path):
     bucket_name = 'ggt-sftp'
@@ -396,10 +406,9 @@ def write_to_s3(filename, body, lab_folder_path):
         return False
 
 
-
 def get_orders_ready_to_transmit(limit=100):
     sql = """
-        SELECT 
+        SELECT
             t.id AS id,
             t.patient_id AS patient_id,
             REPLACE(p.first_name, ',', '') AS first_name,
@@ -514,7 +523,7 @@ def get_orders_ready_to_transmit(limit=100):
         WHERE
             (t.status = 'ready_to_tx')
             AND t.vial_id IS NOT NULL
-            AND t.lab_id IN (1, 2)
+            AND t.lab_id IN (1, 2, 4, 5)
         LIMIT {}
             """.format(limit)
     return read_rows(sql,)
@@ -522,7 +531,7 @@ def get_orders_ready_to_transmit(limit=100):
 
 def update_to_with_lab_status(orders):
     if len(orders) == 0:
-        return 
+        return
 
     list_of_ids = []
     for order in orders:
@@ -530,8 +539,8 @@ def update_to_with_lab_status(orders):
 
     format_strings = ','.join(['%s'] * len(list_of_ids))
     sql = """
-        UPDATE test_samples 
-        SET 
+        UPDATE test_samples
+        SET
             status = 'with_lab',
             update_dt = NOW(),
             lab_electronic_submission_dt = NOW()

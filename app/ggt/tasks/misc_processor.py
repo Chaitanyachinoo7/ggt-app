@@ -54,7 +54,7 @@ def task_process_misc():
         task_session_id=session_id,
         info='Begin Processing Misc Task')
 
-    #process_bcg_locations_file()
+    process_bcg_locations_file()
     #process_mx_locations_file()
     #update_schedules()
 
@@ -67,7 +67,7 @@ def task_process_misc():
     #process_email_notifications()
     #dedupe_tokens()
     #process_raw_list_sms_notifications()
-    process_vax()
+    #process_vax()
 
     log_generic(
         type=c.INFO,
@@ -597,7 +597,7 @@ def remove_image_from_questionnnaires_table(id):
 
 def process_bcg_locations_file():
     import csv
-    with open('archived/bcg_location_list_v2.txt', newline='') as csvfile:
+    with open('archived/bcg_location_list_v3.txt', newline='') as csvfile:
         spamreader = csv.reader(csvfile, delimiter='\t')
         for row in spamreader:
             print(', '.join(row))

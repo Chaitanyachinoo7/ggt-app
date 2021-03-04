@@ -37,7 +37,7 @@ from ggt.models.process_models.bp_appointments import (
 
 from ggt.models.data_models.data_types import (
     GgtBooking,
-    LocationService
+    LocationService, ServiceCodes
 )
 
 import ggt.lib.constants as c
@@ -326,6 +326,7 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
         b.city = finalize_registration_request.patientAddress.city.strip()
         b.zip = finalize_registration_request.patientAddress.zip_code.strip()
         b.email = finalize_registration_request.patientContact.email.strip()
+        b.country = finalize_registration_request.patientAddress.country.strip()
 
         b.st = finalize_registration_request.patientAddress.state
         b.dob = finalize_registration_request.patientDetails.dob
@@ -355,6 +356,10 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
         b.allergies = finalize_registration_request.preExistingConditions.allergies
 
         # if the request comes from GGV, then set the vaccination service
+
+        """
+        This section of the code will be deprecated as we get all selected services from selectedServices
+        """
         if ggv:
             b.service_covid19_vaccine = True
         else:
@@ -397,14 +402,17 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
         if "pre_register" in finalize_registration_request.fields.keys():
             b.pre_register = finalize_registration_request.pre_register
 
-        if "locationServices" in dict(finalize_registration_request).keys():
+        if "selectedServices" in dict(finalize_registration_request).keys():
             location_services = []
+            selected_services = ServiceCodes()
             # Iterate through each location service item and get the LocationService object
-            for item in finalize_registration_request.locationServices:
+            for item in finalize_registration_request.selectedServices:
                 location_service = LocationService()
-                location_service.service_code = item.sku
+                location_service.service_code = item
                 location_services.append(location_service)
+                selected_services = __assign_services(selected_services, item)
             b.location_services = location_services
+            b.services = selected_services
 
         b.language = finalize_registration_request.language
 
@@ -440,6 +448,31 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
         )
 
     return b
+
+
+def __assign_services(selected_services, sku):
+    if sku == c.SERVICE_CODE_COVID19_TEST:
+        selected_services.covid_19_test = True
+    if sku == c.SERVICE_CODE_COVID19_TEST_MEXICO:
+        selected_services.covid_19_test_mexico = True
+    if sku == c.SERVICE_CODE_COVID19_TEST_ANTIGEN:
+        selected_services.covid_19_test_antigen = True
+    if sku == c.SERVICE_CODE_COVID19_TEST_MEXICO_ANTIGEN:
+        selected_services.covid_19_test_antigen_mexico = True
+    if sku == c.SERVICE_CODE_FLU_SHOT:
+        selected_services.flue_shot = True
+    if sku == c.SERVICE_CODE_CONSULT:
+        selected_services.consult = True
+    if sku == c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_1:
+        selected_services.covid_19_vax_pfizer_1 = True
+    if sku == c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_2:
+        selected_services.covid_19_vax_pfizer_2 = True
+    if sku == c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_1:
+        selected_services.covid_19_vax_moderna_1 = True
+    if sku == c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_2:
+        selected_services.covid_19_vax_moderna_2 = True
+    return selected_services
+
 
 
 def insurance_eligibility(insurance_eligibility_request):

@@ -4,6 +4,7 @@ from requests.auth import HTTPBasicAuth
 from cachetools import cached, LRUCache, TTLCache
 import ggt.lib.constants as c
 import datetime
+from typing import List
 
 from ggt.lib.utils import (
     get_config_val as cfg,
@@ -12,7 +13,7 @@ from ggt.lib.utils import (
     validate_phone_number_format,
     log_generic,
     whoami,
-    get_translated_message
+    get_translated_message, is_international
 )
 
 from ggt.lib.sms import (send_sms)
@@ -77,7 +78,8 @@ from ggt.models.data_models.data_types import (
     PaymentRequestBody,
     PaymentRequestLineItem,
     PaymentRequestNavigation,
-    PatientUpfrontPayment
+    PatientUpfrontPayment,
+    LocationService
 )
 
 from ggt.lib.storage import (
@@ -338,7 +340,7 @@ def bp_finalize_booking(booking_req: GgtBooking):
             # payment not required, confirm the appointment and notify
             update_appointment_with_confirmed_scheduled(appointment)
             __send_qrcode_sms(appointment)
-            __send_qrcode_email(appointment)
+            __send_qrcode_email(appointment, __get_country_from_location_services(booking_req.location_services))
 
     except Exception as err:
         status_message = str(err)
@@ -699,10 +701,8 @@ def __create_pending_entry(phone_number: str, token):
 
 def __send_qrcode_sms(appointment: GgtAppointment):
     try:
-        message = "" \
-            "Hi {}, thank you for completing your registration at GoGetTested.com " \
-            "Your appointment is confirmed for {} at {}. Details at {}/appointment/{}/{} " \
-            "\nReply STOP to cancel msgs".format(
+        registration_complete_template = get_translated_message('ggt_sms_registration_complete')(appointment.language)
+        message = registration_complete_template.format(
                 appointment.patient.first_name,
                 appointment.date_text,
                 appointment.location_text,
@@ -710,13 +710,13 @@ def __send_qrcode_sms(appointment: GgtAppointment):
                 appointment.id,
                 appointment.patient.dob.strftime('%Y%m%d')
             )
-        result_1 = send_sms(appointment.patient.phone_number,
-                            message.replace('\t', ''))
 
-        followup_message = "" \
-            "Please arrive 15 minutes prior to your appointment. Bring this QR code, and an Acceptable ID when you arrive at the test. " \
-            "We will scan the QR code to check you in for testing. Please, no eating or drinking at least 15 minutes prior to testing as this may impact your test results."
-        result_2 = send_sms(appointment.patient.phone_number, followup_message)
+        international = is_international(appointment.patient.phone_number)
+        result_1 = send_sms(appointment.patient.phone_number,
+                            message.replace('\t', ''), international=international)
+
+        followup_message = get_translated_message('ggt_sms_followup_message')(appointment.language)
+        result_2 = send_sms(appointment.patient.phone_number, followup_message, international=international)
 
         log_generic(
             type=c.INFO,
@@ -755,8 +755,9 @@ def __send_ggv_qrcode_sms(appointment: GgtAppointment, dose):
                 appointment.id,
                 appointment.patient.dob.strftime('%Y%m%d')
             )
+        international = is_international(appointment.patient.phone_number)
         send_sms(appointment.patient.phone_number,
-                            message.replace('\t', ''))
+                            message.replace('\t', ''), international=international)
 
         log_generic(
             type=c.INFO,
@@ -785,8 +786,9 @@ def __send_ggv_pre_registration_sms(first_name, phone_number):
                   "\nYou have successfully joined the waitlist for the COVID-19 vaccine.  " \
                   "We will notify you once  you have been cleared to book an appointment." \
                   "\nReply Stop to cxl msgs".format(first_name)
+        international = is_international(phone_number)
         send_sms(phone_number,
-                            message.replace('\t', ''))
+                            message.replace('\t', ''), international=international)
 
         log_generic(
             type=c.INFO,
@@ -809,7 +811,7 @@ def __send_ggv_pre_registration_sms(first_name, phone_number):
     return None
 
 
-def __send_qrcode_email(appointment: GgtAppointment):
+def __send_qrcode_email(appointment: GgtAppointment, country: str = "US"):
     try:
         from_email = cfg('notifications.from_email')
         from_name = cfg('notifications.from_name')
@@ -825,7 +827,23 @@ def __send_qrcode_email(appointment: GgtAppointment):
                 cfg('base_url'),
                 appointment.id,
                 appointment.patient.dob.strftime('%Y%m%d')
-            )
+            ),
+            "hide_phone_number": country in cfg('notifications.hide_phone_number_in_countries'),
+
+            "subject_test_scheduled": get_translated_message('ggt_1_subject_test_scheduled')(appointment.language),
+            "thanks_scheduling": get_translated_message('ggt_1_thanks_scheduling')(appointment.language),
+            "appointment_number": get_translated_message('ggt_1_appointment_number')(appointment.language),
+            "test_scheduled": get_translated_message('ggt_1_test_scheduled')(appointment.language),
+            "your_date_time": get_translated_message('ggt_1_your_date_time')(appointment.language),
+            "please_arrive": get_translated_message('ggt_1_please_arrive')(appointment.language),
+            "no_eating": get_translated_message('ggt_1_no_eating')(appointment.language),
+            "even_if_better": get_translated_message('ggt_1_even_if_better')(appointment.language),
+            "test_location": get_translated_message('ggt_1_test_location')(appointment.language),
+            "test_date_time": get_translated_message('ggt_1_test_date_time')(appointment.language),
+            "view_appointment": get_translated_message('ggt_1_view_appointment')(appointment.language),
+            "about_us": get_translated_message('ggt_1_about_us')(appointment.language),
+            "about_us_details": get_translated_message('ggt_1_about_us_details')(appointment.language),
+            "start_test": get_translated_message('ggt_1_start_test')(appointment.language)
         }
 
         subject = render_from_string(
@@ -961,7 +979,8 @@ def __send_otp_sms(phone_number: str, message: str) -> bool:
             message=message,
             function=whoami()
         )
-        return send_sms(phone_number, message, 1)
+        international = is_international(phone_number)
+        return send_sms(phone_number, message, international=international)
 
     except Exception as err:
         log_generic(
@@ -993,6 +1012,19 @@ def __override_random_otp(phone_number: str):
         )
 
     return False, None
+
+
+def __get_country_from_location_services(location_services: List[LocationService]) -> str:
+    if location_services is None or len(location_services) < 0:
+        return "US"
+
+    # No need to specify US service codes
+    service_codes = {
+        "COVID_19_TEST_MEXICO_ANTIGEN": "MX",
+        "COVID_19_TEST_MEXICO": "MX"
+    }
+
+    return service_codes.get(location_services[0].service_code, "US")
 
 
 def __is_valid_token(token: str) -> bool:
@@ -1048,6 +1080,7 @@ def __extract_patient_from_booking_req(booking_req: GgtBooking) -> GgtPatient:
         patient.ethnicity = booking_req.ethnicity
         patient.race = booking_req.race
         patient.st = booking_req.st
+        patient.country = booking_req.country
         return patient
 
     except Exception as err:
@@ -1179,13 +1212,20 @@ def  __evaluate_upfront_payment(booking_req: GgtBooking):
 
         # Get the total patient payment sum
         total = 0
+        currency = None
         for payment in service_payments:
             total += payment.selfpay_amount
+            if currency is None:
+                currency = payment.currency  # Set the first service's currency as the currency
+            else:
+                if currency != payment:
+                    raise ValueError('Currencies cannot mix')  # If two currencies have mixed raise an error
 
         # Here we consider all the service charges into one bill
         patient_upfront_payment.is_payment_required = total > 0
         patient_upfront_payment.billed_amount = total
         patient_upfront_payment.total_cost = total
+        patient_upfront_payment.currency = currency
 
     except Exception as err:
         log_generic(
@@ -1474,7 +1514,8 @@ def __inject_payment_checkout_session(appointment: GgtAppointment, upfront_payme
     payment_request = PaymentRequestBody()
     payment_request.line_items = __generate_payment_checkout_session_items(upfront_payment_info, booking_req)
     payment_request.navigation = __generate_payment_checkout_session_navigation(appointment)
-    payment_request.locale = booking_req.language
+    payment_request.locale = __inject_locale(booking_req.language)
+    payment_request.currency = upfront_payment_info.currency
 
     # Return the session object which contains session id
     return bp_create_checkout_session(payment_request)
@@ -1497,3 +1538,9 @@ def __generate_payment_checkout_session_navigation(appointment: GgtAppointment):
     navigation.cancel_url = cfg('payment.navigation.cancel_url')
 
     return navigation
+
+
+# Stripe requires 'es-419' as the locale for Latin American countries
+# Since in the context of GGT, es implies Latin America do the conversion here
+def __inject_locale(language):
+    return 'es-419' if language == 'es' else language

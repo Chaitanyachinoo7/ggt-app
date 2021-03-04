@@ -294,7 +294,7 @@
                                                 <tr>
                                                   <td class="pc-fb-font"
                                                     style="font-family: 'Open Sans', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 500; line-height: 24px; letter-spacing: -0.2px; color: #ffffff;"
-                                                    valign="top">About Us.</td>
+                                                    valign="top">{{about_us}}</td>
                                                 </tr>
                                                 <tr>
                                                   <td height="11" style="line-height: 1px; font-size: 1px;">&nbsp;</td>
@@ -304,7 +304,7 @@
                                                 <tr>
                                                   <td class="pc-fb-font"
                                                     style="font-family: 'Open Sans', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; letter-spacing: -0.2px; color: #D8D8D8;"
-                                                    valign="top">GoGetTested.com was created to expand access to COVID-19 care to all populations. If you or someone you know wishes to start a COVID-19 test, please contact us.</td>
+                                                    valign="top">{{about_us_details}}</td>
                                                 </tr>
                                                 <tr>
                                                   <td class="pc-sm-h-20" height="56"
@@ -356,7 +356,7 @@
                                                 <tr>
                                                   <td class="pc-fb-font"
                                                     style="font-family: 'Open Sans', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 500; line-height: 24px; letter-spacing: -0.2px; color: #ffffff;"
-                                                    valign="top">Start a Test</td>
+                                                    valign="top">{{start_test}}</td>
                                                 </tr>
                                                 <tr>
                                                   <td height="11" style="line-height: 1px; font-size: 1px;">&nbsp;</td>
@@ -378,8 +378,10 @@
                                                   <td class="pc-fb-font"
                                                     style="font-family: 'Open Sans', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 500; line-height: 24px; letter-spacing: -0.2px;"
                                                     valign="top">
-                                                    <a href="tel:749-977-3440"
-                                                      style="text-decoration: none; color: #ffffff;">1-877-TESTGO-1 ( 1-877-837-8461 )</a>
+                                                    {% if hide_phone_number %}
+                                                    {% else %}
+                                                    <a href="tel:749-977-3440" style="text-decoration: none; color: #ffffff;">1-877-TESTGO-1 ( 1-877-837-8461 )</a>
+                                                    {% endif %}
                                                   </td>
                                                 </tr>
                                                 <tr>
