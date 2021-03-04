@@ -358,7 +358,7 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
         # if the request comes from GGV, then set the vaccination service
 
         """
-        This section of the code will be deprecated as we get all selected services from locationServices
+        This section of the code will be deprecated as we get all selected services from selectedServices
         """
         if ggv:
             b.service_covid19_vaccine = True
@@ -402,15 +402,15 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
         if "pre_register" in finalize_registration_request.fields.keys():
             b.pre_register = finalize_registration_request.pre_register
 
-        if "locationServices" in dict(finalize_registration_request).keys():
+        if "selectedServices" in dict(finalize_registration_request).keys():
             location_services = []
             selected_services = ServiceCodes()
             # Iterate through each location service item and get the LocationService object
-            for item in finalize_registration_request.locationServices:
+            for item in finalize_registration_request.selectedServices:
                 location_service = LocationService()
-                location_service.service_code = item.sku
+                location_service.service_code = item
                 location_services.append(location_service)
-                selected_services = __assign_services(selected_services, item.sku)
+                selected_services = __assign_services(selected_services, item)
             b.location_services = location_services
             b.services = selected_services
 
