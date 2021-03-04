@@ -887,6 +887,19 @@ class GgtDateTimeLocation(BaseModel):
     open_hours: str = None
 
 
+class ServiceCodes(BaseModel):
+    covid_19_test: bool = False
+    covid_19_test_mexico: bool = False
+    covid_19_test_antigen: bool = False
+    covid_19_test_antigen_mexico: bool = False
+    flue_shot: bool = False
+    consult: bool = False
+    covid_19_vax_pfizer_1: bool = False
+    covid_19_vax_pfizer_2: bool = False
+    covid_19_vax_moderna_1: bool = False
+    covid_19_vax_moderna_2: bool = False
+
+
 class GgtBooking(BaseModel):
     token: str = None
     verification_token: str = None
@@ -1001,6 +1014,8 @@ class GgtBooking(BaseModel):
 
     language: str = 'en'
     country: str = 'US'
+
+    services: ServiceCodes = None
     # science37:
 
 
