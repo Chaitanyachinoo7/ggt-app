@@ -83,6 +83,7 @@ def bp_appointment_update(provider_update_appointment_request, user):
     action = provider_update_appointment_request.action
     workstation_id = provider_update_appointment_request.workstation_id
     operator_location_id = provider_update_appointment_request.operator_location_id
+    service_code = provider_update_appointment_request.service_code
     try:
         appointment: GgtAppointment = get_appointment(appointment_id)
 
@@ -90,12 +91,14 @@ def bp_appointment_update(provider_update_appointment_request, user):
             usuccess = update_appointment_with_start_vax(appointment, user, operator_location_id=operator_location_id)
 
         if action == c.APPOINTMENT_ACTION_VERIFY_INSURANCE:
-            usuccess = update_appointment_with_verify_insurance(appointment, user, operator_location_id=operator_location_id)
+            usuccess = update_appointment_with_verify_insurance(appointment, user,
+                                                                operator_location_id=operator_location_id)
             if usuccess:
                 __save_insurance_image(appointment_id, provider_update_appointment_request.insurance_photo)
 
         if action == c.APPOINTMENT_ACTION_END_VAX:
-            usuccess = update_appointment_with_end_vax(appointment, user, workstation_id, operator_location_id=operator_location_id)
+            usuccess = update_appointment_with_end_vax(appointment, user, workstation_id,
+                                                       operator_location_id=operator_location_id)
             if usuccess:
                 __send_vax_completion_sms(appointment.patient.first_name, appointment.patient.phone_number)
                 __send_vax_completion_confirmation_in_15_minutes(appointment.patient.first_name,
@@ -113,7 +116,8 @@ def bp_appointment_update(provider_update_appointment_request, user):
             usuccess = update_appointment_with_checkin(appointment, user, operator_location_id=operator_location_id)
 
         elif action == c.APPOINTMENT_ACTION_START_TEST:
-            usuccess = __appointment_begin_test(user, appointment, workstation_id, operator_location_id=operator_location_id)
+            usuccess = __appointment_begin_test(user, appointment, workstation_id,
+                                                operator_location_id=operator_location_id)
 
         elif action == c.APPOINTMENT_ACTION_SCAN_VIAL:
             usuccess, reason_code = update_appointment_with_scan_vial(appointment,
@@ -152,7 +156,7 @@ def bp_appointment_update(provider_update_appointment_request, user):
         if usuccess:
             return {
                 'appointment_id': appointment.id,
-                'next_action': __next_action(appointment, __is_pre_labeled(appointment, workstation_id))
+                'next_action': __next_action(appointment, service_code,  __is_pre_labeled(appointment, workstation_id))
             }
 
     except Exception as err:
@@ -206,10 +210,10 @@ def __formatted_patient_dob(appointment):
     return appointment.patient.dob.strftime("%m/%d/%Y")
 
 
-def __next_action(appointment, pre_labeled=False):
-    service = get_service_type_by_appointment_id(appointment.id)
+def __next_action(appointment, service_code, pre_labeled=False):
+    # service = get_service_type_by_appointment_id(appointment.id)
 
-    if service and service['appointment_type'] == "test":
+    if service_code == c.SERVICE_CODE_COVID19_TEST:
         switcher = {
             c.APPOINTMENT_STATUS_SCHEDULED: c.APPOINTMENT_ACTION_CHECK_IN,
             c.APPOINTMENT_STATUS_CHECKED_IN: c.APPOINTMENT_ACTION_START_TEST,
@@ -225,7 +229,16 @@ def __next_action(appointment, pre_labeled=False):
                 c.APPOINTMENT_STATUS_TEST_IN_PROGRESS: c.APPOINTMENT_ACTION_END_TEST,
                 c.APPOINTMENT_STATUS_TEST_COMPLETED: c.APPOINTMENT_ACTION_NONE
             }
-    elif service and service['appointment_type'] == "vax":
+    elif service_code == c.SERVICE_CODE_COVID19_TEST_MEXICO or \
+            service_code == c.SERVICE_CODE_COVID19_TEST_MEXICO_ANTIGEN:
+        switcher = {
+            c.APPOINTMENT_STATUS_SCHEDULED: c.APPOINTMENT_ACTION_CHECK_IN,
+            c.APPOINTMENT_ACTION_CHECK_IN: c.APPOINTMENT_ACTION_NONE
+        }
+    elif service_code == c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_1 or \
+            service_code == c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_2 or \
+            service_code == c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_1 or \
+            service_code == c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_2:
 
         if __has_insurance_info(appointment.patient.id):
             switcher = {

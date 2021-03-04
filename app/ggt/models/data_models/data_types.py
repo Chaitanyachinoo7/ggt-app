@@ -497,9 +497,23 @@ class VialData(BaseModel):
     elements: Optional[VialElements] = None
 
 
+class ServiceCodesEnum(str, Enum):
+    covid_19_test = 'COVID_19_TEST'
+    covid_19_test_mexico = 'COVID_19_TEST_MEXICO'
+    covid_19_test_antigen = 'COVID_19_TEST_ANTIGEN'
+    covid_19_test_antigen_mexico = 'COVID_19_TEST_MEXICO_ANTIGEN'
+    flue_shot = 'FLU_SHOT'
+    consult = 'CONSULT'
+    covid_19_vax_pfizer_1 = 'COVID_19_VACCINE_PFIZER_1'
+    covid_19_vax_pfizer_2 = 'COVID_19_VACCINE_PFIZER_2'
+    covid_19_vax_moderna_1 = 'COVID_19_VACCINE_MODERNA_1'
+    covid_19_vax_moderna_2 = 'COVID_19_VACCINE_MODERNA_2'
+
+
 class ProviderUpdateAppointmentRequest(BaseModel):
     appointment_id: str = None
     action: str = None
+    service_code: ServiceCodesEnum = None
     operator_location_id: int = None
     workstation_id: Optional[int] = None
     vial_data: Optional[VialData] = None
