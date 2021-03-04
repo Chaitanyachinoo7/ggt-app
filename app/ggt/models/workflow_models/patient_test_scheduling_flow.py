@@ -329,8 +329,10 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
 
         b.st = finalize_registration_request.patientAddress.state
         b.dob = finalize_registration_request.patientDetails.dob
-        b.height = finalize_registration_request.patientVitals.height
-        b.weight = finalize_registration_request.patientVitals.weight
+        if "patientVitals" in dict(finalize_registration_request).keys() and finalize_registration_request.patientVitals:
+            b.height = finalize_registration_request.patientVitals.height
+            b.weight = finalize_registration_request.patientVitals.weight
+            b.meds = finalize_registration_request.patientVitals.medications
         b.ethnicity = finalize_registration_request.ethnicity
         b.race = finalize_registration_request.race
 
@@ -346,13 +348,13 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
             b.symptom_lack_of_smell = finalize_registration_request.symptoms.symptom_lack_of_smell
         b.covid_contact = finalize_registration_request.contactTracing
 
-        b.meds = finalize_registration_request.patientVitals.medications
-        b.heart_disease = finalize_registration_request.preExistingConditions.heart_disease
-        b.diabetes = finalize_registration_request.preExistingConditions.diabetes
-        b.respiratory_disease = finalize_registration_request.preExistingConditions.respiratory_disease
-        b.autoimmune_disease = finalize_registration_request.preExistingConditions.autoimmune_disease
-        b.other_chronic_disease = finalize_registration_request.preExistingConditions.other_chronic_disease
-        b.allergies = finalize_registration_request.preExistingConditions.allergies
+        if "preExistingConditions" in dict(finalize_registration_request).keys() and finalize_registration_request.preExistingConditions:
+            b.heart_disease = finalize_registration_request.preExistingConditions.heart_disease
+            b.diabetes = finalize_registration_request.preExistingConditions.diabetes
+            b.respiratory_disease = finalize_registration_request.preExistingConditions.respiratory_disease
+            b.autoimmune_disease = finalize_registration_request.preExistingConditions.autoimmune_disease
+            b.other_chronic_disease = finalize_registration_request.preExistingConditions.other_chronic_disease
+            b.allergies = finalize_registration_request.preExistingConditions.allergies
 
         # if the request comes from GGV, then set the vaccination service
 
