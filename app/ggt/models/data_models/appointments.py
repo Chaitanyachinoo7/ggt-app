@@ -769,13 +769,22 @@ def __add_services_to_appointment(appointment_id: int, appointment_req: GgtBooki
             )
             add_service_to_appointment(appointment_id, vaccine_service_code)
 
-        if appointment_req.service_covid19_test:
+        if appointment_req.services.covid_19_test:
             add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST)
 
-        if appointment_req.service_flu_shot:
+        if appointment_req.services.covid_19_test_mexico:
+            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST_MEXICO)
+
+        if appointment_req.services.covid_19_test_antigen:
+            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST_ANTIGEN)
+
+        if appointment_req.services.covid_19_test_antigen_mexico:
+            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST_MEXICO_ANTIGEN)
+
+        if appointment_req.services.flue_shot:
             add_service_to_appointment(appointment_id, c.SERVICE_CODE_FLU_SHOT)
 
-        if appointment_req.service_consult:
+        if appointment_req.services.consult:
             add_service_to_appointment(appointment_id, c.SERVICE_CODE_CONSULT)
 
         return True
