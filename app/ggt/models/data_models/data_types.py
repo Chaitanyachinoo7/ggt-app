@@ -9,6 +9,19 @@ class LocationToGroupMap(BaseModel):
     group_id: str = None
 
 
+class ServiceCodesEnum(str, Enum):
+    covid_19_test = 'COVID_19_TEST'
+    covid_19_test_mexico = 'COVID_19_TEST_MEXICO'
+    covid_19_test_antigen = 'COVID_19_TEST_ANTIGEN'
+    covid_19_test_antigen_mexico = 'COVID_19_TEST_MEXICO_ANTIGEN'
+    flue_shot = 'FLU_SHOT'
+    consult = 'CONSULT'
+    covid_19_vax_pfizer_1 = 'COVID_19_VACCINE_PFIZER_1'
+    covid_19_vax_pfizer_2 = 'COVID_19_VACCINE_PFIZER_2'
+    covid_19_vax_moderna_1 = 'COVID_19_VACCINE_MODERNA_1'
+    covid_19_vax_moderna_2 = 'COVID_19_VACCINE_MODERNA_2'
+
+
 class LocationToServiceMap(BaseModel):
     location_id: str = None
     service_id: str = None
@@ -331,7 +344,7 @@ class FinalizeRegistrationRequest(BaseModel):
     timeSlot: Optional[int] = None
     hasInsurance: Optional[bool] = None
     forceFinish: Optional[bool] = None
-    locationServices: Optional[List[LocationServiceRequest]] = None
+    selectedServices: Optional[List[ServiceCodesEnum]] = None
     language: Optional[str] = 'en'
 
 
@@ -495,19 +508,6 @@ class VialElements(BaseModel):
 class VialData(BaseModel):
     vial_id: str
     elements: Optional[VialElements] = None
-
-
-class ServiceCodesEnum(str, Enum):
-    covid_19_test = 'COVID_19_TEST'
-    covid_19_test_mexico = 'COVID_19_TEST_MEXICO'
-    covid_19_test_antigen = 'COVID_19_TEST_ANTIGEN'
-    covid_19_test_antigen_mexico = 'COVID_19_TEST_MEXICO_ANTIGEN'
-    flue_shot = 'FLU_SHOT'
-    consult = 'CONSULT'
-    covid_19_vax_pfizer_1 = 'COVID_19_VACCINE_PFIZER_1'
-    covid_19_vax_pfizer_2 = 'COVID_19_VACCINE_PFIZER_2'
-    covid_19_vax_moderna_1 = 'COVID_19_VACCINE_MODERNA_1'
-    covid_19_vax_moderna_2 = 'COVID_19_VACCINE_MODERNA_2'
 
 
 class ProviderUpdateAppointmentRequest(BaseModel):
