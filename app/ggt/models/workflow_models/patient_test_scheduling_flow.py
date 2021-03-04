@@ -325,6 +325,7 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
         b.city = finalize_registration_request.patientAddress.city.strip()
         b.zip = finalize_registration_request.patientAddress.zip_code.strip()
         b.email = finalize_registration_request.patientContact.email.strip()
+        b.country = finalize_registration_request.patientAddress.country.strip()
 
         b.st = finalize_registration_request.patientAddress.state
         b.dob = finalize_registration_request.patientDetails.dob

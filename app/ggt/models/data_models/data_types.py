@@ -205,6 +205,7 @@ class PatientAddress(BaseModel):
     street: str = None
     city: str = None
     zip_code: str = None
+    country: str = 'US'
 
 
 class PatientContact(BaseModel):
@@ -771,6 +772,7 @@ class GgtPatient(BaseModel):
     email: str = None
     email_verified: bool = None
     token: str = None
+    country: str = 'US'
 
 
 class GgtScheduleSlot(BaseModel):
@@ -998,6 +1000,7 @@ class GgtBooking(BaseModel):
     location_services: List[LocationService] = None
 
     language: str = 'en'
+    country: str = 'US'
     # science37:
 
 
