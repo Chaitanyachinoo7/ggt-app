@@ -862,6 +862,7 @@ class GgtDbLocation(BaseModel):
     is_external: bool = False
     group_ids: List[int] = []
     service_ids: List[int] = []
+    country: str = 'US'
 
 
 class GgtUpdateLocation(BaseModel):
