@@ -1053,6 +1053,7 @@ def __extract_patient_from_booking_req(booking_req: GgtBooking) -> GgtPatient:
         patient.ethnicity = booking_req.ethnicity
         patient.race = booking_req.race
         patient.st = booking_req.st
+        patient.country = booking_req.country
         return patient
 
     except Exception as err:

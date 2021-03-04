@@ -57,10 +57,12 @@ def create_patient_record(patient):
                     email, 
                     token,
                     result_token,
-                    token_expire
+                    token_expire,
+                    country
                 )
             VALUES 
-                (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, DATE_ADD(NOW(), interval 10 minute))
+                (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                DATE_ADD(NOW(), interval 10 minute), %s)
         """
 
         vals = (
@@ -81,7 +83,8 @@ def create_patient_record(patient):
             patient.phone_number_verified, 
             patient.email,
             patient.token,
-            patient.token
+            patient.token,
+            patient.country
         )
 
         return exec_insert(sql, vals)
