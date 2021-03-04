@@ -166,7 +166,9 @@ def days_between(d1, d2):
 def remove_user_after_30_inactive_days(users):
     for user in users.json()['users']:
         try:
-            if days_between(str(date.today()), user['last_login']) > 30:
+            if user['user_id'] == 'google-oauth2|103990689398897563239':
+                print('ss')
+            if days_between(str(date.today()), user['last_login']) > 40:
                 delete_user(user['user_id'], days_between(str(date.today()), user['last_login']))
         except KeyError:
             delete_user(user['user_id'], "never_logged_in")
@@ -176,8 +178,8 @@ def remove_user_after_30_inactive_days(users):
 
 for x in range(0, rounds):
     _existing_users: Response = requests.get(user_url.format(x), headers=headers)
-    task_populate_users(_existing_users, x)
-    # remove_user_after_30_inactive_days(_existing_users)
+    # task_populate_users(_existing_users, x)
+    remove_user_after_30_inactive_days(_existing_users)
     # add_organizations(_existing_users)
 
 

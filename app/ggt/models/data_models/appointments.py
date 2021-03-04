@@ -608,7 +608,7 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
                                 WHERE
                                     id = %s
                                 """.format(__get_mapped_dt_field(status))
-                vals = (status, injection_site, no_adverse_reactions, operator_location_id, appointment.id)
+                vals = (status, injection_site, operator_location_id, no_adverse_reactions, appointment.id)
 
             else:
                 sql = """
@@ -772,13 +772,22 @@ def __add_services_to_appointment(appointment_id: int, appointment_req: GgtBooki
             )
             add_service_to_appointment(appointment_id, vaccine_service_code)
 
-        if appointment_req.service_covid19_test:
+        if appointment_req.services.covid_19_test:
             add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST)
 
-        if appointment_req.service_flu_shot:
+        if appointment_req.services.covid_19_test_mexico:
+            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST_MEXICO)
+
+        if appointment_req.services.covid_19_test_antigen:
+            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST_ANTIGEN)
+
+        if appointment_req.services.covid_19_test_antigen_mexico:
+            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST_MEXICO_ANTIGEN)
+
+        if appointment_req.services.flue_shot:
             add_service_to_appointment(appointment_id, c.SERVICE_CODE_FLU_SHOT)
 
-        if appointment_req.service_consult:
+        if appointment_req.services.consult:
             add_service_to_appointment(appointment_id, c.SERVICE_CODE_CONSULT)
 
         return True

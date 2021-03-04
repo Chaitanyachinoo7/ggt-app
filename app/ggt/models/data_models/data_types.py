@@ -205,6 +205,7 @@ class PatientAddress(BaseModel):
     street: str = None
     city: str = None
     zip_code: str = None
+    country: str = 'US'
 
 
 class PatientContact(BaseModel):
@@ -497,9 +498,23 @@ class VialData(BaseModel):
     elements: Optional[VialElements] = None
 
 
+class ServiceCodesEnum(str, Enum):
+    covid_19_test = 'COVID_19_TEST'
+    covid_19_test_mexico = 'COVID_19_TEST_MEXICO'
+    covid_19_test_antigen = 'COVID_19_TEST_ANTIGEN'
+    covid_19_test_antigen_mexico = 'COVID_19_TEST_MEXICO_ANTIGEN'
+    flue_shot = 'FLU_SHOT'
+    consult = 'CONSULT'
+    covid_19_vax_pfizer_1 = 'COVID_19_VACCINE_PFIZER_1'
+    covid_19_vax_pfizer_2 = 'COVID_19_VACCINE_PFIZER_2'
+    covid_19_vax_moderna_1 = 'COVID_19_VACCINE_MODERNA_1'
+    covid_19_vax_moderna_2 = 'COVID_19_VACCINE_MODERNA_2'
+
+
 class ProviderUpdateAppointmentRequest(BaseModel):
     appointment_id: str = None
     action: str = None
+    service_code: ServiceCodesEnum = None
     operator_location_id: int = None
     workstation_id: Optional[int] = None
     vial_data: Optional[VialData] = None
@@ -772,6 +787,7 @@ class GgtPatient(BaseModel):
     email: str = None
     email_verified: bool = None
     token: str = None
+    country: str = 'US'
 
 
 class GgtScheduleSlot(BaseModel):
@@ -884,6 +900,19 @@ class GgtDateTimeLocation(BaseModel):
     accepts_bookings: bool = None
     website: str = None
     open_hours: str = None
+
+
+class ServiceCodes(BaseModel):
+    covid_19_test: bool = False
+    covid_19_test_mexico: bool = False
+    covid_19_test_antigen: bool = False
+    covid_19_test_antigen_mexico: bool = False
+    flue_shot: bool = False
+    consult: bool = False
+    covid_19_vax_pfizer_1: bool = False
+    covid_19_vax_pfizer_2: bool = False
+    covid_19_vax_moderna_1: bool = False
+    covid_19_vax_moderna_2: bool = False
 
 
 class GgtBooking(BaseModel):
@@ -1000,6 +1029,8 @@ class GgtBooking(BaseModel):
 
     language: str = 'en'
     country: str = 'US'
+
+    services: ServiceCodes = None
     # science37:
 
 
@@ -1372,6 +1403,7 @@ class PaymentRequestLineItem(BaseModel):
     product_name: str = ""
     product_images: List[str] = None
     quantity: int = 0
+    currency: str = 'usd'
 
 
 class PaymentRequestNavigation(BaseModel):
@@ -1392,6 +1424,7 @@ class PatientUpfrontPayment:
     is_payment_required: bool = None
     total_cost: int = None
     billed_amount: int = None
+    currency: str = 'usd'
 
 
 class ServicePayment:
@@ -1399,3 +1432,4 @@ class ServicePayment:
     service_code: str
     service_name: str
     selfpay_amount: int
+    currency: str
