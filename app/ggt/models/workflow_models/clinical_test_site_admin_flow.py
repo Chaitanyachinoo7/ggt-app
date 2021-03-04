@@ -7,6 +7,7 @@ from ggt.lib.utils import (
     y_response,
     whoami
 )
+from ggt.models.data_models.schedules import get_location_id_by_rule_id
 
 from ggt.models.process_models.bp_portal_experience import (
     bp_get_general_search_results,
@@ -172,8 +173,10 @@ def generate_all_schedules():
 
 def delete_schedule_generation_rule(id):
     status = False
-    if bp_delete_schedule_generation_rule(id):
-        status = bp_generate_full_schedule(id)
+    location_id = get_location_id_by_rule_id(id)
+    if location_id:
+        if bp_delete_schedule_generation_rule(id):
+            status = bp_generate_full_schedule(location_id)
 
     return x_response(
         status

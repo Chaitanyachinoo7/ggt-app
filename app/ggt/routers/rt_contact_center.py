@@ -18,7 +18,7 @@ from ggt.lib.email import send_email, render_template
 from ggt.lib.sms import send_sms
 from ggt.lib.utils import (
     get_config_val,
-    is_contact_center
+    is_contact_center, is_international
 )
 from ggt.models.data_models.data_types import (
     CCSendSMSRequest,
@@ -78,12 +78,14 @@ async def formatted_email_message(first_name, token, to_email):
 @router.post("/sendsms", dependencies=[Security(authorize_user, scopes=[p.SENDSMS])])
 async def api_cc_send_sms(CCSendSMSRequest: CCSendSMSRequest):
     try:
+        international = is_international(CCSendSMSRequest.to_number)
         send_sms(
             CCSendSMSRequest.to_number,
             formatted_sms_message(
                 CCSendSMSRequest.first_name,
                 CCSendSMSRequest.token
-            )
+            ),
+            international=international
         )
         return {STATUS: SUCCESS}
 
@@ -111,8 +113,9 @@ async def api_cc_send_sms_email(CCSendNotiRequest: CCSendNotiRequest):
             CCSendNotiRequest.first_name, CCSendNotiRequest.token, CCSendNotiRequest.to_email)
         send_email(email["from_email"], email["from_name"],
                          email["to_email"], email["subject"], email["html_content"])
+        international = is_international(CCSendSMSRequest.to_number)
         send_sms(CCSendNotiRequest.to_number, formatted_sms_message(
-            CCSendNotiRequest.first_name, CCSendNotiRequest.token))
+            CCSendNotiRequest.first_name, CCSendNotiRequest.token), international=international)
         return {STATUS: SUCCESS}
 
     except Exception as err:

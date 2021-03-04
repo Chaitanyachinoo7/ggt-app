@@ -185,7 +185,7 @@ security:
 
 payment:
   stripe:
-    secret_key: "sk_test_4eC39HqLyjWDarjtT1zdp7dc"
+    secret_key: "sk_test_KwLyiUKXNzDaqCjzCxHQ2xlo"
   navigation:
     success_url: "https://start-qa.gogettested.com/appointment/{}/pay/success?token={}"
     cancel_url: "https://start-qa.gogettested.com"

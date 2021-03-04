@@ -50,7 +50,8 @@ def create_checkout_session(payment_details):
         mode=stripe_checkout_request['mode'],
         success_url=stripe_checkout_request['success_url'],
         cancel_url=stripe_checkout_request['cancel_url'],
-        locale=stripe_checkout_request['locale']
+        locale=stripe_checkout_request['locale'],
+        billing_address_collection='required'  # Always include billing address
     )
     # Only required item is the session id
     # Replace this by a util if more than one field is required
