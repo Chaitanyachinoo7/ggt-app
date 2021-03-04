@@ -333,6 +333,7 @@ class FinalizeRegistrationRequest(BaseModel):
     forceFinish: Optional[bool] = None
     locationServices: Optional[List[LocationServiceRequest]] = None
     language: Optional[str] = 'en'
+    country: Optional[str] = 'US'
 
 
 class Payer(BaseModel):
@@ -1091,6 +1092,7 @@ class GgtAppointment(BaseModel):
     org_name: str = None
 
     payment_checkout_session: str = None
+    country: str = None
 
 
 class GgtTestSample(BaseModel):

@@ -829,7 +829,8 @@ def __send_qrcode_email(appointment: GgtAppointment):
                 cfg('base_url'),
                 appointment.id,
                 appointment.patient.dob.strftime('%Y%m%d')
-            )
+            ),
+            "hide_phone_number": appointment.country is not None and appointment.country in cfg('notifications.hide_phone_number_in_countries')
         }
 
         subject = render_from_string(
