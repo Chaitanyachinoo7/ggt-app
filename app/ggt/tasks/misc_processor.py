@@ -63,9 +63,11 @@ def task_process_misc():
     # upload_insurance_images_to_gcp_with_small_table()
     #process_email_notifications()
     #upload_insurance_files_from_gstore()
-    process_sms_notifications()
+    #process_sms_notifications()
     #process_email_notifications()
     #dedupe_tokens()
+    #process_raw_list_sms_notifications()
+    process_vax()
 
     log_generic(
         type=c.INFO,
@@ -743,3 +745,34 @@ def dedupe_tokens():
         handle_duplicate_tokens
     )
     handle_duplicate_tokens()
+
+
+
+
+
+def process_raw_list_sms_notifications():
+    rows = [
+                ['+19999999999','Tom','https://start.gogetvax.com/vax/schedule/startwt/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbiI6ImFlY2ZkYjA1LWY2OGEtNGM2Mi05Yjk2LTFlNjMxMzk0MTFhZiIsImV4cCI6MTYxNjE0ODg5MH0.TBo_PwkIwTCYvbJChvaRktAKVrT68sRnHsQHH648R1g/_ROCKWALL_'],
+                ['+19999999999','Ted','https://start.gogetvax.com/vax/schedule/startwt/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbiI6IjgzZDM5MzYzLTc2MTYtNDQ5NS1iMzQzLWE0YzczZmVjZDYzYSIsImV4cCI6MTYxNjE0ODg5MH0.a8LZjyJesGfFaSOiPQabKWLh2t8ndwanwjgbqCo6F70/_ROCKWALL_'],
+                
+            ]
+    data = []
+    for row in rows:
+        phone_number = row[0]
+        first_name = row[1]
+        link = row[2]
+        message = """Hi {}, Congratulations! You're now eligible to get your Covid-19 vaccine through Rockwall County. Please click this link to register for your vaccine: {}
+        Thank you! —GoGetVax, the easiest way to get vaccinated""".format(first_name, link)
+
+        data.append(
+            (phone_number, message)
+        )
+
+    batch_enqueue_sms_notifications(data)
+
+
+def process_vax():
+    from ggt.tasks.vax_tx_outbound_hl7 import (
+         process_vax_hl7         
+    )
+    process_vax_hl7()
