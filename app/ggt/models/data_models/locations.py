@@ -261,6 +261,7 @@ def search_locations(account, group_code, site_code, location_name, org_id, id=N
                     l.open_hours,
                     l.phone_number,
                     l.is_external,
+                    l.country,
                     s.service_names,
                     gp.group_accounts,
                     gp.group_codes,
