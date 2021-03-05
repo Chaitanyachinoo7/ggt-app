@@ -159,6 +159,7 @@ appointments = [
         "total_cost": None,
         "billed_amount": None,
         "status": "scheduled",
+        "language": "en",
         "billing_status": "pending",
         "vax_start_dt": "2020-07-06 16:40:09",
         "vax_notes_dt": "2020-07-06 16:40:09",

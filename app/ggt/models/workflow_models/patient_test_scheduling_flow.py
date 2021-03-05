@@ -329,8 +329,10 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
 
         b.st = finalize_registration_request.patientAddress.state
         b.dob = finalize_registration_request.patientDetails.dob
-        b.height = finalize_registration_request.patientVitals.height
-        b.weight = finalize_registration_request.patientVitals.weight
+        if "patientVitals" in dict(finalize_registration_request).keys() and finalize_registration_request.patientVitals:
+            b.height = finalize_registration_request.patientVitals.height
+            b.weight = finalize_registration_request.patientVitals.weight
+            b.meds = finalize_registration_request.patientVitals.medications
         b.ethnicity = finalize_registration_request.ethnicity
         b.race = finalize_registration_request.race
 
@@ -346,18 +348,18 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
             b.symptom_lack_of_smell = finalize_registration_request.symptoms.symptom_lack_of_smell
         b.covid_contact = finalize_registration_request.contactTracing
 
-        b.meds = finalize_registration_request.patientVitals.medications
-        b.heart_disease = finalize_registration_request.preExistingConditions.heart_disease
-        b.diabetes = finalize_registration_request.preExistingConditions.diabetes
-        b.respiratory_disease = finalize_registration_request.preExistingConditions.respiratory_disease
-        b.autoimmune_disease = finalize_registration_request.preExistingConditions.autoimmune_disease
-        b.other_chronic_disease = finalize_registration_request.preExistingConditions.other_chronic_disease
-        b.allergies = finalize_registration_request.preExistingConditions.allergies
+        if "preExistingConditions" in dict(finalize_registration_request).keys() and finalize_registration_request.preExistingConditions:
+            b.heart_disease = finalize_registration_request.preExistingConditions.heart_disease
+            b.diabetes = finalize_registration_request.preExistingConditions.diabetes
+            b.respiratory_disease = finalize_registration_request.preExistingConditions.respiratory_disease
+            b.autoimmune_disease = finalize_registration_request.preExistingConditions.autoimmune_disease
+            b.other_chronic_disease = finalize_registration_request.preExistingConditions.other_chronic_disease
+            b.allergies = finalize_registration_request.preExistingConditions.allergies
 
         # if the request comes from GGV, then set the vaccination service
 
         """
-        This section of the code will be deprecated as we get all selected services from locationServices
+        This section of the code will be deprecated as we get all selected services from selectedServices
         """
         if ggv:
             b.service_covid19_vaccine = True
@@ -401,20 +403,19 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
         if "pre_register" in finalize_registration_request.fields.keys():
             b.pre_register = finalize_registration_request.pre_register
 
-        if "locationServices" in dict(finalize_registration_request).keys():
+        if "selectedServices" in dict(finalize_registration_request).keys():
             location_services = []
             selected_services = ServiceCodes()
             # Iterate through each location service item and get the LocationService object
-            for item in finalize_registration_request.locationServices:
+            for item in finalize_registration_request.selectedServices:
                 location_service = LocationService()
-                location_service.service_code = item.sku
+                location_service.service_code = item
                 location_services.append(location_service)
-                selected_services = __assign_services(selected_services, item.sku)
+                selected_services = __assign_services(selected_services, item)
             b.location_services = location_services
             b.services = selected_services
 
         b.language = finalize_registration_request.language
-        b.country = finalize_registration_request.country
 
         with suppress(AttributeError):
             b.public_places_bars_restaurants_cafes = finalize_registration_request.publicPlaces.bars_restaurants_cafes

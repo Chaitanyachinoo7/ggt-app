@@ -4,12 +4,83 @@
 #   en: '' -> English
 #   es: '' -> Spanish
 #   ...
-#   default: '' -> have this always, as the fallback
+#  ### 'en' is required! -> this is used as the fallback if the given language is not available
 
 registration_charges:
   en: 'Registration Charges'
   es: 'cargos de registro'
-  default: 'Registration Charges'
 
 lorem_ipsum:
   default: 'Lorem Ipsum'
+
+
+# -- Begin of Complete registration SMS
+ggt_sms_registration_complete:
+  en: "Hi {}, thank you for completing your registration at GoGetTested.com\nYour appointment is confirmed for {} at {}. Details at {}/appointment/{}/{} \nReply STOP to cancel msgs"
+  es: "Hola {}, gracias por completar su registro en GoGetTested.com.\nSu cita está confirmada para {}. en {}. Detalles en {}/appointment/{}/{} \nResponde STOP para cancelar mensajes"
+
+ggt_sms_followup_message:
+  en: "Please arrive 15 minutes prior to your appointment. Bring this QR code, and an Acceptable ID when you arrive at the test. We will scan the QR code to check you in for testing. Please, no eating or drinking at least 15 minutes prior to testing as this may impact your test results."
+  es: "Por favor, llegue 15 minutos antes de su cita. Traiga este código QR y una identificación aceptable cuando llegue a la prueba. Escanearemos el código QR para registrarlo para la prueba. Por favor, no coma ni beba al menos 15 minutos antes de la prueba, ya que esto puede afectar los resultados de la prueba."
+# -- End of Complete registration SMS
+
+
+# -- Start of GGT-1-APPOINTMENT-CONFIRMATION-EMAIL.html template variables 
+
+ggt_1_subject_test_scheduled:
+  en: 'Your Covid-19 test has been scheduled'
+  es: 'Su prueba de Covid-19 ha sido programada'
+
+ggt_1_thanks_scheduling:
+  en: 'Thank you for scheduling your Covid-19 test with GoGetTested.com .'
+  es: 'Gracias por programar su prueba Covid-19 con GoGetTested.com .'
+
+ggt_1_appointment_number:
+  en: 'Appointment #'
+  es: 'Cita #'
+
+ggt_1_test_scheduled:
+  en: 'Your test has been scheduled.'
+  es: 'su prueba ha sido programada.'
+
+ggt_1_your_date_time:
+  en: 'Your testing Date, Time, and location can be found below.'
+  es: 'La fecha, hora y ubicación de la prueba se pueden encontrar a continuación.'
+
+ggt_1_please_arrive:
+  en: 'Please arrive at the testing location 15 minutes early to avoid congestion. Also make sure to bring an Acceptable ID, and QR code.'
+  es: 'Llegue al lugar del examen 15 minutos antes para evitar la congestión. También asegúrese de traer una identificación aceptable y un código QR.'
+
+ggt_1_no_eating:
+  en: 'Please, no eating or drinking 15 minutes prior to your appointment as this may impact your test results.'
+  es: 'Por favor, no coma ni beba 15 minutos antes de su cita, ya que esto puede afectar los resultados de su prueba.'
+
+ggt_1_even_if_better:
+  en: "Even if you are feeling better, it 's important to get tested to help us stop COVID-19 from spreading."
+  es: 'Incluso si se siente mejor, es importante hacerse una prueba para ayudarnos a detener la propagación del COVID-19.'
+
+ggt_1_test_location:
+  en: 'Test Location'
+  es: 'Lugar de prueba'
+
+ggt_1_test_date_time:
+  en: 'Testing Date & Time'
+  es: 'Fecha y hora de la prueba'
+
+ggt_1_view_appointment:
+  en: 'View My Appointment'
+  es: 'Ver mi cita'
+
+ggt_1_about_us:
+  en: 'About Us.'
+  es: 'Sobre nosotros.'
+
+ggt_1_about_us_details:
+  en: 'GoGetTested.com was created to expand access to COVID-19 care to all populations. If you or someone you know wishes to start a COVID-19 test, please contact us.'
+  es: 'GoGetTested.com se creó para ampliar el acceso a la atención de COVID-19 para todos. Si usted o alguien que conoce desea comenzar una prueba de COVID-19, comuníquese con nosotros.'
+
+ggt_1_start_test:
+  en: 'Start a Test'
+  es: 'Iniciar una prueba'
+
+# -- End of GGT-1-APPOINTMENT-CONFIRMATION-EMAIL.html template variables 

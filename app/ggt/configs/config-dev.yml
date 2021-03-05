@@ -77,12 +77,12 @@ databases:
 notifications:
   from_email: support@gogettested.com
   from_name: Go Get Tested
-  confirmation_subject: "{{first_name}}, Your Covid-19 test has been scheduled"
+  confirmation_subject: '{{first_name}}, {{subject_test_scheduled}}'
   result_subject: COVID-19 Testing Result Available
   appointment_reminder_sublect: GoGetTested COVID-19 Testing Appointment Reminder
   relocate_subject: COVID-19 Testing Appointment has Changed
   reschedule_subject: COVID-19 Testing Appointment is Re-Scheduled
-  confirmation_template: GGT-1-APPOINTMENT-CONFIRMATION-EMAIL.html.html
+  confirmation_template: GGT-1-APPOINTMENT-CONFIRMATION-EMAIL.html
   result_template: GGT-5-RESULT-AVAILABLE-EMAIL.html
   appointment_reminder_template: GGT-2-APPOINTMENT-REMINDER.html
   relocate_template: GGT-7-APPOINTMENT-RESCHEDULE-EMAIL.html

@@ -261,6 +261,7 @@ def search_locations(account, group_code, site_code, location_name, org_id, id=N
                     l.open_hours,
                     l.phone_number,
                     l.is_external,
+                    l.country,
                     s.service_names,
                     gp.group_accounts,
                     gp.group_codes,
@@ -338,10 +339,11 @@ def create_location(location, organization_id):
                    phone_number,
                    website,
                    open_hours,
-                   is_external
+                   is_external,
+                   country
                )
                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 
-               %s, %s, %s, %s)
+               %s, %s, %s, %s, %s)
                """
         vals = (
             location.site_code,
@@ -371,7 +373,8 @@ def create_location(location, organization_id):
             location.phone_number,
             location.website,
             location.open_hours,
-            location.is_external
+            location.is_external,
+            location.country
         )
         location_id = exec_insert(sql, vals)
 
