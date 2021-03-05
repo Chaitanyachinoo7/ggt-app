@@ -14,14 +14,14 @@ app
 ├── ggt
 │   ├── lib
 │       ├── adapters 
-│           ├── stripe_adater.py # py file to be tested
+│           ├── stripe_adapter.py # py file to be tested
 │           ├── ...  
 ├── ...
 ├── tests
 │   ├── ggt_tests
 │       ├── lib
 │           ├── adapters 
-│               ├── test_stripe_adater.py # test py with tests
+│               ├── test_stripe_adapter.py # test py with tests
 │               ├── ...
 ```
 
@@ -47,6 +47,8 @@ python -m unittest discover -v  app/tests/ggt_tests
 
 - Open the Run/Debug configuration window
 - Click on Add New Configuration button `+`
-- Under Python Tests select Unittests
+- Under Python Tests select `Unittests`
+- Give a name
 - Set the `Script Path` to `<ggt_project_directory>/app/tests/ggt_tests`
 - Set the `Working directory` to `<ggt_project_directory>/app`
+- Save and Run 
