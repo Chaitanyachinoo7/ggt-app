@@ -165,7 +165,7 @@ def preload_crl_rpt_data():
     key_prefix = 'crllabs/prod/results/'
     key_suffix = '.rpt'
 
-    for file_path, last_modified in get_file_iterator(bucket=lab_inbound_bucket, prefix=key_prefix, suffix=key_suffix, get_last_modifie=True):
+    for file_path, last_modified in get_file_iterator(bucket=lab_inbound_bucket, prefix=key_prefix, suffix=key_suffix, get_last_modified=True):
         _order_number = None
         _test_result = None
         _requisition_id = None
