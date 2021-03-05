@@ -399,6 +399,52 @@ CONTACT_ID=ZSKFTP1
 REASON_TYPE=NS
 '''
 
+def archive_stale_rpt_files():
+    key_prefix = 'crllabs/prod/results/'
+    key_suffix = '.rpt'
+
+    ggt_order_ids_mapped_rpt = {}
+    counter = 1
+    for file_path in get_file_iterator(bucket=lab_inbound_bucket, prefix=key_prefix, suffix=key_suffix):
+        order_number = None
+        requisition_id = None
+
+        arr = file_path.split('/')
+        filename = arr[len(arr)-1]
+
+        # is a folder name
+        if filename == '':
+            continue
+
+        # parse index file
+        for line in read_file(lab_inbound_bucket, file_path).splitlines():
+            line = line.decode("utf-8")
+
+            if line.startswith('OBR'):
+                order_number = line.split('|')[2]
+                ggt_order_ids_mapped_rpt[order_number] = file_path
+                print("{0}. got order ID - {1} from file - {2}".format(counter, order_number, file_path))
+                break
+        counter += 1
+
+    stale_rpts = []
+
+    sql = """
+        SELECT id from test_samples where lab_id = 3 and status = 'lab_result_received'
+    """
+
+    completed_orders = read_rows(sql,)
+    print("Completed orders - {}".format(completed_orders))
+
+    for order in completed_orders:
+        if str(order['id']) in ggt_order_ids_mapped_rpt.keys():
+            stale_rpts.append(ggt_order_ids_mapped_rpt[str(order['id'])])
+
+    print("Found {0} stale RPT files".format(len(stale_rpts)))
+    print(stale_rpts)
+    for rpt_file in stale_rpts:
+        archive_inbound_file(3, True, rpt_file, rpt_file)
+
 
 def extract_report_info_crl(file_path):
     filename = None
