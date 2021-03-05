@@ -68,3 +68,21 @@ class StripeAdapterTest(unittest.TestCase):
             billing_address_collection='required'
         )
 
+    def test_failure_with_invalid_payload(self):
+        exception = None
+        try:
+            # Mock stripe
+            stripe.checkout.Session.create = Mock(name='create')
+            # We are sending a empty payment body
+            payment_request = PaymentRequestBody()
+            payment_navigation = PaymentRequestNavigation()
+            payment_navigation.cancel_url = "http://cancel.com"
+            payment_navigation.success_url = "http://success.com"
+            payment_request.navigation = payment_navigation
+
+            create_checkout_session(payment_request)
+        except Exception as e:
+            # Line items was not set hence exception is thrown here
+            exception = e
+
+        self.assertIsNotNone(exception)
