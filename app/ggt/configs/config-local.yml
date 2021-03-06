@@ -204,7 +204,7 @@ security:
 
 payment:
   stripe:
-    secret_key: "sk_test_KwLyiUKXNzDaqCjzCxHQ2xlo"
+    secret_key: "sk_test_51IGaIYJMdl1bL20eyY2NZZRqILZDpVo3H01QpANclE3XLaO6nv53nR0mbS7QPpbqSo3ZBhpbCtqmoKwxaeNv8Gl700qizE8web"
   navigation:
     success_url: "https://start-dev.gogettested.com/appointment/{}/pay/success?token={}"
     cancel_url: "https://start-dev.gogettested.com"
