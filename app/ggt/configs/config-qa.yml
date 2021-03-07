@@ -3,6 +3,7 @@ app_version: 1.1
 log_level: INFO
 base_url: https://start-qa.GoGetTested.com
 portal_url: https://portal-qa.gogettested.com
+ops_url: https://ops-dev.gogettested.com
 env: PROD
 default_timezone: CST
 
@@ -207,7 +208,7 @@ security:
 
 payment:
   stripe:
-    secret_key: "sk_test_KwLyiUKXNzDaqCjzCxHQ2xlo"
+    secret_key: "sk_test_51IGaIYJMdl1bL20eyY2NZZRqILZDpVo3H01QpANclE3XLaO6nv53nR0mbS7QPpbqSo3ZBhpbCtqmoKwxaeNv8Gl700qizE8web"
   navigation:
     success_url: "https://start-qa.gogettested.com/appointment/{}/pay/success?token={}"
     cancel_url: "https://start-qa.gogettested.com"
@@ -217,4 +218,4 @@ image_urls:
   flu_shot:
     - 'http://ggt-image-server.com/flu' # Add a URL of a stock photo or S3 bucket
   payment:
-    - 'https://storage.googleapis.com/ggt-public-assets/images/GGT-GREEN-TRANSPARENT@2x-GM0.png' # Add a URL of a stock photo or S3 bucket
+    - 'https://goget-static-content.s3.us-east-2.amazonaws.com/fit2fly_icon.png' # Add a URL of a stock photo or S3 bucket
