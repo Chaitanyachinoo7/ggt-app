@@ -54,8 +54,8 @@ def task_process_misc():
         task_session_id=session_id,
         info='Begin Processing Misc Task')
 
-    process_bcg_locations_file()
-    #process_mx_locations_file()
+    #process_bcg_locations_file()
+    process_mx_locations_file()
     #update_schedules()
 
     # upload_insurance_images_to_gcp()

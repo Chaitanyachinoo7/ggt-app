@@ -1,9 +1,9 @@
 app_name: ggt-api
 app_version: 1.1
-log_level: INFO
+log_level: DEBUG
 base_url: https://start.GoGetTested.com
-portal_url: https://portal-dev.gogettested.com
-env: DEV
+portal_url: https://portal.gogettested.com
+env: LOCAL-PROD
 default_timezone: CST
 
 server:
@@ -58,10 +58,10 @@ docs:
   redoc_url: /redoc
 
 aws:
-  dynamo_table_name: available_slots
+  dynamo_table_name: prod_available_slots
   sqs_region: us-east-2
   queue_count: 2
-  sqs_url: https://sqs.us-east-2.amazonaws.com/135292740376/available_time_requests
+  sqs_url: https://sqs.us-east-2.amazonaws.com/135292740376/available_slot_management_queue_{}
   vax_sms_que: https://sqs.us-east-2.amazonaws.com/135292740376/vax_scheduled_sms_notification_queue
   region: us-east-1
   access_key_id: AKIAR7AATMMMGKHVWYP6
@@ -74,6 +74,7 @@ gcp:
   project_id: ggt-pfe-prod
   service_account_file: gcp-service-account.json
   default_link_expiration_time_limit: 300
+  service_account_file_prod: gcp-service-account-prod.json
   all_inbound_files_bucket_name: ggt-all-inbound-files-prod
   lab_reports_bucket_name: ggt-lab-reports-prod
   insurance_cards_bucket_name: ggt-insurance-cards-prod
@@ -84,8 +85,8 @@ gcp:
 
 databases:
   mysql:
-    host: ggt-dev-db.cluster-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
-    read_replica_host: ggt-dev-db.cluster-ro-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+    host: prod-ggt-aurora.cluster-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+    read_replica_host: reader.cluster-custom-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
     username: admin
     password: hWMgl5Tfkqn30saQNp9M
     db: ggt_prod
@@ -152,7 +153,7 @@ vendors:
     management_client_id: 6ok7VWNkeOA6An5sN30Jl9gHoH4oUT8j
     management_sectret: Rwx8-mby99m5O-2aR14JKgoim0VV0FJuO6sefpDxXjKiQ18mys4JWf2oAO6_5Mha
     connection: Username-Password-Authentication
-  
+
   healthtrackrx:
     ggt_api:
       api_key_name: x-api-key
@@ -189,7 +190,7 @@ vendors:
     slack_channel: '#my-channel'
     slack_icon_url: https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTuGqps7ZafuzUsViFGIremEL2a3NR0KO0s0RTCMXmzmREJd5m4MA&s
     slack_user_name: Double Images Monitor
-    
+
 pfe:
   signup:
     special_phone_1: '+14158888888'
@@ -198,9 +199,9 @@ pfe:
     special_phone_4: '4159999999'
     override_otp_code: '000000'
 
-
 security:
   ggv_secret: "thisistheggvtopsecret2021"
+
 
 payment:
   stripe:
