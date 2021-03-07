@@ -1,5 +1,6 @@
 import datetime
 import time
+import json
 
 from ggt.lib.utils import (
     get_config_val as cfg,
@@ -45,7 +46,7 @@ labreport_bucket = 'ggt-labreports'
 lab_archive_bucket = 'ggt-sftp-archive'
 
 result_cache = {}
-
+MAX_FILE_IDLE_TIME = 3600 # in seconds
 
 def task_process_inbound_lab_reports():
     start = time.time()
@@ -105,29 +106,29 @@ def process_pdf_results_for_lab(lab_id):
         print_error('Unknown LAB')
         return
 
-    for filename in get_file_iterator(bucket=lab_inbound_bucket, prefix=key_prefix, suffix=key_suffix):
+    for filename, last_modified in get_file_iterator(bucket=lab_inbound_bucket, prefix=key_prefix, suffix=key_suffix, get_last_modified=True):
         lab_inbound_key = filename
         lab_archive_key = lab_inbound_key
 
         try:
             if lab_id == 1:  # AIT
                 requisition_id, order_number, test_result, test_status, labreport_filename = extract_report_info_ait(
-                    filename)
+                    filename, last_modified=last_modified)
             elif lab_id == 2:  # MAWD
                 requisition_id, order_number, test_result, test_status, labreport_filename = extract_report_info_mawd(
-                    filename)
+                    filename, last_modified=last_modified)
             elif lab_id == 3:  # CRL
                 requisition_id, order_number, test_result, test_status, labreport_filename, original_labreport_filename = extract_report_info_crl(
-                    filename)
+                    filename, last_modified=last_modified)
             elif lab_id == 4:  # LAB3A uses samefunction as mawd
                 requisition_id, order_number, test_result, test_status, labreport_filename = extract_report_info_mawd(
-                    filename)
+                    filename, last_modified=last_modified)
             elif lab_id == 5:  # CHOPO uses samefunction as mawd
                 requisition_id, order_number, test_result, test_status, labreport_filename = extract_report_info_mawd(
-                    filename)
+                    filename, last_modified=last_modified)
             else:
                 raise ValueError('Unknown Lab')
-
+        
             labreport_key = labreport_filename
 
             if requisition_id is None:
@@ -164,7 +165,7 @@ def preload_crl_rpt_data():
     key_prefix = 'crllabs/prod/results/'
     key_suffix = '.rpt'
 
-    for file_path in get_file_iterator(bucket=lab_inbound_bucket, prefix=key_prefix, suffix=key_suffix):
+    for file_path, last_modified in get_file_iterator(bucket=lab_inbound_bucket, prefix=key_prefix, suffix=key_suffix, get_last_modified=True):
         _order_number = None
         _test_result = None
         _requisition_id = None
@@ -201,6 +202,9 @@ def preload_crl_rpt_data():
                                 'Uknown result: {} / appointment_id {}'.format(r, _order_number))
 
                 except Exception as err:
+                    if last_modified and (datetime.datetime.now(datetime.timezone.utc) - last_modified).seconds > MAX_FILE_IDLE_TIME:
+                        error_log(file_path, lab='CRL', last_modified=last_modified, order_number=_order_number, req_id=_requisition_id,
+                            reason='Unable to parse RPT file: {}'.format(str(err)))
                     print_error(
                         'Error processing — {} — {}'.format(err, filename))
 
@@ -290,7 +294,7 @@ def archive_inbound_file(lab_id, archive, lab_inbound_key, lab_archive_key):
 # 'ggt-tasks/downloads/healthtrackrx/Reports/3561603_967995_Negative.pdf'
 # 'ggt-tasks/downloads/healthtrackrx/Reports/3560192_962060_Positive.pdf'
 # 'ggt-tasks/downloads/healthtrackrx/Reports/3553760__Rejected.pdf'
-def extract_report_info_ait(file_path):
+def extract_report_info_ait(file_path, last_modified=None):
     filename = None
     requisition_id = None
     order_number = None
@@ -323,10 +327,13 @@ def extract_report_info_ait(file_path):
         return requisition_id, order_number, test_result, test_status, filename
 
     except Exception as err:
+        if last_modified and (datetime.datetime.now(datetime.timezone.utc) - last_modified).seconds > MAX_FILE_IDLE_TIME:
+            error_log(file_path, lab='AIT', last_modified=last_modified, order_number=order_number, req_id=requisition_id,
+                reason=str(err))
         print_error(err)
 
 
-def extract_report_info_mawd(file_path):
+def extract_report_info_mawd(file_path, last_modified=None):
     filename = None
     vial_id = None
     order_number = None
@@ -379,6 +386,9 @@ def extract_report_info_mawd(file_path):
         return vial_id, order_number, test_result, test_status, filename
 
     except Exception as err:
+        if last_modified and (datetime.datetime.now(datetime.timezone.utc) - last_modified).seconds > MAX_FILE_IDLE_TIME:
+            error_log(file_path, lab='MAWD', last_modified=last_modified, order_number=order_number, req_id=vial_id,
+                reason=str(err))
         print_error(err)
 
 
@@ -400,7 +410,7 @@ REASON_TYPE=NS
 '''
 
 
-def extract_report_info_crl(file_path):
+def extract_report_info_crl(file_path, last_modified=None):
     filename = None
     requisition_id = None
     order_number = None
@@ -450,6 +460,11 @@ def extract_report_info_crl(file_path):
         return requisition_id, order_number, test_result, test_status, filename, pdf_file_path
 
     except Exception as err:
+        print(last_modified)
+        print(datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0))
+        if last_modified and (datetime.datetime.now(datetime.timezone.utc) - last_modified).seconds > MAX_FILE_IDLE_TIME:
+            error_log(file_path, lab='CRL', last_modified=last_modified, order_number=order_number, req_id=requisition_id,
+                reason=str(err))
         print_error(err)
 
 
@@ -594,3 +609,22 @@ def extract_filename(file_path):
     arr = file_path.split('/')
     filename = arr[len(arr)-1]
     return filename
+
+def error_log(file_path, lab=None, last_modified=None, order_number=None, req_id=None, reason=None):
+    with open('errors.json') as json_file:
+        data = json.load(json_file)
+        errors = data['errors']
+
+    new_error = {
+        "file": file_path,
+        "lab": lab,
+        "order_number": order_number,
+        "requisition_id": req_id,
+        "reason": reason,
+        "last_modified": str(last_modified)
+    }
+
+    if new_error not in errors:
+        errors.append(new_error)
+        with open('errors.json', 'w') as f:
+            json.dump({"errors" : errors}, f, indent=4)
