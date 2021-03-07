@@ -16,7 +16,7 @@ host_prod = "https://ggt-portal-api.gogettested.com/{}"
 host_local = "http://0.0.0.0:8888/{}"
 
 HOST = host_local
-TOKEN = token_prod
+TOKEN = token_dev
 
 auth = "Bearer {}".format(TOKEN)
 

@@ -3,6 +3,7 @@ app_version: 1.1
 log_level: INFO
 base_url: https://start.GoGetTested.com
 portal_url: https://portal-dev.gogettested.com
+ops_url: https://ops-dev.gogettested.com
 env: DEV
 default_timezone: CST
 
