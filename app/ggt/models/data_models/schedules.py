@@ -572,6 +572,62 @@ def get_available_times(location_id, date):
         return None
 
 
+def get_second_slot_reschedule_dates(location_id, ap1_date):
+    try:
+        sql = """SELECT DISTINCT
+                    l.id,
+                    (CASE
+                        WHEN c.service_code LIKE '%PFIZER%' THEN 21
+                        WHEN c.service_code LIKE '%MODERNA%' THEN 28
+                    END) AS date_diff,
+                    smc.first_available_slot,
+                    CAST(smc.first_available_slot AS DATE) available_date,
+                    smc.last_available_slot
+                FROM
+                    locations l
+                        LEFT JOIN
+                    services_to_locations_mapping m ON (m.location_id = l.id)
+                        LEFT JOIN
+                    services_catalog c ON (c.id = m.service_id)
+                        LEFT JOIN
+                    ggv_schedules_metrics_cache smc ON (smc.location_id = l.id)
+                        LEFT JOIN
+                    locations_metrics_cache lmc ON (lmc.location_id = l.id)
+                        LEFT JOIN
+                    (SELECT 
+                        last_available_slot AS max_last_available_slot, location_id
+                    FROM
+                        ggv_schedules_metrics_cache) mg ON l.id = mg.location_id
+                WHERE
+                    l.id = %s AND l.status = 'enabled'
+                        AND smc.available_slots_count > 0
+                        AND c.service_code LIKE '%VACCINE%'
+                        AND smc.first_available_slot IS NOT NULL
+                        AND smc.first_available_slot >= CONVERT_TZ(NOW(), '+00:00', '-06:00')
+                HAVING DATEDIFF(smc.last_available_slot, %s) >= date_diff - {}
+                    AND DATEDIFF(smc.last_available_slot, %s) <= date_diff + {}
+        """.format(5, 5)
+        vals = (location_id, ap1_date, ap1_date)
+        '''
+        log_generic(
+            type=c.INFO,
+            function=whoami(),
+            location_id=location_id,
+            date=date,
+            info='looking_up_available_times'
+        )
+        '''
+        return replica_read_rows(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 def get_second_shot_available_times(location_id, date):
     try:
         sql = """
