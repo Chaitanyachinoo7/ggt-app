@@ -19,7 +19,8 @@ from ggt.models.process_models.bp_patient_experience import (
     bp_get_test_result, bp_add_to_ggd_waiting_queue,
     bp_get_wellpay_insurance_eligibility,
     bp_search_insurance_payer_list, bp_get_ggv_screen_flow_seq, bp_ggv_finalize_booking, bp_ggv_finalize_pre_booking,
-    bp_create_pre_registration, bp_verify_verification_token, bp_reschedule_first_appointment
+    bp_create_pre_registration, bp_verify_verification_token, bp_reschedule_first_appointment,
+    bp_reschedule_second_appointment
 )
 
 from ggt.models.process_models.bp_schedules import (
@@ -28,7 +29,7 @@ from ggt.models.process_models.bp_schedules import (
     bp_get_schedule_times_available,
     bp_get_all_available_locations_and_times,
     bp_get_schedule_locations_available_near_lat_lng, bp_ggv_get_schedule_locations_available_near_lat_lng,
-    bp_get_second_shot_available_times, bp_get_ggv_schedule_times_available
+    bp_get_second_shot_available_times, bp_get_ggv_schedule_times_available, bp_get_second_slot_reschedule_dates
 )
 
 from ggt.models.process_models.bp_appointments import (
@@ -37,7 +38,7 @@ from ggt.models.process_models.bp_appointments import (
 
 from ggt.models.data_models.data_types import (
     GgtBooking,
-    LocationService
+    LocationService, ServiceCodes
 )
 
 import ggt.lib.constants as c
@@ -79,6 +80,16 @@ def reschedule_first_appointment(req):
             req.appointment_1_dt_id,
             req.appointment_2_dt_id,
             req.phone_number
+        )
+    )
+
+
+def reschedule_second_appointment(req):
+    return x_response(
+        bp_reschedule_second_appointment(
+            req.appointment_id_1,
+            req.appointment_id_2,
+            req.appointment_2_dt_id
         )
     )
 
@@ -160,6 +171,15 @@ def get_ggv_schedule_times_available(
         bp_get_ggv_schedule_times_available(
             location_id,
             date
+        )
+    )
+
+
+def get_second_slot_reschedule_dates(location_id, ap1_date):
+    return x_response(
+        bp_get_second_slot_reschedule_dates(
+            location_id,
+            ap1_date
         )
     )
 
@@ -326,11 +346,14 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
         b.city = finalize_registration_request.patientAddress.city.strip()
         b.zip = finalize_registration_request.patientAddress.zip_code.strip()
         b.email = finalize_registration_request.patientContact.email.strip()
+        b.country = finalize_registration_request.patientAddress.country.strip()
 
         b.st = finalize_registration_request.patientAddress.state
         b.dob = finalize_registration_request.patientDetails.dob
-        b.height = finalize_registration_request.patientVitals.height
-        b.weight = finalize_registration_request.patientVitals.weight
+        if "patientVitals" in dict(finalize_registration_request).keys() and finalize_registration_request.patientVitals:
+            b.height = finalize_registration_request.patientVitals.height
+            b.weight = finalize_registration_request.patientVitals.weight
+            b.meds = finalize_registration_request.patientVitals.medications
         b.ethnicity = finalize_registration_request.ethnicity
         b.race = finalize_registration_request.race
 
@@ -346,15 +369,19 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
             b.symptom_lack_of_smell = finalize_registration_request.symptoms.symptom_lack_of_smell
         b.covid_contact = finalize_registration_request.contactTracing
 
-        b.meds = finalize_registration_request.patientVitals.medications
-        b.heart_disease = finalize_registration_request.preExistingConditions.heart_disease
-        b.diabetes = finalize_registration_request.preExistingConditions.diabetes
-        b.respiratory_disease = finalize_registration_request.preExistingConditions.respiratory_disease
-        b.autoimmune_disease = finalize_registration_request.preExistingConditions.autoimmune_disease
-        b.other_chronic_disease = finalize_registration_request.preExistingConditions.other_chronic_disease
-        b.allergies = finalize_registration_request.preExistingConditions.allergies
+        if "preExistingConditions" in dict(finalize_registration_request).keys() and finalize_registration_request.preExistingConditions:
+            b.heart_disease = finalize_registration_request.preExistingConditions.heart_disease
+            b.diabetes = finalize_registration_request.preExistingConditions.diabetes
+            b.respiratory_disease = finalize_registration_request.preExistingConditions.respiratory_disease
+            b.autoimmune_disease = finalize_registration_request.preExistingConditions.autoimmune_disease
+            b.other_chronic_disease = finalize_registration_request.preExistingConditions.other_chronic_disease
+            b.allergies = finalize_registration_request.preExistingConditions.allergies
 
         # if the request comes from GGV, then set the vaccination service
+
+        """
+        This section of the code will be deprecated as we get all selected services from selectedServices
+        """
         if ggv:
             b.service_covid19_vaccine = True
         else:
@@ -397,14 +424,17 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
         if "pre_register" in finalize_registration_request.fields.keys():
             b.pre_register = finalize_registration_request.pre_register
 
-        if "locationServices" in dict(finalize_registration_request).keys():
+        if "selectedServices" in dict(finalize_registration_request).keys():
             location_services = []
+            selected_services = ServiceCodes()
             # Iterate through each location service item and get the LocationService object
-            for item in finalize_registration_request.locationServices:
+            for item in finalize_registration_request.selectedServices:
                 location_service = LocationService()
-                location_service.service_code = item.sku
+                location_service.service_code = item
                 location_services.append(location_service)
+                selected_services = __assign_services(selected_services, item)
             b.location_services = location_services
+            b.services = selected_services
 
         b.language = finalize_registration_request.language
 
@@ -440,6 +470,31 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
         )
 
     return b
+
+
+def __assign_services(selected_services, sku):
+    if sku == c.SERVICE_CODE_COVID19_TEST:
+        selected_services.covid_19_test = True
+    if sku == c.SERVICE_CODE_COVID19_TEST_MEXICO:
+        selected_services.covid_19_test_mexico = True
+    if sku == c.SERVICE_CODE_COVID19_TEST_ANTIGEN:
+        selected_services.covid_19_test_antigen = True
+    if sku == c.SERVICE_CODE_COVID19_TEST_MEXICO_ANTIGEN:
+        selected_services.covid_19_test_antigen_mexico = True
+    if sku == c.SERVICE_CODE_FLU_SHOT:
+        selected_services.flue_shot = True
+    if sku == c.SERVICE_CODE_CONSULT:
+        selected_services.consult = True
+    if sku == c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_1:
+        selected_services.covid_19_vax_pfizer_1 = True
+    if sku == c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_2:
+        selected_services.covid_19_vax_pfizer_2 = True
+    if sku == c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_1:
+        selected_services.covid_19_vax_moderna_1 = True
+    if sku == c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_2:
+        selected_services.covid_19_vax_moderna_2 = True
+    return selected_services
+
 
 
 def insurance_eligibility(insurance_eligibility_request):

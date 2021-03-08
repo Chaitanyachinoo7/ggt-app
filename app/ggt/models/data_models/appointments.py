@@ -48,9 +48,10 @@ def create_appointment(appointment_req: GgtBooking, ggv_slot=None):
             group_code,
             total_cost,
             billed_amount,
-            wp_receipt_token
+            wp_receipt_token,
+            language
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         vals = (
             appointment_req.timeslot.start_dt,
@@ -60,7 +61,8 @@ def create_appointment(appointment_req: GgtBooking, ggv_slot=None):
             appointment_req.group_code,
             appointment_req.total_cost / 100,  # cents --> decimal
             appointment_req.billed_amount / 100,  # cents --> decimal
-            str(uuid4())
+            str(uuid4()),
+            appointment_req.language
         )
         appointment_id = exec_insert(sql, vals)
         __add_services_to_appointment(appointment_id, appointment_req, ggv_slot=ggv_slot)
@@ -719,6 +721,7 @@ def __map_row_to_appointment(row: dict) -> GgtAppointment:
         a.group_code = row['group_code']
         a.patient_id = row['patient_id']
         a.patient_questionnaire_id = row['patient_questionnaire_id']
+        a.language = row['language']
 
         a.check_in_dt = row['check_in_dt']
         a.test_start_dt = row['test_start_dt']
@@ -769,13 +772,22 @@ def __add_services_to_appointment(appointment_id: int, appointment_req: GgtBooki
             )
             add_service_to_appointment(appointment_id, vaccine_service_code)
 
-        if appointment_req.service_covid19_test:
+        if appointment_req.services.covid_19_test:
             add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST)
 
-        if appointment_req.service_flu_shot:
+        if appointment_req.services.covid_19_test_mexico:
+            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST_MEXICO)
+
+        if appointment_req.services.covid_19_test_antigen:
+            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST_ANTIGEN)
+
+        if appointment_req.services.covid_19_test_antigen_mexico:
+            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST_MEXICO_ANTIGEN)
+
+        if appointment_req.services.flue_shot:
             add_service_to_appointment(appointment_id, c.SERVICE_CODE_FLU_SHOT)
 
-        if appointment_req.service_consult:
+        if appointment_req.services.consult:
             add_service_to_appointment(appointment_id, c.SERVICE_CODE_CONSULT)
 
         return True
