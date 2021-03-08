@@ -13,7 +13,7 @@ from ggt.models.data_models.data_types import (
     PermissionsEnum as p,
     InsuranceEligibilityRequest,
     InsurancePayersListRequest, SecondAvailableDate, FinalizeGGVRegistrationRequest, FinalizeGGVPreRegistrationRequest,
-    PatientAppointmentLookup, VerificationToken, UpdateFirstAppointment
+    PatientAppointmentLookup, VerificationToken, UpdateFirstAppointment, SecondSlotReschedule, UpdateSecondAppointment
 )
 
 from ggt.models.workflow_models.patient_portal_flow import (
@@ -36,7 +36,7 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
     insurance_eligibility, get_ggv_schedule_locations_available,
     insurance_search_payer, get_ggv_screen_flow_seq, get_second_shot_available_times, ggv_finalize_registration,
     get_ggv_schedule_times_available, ggv_finalize_pre_registration, cache_test, verify_verification_token,
-    reschedule_first_appointment
+    reschedule_first_appointment, get_second_slot_reschedule_dates, reschedule_second_appointment
 )
 
 # TODO: [GGT-193] Move this to a dedicated API
@@ -71,6 +71,14 @@ async def api_ggv_get_available_times_for_today(location_id: str, date: str):
     )
 
 
+@router.post("/ggv/get_second_slot_reschedule_dates", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_get_second_slot_reschedule_dates(req: SecondSlotReschedule):
+    return get_second_slot_reschedule_dates(
+        req.location_id,
+        req.first_appointment_date
+    )
+
+
 @router.post("/ggv/finalize_registration", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_ggv_finalize_registration(finalize_registration_request: FinalizeGGVRegistrationRequest):
     return ggv_finalize_registration(finalize_registration_request)
@@ -94,6 +102,11 @@ async def api_verify_phone(req: VerifyPhoneRequest):
 @router.post("/ggv/reschedule_first_appointment", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_reschedule_first_appointment(req: UpdateFirstAppointment):
     return reschedule_first_appointment(req)
+
+
+@router.post("/ggv/reschedule_second_appointment", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_reschedule_second_appointment(req: UpdateSecondAppointment):
+    return reschedule_second_appointment(req)
 
 
 @router.post("/validate_otp", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])

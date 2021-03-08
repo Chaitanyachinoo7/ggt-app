@@ -616,7 +616,7 @@ def process_bcg_locations_file():
 
 def process_mx_locations_file():
     import csv
-    with open('temp/mx_locations.txt', newline='') as csvfile:
+    with open('archived/mx_locations.txt', newline='') as csvfile:
         spamreader = csv.reader(csvfile, delimiter='\t')
         for row in spamreader:
             print(', '.join(row))
@@ -637,7 +637,7 @@ def process_mx_locations_file():
 def add_to_locations(name, addr1, addr2, city, st, zip, operator, phone_number, website, open_hours):
     payload = {
         "site_code": "GGT",
-        "group_code": "_DEFAULT_",
+        "group_code": "_default_mx_",
         "name": name,
         "addr1": addr1,
         "addr2": addr2,
@@ -663,9 +663,10 @@ def add_to_locations(name, addr1, addr2, city, st, zip, operator, phone_number, 
         "phone_number": phone_number,
         "website": website,
         "open_hours": open_hours,
-        "is_external": True,
+        "is_external": False,
         "group_ids": [1],
-        "service_ids": [1]
+        "service_ids": [1],
+        "country": 'MX'
     }
 
     try:
@@ -693,12 +694,12 @@ def add_sched_rule(location_id):
         "location_id": location_id,
         "category": "test",
         "slot_increment": 10,
-        "slot_multiplier": 1,
+        "slot_multiplier": 10,
         "local_start_time": "09:00:00",
-        "local_end_time": "09:10:00",
-        "active_local_start_dt": "2021-12-31 09:00:00",
-        "active_local_end_dt": "2021-12-31 09:10:00",
-        "sun": True,
+        "local_end_time": "17:00:00",
+        "active_local_start_dt": "2021-03-07 09:00:00",
+        "active_local_end_dt": "2021--31 17:00:00",
+        "sun": False,
         "mon": True,
         "tue": True,
         "wed": True,
@@ -726,7 +727,7 @@ def update_location_org(location_id):
         UPDATE
             locations l
         SET
-            l.org_id = 2
+            l.org_id = 4
         WHERE
             id = %s
         """
