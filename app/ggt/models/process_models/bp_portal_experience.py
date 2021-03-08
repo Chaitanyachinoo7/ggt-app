@@ -583,9 +583,12 @@ def __group_vax_results(results):
     }
 
     for result in results:
-        if result["service_code"] == c.SERVICE_CODE_COVID19_TEST:
+        if result["service_code"] == c.SERVICE_CODE_COVID19_TEST or \
+                result["service_code"] == c.SERVICE_CODE_COVID19_TEST_MEXICO or \
+                result["service_code"] == c.SERVICE_CODE_COVID19_TEST_ANTIGEN or \
+                result["service_code"] == c.SERVICE_CODE_COVID19_TEST_MEXICO_ANTIGEN:
             grouped_results.append(
-                dict(result, service=c.SERVICE_CODE_COVID19_TEST))
+                dict(result, service=result["service_code"]))
         if result["service_code"] in [c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_1,
                                       c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_2,
                                       c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_1,

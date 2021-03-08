@@ -2,7 +2,7 @@
 
 {% block preview_text %}
 
-{{first_name}}, Thank you for scheduling your Covid-19 test with GoGetTested.com
+{{first_name}}, {{thanks_scheduling}}
 
 {% endblock %}
 
@@ -26,7 +26,7 @@
             <tr>
               <td class="pc-fb-font"
                 style="line-height: 20px; font-family: 'Open Sans', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 500; color: #01821a; padding: 0 20px"
-                valign="top">Appointment # : {{appointment_id}}</td>
+                valign="top">{{appointment_number}} : {{appointment_id}}</td>
             </tr>
             <tr>
               <td style="line-height: 1px; font-size: 1px;" height="15">&nbsp;</td>
@@ -36,7 +36,7 @@
             <tr>
               <td class="pc-sm-fs-30 pc-fb-font"
                 style="font-family: 'Open Sans', Helvetica, Arial, sans-serif; font-size: 36px; font-weight: 800; line-height: 46px; letter-spacing: -0.6px; color: #151515; padding: 0 20px"
-                valign="top">{{first_name}}, Your test has been scheduled.</td>
+                valign="top">{{first_name}}, {{test_scheduled}}</td>
             </tr>
             <tr>
               <td style="line-height: 1px; font-size: 1px;" height="15">&nbsp;</td>
@@ -46,9 +46,7 @@
             <tr>
               <td class="pc-sm-fs-18 pc-xs-fs-16 pc-fb-font"
                 style="font-family: 'Open Sans', Helvetica, Arial, sans-serif; font-size: 20px; line-height: 30px; letter-spacing: -0.2px; color: #3f3f3f; padding: 0 20px"
-                valign="top">Thank you for scheduling your Covid-19 test with GoGetTested.com .<br><br>Your testing
-                Date, Time, and location can be found below.&nbsp;Please arrive at the testing location 15 minutes
-                early to avoid congestion. Also make sure to bring an Acceptable ID, and QR code.</td>
+                valign="top">{{thanks_scheduling}}<br><br>{{your_date_time}}&nbsp;{{please_arrive}}</td>
             </tr>
             <tr>
               <td style="line-height: 1px; font-size: 1px;" height="30">&nbsp;</td>
@@ -58,7 +56,7 @@
             <tr>
               <td class="pc-sm-fs-18 pc-xs-fs-16 pc-fb-font"
                 style="font-family: 'Open Sans', Helvetica, Arial, sans-serif; font-size: 20px; line-height: 30px; letter-spacing: -0.2px; color: #8b0000; padding: 0 20px"
-                valign="top">Please, no eating or drinking 15 minutes prior to your appointment as this may impact your test results</td>
+                valign="top">{{no_eating}}</td>
             </tr>
             <tr>
               <td style="line-height: 1px; font-size: 1px;" height="30">&nbsp;</td>
@@ -67,7 +65,7 @@
             <tr>
               <td class="pc-sm-fs-18 pc-xs-fs-16 pc-fb-font"
               style="font-family: 'Open Sans', Helvetica, Arial, sans-serif; font-size: 20px; line-height: 30px; letter-spacing: -0.2px; color: #3f3f3f; padding: 0 20px"
-                valign="top">Even if you are feeling better, it's important to get tested to help us stop COVID-19 from spreading.</td>
+                valign="top">{{even_if_better}}</td>
             </tr>
             <tr>
               <td style="line-height: 1px; font-size: 1px;" height="30">&nbsp;</td>
@@ -88,7 +86,7 @@
                               <tr>
                                 <td class="pc-fb-font"
                                   style="border-bottom: 1px solid #E5E5E5; padding: 0 0 10px; letter-spacing: -0.2px; line-height: 26px; font-family: 'Open Sans', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: bold; color: #151515"
-                                  valign="top">Test Location</td>
+                                  valign="top">{{test_location}}</td>
                               </tr>
                               <tr>
                                 <td height="10" style="font-size: 1px; line-height: 1px;">&nbsp;</td>
@@ -121,7 +119,7 @@
                               <tr>
                                 <td class="pc-fb-font"
                                   style="border-bottom: 1px solid #E5E5E5; padding: 0 0 10px; letter-spacing: -0.2px; line-height: 26px; font-family: 'Open Sans', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: bold; color: #151515"
-                                  valign="top">Testing Date & Time</td>
+                                  valign="top">{{test_date_time}}</td>
                               </tr>
                               <tr>
                                 <td height="10" style="font-size: 1px; line-height: 1px;">&nbsp;</td>
@@ -160,8 +158,7 @@
                               <td style="border-radius: 8px; padding: 14px 19px; background-color: #1595E7;"
                                 bgcolor="#1595E7" valign="top" align="center">
                                 <a class="pc-fb-font" href="{{appointment_url}}"
-                                  style="text-decoration: none; word-break: break-word; line-height: 24px; letter-spacing: -0.2px; font-family: 'Open Sans', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 500; color: #ffffff; display: block">View
-                                  My Appointment</a>
+                                  style="text-decoration: none; word-break: break-word; line-height: 24px; letter-spacing: -0.2px; font-family: 'Open Sans', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 500; color: #ffffff; display: block">{{view_appointment}}</a>
                               </td>
                             </tr>
                           </tbody>
