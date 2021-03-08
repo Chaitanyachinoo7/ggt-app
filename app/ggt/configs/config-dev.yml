@@ -3,6 +3,7 @@ app_version: 1.1
 log_level: DEBUG
 base_url: https://start-dev.GoGetTested.com
 portal_url: https://portal-dev.gogettested.com
+ops_url: https://ops-dev.gogettested.com
 env: DEV
 default_timezone: CST
 
@@ -99,18 +100,19 @@ databases:
 notifications:
   from_email: support@gogettested.com
   from_name: Go Get Tested
-  confirmation_subject: "{{first_name}}, Your Covid-19 test has been scheduled"
+  confirmation_subject: '{{first_name}}, {{subject_test_scheduled}}'
   result_subject: COVID-19 Testing Result Available
   appointment_reminder_sublect: GoGetTested COVID-19 Testing Appointment Reminder
   relocate_subject: COVID-19 Testing Appointment has Changed
   reschedule_subject: COVID-19 Testing Appointment is Re-Scheduled
-  confirmation_template: GGT-1-APPOINTMENT-CONFIRMATION-EMAIL.html.html
+  confirmation_template: GGT-1-APPOINTMENT-CONFIRMATION-EMAIL.html
   result_template: GGT-5-RESULT-AVAILABLE-EMAIL.html
   appointment_reminder_template: GGT-2-APPOINTMENT-REMINDER.html
   relocate_template: GGT-7-APPOINTMENT-RESCHEDULE-EMAIL.html
   reschedule_template: GGT-8-APPOINTMENT-RESCHEDULE-2-EMAIL.html
   confirmation_template_ggv: GGV-1-APPOINTMENT-CONFIRMATION-EMAIL.html
   confirmation_subject_ggv: '{{first_name}}, Your Covid-19 vaccination has been scheduled'
+  hide_phone_number_in_countries: MX # comma separated values
 
 twilio:
   account_sid: AC9cef9b4155030ee2683281ccc72d4001
@@ -206,7 +208,7 @@ security:
 
 payment:
   stripe:
-    secret_key: "sk_test_4eC39HqLyjWDarjtT1zdp7dc"
+    secret_key: "sk_test_51IRhpxAf0ltvHUzx80AaXczh8OjQWDEhRJmqdugww38vmUPBmDeOlRRWlU0QMgxB5bSy3X6vCAOfEuXRntZIbckl00XKX9qAIN"
   navigation:
     success_url: "https://start-dev.gogettested.com/appointment/{}/pay/success?token={}"
     cancel_url: "https://start-dev.gogettested.com"
@@ -215,4 +217,4 @@ image_urls:
   flu_shot:
     - 'http://ggt-image-server.com/flu' # Add a URL of a stock photo or S3 bucket
   payment:
-    - 'https://storage.googleapis.com/ggt-public-assets/images/GGT-GREEN-TRANSPARENT@2x-GM0.png' # Add a URL of a stock photo or S3 bucket
+    - 'https://goget-static-content.s3.us-east-2.amazonaws.com/fit2fly_icon.png' # Add a URL of a stock photo or S3 bucket

@@ -350,6 +350,17 @@ def get_translated_message(message_id: str):
 
     # Define inner function to get the message in specified language such as en, es, ...
     def get_language(lang):
-        # If specified language is not there, return the default
-        return message_in_langs[lang] if lang in message_in_langs else message_in_langs['default']
+        if lang is None:
+            return message_in_langs['en']
+        # If specified language is not there, return the default - en
+        return message_in_langs[lang] if lang in message_in_langs else message_in_langs['en']
     return get_language  # Return the inner function so that caller can do get_translated_message('id')('es')
+
+
+def is_international(phone_number):
+    country_code = phone_number[0:len(phone_number) - 10]
+    if country_code == '+1':
+        return False
+    else:
+        return True
+

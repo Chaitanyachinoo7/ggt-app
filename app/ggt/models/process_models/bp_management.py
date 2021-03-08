@@ -60,7 +60,7 @@ def bp_process_org_request(req, user):
                         create_new_organization(data, auth_user['id'])
                         _x = get_user_in_auth0(auth_user['id']).json()
                         create_new_user(_x, [UserRolesEnum.org_admin])
-                        send_new_account_creation_email(_x['given_name'], _x['email'], auth_user['password'])
+                        send_new_account_creation_email(_x['given_name'], _x['email'], auth_user['password'], org=True)
                         return {"auth_user": auth_user, "org_id": req.id}
             if req.status == DbOrgRequestStatusEnum.rejected:
                 if res is not None and len(res) > 0:
