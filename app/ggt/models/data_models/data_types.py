@@ -192,6 +192,12 @@ class UpdateFirstAppointment(BaseModel):
     phone_number: str
 
 
+class UpdateSecondAppointment(BaseModel):
+    appointment_id_1: int
+    appointment_id_2: int
+    appointment_2_dt_id: int
+
+
 class ValidateOtpRequest(BaseModel):
     phone_number: str = None
     otp: str = None
@@ -315,6 +321,11 @@ class SecondAvailableDate(BaseModel):
     dates: List[str]
 
 
+class SecondSlotReschedule(BaseModel):
+    location_id: str
+    first_appointment_date: str
+
+
 class FinalizeRegistrationRequest(BaseModel):
     groupCode: str = None
     phone_number: str = None
@@ -381,6 +392,7 @@ class FinalizeGGVRegistrationRequest(BaseModel):
     pre_register: bool = False
     isPatient: Optional[bool] = True
     gender: str = None
+    language: str = 'en'
     race: str = None
     ethnicity: str = None
     symptoms: Symptoms = None

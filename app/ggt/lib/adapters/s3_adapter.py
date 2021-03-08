@@ -127,7 +127,7 @@ def write_text_file(bucket, filename, body):
         )
 
     return False
-    
+
 
 def move_file(source_bucket, source_key, dest_bucket, dest_key):
     try:
@@ -142,8 +142,8 @@ def move_file(source_bucket, source_key, dest_bucket, dest_key):
             function=whoami(),
             error=err
         )
-    
-    return False        
+
+    return False
 
 
 def delete_file(source_bucket, source_key):
@@ -158,8 +158,8 @@ def delete_file(source_bucket, source_key):
             function=whoami(),
             error=err
         )
-    
-    return False     
+
+    return False
 
 
 def get_temp_lab_report_url(filename: str, lab_reports_bucket_name=lab_reports_bucket_name):
@@ -196,7 +196,7 @@ def get_list_of_files(bucket_name, prefix):
     return files
 
 
-def get_file_iterator(bucket, prefix='', suffix=''):
+def get_file_iterator(bucket, prefix='', suffix='', get_last_modified=False):
     """
     Generate the keys in an S3 bucket.
 
@@ -219,8 +219,12 @@ def get_file_iterator(bucket, prefix='', suffix=''):
         resp = s3.list_objects_v2(**kwargs)
         for obj in resp['Contents']:
             key = obj['Key']
+            last_modified = obj['LastModified']
             if key.startswith(prefix) and key.endswith(suffix):
-                yield key
+                if get_last_modified:
+                    yield key, last_modified
+                else:
+                    yield key
 
         # The S3 API is paginated, returning up to 1000 keys at a time.
         # Pass the continuation token into the next response, until we
@@ -252,7 +256,7 @@ def copy_file_from_s3_to_s3(source_bucket, source_key, dest_bucket, dest_key):
             operation='{}/{} ==> {}/{}'.format(source_bucket, source_key, dest_bucket, dest_key),
             error=err
         )
-    
+
     return False
 
 

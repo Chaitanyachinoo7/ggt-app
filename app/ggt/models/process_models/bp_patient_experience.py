@@ -517,6 +517,9 @@ def bp_has_appointments(phone_number: str, dob: str) -> bool:
 
 def bp_reschedule_first_appointment(otp, appointment_id_1, appointment_id_2, appointment_1_dt_id, appointment_2_dt_id, phone_number):
     try:
+        '''
+            TODO: Confirm with product team if we need OTP verification here.
+        '''
         if __validate_otp(phone_number, otp):
             release_ggv_slot(appointment_id_1)
             release_ggv_slot(appointment_id_2)
@@ -552,6 +555,38 @@ def bp_reschedule_first_appointment(otp, appointment_id_1, appointment_id_2, app
     return False
 
 
+def bp_reschedule_second_appointment(appointment_id_1, appointment_id_2, appointment_2_dt_id):
+    try:
+
+        if __is_first_shot_taken(appointment_id_1):
+            release_ggv_slot(appointment_id_2)
+            slot_2 = get_slot_information(appointment_2_dt_id, slot_type='vax')
+            lock_ggv_slot(appointment_id_2, appointment_2_dt_id)
+            appointment_2 = re_schedule_appointment(appointment_id_2, slot_2)
+            __send_ggv_qrcode_sms(appointment_2, "2")
+            __send_ggv_qrcode_email(appointment_2)
+            return True
+        else:
+            log_generic(
+                type=c.INFO,
+                appointment_id_1=appointment_id_1,
+                appointment_id_2=appointment_id_2,
+                message="First shot has not been taken yet.",
+                function=whoami()
+            )
+            return False
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            appointment_id_2=appointment_id_2,
+            function=whoami(),
+            error=err
+        )
+
+    return False
+
+
 @cached(cache=TTLCache(maxsize=1024, ttl=14.5))
 def bp_get_wellpay_api_key():
     return __get_wp_api_tokens()
@@ -577,6 +612,14 @@ def bp_verify_verification_token(token):
 # TODO: Prevent from looking up slots that are already assigned to an appointment
 # TODO, doesn't check if it's already booked
 # TEMP, not using fixed slots since operational conditions allow oversubscribing
+
+
+def __is_first_shot_taken(appointment_id):
+    appointment = get_appointment(appointment_id)
+    if appointment and appointment.status == c.APPOINTMENT_ACTION_END_VAX:
+        return True
+    else:
+        return False
 
 
 def __validate_otp(phone_number, otp):
