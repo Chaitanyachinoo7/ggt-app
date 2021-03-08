@@ -264,16 +264,16 @@ def is_un_available_slot(token):
 #         return None
 
 
-def lock_slot(token):
+def lock_slot(token, appointment_1_id, appointment_2_id):
     try:
         u_token = get_user_token_from_jwt(token)
         if u_token is None:
             return None
         sql = """INSERT INTO
                         used_tokens
-                    (token)
-                    VALUES (%s)"""
-        vals = (u_token, )
+                    (token, appointment_1_id, appointment_2_id)
+                    VALUES (%s, %s, %s)"""
+        vals = (u_token, appointment_1_id, appointment_2_id,)
         return exec_update(sql, vals)
 
     except Exception as err:
