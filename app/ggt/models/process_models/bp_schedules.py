@@ -28,7 +28,7 @@ from ggt.models.data_models.schedules import (
     get_all_available_dtl,
     trim_schedule_generation_rules_start_dt,
     get_slots_matching_dt_list, ggv_get_schedule_locations_available_near_lat_lng, get_second_shot_available_times,
-    delete_ggv_schedules_metrics_cache, delete_schedules_metrics_cache
+    delete_ggv_schedules_metrics_cache, delete_schedules_metrics_cache, get_second_slot_reschedule_dates
 )
 
 from ggt.models.data_models.locations import (
@@ -290,6 +290,32 @@ def bp_get_schedule_times_available(location_id, date):
     return {
         "available_times": available_times
     }
+
+
+def bp_get_second_slot_reschedule_dates(location_id, ap1_date):
+    available_dates = []
+    try:
+        rows = get_second_slot_reschedule_dates(location_id, ap1_date)
+        if rows and len(rows) > 0:
+            for row in rows:
+                available_dates.append(row['available_date'])
+        return {
+            "available_dates": available_dates
+        }
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            location_id=location_id,
+            date=date,
+            function=whoami(),
+            error=err
+        )
+        return {
+            "available_dates": []
+        }
+
+
 
 
 def bp_get_ggv_schedule_times_available(location_id, date):
