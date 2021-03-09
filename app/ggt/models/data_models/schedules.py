@@ -919,6 +919,7 @@ def __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, g
             l.st,
             l.zip,
             l.lat,
+            l.operator,
             l.lng,
             (3963 * ACOS(COS(RADIANS(%s)) * COS(RADIANS(l.lat)) * COS(RADIANS(l.lng) - RADIANS(%s)) + SIN(RADIANS(%s)) * SIN(RADIANS(l.lat)))) AS distance,
             {}
@@ -1005,6 +1006,7 @@ def __get_all_available_dtl(group_code):
             l.zip,
             l.lat,
             l.lng,
+            l.operator,
             l.image_thumbnail,
             l.billing_type,
             l.collect_insurance_info,
