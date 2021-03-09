@@ -307,9 +307,13 @@ def bp_create_pre_registration(patient_id):
     return False
 
 
-def bp_finalize_booking(booking_req: GgtBooking):
+def bp_finalize_booking(booking_req: GgtBooking, finalize_registration_request):
     appointment: GgtAppointment = None
     status_message = None
+
+    selected_services = []
+    if "selectedServices" in dict(finalize_registration_request).keys():
+        selected_services = finalize_registration_request.selectedServices
     try:
         booking_req, status_message = __create_patient_and_questionnaire(booking_req)
         if booking_req is None:
@@ -340,7 +344,7 @@ def bp_finalize_booking(booking_req: GgtBooking):
             # payment not required, confirm the appointment and notify
             update_appointment_with_confirmed_scheduled(appointment)
             __send_qrcode_sms(appointment)
-            __send_qrcode_email(appointment, __get_country_from_location_services(booking_req.location_services))
+            __send_qrcode_email(appointment, __get_country_from_location_services(selected_services))
 
     except Exception as err:
         status_message = str(err)
@@ -435,7 +439,7 @@ def bp_finalize_payment(appointment_id: int, wp_receipt_token: str):
         if appointment.wp_receipt_token == wp_receipt_token:
             update_appointment_with_confirmed_scheduled(appointment)
             __send_qrcode_sms(appointment)
-            __send_qrcode_email(appointment)
+            __send_qrcode_email(appointment, __get_country_from_location_services(appointment.service_selection_codes))
             return True
 
     except Exception as err:
@@ -1057,17 +1061,15 @@ def __override_random_otp(phone_number: str):
     return False, None
 
 
-def __get_country_from_location_services(location_services: List[LocationService]) -> str:
-    if location_services is None or len(location_services) < 0:
+def __get_country_from_location_services(service_selection_codes):
+    if len(service_selection_codes) > 0:
+        service_codes = {
+            "COVID_19_TEST_MEXICO_ANTIGEN": "MX",
+            "COVID_19_TEST_MEXICO": "MX"
+        }
+        return service_codes.get(service_selection_codes[0], "US")
+    else:
         return "US"
-
-    # No need to specify US service codes
-    service_codes = {
-        "COVID_19_TEST_MEXICO_ANTIGEN": "MX",
-        "COVID_19_TEST_MEXICO": "MX"
-    }
-
-    return service_codes.get(location_services[0].service_code, "US")
 
 
 def __is_valid_token(token: str) -> bool:
