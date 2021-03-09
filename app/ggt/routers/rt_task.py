@@ -36,6 +36,7 @@ from ggt.tasks.inbound_lab_reports import archive_stale_rpt_files
 from ggt.tasks.locations_processor import task_populate_location_thumbnails
 from ggt.tasks.locations_processor import task_populate_gps_coordinates
 from ggt.tasks.misc_processor import task_process_misc
+from ggt.tasks.appsheet_database_processor import rebuild_appsheet_database
 # from ggt.tasks.outbound_lab_orders import task_process_outbound_lab_orders
 from ggt.tasks.hl7_outbound_lab_orders import task_process_hl7_lab_orders
 from ggt.tasks.CRL_outbound_lab_orders import task_process_crl_lab_orders
@@ -224,6 +225,13 @@ async def api_list_ftp_files():
     return {"response": x}
 
 
+@router.post("/rebuild_appsheet_database", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_rebuild_appsheet_database(background_tasks: BackgroundTasks):
+    background_tasks.add_task(rebuild_appsheet_database)
+    return {
+        STATUS: SUCCESS,
+        DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
+    }
 
 
 # @router.post("/delete_ftp_files", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
