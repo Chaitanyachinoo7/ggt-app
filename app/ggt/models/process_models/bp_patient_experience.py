@@ -863,6 +863,7 @@ def __send_qrcode_email(appointment: GgtAppointment, country: str = "US"):
     try:
         from_email = cfg('notifications.from_email')
         from_name = cfg('notifications.from_name')
+        is_international = None if country == 'US' else 'MX'
 
         template_vars = {
             "first_name": appointment.patient.first_name,
@@ -891,7 +892,8 @@ def __send_qrcode_email(appointment: GgtAppointment, country: str = "US"):
             "view_appointment": get_translated_message('ggt_1_view_appointment')(appointment.language),
             "about_us": get_translated_message('ggt_1_about_us')(appointment.language),
             "about_us_details": get_translated_message('ggt_1_about_us_details')(appointment.language),
-            "start_test": get_translated_message('ggt_1_start_test')(appointment.language)
+            "start_test": get_translated_message('ggt_1_start_test')(appointment.language),
+            "is_international": is_international
         }
 
         subject = render_from_string(
