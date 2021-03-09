@@ -55,7 +55,7 @@ def task_process_misc():
         info='Begin Processing Misc Task')
 
     #process_bcg_locations_file()
-    #process_mx_locations_file()
+    process_mx_locations_file()
     #update_schedules()
 
     # upload_insurance_images_to_gcp()
@@ -63,9 +63,11 @@ def task_process_misc():
     # upload_insurance_images_to_gcp_with_small_table()
     #process_email_notifications()
     #upload_insurance_files_from_gstore()
-    process_sms_notifications()
+    #process_sms_notifications()
     #process_email_notifications()
     #dedupe_tokens()
+    #process_raw_list_sms_notifications()
+    #process_vax()
 
     log_generic(
         type=c.INFO,
@@ -595,7 +597,7 @@ def remove_image_from_questionnnaires_table(id):
 
 def process_bcg_locations_file():
     import csv
-    with open('archived/bcg_location_list_v2.txt', newline='') as csvfile:
+    with open('archived/bcg_location_list_v3.txt', newline='') as csvfile:
         spamreader = csv.reader(csvfile, delimiter='\t')
         for row in spamreader:
             print(', '.join(row))
@@ -614,7 +616,7 @@ def process_bcg_locations_file():
 
 def process_mx_locations_file():
     import csv
-    with open('temp/mx_locations.txt', newline='') as csvfile:
+    with open('archived/mx_locations.txt', newline='') as csvfile:
         spamreader = csv.reader(csvfile, delimiter='\t')
         for row in spamreader:
             print(', '.join(row))
@@ -635,7 +637,7 @@ def process_mx_locations_file():
 def add_to_locations(name, addr1, addr2, city, st, zip, operator, phone_number, website, open_hours):
     payload = {
         "site_code": "GGT",
-        "group_code": "_DEFAULT_",
+        "group_code": "_default_mx_",
         "name": name,
         "addr1": addr1,
         "addr2": addr2,
@@ -661,9 +663,10 @@ def add_to_locations(name, addr1, addr2, city, st, zip, operator, phone_number, 
         "phone_number": phone_number,
         "website": website,
         "open_hours": open_hours,
-        "is_external": True,
+        "is_external": False,
         "group_ids": [1],
-        "service_ids": [1]
+        "service_ids": [1],
+        "country": 'MX'
     }
 
     try:
@@ -691,12 +694,12 @@ def add_sched_rule(location_id):
         "location_id": location_id,
         "category": "test",
         "slot_increment": 10,
-        "slot_multiplier": 1,
-        "local_start_time": "09:00:00",
-        "local_end_time": "09:10:00",
-        "active_local_start_dt": "2021-12-31 09:00:00",
-        "active_local_end_dt": "2021-12-31 09:10:00",
-        "sun": True,
+        "slot_multiplier": 10,
+        "local_start_time": "08:00:00",
+        "local_end_time": "12:00:00",
+        "active_local_start_dt": "2021-03-08 08:00:00",
+        "active_local_end_dt": "2021--31 12:00:00",
+        "sun": False,
         "mon": True,
         "tue": True,
         "wed": True,
@@ -724,7 +727,7 @@ def update_location_org(location_id):
         UPDATE
             locations l
         SET
-            l.org_id = 2
+            l.org_id = 4
         WHERE
             id = %s
         """
@@ -743,3 +746,34 @@ def dedupe_tokens():
         handle_duplicate_tokens
     )
     handle_duplicate_tokens()
+
+
+
+
+
+def process_raw_list_sms_notifications():
+    rows = [
+                ['+19999999999','Tom','https://start.gogetvax.com/vax/schedule/startwt/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbiI6ImFlY2ZkYjA1LWY2OGEtNGM2Mi05Yjk2LTFlNjMxMzk0MTFhZiIsImV4cCI6MTYxNjE0ODg5MH0.TBo_PwkIwTCYvbJChvaRktAKVrT68sRnHsQHH648R1g/_ROCKWALL_'],
+                ['+19999999999','Ted','https://start.gogetvax.com/vax/schedule/startwt/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbiI6IjgzZDM5MzYzLTc2MTYtNDQ5NS1iMzQzLWE0YzczZmVjZDYzYSIsImV4cCI6MTYxNjE0ODg5MH0.a8LZjyJesGfFaSOiPQabKWLh2t8ndwanwjgbqCo6F70/_ROCKWALL_'],
+                
+            ]
+    data = []
+    for row in rows:
+        phone_number = row[0]
+        first_name = row[1]
+        link = row[2]
+        message = """Hi {}, Congratulations! You're now eligible to get your Covid-19 vaccine through Rockwall County. Please click this link to register for your vaccine: {}
+        Thank you! —GoGetVax, the easiest way to get vaccinated""".format(first_name, link)
+
+        data.append(
+            (phone_number, message)
+        )
+
+    batch_enqueue_sms_notifications(data)
+
+
+def process_vax():
+    from ggt.tasks.vax_tx_outbound_hl7 import (
+         process_vax_hl7         
+    )
+    process_vax_hl7()
