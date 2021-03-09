@@ -227,7 +227,7 @@ def finalize_payment(finalize_payment_request):
 
 def finalize_registration(finalize_registration_request):
     booking_req = __map_to_booking_req(finalize_registration_request)
-    appointment, status_message, patient_id, result_token = bp_finalize_booking(booking_req)
+    appointment, status_message, patient_id, result_token = bp_finalize_booking(booking_req, finalize_registration_request)
 
     if finalize_registration_request.ggd_waitlist:
         bp_add_to_ggd_waiting_queue(patient_id)
