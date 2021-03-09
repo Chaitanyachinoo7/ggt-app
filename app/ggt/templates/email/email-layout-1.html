@@ -216,7 +216,7 @@
                               <tr>
                                 <td align="center" valign="top" style="padding: 10px;">
                                   <a href="http://example.com" style="text-decoration: none;"><img
-                                      src="https://storage.googleapis.com/ggt-public-assets/images/GGT-GREEN-TRANSPARENT@2x-GM0.png"
+                                      src="https://goget-static-content.s3.us-east-2.amazonaws.com/ggtlogo.png"
                                       width="264" height="65" alt=""
                                       style="height: auto; max-width: 100%; border: 0; line-height: 100%; outline: 0; -ms-interpolation-mode: bicubic; color: #1B1B1B; font-size: 14px;"></a>
                                 </td>
@@ -393,8 +393,14 @@
                                                   <td class="pc-fb-font"
                                                     style="font-family: 'Open Sans', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 500; line-height: 24px;"
                                                     valign="top">
-                                                    <a href="mailto:testing@GoGetTested.com"
+                                                        {% if is_international is none %}
+                                                       <a href="mailto:testing@GoGetTested.com"
                                                       style="text-decoration: none; color: #1595E7;">Support@GoGetTested.com</a>
+                                                    {% else %}
+                                                         <a href="mailto:supportmx@GoGetTested.com"
+                                                      style="text-decoration: none; color: #1595E7;">SupportMX@GoGetTested.com</a>
+                                                    {% endif %}
+
                                                   </td>
                                                 </tr>
                                               </tbody>
