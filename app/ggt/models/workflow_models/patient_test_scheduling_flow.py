@@ -269,7 +269,7 @@ def ggv_finalize_registration(finalize_registration_request):
     if appointment_1 and appointment_2:
         #TODO : Remove lock_slot
         # lock_slot(slot['id'])
-        lock_slot(booking_req.verification_token, appointment_1.id, appointment_2.id)
+        lock_slot(booking_req.verification_token, patient_id)
         return {
             "session_token": result_token,
             "appointment_id_1": appointment_1.id,
