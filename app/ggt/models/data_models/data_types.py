@@ -1430,6 +1430,7 @@ class PaymentRequestBody(BaseModel):
     line_items: List[PaymentRequestLineItem] = None
     navigation: PaymentRequestNavigation = None
     locale: str = 'en'
+    id: int = 0
 
 
 class PatientUpfrontPayment:

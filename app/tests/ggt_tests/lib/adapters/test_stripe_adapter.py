@@ -11,15 +11,21 @@ class StripeSession:
     def __init__(self, session_id):
         self.id = session_id
 
+# This class mimics the response from strip customer creation
+class StripeCustomer:
+    def __init__(self, customer_id):
+        self.id = customer_id
 
 class StripeAdapterTest(unittest.TestCase):
 
     def test_create_checkout_session(self):
         # This is mock response from strip checkout session create
         stripe_session = StripeSession(2)
+        stripe_customer = StripeCustomer("123456")
 
         # Mock the Strip checkout session create
         stripe.checkout.Session.create = Mock(name='create', return_value=stripe_session)
+        stripe.Customer.create = Mock(name='customer_create', return_value=stripe_customer)
 
         # Create the Payment request
         payment_request_body = PaymentRequestBody()
@@ -65,7 +71,8 @@ class StripeAdapterTest(unittest.TestCase):
             success_url='http://success.com',
             cancel_url='http://cancel.com',
             locale='en',
-            billing_address_collection='required'
+            billing_address_collection='required',
+            customer=stripe_customer.id
         )
 
     def test_failure_with_invalid_payload(self):
