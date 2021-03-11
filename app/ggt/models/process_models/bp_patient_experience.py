@@ -90,6 +90,8 @@ from ggt.lib.storage import (
 from ggt.lib.storage import get_temporary_lab_report_url
 
 from ggt.models.process_models.bp_payment import bp_create_checkout_session
+
+
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
@@ -108,7 +110,7 @@ def bp_get_ggv_screen_flow_seq(group_code: str):
             req = False
             if group_info.ggv_required_screens:
                 req = True if (
-                    screen in group_info.ggv_required_screens) else False
+                        screen in group_info.ggv_required_screens) else False
 
             validations[screen] = {
                 "required": req
@@ -124,7 +126,8 @@ def bp_get_ggv_screen_flow_seq(group_code: str):
                     # "intro_text": group_info.intro_text,
                     "provider_name": "Texas Immtrac2",
                     # "provider_name": group_info.consent_party_name,
-                    "consent_url": group_info.consent_url if (group_info.consent_url and group_info.consent_url != '') else None,
+                    "consent_url": group_info.consent_url if (
+                                group_info.consent_url and group_info.consent_url != '') else None,
                     "additional_fields": group_info.additional_fields
                 }
             }
@@ -150,7 +153,7 @@ def bp_get_screen_flow_seq(group_code: str):
             req = False
             if group_info.required_screens:
                 req = True if (
-                    screen in group_info.required_screens) else False
+                        screen in group_info.required_screens) else False
 
             validations[screen] = {
                 "required": req
@@ -163,7 +166,8 @@ def bp_get_screen_flow_seq(group_code: str):
                     "logo": [group_info.logo_1, group_info.logo_2],
                     "intro_text": group_info.intro_text,
                     "provider_name": group_info.consent_party_name,
-                    "consent_url": group_info.consent_url if (group_info.consent_url and group_info.consent_url != '') else None,
+                    "consent_url": group_info.consent_url if (
+                                group_info.consent_url and group_info.consent_url != '') else None,
                     "additional_fields": group_info.additional_fields
                 }
             }
@@ -320,7 +324,7 @@ def bp_finalize_booking(booking_req: GgtBooking, finalize_registration_request):
             raise ValueError(status_message)
         patient_id = booking_req.patient_id
         # determine if payment is required, if so, get billing info
-        #TODO __evaluate_upfront_payment method combines all the services and calculate total value, it should be able to add items and prices separately in the receipt.
+        # TODO __evaluate_upfront_payment method combines all the services and calculate total value, it should be able to add items and prices separately in the receipt.
         upfront_payment_info = __evaluate_upfront_payment(booking_req)
         booking_req.total_cost = upfront_payment_info.total_cost
         booking_req.billed_amount = upfront_payment_info.billed_amount
@@ -360,9 +364,12 @@ def bp_finalize_booking(booking_req: GgtBooking, finalize_registration_request):
     return appointment, status_message, patient_id, booking_req.result_token
 
 
-def bp_ggv_finalize_booking(booking_req: GgtBooking):
+def bp_ggv_finalize_booking(booking_req: GgtBooking, finalize_registration_request):
     try:
         booking_req, status_message = __create_patient_and_questionnaire(booking_req)
+        selected_services = []
+        if "selectedServices" in dict(finalize_registration_request).keys():
+            selected_services = finalize_registration_request.selectedServices
         if booking_req is None:
             raise ValueError(status_message)
 
@@ -373,31 +380,39 @@ def bp_ggv_finalize_booking(booking_req: GgtBooking):
         booking_req.billed_amount = upfront_payment_info.billed_amount
 
         # generate appointment/booking
-        appointment_1, appointment_2 = __generate_ggv_appointments(booking_req)
-        if not (appointment_1 and appointment_2):
-            raise ValueError('Invalid Appointment info')
-        #
-        # # store insurance card
-        if not __save_insurance_image(appointment_1.id, booking_req.insurance_photo):
-            pass  # allow transaction to proceed. TODO: Handle alternative action
-        #card
-        if not __save_insurance_image(appointment_2.id, booking_req.insurance_photo):
-            pass  # allow transaction to proceed. TODO: Handle alternative action
+        appointment_1, appointment_2 = __generate_ggv_appointments(booking_req, selected_services)
+        # if not (appointment_1 and appointment_2):
+        #     raise ValueError('Invalid Appointment info')
 
-        # if a payment is required, generate a payment link
-        appointment_1.payment_url = ''
-        appointment_2.payment_url = ''
-        if upfront_payment_info.is_payment_required:
-            appointment_1.payment_url = __inject_payment_flow(appointment_1)
-            appointment_2.payment_url = __inject_payment_flow(appointment_2)
-        else:
-            # payment not required, confirm the appointment and notify
-            update_appointment_with_confirmed_scheduled(appointment_1)
-            update_appointment_with_confirmed_scheduled(appointment_2)
-            __send_ggv_qrcode_sms(appointment_1, "1")
-            __send_ggv_qrcode_email(appointment_1)
-            __send_ggv_qrcode_sms(appointment_2, "2")
-            __send_ggv_qrcode_email(appointment_2)
+        out_of = 2 if __is_dual_dose(selected_services) else 1
+        if appointment_1:
+            appointment_1 = __handle_vax_appointment(appointment_1, booking_req.insurance_photo, upfront_payment_info,
+                                                     number=1, out_of=out_of)
+        if appointment_2:
+            appointment_2 = __handle_vax_appointment(appointment_2, booking_req.insurance_photo, upfront_payment_info,
+                                                     number=2, out_of=out_of)
+        # #
+        # # # store insurance card
+        # if not __save_insurance_image(appointment_1.id, booking_req.insurance_photo):
+        #     pass  # allow transaction to proceed. TODO: Handle alternative action
+        # # card
+        # if not __save_insurance_image(appointment_2.id, booking_req.insurance_photo):
+        #     pass  # allow transaction to proceed. TODO: Handle alternative action
+        #
+        # # if a payment is required, generate a payment link
+        # appointment_1.payment_url = ''
+        # appointment_2.payment_url = ''
+        # if upfront_payment_info.is_payment_required:
+        #     appointment_1.payment_url = __inject_payment_flow(appointment_1)
+        #     appointment_2.payment_url = __inject_payment_flow(appointment_2)
+        # else:
+        #     # payment not required, confirm the appointment and notify
+        #     update_appointment_with_confirmed_scheduled(appointment_1)
+        #     update_appointment_with_confirmed_scheduled(appointment_2)
+        #     __send_ggv_qrcode_sms(appointment_1, "1")
+        #     __send_ggv_qrcode_email(appointment_1)
+        #     __send_ggv_qrcode_sms(appointment_2, "2")
+        #     __send_ggv_qrcode_email(appointment_2)
 
     except Exception as err:
         status_message = str(err)
@@ -410,6 +425,20 @@ def bp_ggv_finalize_booking(booking_req: GgtBooking):
         raise HTTPException(status_code=500)
 
     return appointment_1, appointment_2, status_message, patient_id, booking_req.result_token
+
+
+def __handle_vax_appointment(appointment, insurance_photo, upfront_payment_info, number=1, out_of=2):
+    if not __save_insurance_image(appointment.id, insurance_photo):
+        pass
+    appointment.payment_url = ''
+    if upfront_payment_info.is_payment_required:
+        appointment.payment_url = __inject_payment_flow(appointment)
+    else:
+        # payment not required, confirm the appointment and notify
+        update_appointment_with_confirmed_scheduled(appointment)
+        __send_ggv_qrcode_sms(appointment, number, out_of)
+        __send_ggv_qrcode_email(appointment)
+    return appointment
 
 
 def bp_ggv_finalize_pre_booking(booking_req: GgtBooking):
@@ -520,7 +549,8 @@ def bp_has_appointments(phone_number: str, dob: str) -> bool:
     return False
 
 
-def bp_reschedule_first_appointment(otp, appointment_id_1, appointment_id_2, appointment_1_dt_id, appointment_2_dt_id, phone_number):
+def bp_reschedule_first_appointment(otp, appointment_id_1, appointment_id_2, appointment_1_dt_id, appointment_2_dt_id,
+                                    phone_number):
     try:
         '''
             TODO: Confirm with product team if we need OTP verification here.
@@ -610,6 +640,8 @@ def bp_verify_verification_token(token):
         return True
     else:
         return False
+
+
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
@@ -667,7 +699,25 @@ def __generate_appointment(booking_req: GgtBooking):
     return appointment
 
 
-def __generate_ggv_appointments(booking_req: GgtBooking):
+def __generate_ggv_appointments(booking_req: GgtBooking, selected_services):
+
+    if __is_dual_dose(selected_services):
+        return __dual_shot_vaccinations(booking_req)
+    else:
+        return __single_shot_vaccinations(booking_req)
+
+
+def __is_dual_dose(selected_services):
+    if selected_services[0] == c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_1 or \
+            selected_services[0] == c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_1 or \
+            selected_services[0] == c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_2 or \
+            selected_services[0] == c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_2:
+        return True
+    elif selected_services[0] == c.SERVICE_CODE_COVID_19_VACCINE_JNJ:
+        return False
+
+
+def __dual_shot_vaccinations(booking_req: GgtBooking):
     appointment_1: GgtAppointment = None
     appointment_2: GgtAppointment = None
     try:
@@ -686,16 +736,6 @@ def __generate_ggv_appointments(booking_req: GgtBooking):
             update_slot_information(booking_req.appointmentOneTime, appointment_1.id, slot_type='vax')
             update_slot_information(booking_req.appointmentTwoTime, appointment_2.id, slot_type='vax')
 
-            '''
-            log_generic(
-                type=c.INFO,
-                booking_req=booking_req,
-                appointment=appointment,
-                function=whoami(),
-                info='appointment_created'
-            )
-            '''
-
         else:
             raise ValueError('error_creating_appointment')
 
@@ -708,6 +748,33 @@ def __generate_ggv_appointments(booking_req: GgtBooking):
         )
 
     return appointment_1, appointment_2
+
+
+# TODO: consolidate __dual_shot_vaccinations and __single_shot_vaccinations in to a single function.
+# For that we have to re-structure the request body.
+def __single_shot_vaccinations(booking_req: GgtBooking):
+    appointment: GgtAppointment = None
+    try:
+        booking_req.timeslot = get_slot_information(booking_req.appointmentOneTime, slot_type='vax')
+        if not booking_req.timeslot:
+            raise ValueError('Invalid Slot')
+        appointment = create_appointment(booking_req)
+
+        if appointment:
+            update_slot_information(booking_req.appointmentOneTime, appointment.id, slot_type='vax')
+
+        else:
+            raise ValueError('error_creating_appointment')
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            data=booking_req,
+            function=whoami(),
+            error=err
+        )
+
+    return appointment, None
 
 
 def __create_pending_entry(phone_number: str, token):
@@ -751,13 +818,13 @@ def __send_qrcode_sms(appointment: GgtAppointment):
     try:
         registration_complete_template = get_translated_message('ggt_sms_registration_complete')(appointment.language)
         message = registration_complete_template.format(
-                appointment.patient.first_name,
-                appointment.date_text,
-                appointment.location_text,
-                cfg('base_url'),
-                appointment.id,
-                appointment.patient.dob.strftime('%Y%m%d')
-            )
+            appointment.patient.first_name,
+            appointment.date_text,
+            appointment.location_text,
+            cfg('base_url'),
+            appointment.id,
+            appointment.patient.dob.strftime('%Y%m%d')
+        )
 
         international = is_international(appointment.patient.phone_number)
         result_1 = send_sms(appointment.patient.phone_number,
@@ -787,25 +854,26 @@ def __send_qrcode_sms(appointment: GgtAppointment):
     return None
 
 
-def __send_ggv_qrcode_sms(appointment: GgtAppointment, dose):
+def __send_ggv_qrcode_sms(appointment: GgtAppointment, dose, out_of):
     try:
         message = "Hi {} " \
-                  "\nYour COVID-19 Vaccine Dose {} of 2 appointment is confirmed for {} at {}." \
+                  "\nYour COVID-19 Vaccine Dose {} of {} appointment is confirmed for {} at {}." \
                   " Details at {}/appointment/{}/{}.  " \
                   "Please arrive at the vaccine location 15 minutes early. Also make sure to bring an Acceptable ID, " \
                   "and QR code. Though not required, please bring your health insurance card as well." \
                   "\nReply Stop to cxl msgs".format(
-                appointment.patient.first_name,
-                dose,
-                appointment.date_text,
-                appointment.location_text,
-                "https://start.gogetvax.com",
-                appointment.id,
-                appointment.patient.dob.strftime('%Y%m%d')
-            )
+            appointment.patient.first_name,
+            dose,
+            out_of,
+            appointment.date_text,
+            appointment.location_text,
+            "https://start.gogetvax.com",
+            appointment.id,
+            appointment.patient.dob.strftime('%Y%m%d')
+        )
         international = is_international(appointment.patient.phone_number)
         send_sms(appointment.patient.phone_number,
-                            message.replace('\t', ''), international=international)
+                 message.replace('\t', ''), international=international)
 
         log_generic(
             type=c.INFO,
@@ -836,7 +904,7 @@ def __send_ggv_pre_registration_sms(first_name, phone_number):
                   "\nReply Stop to cxl msgs".format(first_name)
         international = is_international(phone_number)
         send_sms(phone_number,
-                            message.replace('\t', ''), international=international)
+                 message.replace('\t', ''), international=international)
 
         log_generic(
             type=c.INFO,
@@ -1312,7 +1380,7 @@ def __create_wp_bill(appointment: GgtAppointment):
             "external_account_id": appointment.id,
             "autopay": False,
             "external_bill_id": appointment.id,
-            "billed_amount": int(appointment.billed_amount*100),
+            "billed_amount": int(appointment.billed_amount * 100),
             "service_date": appointment.scheduled_dt.strftime('%Y-%m-%d'),
 
             "onSuccess": "{}/appointment/{}/pay/success".format(cfg('base_url'), appointment.id),
@@ -1341,11 +1409,11 @@ def __bp_get_wellpay_insurance_eligibility(insurance_eligibility_request):
         wp_api_key, wp_refresh_token = __get_wp_api_tokens()
         customer_id = __create_wellpay_customer(
             wp_api_key, insurance_eligibility_request)
-        if(__add_wellpay_customer_insurance(
+        if (__add_wellpay_customer_insurance(
                 wp_api_key, insurance_eligibility_request, customer_id)):
             eligibility = __add_wellpay_customer_insurance_eligibility(
                 wp_api_key, insurance_eligibility_request, customer_id)
-            if(eligibility['isEligible']):
+            if (eligibility['isEligible']):
                 return __get_wellpay_customer_insurance_plans(
                     wp_api_key, insurance_eligibility_request, eligibility['eligibility_request_id'])
             return eligibility
@@ -1439,7 +1507,7 @@ def __add_wellpay_customer_insurance_eligibility(wp_api_key, insurance_eligibili
         print(payload)
         print(headers)
         print(r.json())
-        if(r.status_code == 200):
+        if (r.status_code == 200):
             return {"isEligible": True, "eligibility_request_id": r.json()['request_id'], "error": None}
         return {"isEligible": False, "error": r.text}
     except Exception as err:
@@ -1459,9 +1527,9 @@ def __get_wellpay_customer_insurance_plans(wp_api_key, insurance_eligibility_req
         payload = {}
         r = requests.get(url, headers=headers, json=payload)
         print(payload)
-        if(r.status_code == 200):
+        if (r.status_code == 200):
             return {"isEligible": True, "benefits": r.json(), "error": None}
-        elif(r.status_code == 404):
+        elif (r.status_code == 404):
             return {"isEligible": False, "benefits": None, "error": "Benefits not found"}
         return {"isEligible": False, "error": r.text}
     except Exception as err:
@@ -1537,7 +1605,7 @@ def __create_patient_and_questionnaire(booking_req):
             create_patient_insurance_record(booking_req)
         # create questionnaire
         booking_req.patient_questionnaire_id = create_patient_questionnaire(
-                booking_req)
+            booking_req)
         if not booking_req.patient_questionnaire_id:
             raise ValueError('Invalid Patient Questionnaire ID')
         return booking_req, None
@@ -1560,7 +1628,8 @@ def __inject_payment_checkout_session(appointment: GgtAppointment, upfront_payme
         raise ValueError('Checkout session is only be generated to upfront payments')
 
     payment_request = PaymentRequestBody()
-    payment_request.line_items = __generate_payment_checkout_session_items(upfront_payment_info, booking_req, selected_services)
+    payment_request.line_items = __generate_payment_checkout_session_items(upfront_payment_info, booking_req,
+                                                                           selected_services)
     payment_request.navigation = __generate_payment_checkout_session_navigation(appointment)
     payment_request.locale = __inject_locale(booking_req.language)
     payment_request.currency = upfront_payment_info.currency
@@ -1569,12 +1638,14 @@ def __inject_payment_checkout_session(appointment: GgtAppointment, upfront_payme
     return bp_create_checkout_session(payment_request)
 
 
-def __generate_payment_checkout_session_items(upfront_payment_info: PatientUpfrontPayment, booking_req: GgtBooking, selected_services):
-    line_items =[]
+def __generate_payment_checkout_session_items(upfront_payment_info: PatientUpfrontPayment, booking_req: GgtBooking,
+                                              selected_services):
+    line_items = []
 
     for service in selected_services:
         line_item = PaymentRequestLineItem()
-        line_item.product_name = c.SERVICE_TO_NAME_MAP[service]  #get_translated_message('registration_charges')(booking_req.language)
+        line_item.product_name = c.SERVICE_TO_NAME_MAP[
+            service]  # get_translated_message('registration_charges')(booking_req.language)
         line_item.unit_price = upfront_payment_info.total_cost
         line_item.quantity = 1
         line_item.product_images = cfg('image_urls.payment')
