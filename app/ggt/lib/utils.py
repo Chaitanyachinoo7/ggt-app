@@ -89,20 +89,30 @@ def log_generic(**kwargs):
 
         if kwargs['type'] == c.ERROR in kwargs:
             kwargs['.'] = '⛔️⛔️⛔️'
-            logging.error(pformat(kwargs))
+            # logging.error(pformat(kwargs))
+            print(format_log_message(kwargs))
         elif kwargs['type'] == c.WARNING in kwargs:
             kwargs['.'] = '⚠️'
-            logging.warning(pformat(kwargs))
+            # logging.warning(pformat(kwargs))
+            print(format_log_message(kwargs))
         elif kwargs['type'] == c.INFO in kwargs:
             kwargs['.'] = 'ℹ️'
-            # logging.info(pformat(kwargs))
-            print(pformat(kwargs))
+            # logging.info(format_log_message(kwargs))
+            print(format_log_message(kwargs))
         else:
-            # logging.debug(pformat(kwargs))
-            print(pformat(kwargs))
+            # logging.debug(format_log_message(kwargs))
+            print(format_log_message(kwargs))
 
     else:
-        logging.warning('Empty log value')
+        # logging.warning('Empty log value')
+        print('Empty log value')
+
+
+def format_log_message(kwargs):
+    if get_config_val('env').startswith("LOCAL"):
+        return pformat(kwargs)
+    else:
+        return kwargs
 
 
 def app_init():

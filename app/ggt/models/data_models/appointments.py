@@ -36,7 +36,7 @@ from ggt.models.data_models.clinical_test_sample import (
 ########################################################################################################
 
 
-def create_appointment(appointment_req: GgtBooking, ggv_slot=None):
+def create_appointment(appointment_req: GgtBooking, ggv_slot=1):
     try:
         sql = """
         INSERT INTO appointments
@@ -763,14 +763,29 @@ def __map_row_to_appointment(row: dict) -> GgtAppointment:
     return a
 
 
-def __add_services_to_appointment(appointment_id: int, appointment_req: GgtBooking, ggv_slot=None) -> bool:
+def __add_services_to_appointment(appointment_id: int, appointment_req: GgtBooking, ggv_slot=1) -> bool:
     try:
-        if appointment_req.service_covid19_vaccine:
-            vaccine_service_code = __get_vaccine_service_code_for_location(
-                appointment_req.location_id,
-                ggv_slot=ggv_slot
-            )
-            add_service_to_appointment(appointment_id, vaccine_service_code)
+        # if appointment_req.service_covid19_vaccine:
+        #     vaccine_service_code = __get_vaccine_service_code_for_location(
+        #         appointment_req.location_id,
+        #         ggv_slot=ggv_slot
+        #     )
+        #     add_service_to_appointment(appointment_id, vaccine_service_code)
+
+        if appointment_req.services.covid_19_vax_jnj:
+            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_JNJ)
+
+        if appointment_req.services.covid_19_vax_moderna_1 and ggv_slot == 1:
+            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_1)
+
+        if appointment_req.services.covid_19_vax_moderna_2 and ggv_slot == 2:
+            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_2)
+
+        if appointment_req.services.covid_19_vax_pfizer_1 and ggv_slot == 1:
+            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_1)
+
+        if appointment_req.services.covid_19_vax_pfizer_2 and ggv_slot == 2:
+            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_2)
 
         if appointment_req.services.covid_19_test:
             add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST)
