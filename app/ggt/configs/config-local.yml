@@ -1,6 +1,6 @@
 app_name: ggt-api
 app_version: 1.1
-log_level: INFO
+log_level: DEBUG
 base_url: https://start.GoGetTested.com
 portal_url: https://portal-dev.gogettested.com
 ops_url: https://ops-dev.gogettested.com
@@ -27,6 +27,28 @@ origins:
   - https://ops.gogettested.com
   - https://ops-dev.gogettested.com
   - https://ops-qa.gogettested.com
+  - https://gogetvax.com
+  - https://ops.gogetvax.com
+  - https://ops-dev.gogetvax.com
+  - https://ops-qa.gogetvax.com
+  - https://portal.gogetvax.com
+  - https://portal-dev.gogetvax.com
+  - https://portal-qa.gogetvax.com
+  - https://start.gogetvax.com
+  - https://start-dev.gogetvax.com
+  - https://start-qa.gogetvax.com
+  - https://schedule.gogetvax.com
+  - https://gogetdoc.com
+  - https://ops.gogetdoc.com
+  - https://ops-dev.gogetdoc.com
+  - https://ops-qa.gogetdoc.com
+  - https://portal.gogetdoc.com
+  - https://portal-dev.gogetdoc.com
+  - https://portal-qa.gogetdoc.com
+  - https://start.gogetdoc.com
+  - https://start-dev.gogetdoc.com
+  - https://start-qa.gogetdoc.com
+  - https://schedule.gogetdoc.com
   - http://localhost
   - http://localhost:3000
   - http://localhost:5000
@@ -37,10 +59,10 @@ docs:
   redoc_url: /redoc
 
 aws:
-  dynamo_table_name: available_slots
+  dynamo_table_name: prod_available_slots
   sqs_region: us-east-2
   queue_count: 2
-  sqs_url: https://sqs.us-east-2.amazonaws.com/135292740376/available_time_requests
+  sqs_url: https://sqs.us-east-2.amazonaws.com/135292740376/available_slot_management_queue_{}
   vax_sms_que: https://sqs.us-east-2.amazonaws.com/135292740376/vax_scheduled_sms_notification_queue
   region: us-east-1
   access_key_id: AKIAR7AATMMMGKHVWYP6
@@ -53,6 +75,7 @@ gcp:
   project_id: ggt-pfe-prod
   service_account_file: gcp-service-account.json
   default_link_expiration_time_limit: 300
+  service_account_file_prod: gcp-service-account-prod.json
   all_inbound_files_bucket_name: ggt-all-inbound-files-prod
   lab_reports_bucket_name: ggt-lab-reports-prod
   insurance_cards_bucket_name: ggt-insurance-cards-prod
@@ -63,8 +86,8 @@ gcp:
 
 databases:
   mysql:
-    host: ggt-dev-db.cluster-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
-    read_replica_host: ggt-dev-db.cluster-ro-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+    host: prod-ggt-aurora.cluster-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+    read_replica_host: reader.cluster-custom-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
     username: admin
     password: hWMgl5Tfkqn30saQNp9M
     db: ggt_prod
@@ -131,7 +154,7 @@ vendors:
     management_client_id: 6ok7VWNkeOA6An5sN30Jl9gHoH4oUT8j
     management_sectret: Rwx8-mby99m5O-2aR14JKgoim0VV0FJuO6sefpDxXjKiQ18mys4JWf2oAO6_5Mha
     connection: Username-Password-Authentication
-  
+
   healthtrackrx:
     ggt_api:
       api_key_name: x-api-key
@@ -168,7 +191,7 @@ vendors:
     slack_channel: '#my-channel'
     slack_icon_url: https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTuGqps7ZafuzUsViFGIremEL2a3NR0KO0s0RTCMXmzmREJd5m4MA&s
     slack_user_name: Double Images Monitor
-    
+
 pfe:
   signup:
     special_phone_1: '+14158888888'
@@ -177,9 +200,9 @@ pfe:
     special_phone_4: '4159999999'
     override_otp_code: '000000'
 
-
 security:
   ggv_secret: "thisistheggvtopsecret2021"
+
 
 payment:
   stripe:
