@@ -42,12 +42,17 @@ def minify_stripe_session_response(stripe_response):
     }
 
 
+# Transform en to en-US if the locale is us
+def transform_customer_locale(locale):
+    return locale if locale != 'en' else 'en-US'
+
+
 # This function will create a customer for checkout session
 def create_checkout_customer(payment_details):
     stripe_customer_response = stripe.Customer.create(
         description=payment_details.id,
         # Send the locale so that emails are sent according to preferred locale
-        preferred_locales=[payment_details.locale]
+        preferred_locales=[transform_customer_locale(payment_details.locale)]
     )
     # Return the customer id only
     return stripe_customer_response.id
