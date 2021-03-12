@@ -43,6 +43,7 @@ def ggv_get_schedule_locations_available_near_lat_lng(group_code, lat, lng, radi
                     l.zip,
                     l.lat,
                     l.lng,
+                    l.operator AS operated_by,
                     smc.first_available_slot,
                     CAST(smc.first_available_slot AS DATE) available_date,
                     smc.last_available_slot,
@@ -53,6 +54,7 @@ def ggv_get_schedule_locations_available_near_lat_lng(group_code, lat, lng, radi
                     (CASE
 						WHEN c.service_code LIKE "%PFIZER%" THEN 21
 						WHEN c.service_code LIKE "%MODERNA%" THEN 28
+						WHEN c.service_code LIKE "%_JNJ" THEN 0
                     END) as date_diff
                     FROM
                         locations l
@@ -835,6 +837,8 @@ def __format_ggv_available_locations(res):
             vax_type = "MODERNA"
         if 'PFIZER' in r['service_code']:
             vax_type = 'PFIZER'
+        if '_JNJ' in r['service_code']:
+            vax_type = 'JNJ'
 
         if r['location_id'] in valid_next_available_dates.keys():
             if date in valid_next_available_dates[r['location_id']].keys():
@@ -854,6 +858,7 @@ def __format_ggv_available_locations(res):
                 "lat": r['lat'],
                 "lng": r['lng'],
                 "distance": r['distance'],
+                "operated_by": r['operated_by'],
                 "vax_type": vax_type
             }
 
@@ -866,6 +871,7 @@ def __format_ggv_available_locations(res):
                 _dates[date]['locations'].append({
                     "id": r['location_id'],
                     "slots_available": r['slot_count'],
+                    "operated_by": r['operated_by'],
                     "starting_at": start_time,
                     "ending_at": end_time
                 })
@@ -874,6 +880,7 @@ def __format_ggv_available_locations(res):
                 "locations": [{
                     "id": r['location_id'],
                     "slots_available": r['slot_count'],
+                    "operated_by": r['operated_by'],
                     "starting_at": start_time,
                     "ending_at": end_time
                 }]

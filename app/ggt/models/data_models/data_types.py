@@ -20,6 +20,7 @@ class ServiceCodesEnum(str, Enum):
     covid_19_vax_pfizer_2 = 'COVID_19_VACCINE_PFIZER_2'
     covid_19_vax_moderna_1 = 'COVID_19_VACCINE_MODERNA_1'
     covid_19_vax_moderna_2 = 'COVID_19_VACCINE_MODERNA_2'
+    covid_19_vax_jnj = 'COVID_19_VACCINE_JNJ'
 
 
 class LocationToServiceMap(BaseModel):
@@ -428,6 +429,7 @@ class FinalizeGGVRegistrationRequest(BaseModel):
     appointmentOneTime: int
     appointmentTwoTime: int
     covid19vaxScreening: Optional[Covid19vaxScreening] = None
+    selectedServices: Optional[List[ServiceCodesEnum]] = None
 
 
 class FinalizeGGVPreRegistrationRequest(BaseModel):
@@ -925,6 +927,7 @@ class ServiceCodes(BaseModel):
     covid_19_vax_pfizer_2: bool = False
     covid_19_vax_moderna_1: bool = False
     covid_19_vax_moderna_2: bool = False
+    covid_19_vax_jnj: bool = False
 
 
 class GgtBooking(BaseModel):
