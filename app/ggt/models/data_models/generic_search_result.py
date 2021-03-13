@@ -508,7 +508,7 @@ def find_patients_in_vax_waitlist(data):
 
         sql = """
         SELECT
-            vpr.id as vax_pre_reg_id,
+            DISTINCT vpr.id as vax_pre_reg_id,
             p.first_name,
             p.middle_name,
             p.last_name,
