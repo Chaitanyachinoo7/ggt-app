@@ -1448,3 +1448,22 @@ class ServicePayment:
     service_name: str
     selfpay_amount: int
     currency: str
+
+
+class PortalVaxWaitlistSearchRequest(BaseModel):
+    first_name: str = None
+    last_name: str = None
+    dob: str = None
+    phone_number: str = None
+    email: str = None
+    min_age: int = 0
+    max_age: int = 1000
+    heart_disease: bool = False
+    diabetes: bool = False
+    respiratory_disease: bool = False
+    autoimmune_disease: bool = False
+    other_chronic_disease: bool = False
+    allergies: bool = False
+    prescription_use: bool = False
+    sort_field: str = "register_dt"
+    sort: SortEnum = 'DESC'
