@@ -39,8 +39,10 @@ locations = [
         "open_hours": None,
         "misc": None,
         "is_external": 0,
+        "lab_id": 1,
         "create_dt": "2020-07-21 14:40:53",
-        "update_dt": "2020-10-02 11:12:41"
+        "update_dt": "2020-10-02 11:12:41",
+        "country": None
     }
 ]
 
@@ -91,7 +93,9 @@ schedules = [
         "time_zone_offset": "-05:00",
         "duration": 600,
         "status": "available",
-        "appointment_id": None
+        "appointment_id": None,
+        "lock_time": "2020-12-10 08:10:00",
+        "rule_id": None
     },
     {
         "id": 2,
@@ -102,7 +106,9 @@ schedules = [
         "time_zone_offset": "-05:00",
         "duration": 600,
         "status": "available",
-        "appointment_id": None
+        "appointment_id": None,
+        "lock_time": "2020-12-15 08:10:00",
+        "rule_id": None
     }
 ]
 
@@ -134,7 +140,8 @@ patients = [
         "result_token": None,
         "token_expire": "2021-06-30 16:55:05",
         "create_dt": "2020-06-30 16:55:05",
-        "update_dt": "2020-06-30 16:55:05"
+        "update_dt": "2020-06-30 16:55:05",
+        "country": None
     }
 ]
 
@@ -164,6 +171,13 @@ appointments = [
         "vax_start_dt": "2020-07-06 16:40:09",
         "vax_notes_dt": "2020-07-06 16:40:09",
         "vax_end_dt": "2020-07-06 16:40:09",
+        "injection_site": None,
+        "no_adverse_reactions": 1,
+        "lot_no": None,
+        "expiration_date": None,
+        "gtin": None,
+        "sample_collection_location_id": 1,
+        "language": None,
         "create_dt": "2020-07-06 16:40:09",
         "update_dt": "2020-07-06 16:40:09"
     }
@@ -194,6 +208,7 @@ test_samples = [
         "consultation_status": "pending",
         "consultation_notes": None,
         "consultation_categorization": None,
+        "location_id": None,
         "status": None,
         "test_type": "oral",
         "initial_billed_status": 0,
@@ -226,7 +241,8 @@ services_catalog = [
         "price": 175.00,
         "selfpay_amount": 0.00,
         "copay_amount": 0.00,
-        "insurance_amount": 0.00
+        "insurance_amount": 0.00,
+        "currency": None
     },
     {
         "id": 2,
@@ -235,7 +251,8 @@ services_catalog = [
         "price": 30.00,
         "selfpay_amount": 30.00,
         "copay_amount": 0.00,
-        "insurance_amount": 0.00
+        "insurance_amount": 0.00,
+        "currency": None
     },
     {
         "id": 3,
@@ -244,7 +261,8 @@ services_catalog = [
         "price": 0.00,
         "selfpay_amount": 0.00,
         "copay_amount": 0.00,
-        "insurance_amount": 0.00
+        "insurance_amount": 0.00,
+        "currency": None
     }
 ]
 
@@ -311,56 +329,6 @@ organizations = [
     }
 ]
 
-patient_questionnaires = [
-    {
-        "id": 1,
-        "patient_id": 1,
-        "token": 'c955faaa-54bb-4365-b432-7e4c00e3e058',
-        "group_code": '_DEFAULT_',
-        "symptom_fever": '1',
-        "symptom_shortness_breath": '1',
-        "symptom_cough": '1',
-        "symptom_chest_pain": '1',
-        "symptom_lack_of_smell": None,
-        "symptom_other_breathing": '1',
-        "covid_contact": '1',
-        "prescription_use": '1',
-        "heart_disease": '1',
-        "diabetes": '1',
-        "respiratory_diseases": '1',
-        "autoimmune_disease": '1',
-        "other_chronic": '1',
-        "allergies": '1',
-        "consent_signature": '1',
-        "consent_date": None,
-        "insurance_details": None,
-        "has_insurance_photo": '0',
-        "is_patient": None,
-        "provider_consent_signature": None,
-        "provider_consent_custom_field_1": None,
-        "provider_consent_custom_field_2": None,
-        "provider_consent_custom_field_3": None,
-        "influenza_consent_signature": None,
-        "public_places_bars_restaurants_cafes": None,
-        "public_places_gas_stations": None,
-        "public_places_medical_offices": None,
-        "public_places_place_of_work": None,
-        "public_places_retail_grocery_stores": None,
-        "public_places_places_of_worship": None,
-        "public_places_public_parks": None,
-        "public_places_other": None,
-        "service_covid19_test": None,
-        "service_flu_shot": None,
-        "service_consult": None,
-        "flu_screen_severely_ill": None,
-        "flu_screen_guillain_barre_syndrome": None,
-        "flu_screen_life_threatening_reaction": None,
-        "flu_screen_egg_allergy": None,
-        "create_dt": today,
-        "update_dt": today
-    }
-]
-
 locations_metrics_cache = [
     {
         "location_id": 1,
@@ -383,7 +351,8 @@ schedules_metrics_cache = [
         "close_time": tomorrow,
         "first_available_slot": today,
         "last_available_slot": df_tomorrow,
-        "update_dt": today
+        "update_dt": today,
+        "rule_id": None
     }
 ]
 
