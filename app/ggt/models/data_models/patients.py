@@ -121,14 +121,14 @@ def add_to_ggd_waiting_queue(patient_id):
         return None
 
 
-def create_pre_registration(patient_id):
+def create_pre_registration(patient_id, patient_questionnaire_id):
     try:
         sql = """
             INSERT INTO 
-                vax_pre_registrations (patient_id)
-            VALUES (%s)
+                vax_pre_registrations (patient_id, patient_questionnaire_id)
+            VALUES (%s, %s)
         """
-        vals = (patient_id,)
+        vals = (patient_id, patient_questionnaire_id)
         return exec_insert(sql, vals)
 
     except Exception as err:
