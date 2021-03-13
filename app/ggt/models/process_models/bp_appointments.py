@@ -101,13 +101,13 @@ def bp_appointment_update(provider_update_appointment_request, user):
         if action == c.APPOINTMENT_ACTION_START_VAX:
             usuccess = update_appointment_with_start_vax(appointment, user, operator_location_id=operator_location_id)
 
-        if action == c.APPOINTMENT_ACTION_VERIFY_INSURANCE:
+        elif action == c.APPOINTMENT_ACTION_VERIFY_INSURANCE:
             usuccess = update_appointment_with_verify_insurance(appointment, user,
                                                                 operator_location_id=operator_location_id)
             if usuccess:
                 __save_insurance_image(appointment_id, provider_update_appointment_request.insurance_photo)
 
-        if action == c.APPOINTMENT_ACTION_END_VAX:
+        elif action == c.APPOINTMENT_ACTION_END_VAX:
             usuccess = update_appointment_with_end_vax(appointment, user, workstation_id,
                                                        operator_location_id=operator_location_id)
             if usuccess:
@@ -115,7 +115,7 @@ def bp_appointment_update(provider_update_appointment_request, user):
                 __send_vax_completion_confirmation_in_15_minutes(appointment.patient.first_name,
                                                                  appointment.patient.phone_number)
 
-        if action == c.APPOINTMENT_ACTION_NOTES_VAX:
+        elif action == c.APPOINTMENT_ACTION_NOTES_VAX:
             usuccess = update_appointment_with_notes_vax(appointment, user, workstation_id,
                                                          provider_update_appointment_request.injection_site,
                                                          provider_update_appointment_request.no_adverse_reactions,
@@ -123,7 +123,7 @@ def bp_appointment_update(provider_update_appointment_request, user):
             if usuccess:
                 create_consultation_note(user, appointment_id, provider_update_appointment_request.appointment_notes)
 
-        if action == c.APPOINTMENT_ACTION_CHECK_IN:
+        elif action == c.APPOINTMENT_ACTION_CHECK_IN:
             usuccess = update_appointment_with_checkin(appointment, user, operator_location_id=operator_location_id)
 
         elif action == c.APPOINTMENT_ACTION_START_TEST:

@@ -556,6 +556,18 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
     usuccess = False
     reason_code = ''
 
+    log_generic(
+        position=3,
+        type=c.INFO,
+        appointment_id=appointment.id,
+        function=whoami(),
+        action=status,
+        workstation_id=workstation_id,
+        operator_location_id=operator_location_id,
+        vial_id=vial_id,
+        injection_site=injection_site
+    )
+
     try:
         # Check if a vial has already been assigned, if so, don't allow update to proceed
         if appointment.vial_id and vial_id:
