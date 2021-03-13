@@ -723,7 +723,7 @@ def update_slot_information(slot_id, appointment_id, slot_type='test'):
                 appointment_id = %s, 
                 status = 'booked'
             WHERE 
-                id = %s
+                id = %s AND status = 'available'
         """.format(table)
         vals = (appointment_id, slot_id)
         return exec_update(sql, vals)
@@ -812,6 +812,47 @@ def get_slots_matching_dt_list(dt_list, location_id, category):
 
     return slot_list
 
+
+def get_next_available_slot(slot_id, location_id, test_type):
+    table = "schedules"
+    if test_type == "vax":
+        table = "ggv_schedules"
+    sql = """SELECT 
+                    *
+             FROM
+                    {}
+             WHERE
+                location_id = %s AND status='available' AND lock_time < NOW() AND id > %s ORDER BY id ASC""".format(table)
+    vals = (location_id, slot_id)
+    return replica_read_row(sql, vals)
+
+
+def book_slot(slot_id, appointment_id, test_type):
+    table = "schedules"
+    if test_type == "vax":
+        table = "ggv_schedules"
+    sql = """
+            UPDATE {}
+                SET 
+                status = 'booked',
+                appointment_id = %s
+            WHERE 
+                id = %s
+    """.format(table)
+    vals = (appointment_id, slot_id)
+    return exec_update(sql, vals)
+
+
+def update_appointment(appointment_id, scheduled_dt):
+    sql = """
+              UPDATE appointments
+                  SET 
+                  scheduled_dt = %s
+              WHERE 
+                  id = %s
+      """
+    vals = (scheduled_dt, appointment_id)
+    return exec_update(sql, vals)
 
 ########################################################################################################
 # [Protected] functions
