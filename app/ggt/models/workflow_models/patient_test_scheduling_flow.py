@@ -295,12 +295,12 @@ def ggv_finalize_registration(finalize_registration_request):
 
 def ggv_finalize_pre_registration(finalize_registration_request):
     booking_req = __map_to_booking_req(finalize_registration_request, ggv=True)
-    status_message, patient_id = bp_ggv_finalize_pre_booking(booking_req)
+    status_message, patient_id, patient_questionnaire_id = bp_ggv_finalize_pre_booking(booking_req)
 
     if patient_id:
         if finalize_registration_request.ggd_waitlist:
             bp_add_to_ggd_waiting_queue(patient_id)
-        bp_create_pre_registration(patient_id)
+        bp_create_pre_registration(patient_id, patient_questionnaire_id)
         return {
             c.STATUS: c.SUCCESS,
             "pre_register": True,
