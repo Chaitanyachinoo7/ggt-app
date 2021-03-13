@@ -579,7 +579,7 @@ def find_patients_in_vax_waitlist(data):
                 INNER JOIN
             vax_pre_registrations vpr ON (p.id = vpr.patient_id)
                 INNER JOIN
-            patient_questionnaires q ON (p.id = q.patient_id)
+            patient_questionnaires q ON (q.id = vpr.patient_questionnaire_id)
         WHERE
             {}
         HAVING
