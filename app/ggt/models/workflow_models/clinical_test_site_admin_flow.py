@@ -217,7 +217,7 @@ def get_schedule_generation_rules(location_id):
 
 def site_admin_vax_waitlist_search(data):
     return y_response(
-        bp_get_vax_waitlist_search_results(data)
+        bp_get_vax_waitlist_search_results(data), True
     )
 
 ########################################################################################################

@@ -1450,20 +1450,32 @@ class ServicePayment:
     currency: str
 
 
+class VaxPreRegStatusEnum(str, Enum):
+    waiting = 'waiting'
+    invited = 'invited'
+    registered = 'registered'
+    any = ''
+
+
 class PortalVaxWaitlistSearchRequest(BaseModel):
     first_name: str = ''
+    middle_name: str = ''
     last_name: str = ''
     dob: str = ''
     phone_number: str = ''
     email: str = ''
     min_age: int = 0
-    max_age: int = 1000
+    max_age: int = 0
     heart_disease: bool = False
     diabetes: bool = False
-    respiratory_disease: bool = False
+    respiratory_diseases: bool = False
     autoimmune_disease: bool = False
-    other_chronic_disease: bool = False
+    other_chronic: bool = False
     allergies: bool = False
     prescription_use: bool = False
-    sort_field: str = "register_dt"
+    status: VaxPreRegStatusEnum = ''
+    sort_field: str = '"signed_up_dt"'
     sort: SortEnum = 'DESC'
+    limit: int = 20
+
+

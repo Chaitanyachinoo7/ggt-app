@@ -30,7 +30,7 @@ from ggt.lib.db import (
 # [Public] functions
 ########################################################################################################
 from ggt.models.data_models.providers import process_consultations
-
+from ggt.models.data_models.data_types import VaxPreRegStatusEnum
 
 class PatientDetails(BaseModel):
     first_name: str
@@ -440,6 +440,104 @@ def find_patients_by_patient_ids(patient_ids):
         """.format(where_condition)
         rows = replica_read_rows(sql)
         return rows
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def find_patients_in_vax_waitlist(data):
+    try:
+        where_conditions = "1=1"
+        if data.first_name != '':
+            where_conditions = "{} AND p.first_name LIKE '%{}%'".format(
+                where_conditions, data.first_name)
+        if data.middle_name != '':
+            where_conditions = "{} AND p.middle_name LIKE '%{}%'".format(
+                where_conditions, data.middle_name)
+        if data.last_name != '':
+            where_conditions = "{} AND p.last_name LIKE '%{}%'".format(
+                where_conditions, data.last_name)
+        if data.dob != '':
+            where_conditions = "{} AND p.dob = '{}'".format(
+                where_conditions, data.dob)
+        if data.phone_number != '':
+            where_conditions = "{} AND p.phone_number LIKE '%{}%'".format(
+                where_conditions, data.phone_number)
+        if data.email != '':
+            where_conditions = "{} AND p.email LIKE '%{}%'".format(
+                where_conditions, data.email)
+        if data.heart_disease:
+            where_conditions = "{} AND pq.heart_disease=1".format(
+                where_conditions)
+        if data.diabetes:
+            where_conditions = "{} AND pq.diabetes=1".format(where_conditions)
+        if data.respiratory_diseases:
+            where_conditions = "{} AND pq.respiratory_diseases=1".format(
+                where_conditions)
+        if data.autoimmune_disease:
+            where_conditions = "{} AND pq.autoimmune_disease=1".format(
+                where_conditions)
+        if data.other_chronic:
+            where_conditions = "{} AND pq.other_chronic=1".format(
+                where_conditions)
+        if data.allergies:
+            where_conditions = "{} AND pq.allergies=1".format(where_conditions)
+        if data.prescription_use:
+            where_conditions = "{} AND pq.prescription_use=1".format(
+                where_conditions)
+        if data.status != VaxPreRegStatusEnum.any:
+            where_conditions = "{} AND vpr.status='{}'".format(
+                where_conditions, data.status)
+
+        having_conditions = "1=1"
+        if data.min_age:
+            having_conditions = "{} AND age >= '{}'".format(
+                having_conditions, data.min_age)
+        if data.max_age:
+            having_conditions = "{} AND age <= '{}'".format(
+                having_conditions, data.max_age)
+
+        if data.sort_field in ["first_name", "middle_name", "last_name", "age", "signed_up_dt"]:
+            sort_field = data.sort_field
+        else:
+            sort_field = "signed_up_dt"
+
+        sql = """
+        SELECT
+            vpr.id as vax_pre_reg_id,
+            p.first_name,
+            p.middle_name,
+            p.last_name,
+            FLOOR(DATEDIFF(NOW(), p.dob) / 365.25) as age,
+            vpr.create_dt as signed_up_dt,
+            pq.heart_disease,
+            pq.diabetes,
+            pq.respiratory_diseases,
+            pq.autoimmune_disease,
+            pq.other_chronic,
+            pq.allergies,
+            pq.prescription_use,
+            vpr.status
+        FROM
+            patients p
+                INNER JOIN
+            vax_pre_registrations vpr ON (p.id = vpr.patient_id)
+                INNER JOIN
+            patient_questionnaires pq ON (p.id = pq.patient_id)
+        WHERE
+            {}
+        HAVING
+            {}
+        order by {} {}
+        LIMIT {}
+        """.format(where_conditions, having_conditions, sort_field, data.sort, data.limit)
+        
+        return replica_read_rows(sql)
+
     except Exception as err:
         log_generic(
             type=ERROR,
