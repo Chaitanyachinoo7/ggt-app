@@ -1311,6 +1311,8 @@ def __evaluate_upfront_payment(booking_req: GgtBooking):
 
         # Get the list of location services
         location_services = booking_req.location_services
+        # Get the currency
+        currency = booking_req.currency
         # If no location services, return the empty payment object
         if not location_services:
             return patient_upfront_payment
@@ -1321,21 +1323,15 @@ def __evaluate_upfront_payment(booking_req: GgtBooking):
             services_list.append(service.service_code)
 
         # Get list of upfront payments
-        service_payments = get_patient_upfront_payment(services_list)
+        service_payments = get_patient_upfront_payment(services_list, currency)
 
         if not service_payments:
             return patient_upfront_payment
 
         # Get the total patient payment sum
         total = 0
-        currency = None
         for payment in service_payments:
             total += payment.selfpay_amount
-            if currency is None:
-                currency = payment.currency  # Set the first service's currency as the currency
-            else:
-                if currency != payment:
-                    raise ValueError('Currencies cannot mix')  # If two currencies have mixed raise an error
 
         # Here we consider all the service charges into one bill
         patient_upfront_payment.is_payment_required = total > 0

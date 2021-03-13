@@ -437,6 +437,7 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
             b.services = selected_services
 
         b.language = finalize_registration_request.language
+        b.currency = finalize_registration_request.currency
 
         with suppress(AttributeError):
             b.public_places_bars_restaurants_cafes = finalize_registration_request.publicPlaces.bars_restaurants_cafes
