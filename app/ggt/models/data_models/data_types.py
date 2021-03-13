@@ -1451,11 +1451,11 @@ class ServicePayment:
 
 
 class PortalVaxWaitlistSearchRequest(BaseModel):
-    first_name: str = None
-    last_name: str = None
-    dob: str = None
-    phone_number: str = None
-    email: str = None
+    first_name: str = ''
+    last_name: str = ''
+    dob: str = ''
+    phone_number: str = ''
+    email: str = ''
     min_age: int = 0
     max_age: int = 1000
     heart_disease: bool = False
