@@ -292,9 +292,9 @@ def bp_add_to_ggd_waiting_queue(patient_id):
     return False
 
 
-def bp_create_pre_registration(patient_id):
+def bp_create_pre_registration(patient_id, patient_questionnaire_id):
     try:
-        return create_pre_registration(patient_id)
+        return create_pre_registration(patient_id, patient_questionnaire_id)
         log_generic(
             type=c.INFO,
             patient_id=patient_id,
@@ -448,6 +448,7 @@ def bp_ggv_finalize_pre_booking(booking_req: GgtBooking):
         if booking_req is None:
             raise ValueError(status_message)
         patient_id = booking_req.patient_id
+        patient_questionnaire_id = booking_req.patient_questionnaire_id
         __send_ggv_pre_registration_sms(booking_req.first_name, booking_req.phone_number)
         __send_ggv_pre_registration_email(booking_req.first_name, booking_req.email)
     except Exception as err:
@@ -460,7 +461,7 @@ def bp_ggv_finalize_pre_booking(booking_req: GgtBooking):
         )
         raise HTTPException(status_code=500)
 
-    return status_message, patient_id
+    return status_message, patient_id, patient_questionnaire_id
 
 
 def bp_finalize_payment(appointment_id: int, wp_receipt_token: str):
