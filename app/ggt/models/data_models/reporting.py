@@ -203,7 +203,8 @@ def get_portal_stats_today(org_id):
 
         sql_2 = """SELECT 
                         COUNT(*) AS all_appointments,
-                        DATE_FORMAT(a.scheduled_dt, '%l %p') AS dt
+                        DATE_FORMAT(a.scheduled_dt, '%l %p') AS dt,
+                        CONVERT(DATE_FORMAT(a.scheduled_dt, '%k'), UNSIGNED) as hour24
                     FROM
                         appointments a
                         join locations l on a.location_id = l.id
@@ -213,7 +214,7 @@ def get_portal_stats_today(org_id):
                             OR (CAST(test_end_dt AS DATE) = CAST(NOW() AS DATE)))
                             AND l.org_id = %s
                     GROUP BY dt
-                    ORDER BY dt;"""
+                    ORDER BY hour24;"""
         res_2 = replica_read_rows(sql_2, vals)
 
         return __format_daily_matrix(res_1, res_2)
