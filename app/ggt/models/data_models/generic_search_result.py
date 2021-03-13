@@ -471,23 +471,23 @@ def find_patients_in_vax_waitlist(data):
             where_conditions = "{} AND p.email LIKE '%{}%'".format(
                 where_conditions, data.email)
         if data.heart_disease:
-            where_conditions = "{} AND pq.heart_disease=1".format(
+            where_conditions = "{} AND q.heart_disease=1".format(
                 where_conditions)
         if data.diabetes:
-            where_conditions = "{} AND pq.diabetes=1".format(where_conditions)
+            where_conditions = "{} AND q.diabetes=1".format(where_conditions)
         if data.respiratory_diseases:
-            where_conditions = "{} AND pq.respiratory_diseases=1".format(
+            where_conditions = "{} AND q.respiratory_diseases=1".format(
                 where_conditions)
         if data.autoimmune_disease:
-            where_conditions = "{} AND pq.autoimmune_disease=1".format(
+            where_conditions = "{} AND q.autoimmune_disease=1".format(
                 where_conditions)
         if data.other_chronic:
-            where_conditions = "{} AND pq.other_chronic=1".format(
+            where_conditions = "{} AND q.other_chronic=1".format(
                 where_conditions)
         if data.allergies:
-            where_conditions = "{} AND pq.allergies=1".format(where_conditions)
+            where_conditions = "{} AND q.allergies=1".format(where_conditions)
         if data.prescription_use:
-            where_conditions = "{} AND pq.prescription_use=1".format(
+            where_conditions = "{} AND q.prescription_use=1".format(
                 where_conditions)
         if data.status != VaxPreRegStatusEnum.any:
             where_conditions = "{} AND vpr.status='{}'".format(
@@ -508,26 +508,78 @@ def find_patients_in_vax_waitlist(data):
 
         sql = """
         SELECT
-            DISTINCT vpr.id as vax_pre_reg_id,
-            p.first_name,
-            p.middle_name,
-            p.last_name,
+            vpr.id as vax_pre_reg_id,
+            q.id AS q_id,
+            p.id AS patient_id,
+            p.first_name AS first_name,
+            p.middle_name AS middle_name,
+            p.last_name AS last_name,
+            p.gender AS gender,
+            p.height_ft AS height_ft,
+            p.height_in AS height_in,
+            p.weight_lb AS weight_lb,
+            (CASE
+                WHEN (p.race = 'race_american_indian') THEN 'American Indian or Alaska Native'
+                WHEN (p.race = 'race_asian') THEN 'Asian'
+                WHEN (p.race = 'race_black') THEN 'Black or African American'
+                WHEN (p.race = 'race_hawaiian') THEN 'Native Hawaiian or Other Pacific Islander'
+                WHEN (p.race = 'race_other') THEN 'Other'
+                WHEN (p.race = 'race_white') THEN 'White'
+                ELSE 'Unknown'
+            END) AS race,
+            (CASE
+                WHEN (p.ethnicity = 'true') THEN 'Hispanic or Latino'
+                WHEN (p.ethnicity = 'false') THEN 'Not Hispanic or Latino'
+                WHEN (p.ethnicity = 'hispanic_latino_spanish') THEN 'Hispanic or Latino'
+                ELSE 'Unknown'
+            END) AS ethnicity,
+            p.addr1 AS addr1,
+            p.addr2 AS addr2,
+            p.addr3 AS addr3,
+            p.city AS city,
+            p.county AS county,
+            p.st AS st,
+            p.zip AS zip,
+            p.dob AS dob,
+            p.phone_number AS phone_number,
+            p.phone_number_verified AS phone_number_verified,
+            p.email AS email,
+            p.email_verified AS email_verified,
+            p.create_dt AS register_dt,
+            p.token AS token,
+            q.symptom_fever AS symptom_fever,
+            q.symptom_shortness_breath AS symptom_shortness_breath,
+            q.symptom_cough AS symptom_cough,
+            q.symptom_chest_pain AS symptom_chest_pain,
+            q.symptom_lack_of_smell AS symptom_lack_of_smell,
+            q.symptom_other_breathing AS symptom_other_breathing,
+            q.covid_contact AS covid_contact,
+            q.prescription_use AS prescription_use,
+            q.heart_disease AS heart_disease,
+            q.diabetes AS diabetes,
+            q.respiratory_diseases AS respiratory_diseases,
+            q.autoimmune_disease AS autoimmune_disease,
+            q.other_chronic AS other_chronic,
+            q.allergies AS allergies,
+            '' AS insurance_photo,
+            q.insurance_details,
+            q.serious_reaction AS ggv_serious_reaction,
+            q.ggv_allergies AS ggv_allergies,
+            q.long_term_health AS ggv_long_term_health,
+            q.immune_system AS ggv_immune_system,
+            q.immune_system_medications AS ggv_immune_system_medications,
+            q.nervous_system AS ggv_nervous_system,
+            q.blood_transfusion AS ggv_blood_transfusion,
+            q.recent_vaccinations AS ggv_recent_vaccinations,
             FLOOR(DATEDIFF(NOW(), p.dob) / 365.25) as age,
             vpr.create_dt as signed_up_dt,
-            pq.heart_disease,
-            pq.diabetes,
-            pq.respiratory_diseases,
-            pq.autoimmune_disease,
-            pq.other_chronic,
-            pq.allergies,
-            pq.prescription_use,
             vpr.status
         FROM
             patients p
                 INNER JOIN
             vax_pre_registrations vpr ON (p.id = vpr.patient_id)
                 INNER JOIN
-            patient_questionnaires pq ON (p.id = pq.patient_id)
+            patient_questionnaires q ON (p.id = q.patient_id)
         WHERE
             {}
         HAVING
