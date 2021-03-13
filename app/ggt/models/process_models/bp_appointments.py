@@ -263,6 +263,7 @@ def __next_action(appointment, service_code, pre_labeled=False):
     elif service_code == c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_1 or \
             service_code == c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_2 or \
             service_code == c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_1 or \
+            service_code == c.SERVICE_CODE_COVID_19_VACCINE_JNJ or \
             service_code == c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_2:
 
         if __has_insurance_info(appointment.patient.id):
