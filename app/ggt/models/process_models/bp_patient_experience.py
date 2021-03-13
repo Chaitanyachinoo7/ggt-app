@@ -56,7 +56,7 @@ from ggt.models.data_models.locations import (
 
 from ggt.models.data_models.schedules import (
     get_slot_information,
-    update_slot_information
+    update_slot_information, get_next_available_slot, book_slot, update_appointment
 )
 
 from ggt.models.data_models.clinical_test_results import (
@@ -127,7 +127,7 @@ def bp_get_ggv_screen_flow_seq(group_code: str):
                     "provider_name": "Texas Immtrac2",
                     # "provider_name": group_info.consent_party_name,
                     "consent_url": group_info.consent_url if (
-                                group_info.consent_url and group_info.consent_url != '') else None,
+                            group_info.consent_url and group_info.consent_url != '') else None,
                     "additional_fields": group_info.additional_fields
                 }
             }
@@ -167,7 +167,7 @@ def bp_get_screen_flow_seq(group_code: str):
                     "intro_text": group_info.intro_text,
                     "provider_name": group_info.consent_party_name,
                     "consent_url": group_info.consent_url if (
-                                group_info.consent_url and group_info.consent_url != '') else None,
+                            group_info.consent_url and group_info.consent_url != '') else None,
                     "additional_fields": group_info.additional_fields
                 }
             }
@@ -673,17 +673,8 @@ def __generate_appointment(booking_req: GgtBooking):
         appointment = create_appointment(booking_req)
 
         if appointment:
-            update_slot_information(booking_req.timeslot_id, appointment.id)
-
-            '''
-            log_generic(
-                type=c.INFO,
-                booking_req=booking_req,
-                appointment=appointment,
-                function=whoami(),
-                info='appointment_created'
-            )
-            '''
+            if not update_slot_information(booking_req.timeslot_id, appointment.id):
+                __assign_to_next_available_slot(booking_req.timeslot, appointment.id)
 
         else:
             raise ValueError('error_creating_appointment')
@@ -700,7 +691,6 @@ def __generate_appointment(booking_req: GgtBooking):
 
 
 def __generate_ggv_appointments(booking_req: GgtBooking, selected_services):
-
     if __is_dual_dose(selected_services):
         return __dual_shot_vaccinations(booking_req)
     else:
@@ -733,8 +723,12 @@ def __dual_shot_vaccinations(booking_req: GgtBooking):
         appointment_2 = create_appointment(booking_req, ggv_slot=2)
 
         if appointment_1 and appointment_2:
-            update_slot_information(booking_req.appointmentOneTime, appointment_1.id, slot_type='vax')
-            update_slot_information(booking_req.appointmentTwoTime, appointment_2.id, slot_type='vax')
+            update_1 = update_slot_information(booking_req.appointmentOneTime, appointment_1.id, slot_type='vax')
+            if not update_1:
+                __assign_to_next_available_slot(booking_req.slot_1, appointment_1.id, slot_type='vax')
+            update_2 = update_slot_information(booking_req.appointmentTwoTime, appointment_2.id, slot_type='vax')
+            if not update_2:
+                __assign_to_next_available_slot(booking_req.slot_2, appointment_2.id, slot_type='vax')
 
         else:
             raise ValueError('error_creating_appointment')
@@ -750,6 +744,20 @@ def __dual_shot_vaccinations(booking_req: GgtBooking):
     return appointment_1, appointment_2
 
 
+def __assign_to_next_available_slot(slot, appointment_id, slot_type='test'):
+    next_available_slot = get_next_available_slot(slot.id, slot.location_id, slot_type)
+    if next_available_slot:
+        if book_slot(slot.id, appointment_id, slot_type):
+            if update_appointment(appointment_id, next_available_slot['start_dt']):
+                return next_available_slot
+            else:
+                return None
+        else:
+            return None
+    else:
+        return None
+
+
 # TODO: consolidate __dual_shot_vaccinations and __single_shot_vaccinations in to a single function.
 # For that we have to re-structure the request body.
 def __single_shot_vaccinations(booking_req: GgtBooking):
@@ -761,7 +769,9 @@ def __single_shot_vaccinations(booking_req: GgtBooking):
         appointment = create_appointment(booking_req)
 
         if appointment:
-            update_slot_information(booking_req.appointmentOneTime, appointment.id, slot_type='vax')
+            update = update_slot_information(booking_req.appointmentOneTime, appointment.id, slot_type='vax')
+            if not update:
+                __assign_to_next_available_slot(booking_req.timeslot, appointment.id, slot_type='vax')
 
         else:
             raise ValueError('error_creating_appointment')
@@ -1271,7 +1281,7 @@ def __save_insurance_image(appointment_id: int, insurance_image: str) -> bool:
 
 def __inject_payment_flow(appointment: GgtAppointment):
     try:
-        wp_bill = te_wp_bill(appointment)
+        wp_bill = ""  # te_wp_bill(appointment)
 
         appointment.wp_receipt_token = wp_bill.receipt_token
         appointment.wp_customer_info_id = wp_bill.customer_id
