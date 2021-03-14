@@ -1,0 +1,107 @@
+BHS|^~\&|
+MSH|^~\&|SITE SPECIFIC^SITE SPECIFIC^ISO|DATABASE ID^SITE SPECIFIC^ISO|COVID|COVID|20201020230734-0700||VXU^V04^VXU_V04|IHS-2002|P|2.5.1|||ER|AL|||||Z22^CDCPHINVS^^|TX IIS|
+PID|1||PaitentID||SMITH^SAM^M^^^^L^^^^^||DOBYYYYMMDD|GENDER(M/F||CDCRACECODE^RACENAMENATIVE^CDCREC|ADDRESS|TXD|DATEOFVACCINE|||||||||CDCETHNICITYCODE^ETHINICTYNAME^CDCREC||||||||
+ORC|RE|21442-232101^IHS|2321015080021442^IHS|||||||||9999999999^JONES^SARAH^^^RN^^^NPI^L^^^NPI|||||
+RXA|0|1|DATETIMEOFVACCINE||207^COVID-19^CVX|.5|mL^MilliLiters^UCUM||00^NEW IMMUNIZATIONRECORD^NIP001|NPI^NAME OF DR|NAMEOFLOCATIONSPECIFIC&ISO^TX IIS ID @ 11.4||||LOTNUMBER|EXPDATE|MOD^MODERNA^MVX|||CP|A|
+RXR|C28161^Intramuscular^NCIT|RD^Right Deltoid^HL70163
+OBX|1|CE|64994-7^Vaccine Funding Program Eligibility^LN|2|V04^Am Indian/AKNative^HL70064||||||F|||DATEOFVACCINE|||VXC40^per immunization^CDCPHINVS
+OBX|2|NM|30973-2^Dose Number in Series^LN|1|1 OR 2|NA^^HL70353|||||F|||DATEOFOBSERVATION
+ORC|RE||UNIQUEORDERID|||||||NPI_OF_VACCINE_ORDERER^ADMINUSER^TWO^M^^RN^^^NPI^L^^^NPI|||||||NPIOFCLINICENTERING^CLINIC ONE^HL70362
+RXA|0|1|DATEOFVACCINE||207^MODERNA COVID-19 VACCINE^CVX|999|||||^^^ASUFAC&SITE SPECIFIC&ISO^^^^^123 MAINST^^ANYTOWN^NM^11111^^^001 TX IIS ID @11.4||||||||||A
+
+<Additional Message groups would follow>
+BTS|1
+FTS|
+
+
+FHS|^~\&|
+BHS|^~\&|
+MSH|^~\&|SITE SPECIFIC^SITE SPECIFIC^ISO|DATABASE ID^SITE SPECIFIC^ISO|COVID|COVID|20201020230734-0700||VXU^V04^VXU_V04|IHS-2002|P|2.5.1|||ER|AL|||||Z22^CDCPHINVS^^||
+PID|1||PaitentID||SMITH^SAM^M^^^^L^^^^^||DOBYYYYMMDD|GENDER(M/F||CDCRACECODE^RACENAMENATIVE^CDCREC|ADDRESS|||||||||||CDCETHNICITYCODE^ETHINICTYNAME^CDCREC||||||||
+ORC|RE|21442-232101^IHS|2321015080021442^IHS|||||||||9999999999^JONES^SARAH^^^RN^^^NPI^L^^^NPI|||||
+RXA|0|1|DATETIMEOFVACCINE||207^COVID-19^CVX|.5|mL^MilliLiters^UCUM||00^NEW IMMUNIZATIONRECORD^NIP001|NPI^NAME OF DR|NAMEOFLOCATIONPECIFIC&ISO||||LOTNUMBER|EXPDATE|MOD^MODERNA^MVX|||CP|A|
+RXR|C28161^Intramuscular^NCIT|RD^Right Deltoid^HL70163
+OBX|1|CE|64994-7^Vaccine Funding Program Eligibility^LN|2|V04^Am Indian/AK Native^HL70064||||||F|||20201020|||VXC40^per immunization^CDCPHINVS
+OBX|2|NM|30973-2^Dose Number in Series^LN|1|1|NA^^HL70353|||||F|||20201020
+ORC|RE|232101R001^SITE SPECIFIC|9999^IST-AA-IZ2|||||||9999999999^ADMINUSER^TWO^M^^RN^^^NPI^L^^^NPI|||||||999999^CLINIC ONE^HL70362
+RXA|0|1|20100217||208^PFIZER COVID-19 VACCINE^CVX|999|||||^^^ASUFAC&SITE SPECIFIC&ISO^^^^^123 MAINST^^ANYTOWN^NM^11111^^^001|||||||03^Patient decision^NIP002||RE|A
+
+<Additional Message groups would follow>
+BTS|1
+FTS|
+
+
+
+
+CDC RACE CODES:
+1002-5	American Indian or Alaska Native
+2028-9	Asian	Asian	
+2054-5	Black or African American	
+2076-8	Native Hawaiian or Other Pacific Islander
+2131-1	Other Race	Other Race	Race (HL7)	Race (HL7)	Details
+2106-3	White	White
+CDC ETHINICITY CODES:
+2135-2	Hispanic or Latino	Hispanic or Latino
+2186-5	Not Hispanic or Latino
+CDC CVX Number for COVID-19 Vaccine
+207	SARS-COV-2 (COVID-19) MODERNA
+208	SARS-COV-2 (COVID-19) PFIZER
+CDC MVX CODE for COVID-19 Vaccine
+MOD MODERNA
+PFR PFIZER
+CDC ROUTE
+LD Left Deltoid
+RD Right Deltoid
+OBX-5:
+    V01 for Private Pay/Insurance
+    V02 for Medicaid
+    V03 for No Insurance
+    V04 for American Indian/Alaskan Native
+    V05 for Underinsured, FQHC/RHC/Deputized
+    TXA01 for CHIP
+    TXA02 for Underinsured, Not FQHC/RHC/Deputized
+    TXA04 for Adult, No Insurance
+    TXA05 for Adult, Underinsured
+    TXA06 for Adult, Private Pay/Insurance
+
+
+MSH-22 TX IIS ID
+PID-3.5 Patient Identifier (MR, PI, PN, PT)
+PID-5 Patient Name
+PID-7 Date of Birth
+PID-8 Sex
+PID-10 Race
+PID-11 Patient Address
+PID-13 Phone Number
+PID-22 Ethnic Group
+PD1-12 TXD (disaster)
+PD1-13 YYYYMMDD (date of consent)
+RXR-1 Route
+RXR-2 Administration Site
+RXA-3 Vaccine administered date Indicates the date that the vaccine was administered. Required
+RXA-5 Vaccine administered code 5.1 Name of antiviral, 5.2 Description off Antiviral, 5.3 tradename Indicator- WVTN (example MODERNA^COVID19Antiviral^WVTN
+RXA-9 Administration Notes Required
+RXA-11 Administered at location This is the clinic/site where the vaccine was administered. RXA-11.4 TX IIS ID
+RXA-15 Vaccine Lot Number Indicates the lot number for the vaccine administered. Required
+RXA-16 Vaccine Lot Expiration Date
+RXA-17 Vaccine Manufacturer Indicates the manufacturer of the vaccine administered – MVX code.
+RXA-20 CP (completed)
+RXA-21 A(dd), U(pdate)
+OBX-5:
+    V01 for Private Pay/Insurance
+    V02 for Medicaid
+    V03 for No Insurance
+    V04 for American Indian/Alaskan Native
+    V05 for Underinsured, FQHC/RHC/Deputized
+    TXA01 for CHIP
+    TXA02 for Underinsured, Not FQHC/RHC/Deputized
+    TXA04 for Adult, No Insurance
+    TXA05 for Adult, Underinsured
+    TXA06 for Adult, Private Pay/Insurance
+OBX-14: YYYYMMDD of observation
+
+
+
+
+
+

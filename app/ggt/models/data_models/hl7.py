@@ -42,6 +42,7 @@ OBX|8|ST|COVID-PT-6^Does the patient reside in congregate care (nursing home, gr
 OBX|9|ST|COVID-PT-7^Is the patient pregnant?||N^No||||||||
 '''
 
+
 class MSH(BaseModel):
     # https://hl7-definition.caristix.com/v2/HL7v2.5.1/Segments/MSH
     msh_1_field_separator = ''
@@ -68,6 +69,7 @@ class MSH(BaseModel):
     msh_20_alternate_character_set_handling_scheme: Optional[constr(
         max_length=20)] = ''
     msh_21_message_profile_identifier: Optional[constr(max_length=427)] = ''
+    msh_22: Optional[constr(max_length=100)] = ''
 
     def __str__(self):
         return 'MSH|{}{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}'.format(
@@ -1056,67 +1058,67 @@ class DG1(BaseModel): \
 
 class ORC(BaseModel):
     orc_1_order_control: \
-			Optional[constr(max_length=2)] = ''
+        Optional[constr(max_length=2)] = ''
     orc_2_placer_order_number: \
-                Optional[constr(max_length=22)] = ''
+        Optional[constr(max_length=22)] = ''
     orc_3_filler_order_number = ''
     orc_4_placer_group_number: \
-                Optional[constr(max_length=22)] = ''
+        Optional[constr(max_length=22)] = ''
     orc_5_order_status: \
-                Optional[constr(max_length=2)] = ''
+        Optional[constr(max_length=2)] = ''
     orc_6_response_flag: \
-                Optional[constr(max_length=1)] = ''
+        Optional[constr(max_length=1)] = ''
     orc_7_quantitytiming: \
-                Optional[constr(max_length=200)] = ''
+        Optional[constr(max_length=200)] = ''
     orc_8_parent_order: \
-                Optional[constr(max_length=200)] = ''
+        Optional[constr(max_length=200)] = ''
     orc_9_datetime_of_transaction: \
-                Optional[constr(max_length=26)] = ''
+        Optional[constr(max_length=26)] = ''
     orc_10_entered_by: \
-                Optional[constr(max_length=250)] = ''
+        Optional[constr(max_length=250)] = ''
     orc_11_verified_by: \
-                Optional[constr(max_length=250)] = ''
+        Optional[constr(max_length=250)] = ''
     orc_12_ordering_provider: \
-                Optional[constr(max_length=250)] = ''
+        Optional[constr(max_length=250)] = ''
     orc_13_enterers_location: \
-                Optional[constr(max_length=80)] = ''
+        Optional[constr(max_length=80)] = ''
     orc_14_call_back_phone_number: \
-                Optional[constr(max_length=250)] = ''
+        Optional[constr(max_length=250)] = ''
     orc_15_order_effective_datetime: \
-                Optional[constr(max_length=26)] = ''
+        Optional[constr(max_length=26)] = ''
     orc_16_order_control_code_reason: \
-                Optional[constr(max_length=250)] = ''
+        Optional[constr(max_length=250)] = ''
     orc_17_entering_organization: \
-                Optional[constr(max_length=250)] = ''
+        Optional[constr(max_length=250)] = ''
     orc_18_entering_device: \
-                Optional[constr(max_length=250)] = ''
+        Optional[constr(max_length=250)] = ''
     orc_19_action_by: \
-                Optional[constr(max_length=250)] = ''
+        Optional[constr(max_length=250)] = ''
     orc_20_advanced_beneficiary_notice_code: \
-                Optional[constr(max_length=250)] = ''
+        Optional[constr(max_length=250)] = ''
     orc_21_ordering_facility_name: \
-                Optional[constr(max_length=250)] = ''
+        Optional[constr(max_length=250)] = ''
     orc_22_ordering_facility_address: \
-                Optional[constr(max_length=250)] = ''
+        Optional[constr(max_length=250)] = ''
     orc_23_ordering_facility_phone_number: \
-                Optional[constr(max_length=250)] = ''
+        Optional[constr(max_length=250)] = ''
     orc_24_ordering_provider_address: \
-                Optional[constr(max_length=250)] = ''
+        Optional[constr(max_length=250)] = ''
     orc_25_order_status_modifier: \
-                Optional[constr(max_length=250)] = ''
+        Optional[constr(max_length=250)] = ''
     orc_26_advanced_beneficiary_notice_override_reason: \
-                Optional[constr(max_length=60)] = ''
+        Optional[constr(max_length=60)] = ''
     orc_27_fillers_expected_availability_datetime: \
-                Optional[constr(max_length=26)] = ''
+        Optional[constr(max_length=26)] = ''
     orc_28_confidentiality_code: \
-                Optional[constr(max_length=250)] = ''
+        Optional[constr(max_length=250)] = ''
     orc_29_order_type: \
-                Optional[constr(max_length=250)] = ''
+        Optional[constr(max_length=250)] = ''
     orc_30_enterer_authorization_mode: \
-                Optional[constr(max_length=250)] = ''
+        Optional[constr(max_length=250)] = ''
     orc_31_parent_universal_service_identifier: \
-                Optional[constr(max_length=250)] = ''
-    
+        Optional[constr(max_length=250)] = ''
+
     def __str__(self):
         return 'ORC|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}'.format(
             self.orc_1_order_control,
@@ -1153,6 +1155,135 @@ class ORC(BaseModel):
         )
 
 
+class RXA(BaseModel):
+    # https://hl7-definition.caristix.com/v2/HL7v2.5/Segments/RXA
+    rxa_1_give_sub_id_counter = ''
+    rxa_2_administration_sub_id_counter = ''
+    rxa_3_date_time_start_of_administration = ''
+    rxa_4_date_time_end_of_administration = ''
+    rxa_5_administered_code = ''
+    rxa_6_administered_amount = ''
+    rxa_7_administered_units = ''
+    rxa_8_administered_dosage_form = ''
+    rxa_9_administration_notes = ''
+    rxa_10_administering_provider = ''
+    rxa_11_administered_at_location = ''
+    rxa_12_administered_per_time_unit = ''
+    rxa_13_administered_strength = ''
+    rxa_14_administered_strength_units = ''
+    rxa_15_substance_lot_number = ''
+    rxa_16_substance_expiration_date = ''
+    rxa_17_substance_manufacturer_name = ''
+    rxa_18_substance_treatment_refusal_reason = ''
+    rxa_19_indication = ''
+    rxa_20_completion_status = ''
+    rxa_21_action_code_rxa = ''
+    rxa_22_system_entry_date_time = ''
+    rxa_23_administered_drug_strength_volume = ''
+    rxa_24_administered_drug_strength_volume_units = ''
+    rxa_25_administered_barcode_identifier = ''
+    rxa_26_pharmacy_order_type = ''
+
+    def __str__(self):
+        return 'RXA|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}'.format(
+            self.rxa_1_give_sub_id_counter,
+            self.rxa_2_administration_sub_id_counter,
+            self.rxa_3_date_time_start_of_administration,
+            self.rxa_4_date_time_end_of_administration,
+            self.rxa_5_administered_code,
+            self.rxa_6_administered_amount,
+            self.rxa_7_administered_units,
+            self.rxa_8_administered_dosage_form,
+            self.rxa_9_administration_notes,
+            self.rxa_10_administering_provider,
+            self.rxa_11_administered_at_location,
+            self.rxa_12_administered_per_time_unit,
+            self.rxa_13_administered_strength,
+            self.rxa_14_administered_strength_units,
+            self.rxa_15_substance_lot_number,
+            self.rxa_16_substance_expiration_date,
+            self.rxa_17_substance_manufacturer_name,
+            self.rxa_18_substance_treatment_refusal_reason,
+            self.rxa_19_indication,
+            self.rxa_20_completion_status,
+            self.rxa_21_action_code_rxa,
+            self.rxa_22_system_entry_date_time,
+            self.rxa_23_administered_drug_strength_volume,
+            self.rxa_24_administered_drug_strength_volume_units,
+            self.rxa_25_administered_barcode_identifier,
+            self.rxa_26_pharmacy_order_type
+        )
+
+
+class RXR(BaseModel):
+    # https://hl7-definition.caristix.com/v2/HL7v2.5/Segments/RXR
+    rxr_1_route = ''
+    rxr_2_administration_site = ''
+    rxr_3_administration_device = ''
+    rxr_4_administration_method = ''
+    rxr_5_routing_instruction = ''
+    rxr_6_administration_site_modifier = ''
+
+    def __str__(self):
+        return 'RXR|{}|{}|{}|{}|{}|{}'.format(
+            self.rxr_1_route,
+            self.rxr_2_administration_site,
+            self.rxr_3_administration_device,
+            self.rxr_4_administration_method,
+            self.rxr_5_routing_instruction,
+            self.rxr_6_administration_site_modifier
+        )
+
+
+class PD1(BaseModel):
+    # https://hl7-definition.caristix.com/v2/HL7v2.5/Segments/PD1
+    pd1_1_living_dependency = ''
+    pd1_2_living_arrangement = ''
+    pd1_3_patient_primary_facility = ''
+    pd1_4_patient_primary_care_provider_name_and_id_no = ''
+    pd1_5_student_indicator = ''
+    pd1_6_handicap = ''
+    pd1_7_living_will_code = ''
+    pd1_8_organ_donor_code = ''
+    pd1_9_separate_bill = ''
+    pd1_10_duplicate_patient = ''
+    pd1_11_publicity_code = ''
+    pd1_12_protection_indicator = ''
+    pd1_13_protection_indicator_effective_date = ''
+    pd1_14_place_of_worship = ''
+    pd1_15_advance_directive_code = ''
+    pd1_16_immunization_registry_status = ''
+    pd1_17_immunization_registry_status_effective_date = ''
+    pd1_18_publicity_code_effective_date = ''
+    pd1_19_military_branch = ''
+    pd1_20_military_rank_grade = ''
+    pd1_21_military_status = ''
+
+    def __str__(self):
+        return 'PD1|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}'.format(
+            self.pd1_1_living_dependency,
+            self.pd1_2_living_arrangement,
+            self.pd1_3_patient_primary_facility,
+            self.pd1_4_patient_primary_care_provider_name_and_id_no,
+            self.pd1_5_student_indicator,
+            self.pd1_6_handicap,
+            self.pd1_7_living_will_code,
+            self.pd1_8_organ_donor_code,
+            self.pd1_9_separate_bill,
+            self.pd1_10_duplicate_patient,
+            self.pd1_11_publicity_code,
+            self.pd1_12_protection_indicator,
+            self.pd1_13_protection_indicator_effective_date,
+            self.pd1_14_place_of_worship,
+            self.pd1_15_advance_directive_code,
+            self.pd1_16_immunization_registry_status,
+            self.pd1_17_immunization_registry_status_effective_date,
+            self.pd1_18_publicity_code_effective_date,
+            self.pd1_19_military_branch,
+            self.pd1_20_military_rank_grade,
+            self.pd1_21_military_status
+        )
+
 
 class Message(BaseModel):
     msh: MSH = ''
@@ -1164,11 +1295,12 @@ class Message(BaseModel):
     orc: Optional[ORC] = ''
     obr: Optional[OBR] = ''
     obx_list: Optional[List[OBX]] = ''
+
     def __str__(self):
         _str = ''
         for obx in self.obx_list:
             _str = _str + str(obx) + '\n'
-            
+
         return '{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}'.format(
             str(self.msh),
             str(self.pid),
@@ -1178,4 +1310,30 @@ class Message(BaseModel):
             str(self.orc),
             str(self.obr),
             _str
-        ).replace('None','').replace('\n\n','\n').replace('\n\n','\n').replace('b\'','').replace('\'|','|')
+        ).replace('None', '').replace('\n\n', '\n').replace('\n\n', '\n').replace('b\'', '').replace('\'|', '|')
+
+
+class VaxMessage(BaseModel):
+    msh: MSH = ''
+    pid: Optional[PID] = ''
+    orc: Optional[ORC] = ''
+    pd1: Optional[PD1] = ''
+    rxr: Optional[RXR] = ''
+    rxa: Optional[RXA] = ''
+    obx_list: Optional[List[OBX]] = ''
+
+    def __str__(self):
+        _str = ''
+
+        for obx in self.obx_list:
+            _str = _str + str(obx) + '\n'
+
+        return '{}\n{}\n{}\n{}\n{}\n{}\n{}'.format(
+            str(self.msh),
+            str(self.pid),
+            str(self.pd1),
+            str(self.orc),            
+            str(self.rxa),
+            str(self.rxr),
+            _str
+        ).replace('None', '').replace('\n\n', '\n').replace('\n\n', '\n').replace('b\'', '').replace('\'|', '|')

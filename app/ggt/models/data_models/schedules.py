@@ -43,6 +43,7 @@ def ggv_get_schedule_locations_available_near_lat_lng(group_code, lat, lng, radi
                     l.zip,
                     l.lat,
                     l.lng,
+                    l.operator AS operated_by,
                     smc.first_available_slot,
                     CAST(smc.first_available_slot AS DATE) available_date,
                     smc.last_available_slot,
@@ -53,6 +54,7 @@ def ggv_get_schedule_locations_available_near_lat_lng(group_code, lat, lng, radi
                     (CASE
 						WHEN c.service_code LIKE "%PFIZER%" THEN 21
 						WHEN c.service_code LIKE "%MODERNA%" THEN 28
+						WHEN c.service_code LIKE "%_JNJ" THEN 0
                     END) as date_diff
                     FROM
                         locations l
@@ -721,7 +723,7 @@ def update_slot_information(slot_id, appointment_id, slot_type='test'):
                 appointment_id = %s, 
                 status = 'booked'
             WHERE 
-                id = %s
+                id = %s AND status = 'available'
         """.format(table)
         vals = (appointment_id, slot_id)
         return exec_update(sql, vals)
@@ -811,6 +813,47 @@ def get_slots_matching_dt_list(dt_list, location_id, category):
     return slot_list
 
 
+def get_next_available_slot(slot_id, location_id, test_type):
+    table = "schedules"
+    if test_type == "vax":
+        table = "ggv_schedules"
+    sql = """SELECT 
+                    *
+             FROM
+                    {}
+             WHERE
+                location_id = %s AND status='available' AND lock_time < NOW() AND id > %s ORDER BY id ASC""".format(table)
+    vals = (location_id, slot_id)
+    return replica_read_row(sql, vals)
+
+
+def book_slot(slot_id, appointment_id, test_type):
+    table = "schedules"
+    if test_type == "vax":
+        table = "ggv_schedules"
+    sql = """
+            UPDATE {}
+                SET 
+                status = 'booked',
+                appointment_id = %s
+            WHERE 
+                id = %s
+    """.format(table)
+    vals = (appointment_id, slot_id)
+    return exec_update(sql, vals)
+
+
+def update_appointment(appointment_id, scheduled_dt):
+    sql = """
+              UPDATE appointments
+                  SET 
+                  scheduled_dt = %s
+              WHERE 
+                  id = %s
+      """
+    vals = (scheduled_dt, appointment_id)
+    return exec_update(sql, vals)
+
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
@@ -835,6 +878,8 @@ def __format_ggv_available_locations(res):
             vax_type = "MODERNA"
         if 'PFIZER' in r['service_code']:
             vax_type = 'PFIZER'
+        if '_JNJ' in r['service_code']:
+            vax_type = 'JNJ'
 
         if r['location_id'] in valid_next_available_dates.keys():
             if date in valid_next_available_dates[r['location_id']].keys():
@@ -854,6 +899,7 @@ def __format_ggv_available_locations(res):
                 "lat": r['lat'],
                 "lng": r['lng'],
                 "distance": r['distance'],
+                "operated_by": r['operated_by'],
                 "vax_type": vax_type
             }
 
@@ -866,6 +912,7 @@ def __format_ggv_available_locations(res):
                 _dates[date]['locations'].append({
                     "id": r['location_id'],
                     "slots_available": r['slot_count'],
+                    "operated_by": r['operated_by'],
                     "starting_at": start_time,
                     "ending_at": end_time
                 })
@@ -874,6 +921,7 @@ def __format_ggv_available_locations(res):
                 "locations": [{
                     "id": r['location_id'],
                     "slots_available": r['slot_count'],
+                    "operated_by": r['operated_by'],
                     "starting_at": start_time,
                     "ending_at": end_time
                 }]
@@ -919,6 +967,7 @@ def __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, g
             l.st,
             l.zip,
             l.lat,
+            l.operator,
             l.lng,
             (3963 * ACOS(COS(RADIANS(%s)) * COS(RADIANS(l.lat)) * COS(RADIANS(l.lng) - RADIANS(%s)) + SIN(RADIANS(%s)) * SIN(RADIANS(l.lat)))) AS distance,
             {}
@@ -1005,6 +1054,7 @@ def __get_all_available_dtl(group_code):
             l.zip,
             l.lat,
             l.lng,
+            l.operator,
             l.image_thumbnail,
             l.billing_type,
             l.collect_insurance_info,

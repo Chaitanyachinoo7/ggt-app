@@ -1,4 +1,4 @@
-#Common
+# Common
 STATUS = 'status'
 SUCCESS = 'success'
 FAILED = 'failed'
@@ -18,7 +18,7 @@ Environment_DEV = 'dev'
 Environment_QA = 'qa'
 Environment_PROD = 'prod'
 
-#Service Catalog
+# Service Catalog
 SERVICE_CODE_COVID19_TEST = 'COVID_19_TEST'
 SERVICE_CODE_COVID19_TEST_MEXICO = 'COVID_19_TEST_MEXICO'
 SERVICE_CODE_COVID19_TEST_ANTIGEN = 'COVID_19_TEST_ANTIGEN'
@@ -29,8 +29,24 @@ SERVICE_CODE_COVID_19_VACCINE_PFIZER_1 = 'COVID_19_VACCINE_PFIZER_1'
 SERVICE_CODE_COVID_19_VACCINE_PFIZER_2 = 'COVID_19_VACCINE_PFIZER_2'
 SERVICE_CODE_COVID_19_VACCINE_MODERNA_1 = 'COVID_19_VACCINE_MODERNA_1'
 SERVICE_CODE_COVID_19_VACCINE_MODERNA_2 = 'COVID_19_VACCINE_MODERNA_2'
+SERVICE_CODE_COVID_19_VACCINE_JNJ = 'COVID_19_VACCINE_JNJ'
 
-#Route Tags
+# Service Names
+SERVICE_TO_NAME_MAP = {
+    "COVID_19_TEST": "COVID 19 PCR Test",
+    "COVID_19_TEST_MEXICO": "COVID 19 PCR Test",
+    "COVID_19_TEST_ANTIGEN": 'COVID 19 Antigen Test',
+    "COVID_19_TEST_MEXICO_ANTIGEN": 'COVID 19 Antigen Test',
+    "FLU_SHOT": 'Flue Shot',
+    "CONSULT": 'Consultation',
+    "COVID_19_VACCINE_PFIZER_1": 'Pfizer dose 01',
+    "COVID_19_VACCINE_PFIZER_2": 'Pfizer dose 02',
+    "COVID_19_VACCINE_MODERNA_1": 'Moderna dose 01',
+    "COVID_19_VACCINE_MODERNA_2": 'Moderna dose 01',
+    "COVID_19_VACCINE_JNJ": 'J & J dose'
+}
+
+# Route Tags
 PAGE_REDIRECTS_RT_TAG = 'Page Redirects'
 CLINICAL_PROVIDER_RT_TAG = 'Clinical Provider App'
 PATIENT_RT_TAG = 'Patient Front End'
@@ -45,7 +61,7 @@ BILLING_RT_TAG = 'Billing App'
 VENDOR_RT_TAG = 'Vendor Integration'
 PAYMENT_RT_TAG = 'Payment Integration'
 
-#API Prefixes
+# API Prefixes
 CLINICAL_PROVIDER_PATH_PREFIX = '/api/provider'
 PATIENT_PATH_PREFIX = '/api'
 BACKGROUND_TASK_PATH_PREFIX = '/api/task'
@@ -57,12 +73,12 @@ MANAGEMENT_PATH_PREFIX = '/api/management'
 CARE_PROVIDER_PATH_PREFIX = '/api/care_provider'
 BILLING_PATH_PREFIX = '/api/billing'
 VENDOR_PATH_PREFIX = '/api/vendor'
-PAYMENT_CHECKOUT_PREFIX='/api/payment'
+PAYMENT_CHECKOUT_PREFIX = '/api/payment'
 
-#Auth
+# Auth
 AUTH_FAILED_MESSAGE = 'Not Authorized'
 
-#Appointment
+# Appointment
 APPOINTMENT_STATUS_SCHEDULED = 'scheduled'
 APPOINTMENT_STATUS_CHECKED_IN = 'checked_in'
 APPOINTMENT_STATUS_TEST_IN_PROGRESS = 'test_in_progress'
@@ -84,4 +100,3 @@ APPOINTMENT_ACTION_NONE = ''
 
 # Payment APIs
 STRIPE = 'stripe'
-
