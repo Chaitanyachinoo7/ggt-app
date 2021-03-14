@@ -217,3 +217,9 @@ image_urls:
     - 'http://ggt-image-server.com/flu' # Add a URL of a stock photo or S3 bucket
   payment:
     - 'https://goget-static-content.s3.us-east-2.amazonaws.com/fit2fly_icon.png' # Add a URL of a stock photo or S3 bucket
+
+
+lab_integrations:
+  s3_bucket: ggt-sftp-dev
+  archive_bucket: ggt-sftp-archive-dev
+  labreport_bucket: ggt-labreports-dev
