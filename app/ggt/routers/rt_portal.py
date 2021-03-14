@@ -283,6 +283,8 @@ async def api_cc_patient_lookup(portal_cc_patient_lookup_request: PortalCcPatien
         portal_cc_patient_lookup_request.last_name,
         portal_cc_patient_lookup_request.dob
     )
+
+
 @router.post("/site-admin/generate_vaccine_forms_brownwood", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
 def generate_vaccine_forms_brownwood(portal_admin_get_f11_request: PortalAdminGetF11Request):
     return site_admin_get_f11(portal_admin_get_f11_request.appointment_ids)
@@ -292,6 +294,7 @@ def generate_vaccine_forms_brownwood(portal_admin_get_f11_request: PortalAdminGe
 async def api_admin_get_all_test_results():
     return admin_get_all_test_results()
 '''
+
 
 @router.post("/site-admin/vax_waitlist_search", dependencies=[Security(authorize_user, scopes=[p.GET_SCHEDULE_GENERATION_RULES])])
 async def api_site_admin_vax_waitlist_search(portal_vax_waitlist_search: PortalVaxWaitlistSearchRequest):
