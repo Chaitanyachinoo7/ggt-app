@@ -585,8 +585,8 @@ def find_patients_in_vax_waitlist(data):
         HAVING
             {}
         order by {} {}
-        LIMIT {}
-        """.format(where_conditions, having_conditions, sort_field, data.sort, data.limit)
+        LIMIT {} OFFSET {}
+        """.format(where_conditions, having_conditions, sort_field, data.sort, data.limit, data.offset)
         
         return replica_read_rows(sql)
 

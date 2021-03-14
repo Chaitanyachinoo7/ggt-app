@@ -1480,5 +1480,6 @@ class PortalVaxWaitlistSearchRequest(BaseModel):
     sort_field: str = '"signed_up_dt"'
     sort: SortEnum = 'DESC'
     limit: int = 20
+    offset: int = 0
 
 
