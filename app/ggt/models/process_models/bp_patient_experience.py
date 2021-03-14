@@ -1640,6 +1640,7 @@ def __inject_payment_checkout_session(appointment: GgtAppointment, upfront_payme
     payment_request.navigation = __generate_payment_checkout_session_navigation(appointment)
     payment_request.locale = __inject_locale(booking_req.language)
     payment_request.currency = upfront_payment_info.currency
+    payment_request.id = appointment.id  # Set the appointment id as the payment request id
 
     # Return the session object which contains session id
     return bp_create_checkout_session(payment_request)

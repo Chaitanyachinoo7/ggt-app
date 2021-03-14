@@ -42,7 +42,24 @@ def minify_stripe_session_response(stripe_response):
     }
 
 
+# Transform en to en-US if the locale is us
+def transform_customer_locale(locale):
+    return locale if locale != 'en' else 'en-US'
+
+
+# This function will create a customer for checkout session
+def create_checkout_customer(payment_details):
+    stripe_customer_response = stripe.Customer.create(
+        description=payment_details.id,
+        # Send the locale so that emails are sent according to preferred locale
+        preferred_locales=[transform_customer_locale(payment_details.locale)]
+    )
+    # Return the customer id only
+    return stripe_customer_response.id
+
+
 def create_checkout_session(payment_details):
+    customer_id = create_checkout_customer(payment_details)
     stripe_checkout_request = generate_stripe_checkout_request_body(payment_details)
     stripe_response = stripe.checkout.Session.create(
         payment_method_types=stripe_checkout_request['payment_method_types'],
@@ -51,7 +68,8 @@ def create_checkout_session(payment_details):
         success_url=stripe_checkout_request['success_url'],
         cancel_url=stripe_checkout_request['cancel_url'],
         locale=stripe_checkout_request['locale'],
-        billing_address_collection='required'  # Always include billing address
+        billing_address_collection='required',  # Always include billing address
+        customer=customer_id
     )
     # Only required item is the session id
     # Replace this by a util if more than one field is required
