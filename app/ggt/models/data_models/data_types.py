@@ -358,6 +358,7 @@ class FinalizeRegistrationRequest(BaseModel):
     forceFinish: Optional[bool] = None
     selectedServices: Optional[List[ServiceCodesEnum]] = None
     language: Optional[str] = 'en'
+    currency: Optional[str] = 'usd'
 
 
 class Payer(BaseModel):
@@ -1044,6 +1045,7 @@ class GgtBooking(BaseModel):
 
     language: str = 'en'
     country: str = 'US'
+    currency: str = 'usd'
 
     services: ServiceCodes = None
     # science37:
