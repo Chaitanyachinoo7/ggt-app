@@ -1451,3 +1451,34 @@ class ServicePayment:
     service_name: str
     selfpay_amount: int
     currency: str
+
+
+class VaxPreRegStatusEnum(str, Enum):
+    waiting = 'waiting'
+    invited = 'invited'
+    registered = 'registered'
+    any = ''
+
+
+class PortalVaxWaitlistSearchRequest(BaseModel):
+    first_name: str = ''
+    middle_name: str = ''
+    last_name: str = ''
+    dob: str = ''
+    phone_number: str = ''
+    email: str = ''
+    min_age: int = 0
+    max_age: int = 0
+    heart_disease: bool = False
+    diabetes: bool = False
+    respiratory_diseases: bool = False
+    autoimmune_disease: bool = False
+    other_chronic: bool = False
+    allergies: bool = False
+    prescription_use: bool = False
+    status: VaxPreRegStatusEnum = ''
+    sort_field: str = '"signed_up_dt"'
+    sort: SortEnum = 'DESC'
+    limit: int = 20
+
+
