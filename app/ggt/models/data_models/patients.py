@@ -264,16 +264,16 @@ def is_un_available_slot(token):
 #         return None
 
 
-def lock_slot(token):
+def lock_slot(token, patient_id):
     try:
         u_token = get_user_token_from_jwt(token)
         if u_token is None:
             return None
         sql = """INSERT INTO
                         used_tokens
-                    (token)
-                    VALUES (%s)"""
-        vals = (u_token, )
+                    (token, patient_id)
+                    VALUES (%s, %s)"""
+        vals = (u_token, patient_id,)
         return exec_update(sql, vals)
 
     except Exception as err:
@@ -451,25 +451,30 @@ def get_patient_by_token(token, expect_no_match=False):
         return None
 
 
-def get_patient_upfront_payment(service_codes: List[str]):
+def get_patient_upfront_payment(service_codes: List[str], currency: str):
     try:
-        # Add quotes around service_codes to be injected to sql
-        quoted_service_code = map(lambda code: "'" + code + "'", service_codes)
-        # Join quoted codes by ','
-        service_codes_in = ",".join(quoted_service_code)
         sql = """
             SELECT 
-                selfpay_amount,
-                service_code,
-                service_name,
-                currency
+                t2.selfpay_amount,
+                t1.service_code,
+                t1.service_name,
+                t2.currency
             FROM
-                services_catalog
+                services_catalog as t1
+            JOIN
+                services_payments as t2
+            ON
+                t1.id=t2.service_catalog_id
             WHERE
-                service_code in ({})
-        """.format(service_codes_in)
+                t1.service_code in (%s)
+                AND
+                t2.currency=%s        
+        """
 
-        rows = replica_read_rows(sql)
+        comma_separated_service_code = ".".join(service_codes)
+
+        vals = (comma_separated_service_code, currency)
+        rows = replica_read_rows(sql, vals)
 
         if not rows:
             return None

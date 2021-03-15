@@ -358,6 +358,7 @@ class FinalizeRegistrationRequest(BaseModel):
     forceFinish: Optional[bool] = None
     selectedServices: Optional[List[ServiceCodesEnum]] = None
     language: Optional[str] = 'en'
+    currency: Optional[str] = 'usd'
 
 
 class Payer(BaseModel):
@@ -1044,6 +1045,7 @@ class GgtBooking(BaseModel):
 
     language: str = 'en'
     country: str = 'US'
+    currency: str = 'usd'
 
     services: ServiceCodes = None
     # science37:
@@ -1433,6 +1435,7 @@ class PaymentRequestBody(BaseModel):
     line_items: List[PaymentRequestLineItem] = None
     navigation: PaymentRequestNavigation = None
     locale: str = 'en'
+    id: int = 0
 
 
 class PatientUpfrontPayment:
@@ -1448,3 +1451,35 @@ class ServicePayment:
     service_name: str
     selfpay_amount: int
     currency: str
+
+
+class VaxPreRegStatusEnum(str, Enum):
+    waiting = 'waiting'
+    invited = 'invited'
+    registered = 'registered'
+    any = ''
+
+
+class PortalVaxWaitlistSearchRequest(BaseModel):
+    first_name: str = ''
+    middle_name: str = ''
+    last_name: str = ''
+    dob: str = ''
+    phone_number: str = ''
+    email: str = ''
+    min_age: int = 0
+    max_age: int = 0
+    heart_disease: bool = False
+    diabetes: bool = False
+    respiratory_diseases: bool = False
+    autoimmune_disease: bool = False
+    other_chronic: bool = False
+    allergies: bool = False
+    prescription_use: bool = False
+    status: VaxPreRegStatusEnum = ''
+    sort_field: str = '"signed_up_dt"'
+    sort: SortEnum = 'DESC'
+    limit: int = 20
+    offset: int = 0
+
+

@@ -267,7 +267,7 @@ def ggv_finalize_registration(finalize_registration_request):
         bp_add_to_ggd_waiting_queue(patient_id)
     res = {c.STATUS: c.SUCCESS}
     if appointment_1:
-        lock_slot(booking_req.verification_token)
+        lock_slot(booking_req.verification_token, patient_id)
         res["session_token"] = result_token
         res["appointment_id_1"] = appointment_1.id
         res["date_1"] = appointment_1.date_text
@@ -316,7 +316,6 @@ def ggv_finalize_pre_registration(finalize_registration_request):
 def __map_to_booking_req(finalize_registration_request, ggv=False):
     b = GgtBooking()
     try:
-
         if "insuranceVerification" in dict(finalize_registration_request).keys():
             if finalize_registration_request.insuranceVerification:
                 b.insurance_relationship = finalize_registration_request.insuranceVerification.relationship
@@ -437,6 +436,7 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
             b.services = selected_services
 
         b.language = finalize_registration_request.language
+        b.currency = finalize_registration_request.currency
 
         with suppress(AttributeError):
             b.public_places_bars_restaurants_cafes = finalize_registration_request.publicPlaces.bars_restaurants_cafes
