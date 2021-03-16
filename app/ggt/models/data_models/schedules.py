@@ -495,6 +495,49 @@ def get_available_dates(group_code):
         return None
 
 
+def get_ggv_available_dates(group_code):
+    try:
+        sql = """
+        SELECT DISTINCT
+            DATE(s.start_dt) AS available_date
+        FROM
+            ggv_schedules s
+        WHERE
+            location_id IN (SELECT 
+                    m.location_id
+                FROM
+                    group_codes_to_locations_mapping m
+                        INNER JOIN
+                    groups g ON (g.id = m.group_id)
+                WHERE
+                    g.group_code = %s)
+                AND status = 'available'
+                AND (CAST(s.start_dt AS DATE) >= CAST(CONVERT_TZ(NOW(), '+00:00', '-06:00') AS DATE))
+        ORDER BY DATE(start_dt)
+        """
+        vals = (group_code,)
+        return replica_read_rows(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def get_group_by_group_code(group_code):
+    sql = """SELECT 
+                    *
+                FROM
+                    groups
+                WHERE
+                    group_code = %s;"""
+    vals = (group_code, )
+    return replica_read_row(sql, vals)
+
+
 def get_all_available_dtl(group_code):
     return __get_all_available_dtl(group_code)
 
