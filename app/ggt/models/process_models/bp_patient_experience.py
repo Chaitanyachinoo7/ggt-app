@@ -292,9 +292,9 @@ def bp_add_to_ggd_waiting_queue(patient_id):
     return False
 
 
-def bp_create_pre_registration(patient_id, patient_questionnaire_id):
+def bp_create_pre_registration(patient_id, patient_questionnaire_id, group_code):
     try:
-        return create_pre_registration(patient_id, patient_questionnaire_id)
+        return create_pre_registration(patient_id, patient_questionnaire_id, group_code)
         log_generic(
             type=c.INFO,
             patient_id=patient_id,

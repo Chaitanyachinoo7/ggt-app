@@ -29,7 +29,8 @@ from ggt.models.process_models.bp_schedules import (
     bp_get_schedule_times_available,
     bp_get_all_available_locations_and_times,
     bp_get_schedule_locations_available_near_lat_lng, bp_ggv_get_schedule_locations_available_near_lat_lng,
-    bp_get_second_shot_available_times, bp_get_ggv_schedule_times_available, bp_get_second_slot_reschedule_dates
+    bp_get_second_shot_available_times, bp_get_ggv_schedule_times_available, bp_get_second_slot_reschedule_dates,
+    bp_get_ggv_schedule_dates_available
 )
 
 from ggt.models.process_models.bp_appointments import (
@@ -108,6 +109,15 @@ def validate_phone_number(phone_number, otp):
 def get_schedule_dates_available(group_code=c.DEFAULT_GROUP_CODE):
     return x_response(
         bp_get_schedule_dates_available(
+            group_code
+        )
+    )
+
+
+# @cached(cache=TTLCache(maxsize=1024, ttl=300))
+def get_ggv_schedule_dates_available(group_code=c.DEFAULT_GROUP_CODE):
+    return x_response(
+        bp_get_ggv_schedule_dates_available(
             group_code
         )
     )
@@ -300,7 +310,7 @@ def ggv_finalize_pre_registration(finalize_registration_request):
     if patient_id:
         if finalize_registration_request.ggd_waitlist:
             bp_add_to_ggd_waiting_queue(patient_id)
-        bp_create_pre_registration(patient_id, patient_questionnaire_id)
+        bp_create_pre_registration(patient_id, patient_questionnaire_id, booking_req.group_code)
         return {
             c.STATUS: c.SUCCESS,
             "pre_register": True,

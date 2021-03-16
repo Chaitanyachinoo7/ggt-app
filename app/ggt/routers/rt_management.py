@@ -7,10 +7,10 @@ from fastapi import (
 from ggt.lib.auth import authorize_user
 from ggt.models.data_models.data_types import PermissionsEnum as p, CreateAuth0User, DeleteAuth0User, UpdateAuth0User, \
     CreateNewOrganization, ListOrgRequests, ProcessOrgRequests, FilterUser, UpdateAuth0UserInfo, UpdateAuth0UserState, \
-    FilterOrg, ChangeOrgStatus
+    FilterOrg, ChangeOrgStatus, TokenGenerationRequest
 from ggt.models.workflow_models.management_work_flow import create_user, delete_user, update_user_role, user_profile, \
     create_new_organization_request, list_org_requests, process_org_request, list_user, update_user, \
-    password_change_ticket, update_user_state, list_organizations, change_org_status, get_ggv_tokens
+    password_change_ticket, update_user_state, list_organizations, change_org_status, get_ggv_tokens, get_ggv_tokens_v2
 
 router = APIRouter()
 
@@ -88,6 +88,11 @@ async def api_password_change_ticket(req: Request, user=Security(authorize_user,
 @router.get("/get_ggv_tokens/{number}")
 async def api_get_ggv_tokens(number: int,  user=Security(authorize_user, scopes=[p.CREATE_LOCATION])):
     return get_ggv_tokens(number, user)
+
+
+@router.post("/get_ggv_tokens")
+async def api_get_ggv_tokens_v2(req: TokenGenerationRequest,  user=Security(authorize_user, scopes=[p.CREATE_LOCATION])):
+    return get_ggv_tokens_v2(req, user)
 
 #
 # @router.post("/update_org_owner", dependencies=[Security(authorize_user, scopes=['ANONYMOUS'])])
