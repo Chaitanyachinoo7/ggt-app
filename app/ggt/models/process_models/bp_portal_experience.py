@@ -18,7 +18,8 @@ from ggt.models.data_models.clinical_test_sample import (
 from ggt.models.data_models.generic_search_result import (
     find_patients,
     find_patients_for_vaccineation,
-    find_patients_by_patient_ids
+    find_patients_by_patient_ids,
+    find_patients_in_vax_waitlist
 )
 from ggt.models.data_models.groups import get_all_groups, create_group, update_group, get_group_by_id
 from ggt.models.data_models.locations import (
@@ -592,7 +593,8 @@ def __group_vax_results(results):
         if result["service_code"] in [c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_1,
                                       c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_2,
                                       c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_1,
-                                      c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_2]:
+                                      c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_2,
+                                      c.SERVICE_CODE_COVID_19_VACCINE_JNJ]:
             grouped_vax_result["doses"].append(result)
             vaccine_appointment_found = True
 
@@ -600,3 +602,15 @@ def __group_vax_results(results):
         grouped_results.append(grouped_vax_result)
 
     return grouped_results
+
+
+def bp_get_vax_waitlist_search_results(data):
+    try:
+        return find_patients_in_vax_waitlist(data)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )

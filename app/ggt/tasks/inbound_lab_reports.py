@@ -656,6 +656,7 @@ def extract_filename(file_path):
     filename = arr[len(arr)-1]
     return filename
 
+
 def error_log(file_path, lab=None, last_modified=None, order_number=None, req_id=None, reason=None):
     with open('errors.json') as json_file:
         data = json.load(json_file)

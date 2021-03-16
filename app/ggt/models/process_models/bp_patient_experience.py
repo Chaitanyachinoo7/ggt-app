@@ -292,9 +292,9 @@ def bp_add_to_ggd_waiting_queue(patient_id):
     return False
 
 
-def bp_create_pre_registration(patient_id, patient_questionnaire_id):
+def bp_create_pre_registration(patient_id, patient_questionnaire_id, group_code):
     try:
-        return create_pre_registration(patient_id, patient_questionnaire_id)
+        return create_pre_registration(patient_id, patient_questionnaire_id, group_code)
         log_generic(
             type=c.INFO,
             patient_id=patient_id,
@@ -1322,6 +1322,8 @@ def __evaluate_upfront_payment(booking_req: GgtBooking):
 
         # Get the list of location services
         location_services = booking_req.location_services
+        # Get the currency
+        currency = booking_req.currency
         # If no location services, return the empty payment object
         if not location_services:
             return patient_upfront_payment
@@ -1332,21 +1334,15 @@ def __evaluate_upfront_payment(booking_req: GgtBooking):
             services_list.append(service.service_code)
 
         # Get list of upfront payments
-        service_payments = get_patient_upfront_payment(services_list)
+        service_payments = get_patient_upfront_payment(services_list, currency)
 
         if not service_payments:
             return patient_upfront_payment
 
         # Get the total patient payment sum
         total = 0
-        currency = None
         for payment in service_payments:
             total += payment.selfpay_amount
-            if currency is None:
-                currency = payment.currency  # Set the first service's currency as the currency
-            else:
-                if currency != payment:
-                    raise ValueError('Currencies cannot mix')  # If two currencies have mixed raise an error
 
         # Here we consider all the service charges into one bill
         patient_upfront_payment.is_payment_required = total > 0
@@ -1644,6 +1640,7 @@ def __inject_payment_checkout_session(appointment: GgtAppointment, upfront_payme
     payment_request.navigation = __generate_payment_checkout_session_navigation(appointment)
     payment_request.locale = __inject_locale(booking_req.language)
     payment_request.currency = upfront_payment_info.currency
+    payment_request.id = appointment.id  # Set the appointment id as the payment request id
 
     # Return the session object which contains session id
     return bp_create_checkout_session(payment_request)
