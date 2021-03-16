@@ -4,7 +4,7 @@ from ggt.lib.utils import y_response, x_response
 from ggt.models.process_models.bp_management import bp_create_user, bp_delete_user, bp_update_user_role, \
     bp_create_new_organization_request, bp_list_org_requests, bp_process_org_request, bp_user_profile, bp_list_user, \
     bp_update_user, bp_update_user_state, bp_password_change_ticket, bp_list_organizations, bp_change_org_status, \
-    bp_get_ggv_tokens
+    bp_get_ggv_tokens, bp_get_ggv_tokens_v2
 
 
 def create_new_organization_request(req):
@@ -88,4 +88,10 @@ def password_change_ticket(req, user):
 def get_ggv_tokens(number, user):
     return y_response(
         bp_get_ggv_tokens(number, user)
+    )
+
+
+def get_ggv_tokens_v2(req, user):
+    return y_response(
+        bp_get_ggv_tokens_v2(req, user)
     )

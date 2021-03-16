@@ -1405,6 +1405,17 @@ class PatientDrilldownRequest(BaseModel):
     status: PatientStatusEnum
 
 
+class TokenTypeEnum(str, Enum):
+    multi = 'multi'
+    single = 'single'
+
+
+class TokenGenerationRequest(BaseModel):
+    number: int
+    type: TokenTypeEnum = 'single'
+    valid_days: int = 20
+
+
 class InsurancePayersListRequest(BaseModel):
     search_query: str = None
     page: int = 1

@@ -284,7 +284,27 @@ def get_ggv_tokens(number):
         uu_id = generate_token()
         encoded_jwt = jwt.encode({
             "token": uu_id,
-            "exp": end_time
+            "exp": end_time,
+            "type": "single"
+        }, secret, algorithm="HS256")
+        tokens.append(encoded_jwt)
+    return tokens
+
+
+def get_ggv_tokens_v2(req):
+    tokens = []
+    secret = get_config_val('security.ggv_secret')
+    start_time = datetime.now()
+    token_type = req.type
+    number = req.number
+    valid_days = req.valid_days
+    end_time = start_time + timedelta(days=valid_days)
+    for x in range(0, number):
+        uu_id = generate_token()
+        encoded_jwt = jwt.encode({
+            "token": uu_id,
+            "exp": end_time,
+            "type": token_type
         }, secret, algorithm="HS256")
         tokens.append(encoded_jwt)
     return tokens
@@ -294,13 +314,16 @@ def get_user_token_from_jwt(token):
     secret = get_config_val('security.ggv_secret')
     try:
         res = jwt.decode(token, secret, algorithms=["HS256"])
-        return res['token']
+        token_type = None
+        if 'type' in res.keys():
+            token_type = res['type']
+        return res['token'], token_type
     except Exception as err:
         log_generic(
             err=err,
             function=whoami()
         )
-        return None
+        return None, None
 
 
 class bcolors:

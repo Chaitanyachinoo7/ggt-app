@@ -121,14 +121,14 @@ def add_to_ggd_waiting_queue(patient_id):
         return None
 
 
-def create_pre_registration(patient_id, patient_questionnaire_id):
+def create_pre_registration(patient_id, patient_questionnaire_id, group_code):
     try:
         sql = """
             INSERT INTO 
-                vax_pre_registrations (patient_id, patient_questionnaire_id)
-            VALUES (%s, %s)
+                vax_pre_registrations (patient_id, patient_questionnaire_id, group_code)
+            VALUES (%s, %s, %s)
         """
-        vals = (patient_id, patient_questionnaire_id)
+        vals = (patient_id, patient_questionnaire_id, group_code)
         return exec_insert(sql, vals)
 
     except Exception as err:
@@ -220,7 +220,9 @@ def get_existing_patient_questionnaire(patient_id):
 
 
 def is_un_available_slot(token):
-    u_token = get_user_token_from_jwt(token)
+    u_token, token_type = get_user_token_from_jwt(token)
+    if token_type == 'multi':
+        return None
     if u_token is None:
         return {"status": "Invalid token"}
     try:
@@ -266,7 +268,7 @@ def is_un_available_slot(token):
 
 def lock_slot(token, patient_id):
     try:
-        u_token = get_user_token_from_jwt(token)
+        u_token, token_type = get_user_token_from_jwt(token)
         if u_token is None:
             return None
         sql = """INSERT INTO
