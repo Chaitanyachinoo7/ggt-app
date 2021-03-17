@@ -266,7 +266,7 @@ def __next_action(appointment, service_code, pre_labeled=False):
             service_code == c.SERVICE_CODE_COVID_19_VACCINE_JNJ or \
             service_code == c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_2:
 
-        if __has_insurance_info(appointment.patient.id):
+        if __has_insurance_info(appointment.id):
             switcher = {
                 c.APPOINTMENT_STATUS_SCHEDULED: c.APPOINTMENT_ACTION_CHECK_IN,
                 c.APPOINTMENT_STATUS_CHECKED_IN: c.APPOINTMENT_ACTION_VERIFY_INSURANCE,

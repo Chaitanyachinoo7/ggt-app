@@ -657,9 +657,16 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
     return usuccess, reason_code
 
 
-def __has_insurance_info(patient_id):
-    sql = """SELECT * FROM ggt_prod.patient_questionnaires WHERE patient_id = %s;"""
-    vals = (patient_id, )
+def __has_insurance_info(appointment_id):
+    sql = """SELECT 
+                pq.*
+            FROM
+                patient_questionnaires pq
+                    JOIN
+                appointments a ON pq.id = a.patient_questionnaire_id
+            WHERE
+                a.id = %s;"""
+    vals = (appointment_id, )
     row = replica_read_row(sql, vals)
     if row['has_insurance_photo'] == 1:
         return True
