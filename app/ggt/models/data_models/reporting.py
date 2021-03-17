@@ -167,7 +167,8 @@ def get_portal_stats_today(org_id):
                         SUM(location_stats_for_dates.test_completed) AS test_completed,
                         SUM(location_stats_for_dates.cancelled) AS scanned,
                         SUM(location_stats_for_dates.scanned) AS not_scanned,
-                        SUM(location_stats_for_dates.not_scanned) AS not_scanned
+                        SUM(location_stats_for_dates.not_scanned) AS not_scanned,
+                        SUM(location_stats_for_dates.no_show) AS no_show
                     FROM
                         (SELECT 
                             a.location_id AS location_id,
@@ -176,6 +177,7 @@ def get_portal_stats_today(org_id):
                                 SUM(IF((a.status = 'pending'), 1, 0)) AS pending_signups,
                                 COUNT(a.id) AS total_scheduled,
                                 SUM(IF((a.status = 'scheduled'), 1, 0)) AS remaining_scheduled,
+                                SUM(IF((TIMESTAMPDIFF(minute, a.scheduled_dt, CONVERT_TZ(NOW(), '+00:00', l.time_zone_offset)) > 30 AND a.status = 'scheduled'), 1, 0)) AS no_show,
                                 SUM(IF((a.status = 'checked_in'), 1, 0)) AS checked_in,
                                 SUM(IF((a.status = 'test_in_progress'), 1, 0)) AS tests_in_progress,
                                 SUM(IF((a.status = 'start_vax'), 1, 0)) AS vax_in_progress,
@@ -217,7 +219,31 @@ def get_portal_stats_today(org_id):
                     ORDER BY hour24;"""
         res_2 = replica_read_rows(sql_2, vals)
 
-        return __format_daily_matrix(res_1, res_2)
+        sql_3 = """SELECT 
+                        COUNT(*) AS no_show,
+                        DATE_FORMAT(a.scheduled_dt, '%l %p') AS dt,
+                        CONVERT( DATE_FORMAT(a.scheduled_dt, '%k') , UNSIGNED) AS hour24
+                    FROM
+                        appointments a
+                            JOIN
+                        locations l ON l.id = a.location_id
+                            JOIN
+                        organizations org ON l.org_id = org.id
+                    WHERE
+                        TIMESTAMPDIFF(MINUTE,
+                            a.scheduled_dt,
+                            CONVERT_TZ(NOW(), '+00:00', l.time_zone_offset)) > 30
+                            AND CAST(a.scheduled_dt AS DATE) = CAST(CONVERT_TZ(NOW(), '+00:00', l.time_zone_offset)
+                            AS DATE)
+                            AND org.id = %s
+                            AND org.is_active = 1
+                            AND a.status = 'scheduled'
+                    GROUP BY dt
+                    ORDER BY hour24"""
+
+        res_3 = replica_read_rows(sql_3, vals)
+
+        return __format_daily_matrix(res_1, res_2, res_3)
     except Exception as err:
         log_generic(
             type=ERROR,
@@ -511,13 +537,19 @@ def get_patient_drill_down_by_date(location_id, date, status, org_id):
 ########################################################################################################
 
 
-def __format_daily_matrix(res_1, res_2):
+def __format_daily_matrix(res_1, res_2, res_3):
     appointments_by_hour = []
+    no_show_by_hour = []
     for x in res_2:
         appointments_by_hour.append({"label": x['dt'], "total": x['all_appointments']})
+
+    for x in res_3:
+        no_show_by_hour.append({"label": x['dt'], "total": x['no_show']})
+
     keys = res_1.keys()
     for key in keys:
         res_1[key] = int(res_1[key]) if res_1[key] else 0;
 
     res_1['appointments_by_hour'] = appointments_by_hour
+    res_1['no_show_by_hour'] = no_show_by_hour
     return res_1
