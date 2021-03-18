@@ -55,7 +55,7 @@ def task_process_misc():
         info='Begin Processing Misc Task')
 
     #process_bcg_locations_file()
-    process_mx_locations_file()
+    # process_mx_locations_file()
     #update_schedules()
 
     # upload_insurance_images_to_gcp()
@@ -68,6 +68,7 @@ def task_process_misc():
     #dedupe_tokens()
     #process_raw_list_sms_notifications()
     #process_vax()
+    update_appointments()
 
     log_generic(
         type=c.INFO,
@@ -777,3 +778,94 @@ def process_vax():
          process_vax_hl7         
     )
     process_vax_hl7()
+
+
+def __book_slot(slot_id, appointment_id):
+    sql = """
+            UPDATE ggv_schedules
+                SET
+                status = 'booked',
+                appointment_id = %s
+            WHERE
+                id = %s
+    """
+    vals = (appointment_id, slot_id)
+    return exec_update(sql, vals)
+
+
+def __update_appointment(appointment_id, scheduled_dt):
+    sql = """
+              UPDATE appointments
+                  SET
+                  scheduled_dt = %s
+              WHERE
+                  id = %s
+      """
+    vals = (scheduled_dt, appointment_id)
+    return exec_update(sql, vals)
+
+
+def __get_all_appointments():
+    sql = """SELECT 
+                a.id, scheduled_dt
+            FROM
+                appointments a
+                    JOIN
+                locations l ON a.location_id = l.id
+            WHERE
+                l.org_id = 3
+                AND CAST(a.scheduled_dt AS DATE) = '2021-03-18'
+                AND location_id=2930"""
+    return read_rows(sql)
+
+
+def __is_available_time(time_slot):
+    sql = """SELECT * from ggv_schedules WHERE
+            CAST(start_dt AS DATE) = '2021-03-18' 
+            AND location_id=2930 
+            AND start_dt = %s
+            AND status = 'available'"""
+    vals = (time_slot,)
+    return read_row(sql, vals)
+
+
+def __get_next_available_slot(time_slot):
+    sql = """SELECT * from ggv_schedules WHERE
+               CAST(start_dt AS DATE) = '2021-03-18' 
+               AND location_id=2930 
+               AND start_dt > %s
+               AND status = 'available'
+               ORDER BY start_dt"""
+    vals = (time_slot,)
+    return read_row(sql, vals)
+
+import csv
+
+def write_csv(arr):
+    with open('employee_file.csv', mode='w') as employee_file:
+        employee_writer = csv.writer(employee_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        employee_writer.writerow(arr)
+
+
+def update_appointments():
+    changed_appointment_ids = []
+    appointments = __get_all_appointments()
+
+    for idx, appointment in enumerate(appointments):
+        app_id = appointment['id']
+        scheduled_dt = appointment['scheduled_dt']
+        slot = __is_available_time(scheduled_dt)
+
+        if slot:
+            print("{} appointment {} is not updated".format(idx, app_id))
+            __book_slot(slot['id'], app_id)
+        else:
+            next_slot = __get_next_available_slot(scheduled_dt)
+            if next_slot:
+                print("{} appointment {} is updated".format(idx, app_id))
+                changed_appointment_ids.append(app_id)
+                __update_appointment(app_id, next_slot['start_dt'])
+                __book_slot(next_slot['id'], app_id)
+
+    print(changed_appointment_ids)
+    write_csv(changed_appointment_ids)
