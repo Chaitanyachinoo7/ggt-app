@@ -58,7 +58,7 @@ def task_process_misc():
 
     #process_bcg_locations_file()
     #process_mx_locations_file()
-    process_delta_locations_file()
+    # process_delta_locations_file()
     #update_schedules()
 
     # upload_insurance_images_to_gcp()
@@ -71,7 +71,7 @@ def task_process_misc():
     #dedupe_tokens()
     #process_raw_list_sms_notifications()
     #process_vax()
-    #process_vax_reschedule_sms_notification()
+    process_vax_reschedule_sms_notification()
 
     log_generic(
         type=c.INFO,
@@ -794,11 +794,11 @@ def process_raw_list_sms_notifications():
 
 
 
-def process_vax_reschedule_sms_notification():
-    rows = [
-                ['+19999999999','Diane','1963-11-01','1315258','2021-03-13 12:00:00','sleepy732@icloud.com'],
-                ['+19999999999','Melissa','1975-04-16','1315260','2021-03-13 11:00:00','garcia1036@gmail.com']             
-            ]
+def process_vax_reschedule_sms_notification(rows):
+    # rows = [
+    #             ['+19999999999','Diane','1963-11-01','1315258','2021-03-13 12:00:00','sleepy732@icloud.com'],
+    #             ['+19999999999','Melissa','1975-04-16','1315260','2021-03-13 11:00:00','garcia1036@gmail.com']
+    #         ]
     data = []
     for row in rows:
         phone_number = row[0]
