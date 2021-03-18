@@ -6,6 +6,7 @@ __pycache__/
 
 .unote
 .vscode
+.idea
 application.log
 application.log.*
 venv/

@@ -707,6 +707,8 @@ def __remove_reserved_slots(rows, location_id, category):
     try:
         generated_dt_counts = {}  # counts map
         generated_dt_list = []  # flat list
+        selected_rows = []
+        deleted_rows = []
         for row in rows:
             dtkey = row[1]
             if dtkey in generated_dt_list:
@@ -731,12 +733,14 @@ def __remove_reserved_slots(rows, location_id, category):
             dtkey = row[1]
             if dtkey in generated_dt_counts:
                 val = generated_dt_counts[dtkey]
+                selected_rows.append(row)
                 if val <= 1:
                     generated_dt_counts.pop(dtkey)
                 else:
                     generated_dt_counts[dtkey] = val - 1
             else:
-                rows.remove(row)
+                # rows.remove(row)
+                deleted_rows.append(row)
 
     except Exception as err:
         log_generic(
@@ -746,7 +750,7 @@ def __remove_reserved_slots(rows, location_id, category):
             error=err
         )
 
-    return rows
+    return selected_rows
 
 
 def __map_dtl_list_to_available_locations(dtl_list):
