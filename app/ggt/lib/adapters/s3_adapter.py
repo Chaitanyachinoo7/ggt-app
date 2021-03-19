@@ -1,3 +1,4 @@
+import base64
 import os
 import boto3
 from botocore.client import Config
@@ -21,6 +22,7 @@ from ggt.lib.constants import (
 default_link_expiration_time_limit = cfg(
     'aws.default_link_expiration_time_limit')
 lab_reports_bucket_name = cfg('aws.lab_reports_bucket_name')
+ops_image_bucket_name = cfg('aws.ggt_ops_images')
 
 
 def __boto_connect_client(service, region_name='us-east-2'):
@@ -35,6 +37,35 @@ def __boto_connect_client(service, region_name='us-east-2'):
             )
         else:
             boto_client = boto3.client(
+                service,
+                aws_access_key_id=cfg('aws.access_key_id'),
+                aws_secret_access_key=cfg('aws.secret_access_key'),
+                region_name=region_name
+            )
+
+        return boto_client
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def __boto_connect_resource(service, region_name='us-east-2'):
+    try:
+        if service == 's3':
+            boto_client = boto3.resource(
+                's3',
+                aws_access_key_id=cfg('aws.access_key_id'),
+                aws_secret_access_key=cfg('aws.secret_access_key'),
+                config=Config(signature_version='s3v4'),
+                region_name=region_name
+            )
+        else:
+            boto_client = boto3.resource(
                 service,
                 aws_access_key_id=cfg('aws.access_key_id'),
                 aws_secret_access_key=cfg('aws.secret_access_key'),
@@ -315,3 +346,20 @@ def get_temp_vaccine_consent_url(filename: str, lab_reports_bucket_name=lab_repo
             error=err
         )
         return None
+
+
+def upload_image_from_base64_string(base64string, destination_filename, key=None):
+    if key:
+        destination_filename = "{}/{}".format(key, destination_filename)
+    try:
+        s3 = __boto_connect_resource('s3')
+        obj = s3.Object(ops_image_bucket_name, destination_filename)
+        return obj.put(Body=base64.b64decode(base64string))
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
