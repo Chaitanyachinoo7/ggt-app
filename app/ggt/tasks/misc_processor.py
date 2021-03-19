@@ -5,6 +5,8 @@ import datetime
 import paramiko
 import base64
 import random
+from datetime import datetime
+
 from PIL import Image
 
 from ggt.lib.utils import (
@@ -55,7 +57,8 @@ def task_process_misc():
         info='Begin Processing Misc Task')
 
     #process_bcg_locations_file()
-    # process_mx_locations_file()
+    #process_mx_locations_file()
+    #process_delta_locations_file()
     #update_schedules()
 
     # upload_insurance_images_to_gcp()
@@ -63,12 +66,12 @@ def task_process_misc():
     # upload_insurance_images_to_gcp_with_small_table()
     #process_email_notifications()
     #upload_insurance_files_from_gstore()
-    #process_sms_notifications()
-    #process_email_notifications()
+    process_sms_notifications()
+    process_email_notifications()
     #dedupe_tokens()
     #process_raw_list_sms_notifications()
     #process_vax()
-    update_appointments()
+    #process_vax_reschedule_sms_notification()
 
     log_generic(
         type=c.INFO,
@@ -196,11 +199,11 @@ def formatted_email_message(row):
 
 
 def prepare_sms_text(appointment):
-    return """Hi {}, the location where you have registered for your COVID-19 test will be located at the following address for today.  509 E 11th Street Hutchinson KS 67501. Please arrive at this site for your appointment. We apologize for the inconvenience this might have caused.
-    """.format(appointment["first_name"])
-
-    #return """Hi {}, the location where you have registered for your COVID-19 test will be CLOSED 02/19/2021 due to inclement weather. We apologize for the inconvenience this might have caused. Please visit GoGetTested.com to register for a new appointment.
+    #return """Hi {}, the location where you have registered for your COVID-19 test will be located at the following address for today.  509 E 11th Street Hutchinson KS 67501. Please arrive at this site for your appointment. We apologize for the inconvenience this might have caused.
     #""".format(appointment["first_name"])
+
+    return """Hi {}, the location where you have registered for your COVID-19 test will be CLOSED TODAY 03/18/2021 due to inclement weather. We apologize for the inconvenience this might have caused. Please visit GoGetTested.com to register for a new appointment.
+    """.format(appointment["first_name"])
 
     #return """Hi {}, due to inclement weather, we’ve had to delay opening the testing location where you have registered to 12 pm. This may change depending on the weather. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to register for a new appointment.
     #""".format(appointment["first_name"])
@@ -425,10 +428,10 @@ def get_appointments():
             patients p ON a.patient_id = p.id
         WHERE
             location_id IN (
-                2497
+                2505,  2498, 2497, 2481, 2409, 310, 288, 286, 284, 282, 280, 234
                 )
-                AND scheduled_dt > '2021-02-19 00:00:00'
-                AND scheduled_dt < '2021-02-20 00:00:00'
+                AND scheduled_dt > '2021-03-18 00:00:00'
+                AND scheduled_dt < '2021-03-19 00:00:00'
                 AND status = 'scheduled'
         """
 
@@ -635,10 +638,29 @@ def process_mx_locations_file():
 
 
 
+def process_delta_locations_file():
+    import csv
+    with open('archived/delta_lowes_locations.txt', newline='') as csvfile:
+        spamreader = csv.reader(csvfile, delimiter='\t')
+        for row in spamreader:
+            print(', '.join(row))
+            name = row[0]
+            addr1= row[1]
+            addr2= ''
+            city= row[2]
+            st= row[3]
+            zip= row[4]
+            operator= 'WellHealth Management LLC'
+            phone_number= ''
+            website= ''
+            open_hours= ''
+            add_to_locations(name, addr1, addr2, city, st, zip, operator, phone_number, website, open_hours)
+
+
 def add_to_locations(name, addr1, addr2, city, st, zip, operator, phone_number, website, open_hours):
     payload = {
         "site_code": "GGT",
-        "group_code": "_default_mx_",
+        "group_code": "_DEFAULT_",
         "name": name,
         "addr1": addr1,
         "addr2": addr2,
@@ -649,7 +671,7 @@ def add_to_locations(name, addr1, addr2, city, st, zip, operator, phone_number, 
         "lat": 0,
         "lng": 0,
         "time_zone": "CST",
-        "time_zone_offset": "-06:00",
+        "time_zone_offset": "-05:00",
         "test_type_offered": "oral",
         "status": "enabled",
         "type": "drive_thru",
@@ -667,7 +689,7 @@ def add_to_locations(name, addr1, addr2, city, st, zip, operator, phone_number, 
         "is_external": False,
         "group_ids": [1],
         "service_ids": [1],
-        "country": 'MX'
+        "country": 'US'
     }
 
     try:
@@ -680,7 +702,7 @@ def add_to_locations(name, addr1, addr2, city, st, zip, operator, phone_number, 
 
         location_id = res['results'][0]['location_id']
         add_sched_rule(location_id)
-        update_location_org(location_id)
+        #update_location_org(location_id)
 
     except Exception as err:
         print(err)
@@ -695,11 +717,11 @@ def add_sched_rule(location_id):
         "location_id": location_id,
         "category": "test",
         "slot_increment": 10,
-        "slot_multiplier": 10,
+        "slot_multiplier": 1,
         "local_start_time": "08:00:00",
         "local_end_time": "12:00:00",
         "active_local_start_dt": "2021-03-08 08:00:00",
-        "active_local_end_dt": "2021--31 12:00:00",
+        "active_local_end_dt": "2021-03-31 16:00:00",
         "sun": False,
         "mon": True,
         "tue": True,
@@ -754,17 +776,39 @@ def dedupe_tokens():
 
 def process_raw_list_sms_notifications():
     rows = [
-                ['+19999999999','Tom','https://start.gogetvax.com/vax/schedule/startwt/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbiI6ImFlY2ZkYjA1LWY2OGEtNGM2Mi05Yjk2LTFlNjMxMzk0MTFhZiIsImV4cCI6MTYxNjE0ODg5MH0.TBo_PwkIwTCYvbJChvaRktAKVrT68sRnHsQHH648R1g/_ROCKWALL_'],
-                ['+19999999999','Ted','https://start.gogetvax.com/vax/schedule/startwt/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbiI6IjgzZDM5MzYzLTc2MTYtNDQ5NS1iMzQzLWE0YzczZmVjZDYzYSIsImV4cCI6MTYxNjE0ODg5MH0.a8LZjyJesGfFaSOiPQabKWLh2t8ndwanwjgbqCo6F70/_ROCKWALL_'],
-                
+                ['+19999999999','Jo','https://start.gogetvax.com/vax/schedule/startwt/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbiI6IjMyZDI2ZWI2LTk3MGItNGU4YS05YmFmLWZjZmU5NzY0YmViZCIsImV4cCI6MTYxNzEzNDEwN30.gaoE6Q7KcVgEN3t1NMZJKDOkkYl2yh9WNHy3RqSznTA/_ROCKWALL_'],
+                ['+19999999999','Kristi','https://start.gogetvax.com/vax/schedule/startwt/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbiI6ImQ0MzViNzY1LThiY2EtNGE5Ny1iZGYxLTU3YTBiNGE2NjZkYyIsImV4cCI6MTYxNzEzNDEwN30.x-VlYzDhIDCT8M2ZwExtv2mpJgUKvaFILbWPqyLxtfo/_ROCKWALL_']                
             ]
     data = []
     for row in rows:
         phone_number = row[0]
         first_name = row[1]
         link = row[2]
-        message = """Hi {}, Congratulations! You're now eligible to get your Covid-19 vaccine through Rockwall County. Please click this link to register for your vaccine: {}
-        Thank you! —GoGetVax, the easiest way to get vaccinated""".format(first_name, link)
+        message = """Hi {}, it's time get vaccinated! The vaccine clinic will be held Saturday March 13, 2021 at 1215 T L Townsend Dr, Rockwall, TX 75087. There are only 900 slots available. Please click this unique link to register for your vaccine. {}""".format(first_name, link)
+
+        data.append(
+            (phone_number, message)
+        )
+
+    batch_enqueue_sms_notifications(data)
+
+
+
+def process_vax_reschedule_sms_notification():
+    rows = [
+                ['+19999999999','Diane','1963-11-01','1315258','2021-03-13 12:00:00','sleepy732@icloud.com'],
+                ['+19999999999','Melissa','1975-04-16','1315260','2021-03-13 11:00:00','garcia1036@gmail.com']             
+            ]
+    data = []
+    for row in rows:
+        phone_number = row[0]
+        first_name = row[1]
+        dob = row[2].replace('-','')
+        appointment_id = row[3]
+        scheduled_dt = row[4]
+        sched_time = datetime.strptime(scheduled_dt, "%Y-%m-%d %H:%M:%S").strftime("%a, %-d %b %Y @ %-I:%M %p")
+        link = 'https://start.gogetvax.com/appointment/{}/{}'.format(appointment_id, dob)
+        message = """Hi {}, Your appointment time for today's vaccine clinic has changed. For your convenience, you may arrive anytime before your appointment time, {} at 1215 T L Townsend Dr, Rockwall, TX 75087. {}""".format(first_name, sched_time, link)
 
         data.append(
             (phone_number, message)
@@ -778,94 +822,4 @@ def process_vax():
          process_vax_hl7         
     )
     process_vax_hl7()
-
-
-def __book_slot(slot_id, appointment_id):
-    sql = """
-            UPDATE ggv_schedules
-                SET
-                status = 'booked',
-                appointment_id = %s
-            WHERE
-                id = %s
-    """
-    vals = (appointment_id, slot_id)
-    return exec_update(sql, vals)
-
-
-def __update_appointment(appointment_id, scheduled_dt):
-    sql = """
-              UPDATE appointments
-                  SET
-                  scheduled_dt = %s
-              WHERE
-                  id = %s
-      """
-    vals = (scheduled_dt, appointment_id)
-    return exec_update(sql, vals)
-
-
-def __get_all_appointments():
-    sql = """SELECT 
-                a.id, scheduled_dt
-            FROM
-                appointments a
-                    JOIN
-                locations l ON a.location_id = l.id
-            WHERE
-                l.org_id = 3
-                AND CAST(a.scheduled_dt AS DATE) = '2021-03-18'
-                AND location_id=2930"""
-    return read_rows(sql)
-
-
-def __is_available_time(time_slot):
-    sql = """SELECT * from ggv_schedules WHERE
-            CAST(start_dt AS DATE) = '2021-03-18' 
-            AND location_id=2930 
-            AND start_dt = %s
-            AND status = 'available'"""
-    vals = (time_slot,)
-    return read_row(sql, vals)
-
-
-def __get_next_available_slot(time_slot):
-    sql = """SELECT * from ggv_schedules WHERE
-               CAST(start_dt AS DATE) = '2021-03-18' 
-               AND location_id=2930 
-               AND start_dt > %s
-               AND status = 'available'
-               ORDER BY start_dt"""
-    vals = (time_slot,)
-    return read_row(sql, vals)
-
-import csv
-
-def write_csv(arr):
-    with open('employee_file.csv', mode='w') as employee_file:
-        employee_writer = csv.writer(employee_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        employee_writer.writerow(arr)
-
-
-def update_appointments():
-    changed_appointment_ids = []
-    appointments = __get_all_appointments()
-
-    for idx, appointment in enumerate(appointments):
-        app_id = appointment['id']
-        scheduled_dt = appointment['scheduled_dt']
-        slot = __is_available_time(scheduled_dt)
-
-        if slot:
-            print("{} appointment {} is not updated".format(idx, app_id))
-            __book_slot(slot['id'], app_id)
-        else:
-            next_slot = __get_next_available_slot(scheduled_dt)
-            if next_slot:
-                print("{} appointment {} is updated".format(idx, app_id))
-                changed_appointment_ids.append(app_id)
-                __update_appointment(app_id, next_slot['start_dt'])
-                __book_slot(next_slot['id'], app_id)
-
-    print(changed_appointment_ids)
-    write_csv(changed_appointment_ids)
+    

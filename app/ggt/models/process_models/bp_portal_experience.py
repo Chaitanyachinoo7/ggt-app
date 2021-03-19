@@ -604,7 +604,8 @@ def __group_vax_results(results):
         if result["service_code"] in [c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_1,
                                       c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_2,
                                       c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_1,
-                                      c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_2]:
+                                      c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_2,
+                                      c.SERVICE_CODE_COVID_19_VACCINE_JNJ]:
             grouped_vax_result["doses"].append(result)
             vaccine_appointment_found = True
 

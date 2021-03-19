@@ -194,9 +194,7 @@ def get_portal_stats_today(org_id):
                         LEFT JOIN test_samples t ON ((t.appointment_id = a.id))
                         LEFT JOIN organizations org on l.org_id = org.id)
                         WHERE
-                            ((CAST(a.scheduled_dt AS DATE) =  CAST(NOW() as DATE))
-                                OR (CAST(a.test_start_dt AS DATE) =  CAST(NOW() as DATE))
-                                OR (CAST(a.test_end_dt AS DATE) =  CAST(NOW() as DATE)))
+                            (CAST(a.scheduled_dt AS DATE) =  CAST(NOW() as DATE))
                                 AND org.id = %s AND org.is_active = 1
                         GROUP BY a.location_id
                         ORDER BY l.name) AS location_stats_for_dates;"""
@@ -211,9 +209,7 @@ def get_portal_stats_today(org_id):
                         appointments a
                         join locations l on a.location_id = l.id
                     WHERE
-                            (CAST(scheduled_dt AS DATE) = CAST(NOW() AS DATE)
-                            OR (CAST(test_start_dt AS DATE) = CAST(NOW() AS DATE))
-                            OR (CAST(test_end_dt AS DATE) = CAST(NOW() AS DATE)))
+                            CAST(scheduled_dt AS DATE) = CAST(NOW() AS DATE)
                             AND l.org_id = %s
                     GROUP BY dt
                     ORDER BY hour24;"""
