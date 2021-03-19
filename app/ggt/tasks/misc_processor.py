@@ -808,7 +808,7 @@ def process_vax_reschedule_sms_notification(rows):
         scheduled_dt = row[4]
         sched_time = datetime.strptime(scheduled_dt, "%Y-%m-%d %H:%M:%S").strftime("%a, %-d %b %Y @ %-I:%M %p")
         link = 'https://start.gogetvax.com/appointment/{}/{}'.format(appointment_id, dob)
-        message = """Hi {}, Your appointment time for today's vaccine clinic has changed. Please note the new appointment time, {} at 1215 T L Townsend Dr, Rockwall, TX 75087. {}""".format(first_name, sched_time, link)
+        message = """Hi {}, Your appointment time for today's vaccine clinic has changed. For your convenience, you may arrive anytime before your appointment time, {} at 1215 T L Townsend Dr, Rockwall, TX 75087. {}""".format(first_name, sched_time, link)
 
         data.append(
             (phone_number, message)
