@@ -770,8 +770,22 @@ def __single_shot_vaccinations(booking_req: GgtBooking):
         appointment = create_appointment(booking_req)
 
         if appointment:
+            log_generic(
+                type=c.INFO,
+                message="Updating slot information",
+                function=whoami(),
+                appointment_id=appointment.id,
+                slot_id=booking_req.appointmentOneTime
+            )
             update = update_slot_information(booking_req.appointmentOneTime, appointment.id, slot_type='vax')
             if not update:
+                log_generic(
+                    type=c.INFO,
+                    message="Updating slot information FAILED",
+                    function=whoami(),
+                    appointment_id=appointment.id,
+                    slot_id=booking_req.appointmentOneTime
+                )
                 __assign_to_next_available_slot(booking_req.timeslot, appointment.id, slot_type='vax')
 
         else:
