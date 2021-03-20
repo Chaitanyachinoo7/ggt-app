@@ -787,6 +787,13 @@ def __single_shot_vaccinations(booking_req: GgtBooking):
                     slot_id=booking_req.appointmentOneTime
                 )
                 __assign_to_next_available_slot(booking_req.timeslot, appointment.id, slot_type='vax')
+            log_generic(
+                type=c.INFO,
+                message="Updated slot information",
+                function=whoami(),
+                appointment_id=appointment.id,
+                slot_id=booking_req.appointmentOneTime
+            )
 
         else:
             raise ValueError('error_creating_appointment')
