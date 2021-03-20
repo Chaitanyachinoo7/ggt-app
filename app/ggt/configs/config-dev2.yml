@@ -70,6 +70,7 @@ aws:
   sqs_print_queue_base_url: https://sqs.us-east-1.amazonaws.com/135292740376/ggt-print-queue
   lab_reports_bucket_name: ggt-labreports
   default_link_expiration_time_limit: 300
+  ggt_ops_images: ggt-ops-images-dev
 
 gcp:
   project_id: ggt-pfe-dev2

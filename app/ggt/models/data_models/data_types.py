@@ -525,6 +525,11 @@ class VialData(BaseModel):
     elements: Optional[VialElements] = None
 
 
+class TestResultEnum(str, Enum):
+    positive = 'positive'
+    negative = 'negative'
+
+
 class ProviderUpdateAppointmentRequest(BaseModel):
     appointment_id: str = None
     action: str = None
@@ -536,6 +541,8 @@ class ProviderUpdateAppointmentRequest(BaseModel):
     appointment_notes: Optional[str] = None
     injection_site: Optional[InjectionSites] = None
     no_adverse_reactions: Optional[bool] = None
+    test_result: Optional[TestResultEnum] = None
+    test_result_photo: Optional[str] = None
 
 
 class ProviderLookupAppointmentRequest(BaseModel):
