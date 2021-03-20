@@ -346,8 +346,6 @@ def bp_get_second_slot_reschedule_dates(location_id, ap1_date):
         }
 
 
-
-
 def bp_get_ggv_schedule_times_available(location_id, date):
     available_times = []
     try:
@@ -369,7 +367,7 @@ def bp_get_ggv_schedule_times_available(location_id, date):
                         r['value'] = int(r['value'])
                     return temp
                 else:
-                    if (datetime.now() - start_time).total_seconds() > 100:
+                    if (datetime.now() - start_time).total_seconds() > 20:
                         return None
 
     except Exception as err:
