@@ -29,7 +29,7 @@ from ggt.models.data_models.schedules import (
     trim_schedule_generation_rules_start_dt,
     get_slots_matching_dt_list, ggv_get_schedule_locations_available_near_lat_lng, get_second_shot_available_times,
     delete_ggv_schedules_metrics_cache, delete_schedules_metrics_cache, get_second_slot_reschedule_dates,
-    get_ggv_available_dates, get_group_by_group_code
+    get_ggv_available_dates, get_group_by_group_code, get_available_ggv_locations_near_lat_lng
 )
 
 from ggt.models.data_models.locations import (
@@ -127,6 +127,90 @@ def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: float, rad
 
     group_code = normalize_group_code(group_code)
     dtl_list = get_available_locations_near_lat_lng(
+        lat, lng, radius, date_str, group_code)
+    available_locations = []
+    try:
+        for dtl in dtl_list:
+            if dtl.location.addr2:
+                addr2 = dtl.location.addr2
+            else:
+                addr2 = ''
+
+            location_text = "{} {}, {}, {}  {}".format(
+                dtl.location.addr1,
+                addr2,
+                dtl.location.city,
+                dtl.location.st,
+                dtl.location.zip
+            )
+
+            available_locations.append(
+                {
+                    'id': dtl.location.id,
+                    'name': dtl.location.name,
+                    'address': location_text,
+                    'lat': dtl.location.lat,
+                    'lng': dtl.location.lng,
+                    'billing_type': dtl.location.billing_type,
+                    'collect_insurance_info': dtl.location.collect_insurance_info,
+                    'allow_insurance_skip': dtl.location.allow_insurance_skip,
+                    'collect_upfront_payment': dtl.location.collect_upfront_payment,
+                    'next_test_date': dtl.first_date_time_available.strftime(
+                        "%a, %-d %b %Y @ %-I:%M %p") if dtl.first_date_time_available else None,
+                    'wait_time_mins': '< 10m',
+                    'result_time_hours': '{}h'.format(dtl.average_processing_time),
+                    'slots_available': dtl.slot_count,
+                    'type': 'public',
+                    'services_available': dtl.location.services_available,
+                    'distance': dtl.distance,
+                    'external': dtl.is_external,
+                    'external_phone': dtl.external_phone,
+                    'operated_by': dtl.operated_by,
+                    'website': dtl.website,
+                    'accepts_bookings': dtl.accepts_bookings,
+                    'accepts_walkins': dtl.accepts_walkins,
+                    'open_hours': dtl.open_hours,
+                    'label': location_text,
+                    'value': dtl.location.id
+                }
+            )
+
+        log_generic(
+            type=c.INFO,
+            date_str=date_str,
+            group_code=group_code,
+            # available_locations=available_locations,
+            function=whoami()
+        )
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            group_code=group_code,
+            date_str=date_str,
+            # dtl_list=dtl_list,
+            function=whoami(),
+            error=err
+        )
+
+    return {
+        "available_location": available_locations
+    }
+
+
+def bp_get_schedule_ggv_locations_available_near_lat_lng(lat: float, lng: float, radius: int = None, date_str: str = None,
+                                                     group_code: str = None):
+    if not radius:
+        radius = 100
+
+    if not group_code:
+        group_code = c.DEFAULT_GROUP_CODE
+
+    if not date_str:
+        date_str = date.today().strftime("%Y-%m-%d")
+
+    group_code = normalize_group_code(group_code)
+    dtl_list = get_available_ggv_locations_near_lat_lng(
         lat, lng, radius, date_str, group_code)
     available_locations = []
     try:
