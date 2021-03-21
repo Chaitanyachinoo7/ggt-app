@@ -37,7 +37,7 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
     insurance_search_payer, get_ggv_screen_flow_seq, get_second_shot_available_times, ggv_finalize_registration,
     get_ggv_schedule_times_available, ggv_finalize_pre_registration, cache_test, verify_verification_token,
     reschedule_first_appointment, get_second_slot_reschedule_dates, reschedule_second_appointment,
-    get_ggv_schedule_dates_available, get_schedule_ggv_locations_available_near_lat_lng
+    get_ggv_schedule_dates_available
 )
 
 # TODO: [GGT-193] Move this to a dedicated API
@@ -142,17 +142,6 @@ def api_get_available_locations(lat: float, lng: float, radius: int = None, grou
     # TODO: [GGT-194] temp fix until map zoom levels are in place
     radius = 100000
     return get_schedule_locations_available_near_lat_lng(date, group_code, lat, lng, radius)
-
-
-@router.get("/ggv/get_locations_near_me/{lat}/{lng}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
-@router.get("/ggv/get_locations_near_me/{lat}/{lng}/{radius}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
-@router.get("/ggv/get_locations_near_me/{group_code}/{lat}/{lng}/{radius}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
-@router.get("/ggv/get_locations_near_me/{group_code}/{date}/{lat}/{lng}/{radius}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
-@cached(cache=TTLCache(maxsize=1024, ttl=180))
-def api_get_available_ggv_locations(lat: float, lng: float, radius: int = None, group_code: str = None, date: str = None):
-    # TODO: [GGT-194] temp fix until map zoom levels are in place
-    radius = 100000
-    return get_schedule_ggv_locations_available_near_lat_lng(date, group_code, lat, lng, radius)
 
 
 @router.get("/get_available_times/{location_id}/{date}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])

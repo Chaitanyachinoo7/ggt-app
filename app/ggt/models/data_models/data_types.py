@@ -908,6 +908,11 @@ class GgtUpdateLocation(BaseModel):
     service_ids: List[int] = []
 
 
+class AvailableServices(BaseModel):
+    service_id: int = None
+    service_code: str = None
+
+
 class GgtDateTimeLocation(BaseModel):
     location: GgtLocation = GgtLocation()
     first_date_time_available: datetime.datetime = None
@@ -922,6 +927,7 @@ class GgtDateTimeLocation(BaseModel):
     accepts_bookings: bool = None
     website: str = None
     open_hours: str = None
+    services_available: List[AvailableServices] = None
 
 
 class ServiceCodes(BaseModel):
