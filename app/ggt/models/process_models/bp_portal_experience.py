@@ -19,7 +19,8 @@ from ggt.models.data_models.generic_search_result import (
     find_patients,
     find_patients_for_vaccineation,
     find_patients_by_patient_ids,
-    find_patients_in_vax_waitlist
+    find_patients_in_vax_waitlist,
+    get_vax_registered_waitlist_around_location
 )
 from ggt.models.data_models.groups import get_all_groups, create_group, update_group, get_group_by_id
 from ggt.models.data_models.locations import (
@@ -660,3 +661,16 @@ def __process_services(services):
         "result": list(structured_service.values())
     }
     return response
+
+
+def bp_get_vax_registered_waitlist_around_location(request):
+    try:
+        return get_vax_registered_waitlist_around_location(request.location_id, request.radius)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+

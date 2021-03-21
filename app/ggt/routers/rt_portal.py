@@ -28,7 +28,8 @@ from ggt.models.data_models.data_types import (
     PermissionsEnum as p,
     PortalAdminGetF11Request,
     PortalAdminGetVaccineConsentFormRequest,
-    PortalVaxWaitlistSearchRequest
+    PortalVaxWaitlistSearchRequest,
+    PortalVaxRegisteredWaitAroundLocationRequest
 )
 from ggt.models.workflow_models.admin_flow import (
     admin_get_all_test_results
@@ -62,7 +63,8 @@ from ggt.models.workflow_models.clinical_test_site_admin_flow import (
     update_group, get_states,
     site_admin_get_f11,
     site_admin_get_consent_forms,
-    site_admin_vax_waitlist_search
+    site_admin_vax_waitlist_search,
+    site_admin_vax_registered_waitlist_around_location
 )
 
 router = APIRouter()
@@ -299,3 +301,9 @@ async def api_admin_get_all_test_results():
 @router.post("/site-admin/vax_waitlist_search", dependencies=[Security(authorize_user, scopes=[p.GET_SCHEDULE_GENERATION_RULES])])
 async def api_site_admin_vax_waitlist_search(portal_vax_waitlist_search: PortalVaxWaitlistSearchRequest):
     return site_admin_vax_waitlist_search(portal_vax_waitlist_search)
+
+
+@router.post("/site-admin/get_vax_registered_waitlist_around_location", dependencies=[Security(authorize_user, scopes=[p.GET_SCHEDULE_GENERATION_RULES])])
+async def api_site_admin_vax_registered_waitlist_around_location(vax_registered_waitlist_around_location_request: PortalVaxRegisteredWaitAroundLocationRequest):
+    return site_admin_vax_registered_waitlist_around_location(vax_registered_waitlist_around_location_request)
+
