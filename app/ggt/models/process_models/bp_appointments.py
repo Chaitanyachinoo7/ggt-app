@@ -30,7 +30,8 @@ from ggt.models.data_models.appointments import (
     update_appointment_with_scan_vial,
     update_appointment_with_test_completed, update_appointment_with_start_vax, update_appointment_with_notes_vax,
     update_appointment_with_scan_vial_vax, update_appointment_with_end_vax, __has_insurance_info,
-    update_appointment_with_verify_insurance, get_service_type_by_appointment_id, create_consultation_note
+    update_appointment_with_verify_insurance, get_service_type_by_appointment_id, create_consultation_note,
+    update_appointment_with_antigen_results
 )
 
 from ggt.lib.sys_log import (write_syslog)
@@ -39,7 +40,7 @@ from ggt.lib.sys_log import (write_syslog)
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-from ggt.models.process_models.bp_patient_experience import __save_insurance_image
+from ggt.models.process_models.bp_patient_experience import __save_insurance_image, __upload_test_result_image
 
 
 @cached(cache=TTLCache(maxsize=1024, ttl=30))
@@ -84,8 +85,15 @@ def bp_appointment_update(provider_update_appointment_request, user):
     workstation_id = provider_update_appointment_request.workstation_id
     operator_location_id = provider_update_appointment_request.operator_location_id
     service_code = provider_update_appointment_request.service_code
+    test_result = provider_update_appointment_request.test_result
+    test_result_photo = provider_update_appointment_request.test_result_photo
     try:
         appointment: GgtAppointment = get_appointment(appointment_id)
+
+        if action == c.APPOINTMENT_ACTION_ANTIGEN_TEST_RESULTS:
+            usuccess = update_appointment_with_antigen_results(appointment, test_result,
+                                                               operator_location_id=operator_location_id)
+            __upload_test_result_image(test_result_photo, appointment_id)
 
         if action == c.APPOINTMENT_ACTION_START_VAX:
             usuccess = update_appointment_with_start_vax(appointment, user, operator_location_id=operator_location_id)
@@ -140,7 +148,8 @@ def bp_appointment_update(provider_update_appointment_request, user):
 
         elif action == c.APPOINTMENT_ACTION_END_TEST:
             usuccess = update_appointment_with_test_completed(appointment, user,
-                                                              operator_location_id=operator_location_id)
+                                                              operator_location_id=operator_location_id,
+                                                              is_antigen=__is_antigen(service_code))
             if usuccess:
                 __send_test_complete_sms(appointment)
 
@@ -173,6 +182,15 @@ def bp_appointment_update(provider_update_appointment_request, user):
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
+
+def __is_antigen(service_code):
+    if service_code == c.SERVICE_CODE_COVID19_TEST_ANTIGEN or \
+            service_code == c.SERVICE_CODE_COVID19_TEST_MEXICO_ANTIGEN or \
+            service_code == c.SERVICE_CODE_COVID19_TEST_ANTIGEN_NV:
+        return True
+    else:
+        return False
+
 
 def __is_pre_labeled(appointment: GgtAppointment, workstation_id: int) -> bool:
     return True
@@ -213,7 +231,7 @@ def __formatted_patient_dob(appointment):
 def __next_action(appointment, service_code, pre_labeled=False):
     # service = get_service_type_by_appointment_id(appointment.id)
 
-    if service_code == c.SERVICE_CODE_COVID19_TEST or service_code == c.SERVICE_CODE_COVID19_TEST_ANTIGEN:
+    if service_code == c.SERVICE_CODE_COVID19_TEST or service_code == c.SERVICE_CODE_COVID19_TEST_NV:
         switcher = {
             c.APPOINTMENT_STATUS_SCHEDULED: c.APPOINTMENT_ACTION_CHECK_IN,
             c.APPOINTMENT_STATUS_CHECKED_IN: c.APPOINTMENT_ACTION_START_TEST,
@@ -229,6 +247,14 @@ def __next_action(appointment, service_code, pre_labeled=False):
                 c.APPOINTMENT_STATUS_TEST_IN_PROGRESS: c.APPOINTMENT_ACTION_END_TEST,
                 c.APPOINTMENT_STATUS_TEST_COMPLETED: c.APPOINTMENT_ACTION_NONE
             }
+    elif service_code == c.SERVICE_CODE_COVID19_TEST_ANTIGEN or service_code == c.SERVICE_CODE_COVID19_TEST_ANTIGEN_NV:
+        switcher = {
+            c.APPOINTMENT_STATUS_SCHEDULED: c.APPOINTMENT_ACTION_CHECK_IN,
+            c.APPOINTMENT_STATUS_CHECKED_IN: c.APPOINTMENT_ACTION_START_TEST,
+            c.APPOINTMENT_STATUS_TEST_IN_PROGRESS: c.APPOINTMENT_ACTION_END_TEST,
+            c.APPOINTMENT_STATUS_TEST_COMPLETED: c.APPOINTMENT_ACTION_ANTIGEN_TEST_RESULTS,
+            c.APPOINTMENT_STATUS_TEST_FINALIZED: c.APPOINTMENT_ACTION_NONE
+        }
     elif service_code == c.SERVICE_CODE_COVID19_TEST_MEXICO or \
             service_code == c.SERVICE_CODE_COVID19_TEST_MEXICO_ANTIGEN:
         switcher = {
@@ -241,7 +267,7 @@ def __next_action(appointment, service_code, pre_labeled=False):
             service_code == c.SERVICE_CODE_COVID_19_VACCINE_JNJ or \
             service_code == c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_2:
 
-        if __has_insurance_info(appointment.patient.id):
+        if __has_insurance_info(appointment.id):
             switcher = {
                 c.APPOINTMENT_STATUS_SCHEDULED: c.APPOINTMENT_ACTION_CHECK_IN,
                 c.APPOINTMENT_STATUS_CHECKED_IN: c.APPOINTMENT_ACTION_VERIFY_INSURANCE,
@@ -355,10 +381,10 @@ def __send_vax_completion_sms(name, to_number):
 
 
 def __send_vax_completion_confirmation_in_15_minutes(name, to_number):
-    msg = """Hi {} \nCongratulations on getting vaccinated! Your 15 minute waiting period is now over. 
-    Please alert the staff immediately if you feel unwell or call 911 if you're not near staff. Your vaccine record is located here  
-    https://start.gogetvax.com/provider.  Remember to still practice social distancing and to continue wearing a mask.""".format(
-        name)
+    msg = """Hi {} \nYou are free to leave if you feel well. 
+    Please alert the staff immediately if you feel unwell or call 911 if you're not near staff. Your vaccine record is 
+    located here https://start.gogetvax.com/provider. \nRemember to still practice social distancing and to continue 
+    wearing a mask.""".format(name)
     r = {
         "message": msg,
         "to_number": to_number

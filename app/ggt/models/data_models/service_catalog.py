@@ -36,7 +36,32 @@ from ggt.models.data_models.data_types import (
 ########################################################################################################
 def get_all_services():
     try:
-        sql = "SELECT * FROM services_catalog"
+        sql = """SELECT 
+                   *
+                FROM
+                    services_catalog;"""
+        return replica_read_rows(sql)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def get_all_services_patient():
+    try:
+        sql = """SELECT 
+                    sc.id AS service_id,
+                    sc.service_code,
+                    sc.service_name,
+                    sp.*
+                FROM
+                    services_catalog sc
+                        JOIN
+    services_payments sp ON sc.id = sp.service_catalog_id;"""
         return replica_read_rows(sql)
 
     except Exception as err:

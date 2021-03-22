@@ -27,7 +27,7 @@ from ggt.models.data_models.locations import (
     create_location, update_location, assign_group, remove_group, assign_service, remove_service,
     get_all_locations_without_thumbnail, assign_all_groups, assign_all_services, remove_all_group, remove_all_service,
     get_states)
-from ggt.models.data_models.service_catalog import get_all_services
+from ggt.models.data_models.service_catalog import get_all_services, get_all_services_patient
 from ggt.models.data_models.users import (
     get_user_by_email
 )
@@ -518,7 +518,18 @@ def bp_get_states():
 def bp_get_all_services():
     try:
         return get_all_services()
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
 
+
+def bp_get_all_services_patient():
+    try:
+        services = get_all_services_patient()
+        return __process_services(services)
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -585,6 +596,8 @@ def __group_vax_results(results):
 
     for result in results:
         if result["service_code"] == c.SERVICE_CODE_COVID19_TEST or \
+                result["service_code"] == c.SERVICE_CODE_COVID19_TEST_NV or \
+                result["service_code"] == c.SERVICE_CODE_COVID19_TEST_ANTIGEN_NV or \
                 result["service_code"] == c.SERVICE_CODE_COVID19_TEST_MEXICO or \
                 result["service_code"] == c.SERVICE_CODE_COVID19_TEST_ANTIGEN or \
                 result["service_code"] == c.SERVICE_CODE_COVID19_TEST_MEXICO_ANTIGEN:
@@ -614,3 +627,38 @@ def bp_get_vax_waitlist_search_results(data):
             function=whoami(),
             error=err
         )
+
+
+def __process_services(services):
+    structured_service = {}
+
+    for service in services:
+        service_code = service['service_code']
+        if service_code not in structured_service.keys():
+            structured_service[service_code] = {
+                "id": service['id'],
+                "service_code": service['service_code'],
+                "service_name": service['service_name'],
+                "price": {
+                    service['currency']:  service['price']
+                },
+                "self_pay_amount": {
+                    service['currency']: service['selfpay_amount']
+                },
+                "copay_amount": {
+                    service['currency']: service['copay_amount']
+                },
+                "insurance_amount": {
+                    service['currency']: service['insurance_amount']
+                }
+            }
+        else:
+            structured_service[service_code]["price"][service['currency']] = service['price']
+            structured_service[service_code]["self_pay_amount"][service['currency']] = service['selfpay_amount']
+            structured_service[service_code]["copay_amount"][service['currency']] = service['copay_amount']
+            structured_service[service_code]["insurance_amount"][service['currency']] = service['insurance_amount']
+
+    response = {
+        "result": list(structured_service.values())
+    }
+    return response
