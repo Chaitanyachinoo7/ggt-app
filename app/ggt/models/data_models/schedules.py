@@ -1041,6 +1041,7 @@ def __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, g
             locations_metrics_cache l
         WHERE   
                 l.status = 'enabled'
+                AND l.slot_count IS NOT NULL
                 AND (3963 * ACOS(COS(RADIANS(%s)) * COS(RADIANS(l.lat)) * COS(RADIANS(l.lng) - RADIANS(%s)) + SIN(RADIANS(%s)) * SIN(RADIANS(l.lat)))) < %s
                 AND l.location_id IN (SELECT 
                     glm.location_id
