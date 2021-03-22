@@ -14,12 +14,14 @@ from ggt.lib.adapters.google_adapter import (
 )
 
 from ggt.lib.adapters.s3_adapter import (
-    get_temp_lab_report_url as __get_temp_lab_report_url
+    get_temp_lab_report_url as __get_temp_lab_report_url,
+    upload_image_from_base64_string as __upload_image_from_base64_string
 )
 
-#from ggt.lib.adapters.google_adapter import (
+
+# from ggt.lib.adapters.google_adapter import (
 #    get_temp_lab_report_url as __get_temp_lab_report_url
-#)
+# )
 
 def upload_to_all_inbound_files(local_file_path, destination_filename):
     return __upload_to_all_inbound_files(local_file_path, destination_filename)
@@ -49,13 +51,17 @@ def upload_insurance_card_from_base64_string(base64string, content_type, destina
     return __upload_insurance_card_from_base64_string(base64string, content_type, destination_filename)
 
 
+def upload_test_result_image_from_base64_string(base64string, destination_filename):
+    return __upload_image_from_base64_string(base64string, destination_filename, key='test_result_images')
+
+
 def get_temporary_lab_report_url(filename):
     return __get_temp_lab_report_url(filename)
 
 
 def get_temporary_insurance_card_url(filename):
     return __get_temp_insurance_card_url(filename)
-    
+
 
 def get_list_of_all_uploaded_lab_reports():
     return __get_list_of_all_uploaded_lab_reports
@@ -68,5 +74,8 @@ def get_list_of_all_uploaded_inbound_files():
 def get_file_blob(bucket_name, filename):
     return __get_file_blob(bucket_name, filename)
 
-def upload_archived_notification_from_base64_string(bucket_name: str, base64string: str, content_type: str, destination_blob_name: str) -> bool:
-    return __upload_archived_notification_from_base64_string(bucket_name, base64string, content_type, destination_blob_name)
+
+def upload_archived_notification_from_base64_string(bucket_name: str, base64string: str, content_type: str,
+                                                    destination_blob_name: str) -> bool:
+    return __upload_archived_notification_from_base64_string(bucket_name, base64string, content_type,
+                                                             destination_blob_name)
