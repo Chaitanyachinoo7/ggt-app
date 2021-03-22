@@ -11,8 +11,10 @@ class LocationToGroupMap(BaseModel):
 
 class ServiceCodesEnum(str, Enum):
     covid_19_test = 'COVID_19_TEST'
+    covid_19_test_nv = 'COVID_19_TEST_NV'
     covid_19_test_mexico = 'COVID_19_TEST_MEXICO'
     covid_19_test_antigen = 'COVID_19_TEST_ANTIGEN'
+    covid_19_test_antigen_nv = 'COVID_19_TEST_ANTIGEN_NV'
     covid_19_test_antigen_mexico = 'COVID_19_TEST_MEXICO_ANTIGEN'
     flue_shot = 'FLU_SHOT'
     consult = 'CONSULT'
@@ -932,8 +934,10 @@ class GgtDateTimeLocation(BaseModel):
 
 class ServiceCodes(BaseModel):
     covid_19_test: bool = False
+    covid_19_test_nv: bool = False
     covid_19_test_mexico: bool = False
     covid_19_test_antigen: bool = False
+    covid_19_test_antigen_nv: bool = False
     covid_19_test_antigen_mexico: bool = False
     flue_shot: bool = False
     consult: bool = False

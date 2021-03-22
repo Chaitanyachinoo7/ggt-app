@@ -184,7 +184,9 @@ def bp_appointment_update(provider_update_appointment_request, user):
 ########################################################################################################
 
 def __is_antigen(service_code):
-    if service_code == c.SERVICE_CODE_COVID19_TEST_ANTIGEN or service_code == c.SERVICE_CODE_COVID19_TEST_MEXICO_ANTIGEN:
+    if service_code == c.SERVICE_CODE_COVID19_TEST_ANTIGEN or \
+            service_code == c.SERVICE_CODE_COVID19_TEST_MEXICO_ANTIGEN or \
+            service_code == c.SERVICE_CODE_COVID19_TEST_ANTIGEN_NV:
         return True
     else:
         return False
@@ -229,7 +231,7 @@ def __formatted_patient_dob(appointment):
 def __next_action(appointment, service_code, pre_labeled=False):
     # service = get_service_type_by_appointment_id(appointment.id)
 
-    if service_code == c.SERVICE_CODE_COVID19_TEST:
+    if service_code == c.SERVICE_CODE_COVID19_TEST or service_code == c.SERVICE_CODE_COVID19_TEST_NV:
         switcher = {
             c.APPOINTMENT_STATUS_SCHEDULED: c.APPOINTMENT_ACTION_CHECK_IN,
             c.APPOINTMENT_STATUS_CHECKED_IN: c.APPOINTMENT_ACTION_START_TEST,
@@ -245,7 +247,7 @@ def __next_action(appointment, service_code, pre_labeled=False):
                 c.APPOINTMENT_STATUS_TEST_IN_PROGRESS: c.APPOINTMENT_ACTION_END_TEST,
                 c.APPOINTMENT_STATUS_TEST_COMPLETED: c.APPOINTMENT_ACTION_NONE
             }
-    elif service_code == c.SERVICE_CODE_COVID19_TEST_ANTIGEN:
+    elif service_code == c.SERVICE_CODE_COVID19_TEST_ANTIGEN or service_code == c.SERVICE_CODE_COVID19_TEST_ANTIGEN_NV:
         switcher = {
             c.APPOINTMENT_STATUS_SCHEDULED: c.APPOINTMENT_ACTION_CHECK_IN,
             c.APPOINTMENT_STATUS_CHECKED_IN: c.APPOINTMENT_ACTION_START_TEST,
