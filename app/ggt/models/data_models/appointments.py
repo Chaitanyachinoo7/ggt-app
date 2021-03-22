@@ -851,6 +851,9 @@ def __add_services_to_appointment(appointment_id: int, appointment_req: GgtBooki
         if appointment_req.services.covid_19_test:
             add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST)
 
+        if appointment_req.services.covid_19_test_nv:
+            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST_NV)
+
         if appointment_req.services.covid_19_test_mexico:
             add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST_MEXICO)
 
@@ -859,6 +862,9 @@ def __add_services_to_appointment(appointment_id: int, appointment_req: GgtBooki
 
         if appointment_req.services.covid_19_test_antigen_mexico:
             add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST_MEXICO_ANTIGEN)
+
+        if appointment_req.services.covid_19_test_antigen_nv:
+            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST_ANTIGEN_NV)
 
         if appointment_req.services.flue_shot:
             add_service_to_appointment(appointment_id, c.SERVICE_CODE_FLU_SHOT)

@@ -124,7 +124,7 @@ def create_folder(bucket_name, directory_name):
     try:
         response = __boto_connect_client('s3').put_object(
             Bucket=bucket_name,
-            Key=(directory_name+'/')
+            Key=(directory_name + '/')
         )
         log_generic(
             type=INFO,
@@ -248,6 +248,8 @@ def get_file_iterator(bucket, prefix='', suffix='', get_last_modified=False):
         # The S3 API response is a large blob of metadata.
         # 'Contents' contains information about the listed objects.
         resp = s3.list_objects_v2(**kwargs)
+        if resp['KeyCount'] == 0:
+            return []
         for obj in resp['Contents']:
             key = obj['Key']
             last_modified = obj['LastModified']
@@ -264,7 +266,6 @@ def get_file_iterator(bucket, prefix='', suffix='', get_last_modified=False):
             kwargs['ContinuationToken'] = resp['NextContinuationToken']
         except KeyError:
             break
-
 
 
 def copy_file_from_s3_to_s3(source_bucket, source_key, dest_bucket, dest_key):
@@ -284,7 +285,8 @@ def copy_file_from_s3_to_s3(source_bucket, source_key, dest_bucket, dest_key):
         log_generic(
             type=ERROR,
             function=whoami(),
-            operation='{}/{} ==> {}/{}'.format(source_bucket, source_key, dest_bucket, dest_key),
+            operation='{}/{} ==> {}/{}'.format(source_bucket,
+                                               source_key, dest_bucket, dest_key),
             error=err
         )
 
@@ -318,7 +320,7 @@ def uploadDirectory(path, bucketName):
         for root, dirs, files in os.walk(path):
             for file in files:
                 __boto_connect_client('s3').upload_file(os.path.join(
-                    root, file), bucketName, "brownwoodv/"+path+'/'+file)
+                    root, file), bucketName, "brownwoodv/" + path + '/' + file)
     except Exception as err:
         log_generic(
             type=ERROR,
@@ -327,9 +329,10 @@ def uploadDirectory(path, bucketName):
         )
         return None
 
+
 def get_temp_vaccine_consent_url(filename: str, lab_reports_bucket_name=lab_reports_bucket_name):
     try:
-        url = __boto_connect_client('s3','us-east-1').generate_presigned_url(
+        url = __boto_connect_client('s3', 'us-east-1').generate_presigned_url(
             ClientMethod='get_object',
             Params={
                 'Bucket': lab_reports_bucket_name,
