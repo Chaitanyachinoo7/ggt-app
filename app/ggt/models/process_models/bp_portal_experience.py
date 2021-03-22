@@ -596,6 +596,8 @@ def __group_vax_results(results):
 
     for result in results:
         if result["service_code"] == c.SERVICE_CODE_COVID19_TEST or \
+                result["service_code"] == c.SERVICE_CODE_COVID19_TEST_NV or \
+                result["service_code"] == c.SERVICE_CODE_COVID19_TEST_ANTIGEN_NV or \
                 result["service_code"] == c.SERVICE_CODE_COVID19_TEST_MEXICO or \
                 result["service_code"] == c.SERVICE_CODE_COVID19_TEST_ANTIGEN or \
                 result["service_code"] == c.SERVICE_CODE_COVID19_TEST_MEXICO_ANTIGEN:
