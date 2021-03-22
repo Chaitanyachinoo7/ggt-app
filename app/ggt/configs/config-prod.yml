@@ -217,4 +217,4 @@ image_urls:
   flu_shot:
     - 'http://ggt-image-server.com/flu' # Add a URL of a stock photo or S3 bucket
   payment:
-    - 'https://goget-static-content.s3.us-east-2.amazonaws.com/fit2fly_icon.png' # Add a URL of a stock photo or S3 bucket
+    - 'https://goget-static-content.s3.us-east-2.amazonaws.com/ggtlogo.png.png' # Add a URL of a stock photo or S3 bucket
