@@ -11,8 +11,10 @@ class LocationToGroupMap(BaseModel):
 
 class ServiceCodesEnum(str, Enum):
     covid_19_test = 'COVID_19_TEST'
+    covid_19_test_nv = 'COVID_19_TEST_NV'
     covid_19_test_mexico = 'COVID_19_TEST_MEXICO'
     covid_19_test_antigen = 'COVID_19_TEST_ANTIGEN'
+    covid_19_test_antigen_nv = 'COVID_19_TEST_ANTIGEN_NV'
     covid_19_test_antigen_mexico = 'COVID_19_TEST_MEXICO_ANTIGEN'
     flue_shot = 'FLU_SHOT'
     consult = 'CONSULT'
@@ -525,6 +527,11 @@ class VialData(BaseModel):
     elements: Optional[VialElements] = None
 
 
+class TestResultEnum(str, Enum):
+    positive = 'positive'
+    negative = 'negative'
+
+
 class ProviderUpdateAppointmentRequest(BaseModel):
     appointment_id: str = None
     action: str = None
@@ -536,6 +543,8 @@ class ProviderUpdateAppointmentRequest(BaseModel):
     appointment_notes: Optional[str] = None
     injection_site: Optional[InjectionSites] = None
     no_adverse_reactions: Optional[bool] = None
+    test_result: Optional[TestResultEnum] = None
+    test_result_photo: Optional[str] = None
 
 
 class ProviderLookupAppointmentRequest(BaseModel):
@@ -901,6 +910,11 @@ class GgtUpdateLocation(BaseModel):
     service_ids: List[int] = []
 
 
+class AvailableServices(BaseModel):
+    service_id: int = None
+    service_code: str = None
+
+
 class GgtDateTimeLocation(BaseModel):
     location: GgtLocation = GgtLocation()
     first_date_time_available: datetime.datetime = None
@@ -915,12 +929,15 @@ class GgtDateTimeLocation(BaseModel):
     accepts_bookings: bool = None
     website: str = None
     open_hours: str = None
+    services_available: List[AvailableServices] = None
 
 
 class ServiceCodes(BaseModel):
     covid_19_test: bool = False
+    covid_19_test_nv: bool = False
     covid_19_test_mexico: bool = False
     covid_19_test_antigen: bool = False
+    covid_19_test_antigen_nv: bool = False
     covid_19_test_antigen_mexico: bool = False
     flue_shot: bool = False
     consult: bool = False

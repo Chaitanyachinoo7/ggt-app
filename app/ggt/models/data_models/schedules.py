@@ -550,6 +550,10 @@ def get_available_locations_near_lat_lng(lat, lng, radius, date_str, group_code,
     return __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, group_code, map_thumbnail)
 
 
+def get_available_ggv_locations_near_lat_lng(lat, lng, radius, date_str, group_code, map_thumbnail=False):
+    return __get_available_ggv_locations_by_date_near_lat_lng(lat, lng, radius, date_str, group_code, map_thumbnail)
+
+
 def get_processing_averages_by_location():
     try:
         sql = """
@@ -1001,6 +1005,76 @@ def __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, g
     try:
         map_thumbnail_field = 'l.image_thumbnail,' if map_thumbnail else "'' as image_thumbnail,"
         sql = """
+        SELECT DISTINCT
+            l.location_id,
+            l.name,
+            l.addr1,
+            l.addr2,
+            l.city,
+            l.st,
+            l.zip,
+            l.lat,
+            l.operator,
+            l.lng,
+            (3963 * ACOS(COS(RADIANS(%s)) * COS(RADIANS(l.lat)) * COS(RADIANS(l.lng) - RADIANS(%s)) + SIN(RADIANS(%s)) * SIN(RADIANS(l.lat)))) AS distance,
+            {}
+            l.billing_type,
+            l.collect_insurance_info,
+            l.allow_insurance_skip,
+            l.collect_upfront_payment,
+            l.accepts_bookings,
+            l.accepts_walkins,
+            l.operator,
+            l.phone_number,
+            l.website,
+            l.open_hours,
+            l.is_external,
+            l.slot_count,
+            l.services,
+            l.next_appointment_available as first_date_time_available,
+            (CASE
+                WHEN (l.average_processing_time IS NULL) THEN 48
+                ELSE l.average_processing_time
+            END) AS average_processing_time
+            
+        FROM
+            locations_metrics_cache l
+        WHERE   
+                l.status = 'enabled'
+                AND l.slot_count IS NOT NULL
+                AND (3963 * ACOS(COS(RADIANS(%s)) * COS(RADIANS(l.lat)) * COS(RADIANS(l.lng) - RADIANS(%s)) + SIN(RADIANS(%s)) * SIN(RADIANS(l.lat)))) < %s
+                AND l.location_id IN (SELECT 
+                    glm.location_id
+                FROM
+                    group_codes_to_locations_mapping glm
+                        INNER JOIN
+                    groups g ON (g.id = glm.group_id)
+                WHERE
+                    g.group_code = %s)
+        ORDER BY distance    
+        """.format(map_thumbnail_field)
+
+        vals = (lat, lng, lat, lat, lng, lat, radius, group_code)
+
+        return __map_rows_to_dtl_list(
+            read_rows(sql, vals)
+        )
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            group_code=group_code,
+            date=date_str,
+            error=err
+        )
+        return None
+
+
+def __get_available_ggv_locations_by_date_near_lat_lng(lat, lng, radius, date_str, group_code, map_thumbnail):
+    try:
+        map_thumbnail_field = 'l.image_thumbnail,' if map_thumbnail else "'' as image_thumbnail,"
+        sql = """
         SELECT 
             l.id AS location_id,
             l.name,
@@ -1025,35 +1099,27 @@ def __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, g
             c.selfpay_amount,
             c.copay_amount,
             c.insurance_amount,
-            MIN(smc.first_available_slot) AS first_date_time_available,
-            smc.available_slots_count AS slot_count,
-            (CASE
-                WHEN (lmc.average_processing_time IS NULL) THEN 48
-                ELSE lmc.average_processing_time
-            END) AS average_processing_time,
             l.accepts_bookings,
             l.accepts_walkins,
             l.operator,
             l.phone_number,
             l.website,
             l.open_hours,
-            l.is_external
+            l.is_external,
+            l.next_appointment_available as first_date_time_available,
+            (CASE
+                WHEN (l.average_processing_time IS NULL) THEN 48
+                ELSE l.average_processing_time
+            END) AS average_processing_time
         FROM
             locations l
                 LEFT JOIN
             services_to_locations_mapping m ON (m.location_id = l.id)
                 LEFT JOIN
             services_catalog c ON (c.id = m.service_id)
-                LEFT JOIN
-            schedules_metrics_cache smc ON (smc.location_id = l.id)
-                LEFT JOIN
-            locations_metrics_cache lmc ON (lmc.location_id = l.id)
         WHERE   
             1=1
                 AND l.status = 'enabled'
-                AND smc.available_slots_count > 0
-                AND smc.first_available_slot IS NOT NULL
-                AND smc.first_available_slot >= CONVERT_TZ(NOW(), '+00:00', '-06:00')
                 AND (3963 * ACOS(COS(RADIANS(%s)) * COS(RADIANS(l.lat)) * COS(RADIANS(l.lng) - RADIANS(%s)) + SIN(RADIANS(%s)) * SIN(RADIANS(l.lat)))) < %s
                 AND l.id IN (SELECT 
                     glm.location_id
@@ -1063,7 +1129,6 @@ def __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, g
                     groups g ON (g.id = glm.group_id)
                 WHERE
                     g.group_code = %s)
-        GROUP BY l.id
         ORDER BY distance    
         """.format(map_thumbnail_field)
 
@@ -1177,7 +1242,7 @@ def __map_rows_to_dtl_list(rows):
             if dtl.location.id not in _temp:
                 _temp[dtl.location.id] = dtl
 
-            _temp[dtl.location.id].location.services_available.append(svc)
+            # _temp[dtl.location.id].location.services_available.append(svc)
 
         for key in _temp:
             dtl_list.append(
@@ -1216,30 +1281,31 @@ def __map_row_to_dtl(row):
         dtl.location.image_thumbnail = row['image_thumbnail']
         dtl.location.billing_type = row['billing_type']
         dtl.location.collect_insurance_info = True if row['collect_insurance_info'] else False
+        dtl.services_available = row['services'] if row['services'] else None
         dtl.location.allow_insurance_skip = True if row['allow_insurance_skip'] else False
         dtl.location.collect_upfront_payment = True if row['collect_upfront_payment'] else False
 
-        dtl.first_date_time_available = row['first_date_time_available']
-        dtl.average_processing_time = row['average_processing_time']
-        dtl.slot_count = row['slot_count']
+        dtl.first_date_time_available = row['first_date_time_available'] if "first_date_time_available" in row.keys() else None
+        dtl.average_processing_time = row['average_processing_time'] if "average_processing_time" in row.keys() else None
+        dtl.slot_count = row['slot_count'] if "slot_count" in row.keys() else None
         dtl.location.services_available = list()
 
-        svc = GgtServiceCatalogItem()
-        svc.id = row['service_id']
-        svc.service_code = row['service_code']
-        svc.service_name = row['service_name']
-        if row['price']:
-            svc.price = int(row['price'] * 100)
-        if row['selfpay_amount']:
-            svc.selfpay_amount = int(row['selfpay_amount'] * 100)
-        if row['copay_amount']:
-            svc.copay_amount = int(row['copay_amount'] * 100)
-        if row['insurance_amount']:
-            svc.insurance_amount = int(row['insurance_amount'] * 100)
-
-        svc.sku = row['service_code']
-        if row['price']:
-            svc.cost = int(row['selfpay_amount'] * 100)
+        # svc = GgtServiceCatalogItem()
+        # svc.id = row['service_id']
+        # svc.service_code = row['service_code']
+        # svc.service_name = row['service_name']
+        # if row['price']:
+        #     svc.price = int(row['price'] * 100)
+        # if row['selfpay_amount']:
+        #     svc.selfpay_amount = int(row['selfpay_amount'] * 100)
+        # if row['copay_amount']:
+        #     svc.copay_amount = int(row['copay_amount'] * 100)
+        # if row['insurance_amount']:
+        #     svc.insurance_amount = int(row['insurance_amount'] * 100)
+        #
+        # svc.sku = row['service_code']
+        # if row['price']:
+        #     svc.cost = int(row['selfpay_amount'] * 100)
 
         if 'distance' in row:
             dtl.distance = row['distance']

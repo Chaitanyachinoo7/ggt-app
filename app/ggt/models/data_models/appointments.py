@@ -23,7 +23,7 @@ from ggt.models.data_models.data_types import (
     GgtAppointment,
     GgtBooking,
     GgtLocation,
-    GgtPatient
+    GgtPatient, TestResultEnum
 )
 
 from ggt.models.data_models.clinical_test_sample import (
@@ -442,6 +442,12 @@ def update_appointment_with_start_vax(appointment: GgtAppointment, user, operato
                                        operator_location_id=operator_location_id)
 
 
+def update_appointment_with_antigen_results(appointment: GgtAppointment, test_result,
+                                            operator_location_id=None):
+    return __update_appointment_status_antigen_result(appointment, c.APPOINTMENT_STATUS_TEST_FINALIZED, test_result,
+                                                      operator_location_id=operator_location_id)
+
+
 def update_appointment_with_verify_insurance(appointment: GgtAppointment, user, operator_location_id=None):
     return __update_appointment_status(appointment, c.APPOINTMENT_ACTION_VERIFY_INSURANCE, user=user,
                                        operator_location_id=operator_location_id)
@@ -481,9 +487,10 @@ def update_appointment_with_scan_vial_vax(appointment: GgtAppointment, vial_data
                                        )
 
 
-def update_appointment_with_test_completed(appointment: GgtAppointment, user, operator_location_id=None):
+def update_appointment_with_test_completed(appointment: GgtAppointment, user, operator_location_id=None,
+                                           is_antigen=False):
     return __update_appointment_status(appointment, c.APPOINTMENT_STATUS_TEST_COMPLETED, user=user,
-                                       operator_location_id=operator_location_id)
+                                       operator_location_id=operator_location_id, is_antigen=is_antigen)
 
 
 def get_service_type_by_appointment_id(appointment_id):
@@ -503,7 +510,7 @@ def get_service_type_by_appointment_id(appointment_id):
                     services_catalog c ON s.service_id = c.id
                 WHERE
                     a.id = %s"""
-    vals = (appointment_id, )
+    vals = (appointment_id,)
     return replica_read_row(sql, vals)
 
 
@@ -522,6 +529,7 @@ def create_consultation_note(user, appointment_id, appointment_notes):
                         (%s, %s, NOW(), NOW(), %s, %s); """
     vals = (provider_external_id, appointment_id, 'vax_consultation', appointment_notes)
     return exec_insert(sql, vals)
+
 
 ########################################################################################################
 # [Protected] functions
@@ -549,9 +557,54 @@ def __get_mapped_dt_field(status: str) -> str:
     return dt_field
 
 
+def __update_appointment_status_antigen_result(appointment: GgtAppointment, status, test_result: TestResultEnum,
+                                               operator_location_id=None):
+    try:
+        stat = None
+        if test_result.value == "negative":
+            stat = 'neg'
+        elif test_result.value == "positive":
+            stat = 'pos'
+
+        sql = """UPDATE appointments
+                    SET
+                        update_dt = NOW(),
+                        status = %s,
+                        sample_collection_location_id = %s
+                    WHERE
+                        id = %s
+                                     """
+
+        vals = (status, operator_location_id, appointment.id)
+        success_1 = exec_update(sql, vals)
+
+        sql_2 = """UPDATE test_samples 
+                    SET 
+                        lab_electronic_submission_dt = NOW(),
+                        test_result = %s,
+                        status = %s
+                    WHERE
+                        id = %s;"""
+        vals_2 = (stat, 'with_lab', appointment.id)
+        success_2 = exec_update(sql_2, vals_2)
+
+        return success_1 and success_2
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            appointment_id=appointment.id,
+            status=status,
+            function=whoami(),
+            error=err
+        )
+    return False
+
+
 def __update_appointment_status(appointment: GgtAppointment, status: str, vial_id: str = None, user=None,
-                                workstation_id=None, injection_site=None, no_adverse_reactions=None, lot_no=None, expiration_date=None,
-                                gtin=None, operator_location_id=None):
+                                workstation_id=None, injection_site=None, no_adverse_reactions=None, lot_no=None,
+                                expiration_date=None,
+                                gtin=None, operator_location_id=None, is_antigen=False):
     vial_id = None if vial_id == '' else vial_id
     usuccess = False
     reason_code = ''
@@ -576,19 +629,19 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
             return usuccess, reason_code
 
         if vial_id:
-            #check if vial is a dupe
+            # check if vial is a dupe
             sql = """
                 SELECT COUNT(*) as count FROM appointments WHERE vial_id = %s
             """
             vals = (vial_id,)
-            row = replica_read_row(sql,vals)
+            row = replica_read_row(sql, vals)
 
             if row['count'] > 0:
                 print('duplicate vial ID')
                 reason_code = 'dupe'
                 return usuccess, reason_code
 
-            #proceed with updating vial_id
+            # proceed with updating vial_id
             sql = """
                 UPDATE appointments
                 SET
@@ -606,7 +659,7 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
             vals = (vial_id, status, lot_no, expiration_date, gtin, operator_location_id, appointment.id)
 
         else:
-            #proceed with updating other info
+            # proceed with updating other info
             if injection_site and no_adverse_reactions:
                 sql = """
                                 UPDATE appointments
@@ -636,13 +689,14 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
 
                 vals = (status, operator_location_id, appointment.id)
 
-
         usuccess = exec_update(sql, vals)
         __create_provider_appointment_activity(user, appointment.id, whoami(), status, vial_id=vial_id,
                                                workstation_id=workstation_id, operator_location_id=operator_location_id)
 
-        #Allow creating a test record only if the test is completed (or in the last step) with a valid vial_id attached
-        if usuccess and (status == c.APPOINTMENT_STATUS_TEST_COMPLETED or status == c.APPOINTMENT_STATUS_VIAL_SCANNED) and vial_id:
+        # Allow creating a test record only if the test is completed (or in the last step) with a valid vial_id attached
+        if usuccess and (
+                status == c.APPOINTMENT_STATUS_TEST_COMPLETED or status == c.APPOINTMENT_STATUS_VIAL_SCANNED) and \
+                (vial_id or is_antigen):
             create_test_sample_from_appointment(appointment.id)
 
     except Exception as err:
@@ -666,7 +720,7 @@ def __has_insurance_info(appointment_id):
                 appointments a ON pq.id = a.patient_questionnaire_id
             WHERE
                 a.id = %s;"""
-    vals = (appointment_id, )
+    vals = (appointment_id,)
     row = replica_read_row(sql, vals)
     if row['has_insurance_photo'] == 1:
         return True
@@ -676,7 +730,7 @@ def __has_insurance_info(appointment_id):
 
 def __create_provider_appointment_activity(user, appointment_id, function, status, vial_id=None,
                                            workstation_id=None, operator_location_id=None):
-    #fail gracefully
+    # fail gracefully
     try:
         if user:
             user_ext_id = user['sub']
@@ -809,6 +863,9 @@ def __add_services_to_appointment(appointment_id: int, appointment_req: GgtBooki
         if appointment_req.services.covid_19_test:
             add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST)
 
+        if appointment_req.services.covid_19_test_nv:
+            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST_NV)
+
         if appointment_req.services.covid_19_test_mexico:
             add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST_MEXICO)
 
@@ -817,6 +874,9 @@ def __add_services_to_appointment(appointment_id: int, appointment_req: GgtBooki
 
         if appointment_req.services.covid_19_test_antigen_mexico:
             add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST_MEXICO_ANTIGEN)
+
+        if appointment_req.services.covid_19_test_antigen_nv:
+            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST_ANTIGEN_NV)
 
         if appointment_req.services.flue_shot:
             add_service_to_appointment(appointment_id, c.SERVICE_CODE_FLU_SHOT)

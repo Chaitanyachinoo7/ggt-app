@@ -58,7 +58,7 @@ def task_process_misc():
 
     #process_bcg_locations_file()
     #process_mx_locations_file()
-    # process_delta_locations_file()
+    #process_delta_locations_file()
     #update_schedules()
 
     # upload_insurance_images_to_gcp()
@@ -66,12 +66,12 @@ def task_process_misc():
     # upload_insurance_images_to_gcp_with_small_table()
     #process_email_notifications()
     #upload_insurance_files_from_gstore()
-    #process_sms_notifications()
-    #process_email_notifications()
+    process_sms_notifications()
+    process_email_notifications()
     #dedupe_tokens()
     #process_raw_list_sms_notifications()
     #process_vax()
-    process_vax_reschedule_sms_notification()
+    #process_vax_reschedule_sms_notification()
 
     log_generic(
         type=c.INFO,
@@ -199,11 +199,11 @@ def formatted_email_message(row):
 
 
 def prepare_sms_text(appointment):
-    return """Hi {}, the location where you have registered for your COVID-19 test will be located at the following address for today.  509 E 11th Street Hutchinson KS 67501. Please arrive at this site for your appointment. We apologize for the inconvenience this might have caused.
-    """.format(appointment["first_name"])
-
-    #return """Hi {}, the location where you have registered for your COVID-19 test will be CLOSED 02/19/2021 due to inclement weather. We apologize for the inconvenience this might have caused. Please visit GoGetTested.com to register for a new appointment.
+    #return """Hi {}, the location where you have registered for your COVID-19 test will be located at the following address for today.  509 E 11th Street Hutchinson KS 67501. Please arrive at this site for your appointment. We apologize for the inconvenience this might have caused.
     #""".format(appointment["first_name"])
+
+    return """Hi {}, the location where you have registered for your COVID-19 test will be CLOSED TODAY 03/18/2021 due to inclement weather. We apologize for the inconvenience this might have caused. Please visit GoGetTested.com to register for a new appointment.
+    """.format(appointment["first_name"])
 
     #return """Hi {}, due to inclement weather, we’ve had to delay opening the testing location where you have registered to 12 pm. This may change depending on the weather. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to register for a new appointment.
     #""".format(appointment["first_name"])
@@ -428,10 +428,10 @@ def get_appointments():
             patients p ON a.patient_id = p.id
         WHERE
             location_id IN (
-                2497
+                2505,  2498, 2497, 2481, 2409, 310, 288, 286, 284, 282, 280, 234
                 )
-                AND scheduled_dt > '2021-02-19 00:00:00'
-                AND scheduled_dt < '2021-02-20 00:00:00'
+                AND scheduled_dt > '2021-03-18 00:00:00'
+                AND scheduled_dt < '2021-03-19 00:00:00'
                 AND status = 'scheduled'
         """
 
@@ -794,11 +794,11 @@ def process_raw_list_sms_notifications():
 
 
 
-def process_vax_reschedule_sms_notification(rows):
-    # rows = [
-    #             ['+19999999999','Diane','1963-11-01','1315258','2021-03-13 12:00:00','sleepy732@icloud.com'],
-    #             ['+19999999999','Melissa','1975-04-16','1315260','2021-03-13 11:00:00','garcia1036@gmail.com']
-    #         ]
+def process_vax_reschedule_sms_notification():
+    rows = [
+                ['+19999999999','Diane','1963-11-01','1315258','2021-03-13 12:00:00','sleepy732@icloud.com'],
+                ['+19999999999','Melissa','1975-04-16','1315260','2021-03-13 11:00:00','garcia1036@gmail.com']             
+            ]
     data = []
     for row in rows:
         phone_number = row[0]
@@ -808,7 +808,7 @@ def process_vax_reschedule_sms_notification(rows):
         scheduled_dt = row[4]
         sched_time = datetime.strptime(scheduled_dt, "%Y-%m-%d %H:%M:%S").strftime("%a, %-d %b %Y @ %-I:%M %p")
         link = 'https://start.gogetvax.com/appointment/{}/{}'.format(appointment_id, dob)
-        message = """Hi {}, Your appointment time for today's vaccine clinic has changed. Please note the new appointment time, {} at 1215 T L Townsend Dr, Rockwall, TX 75087. {}""".format(first_name, sched_time, link)
+        message = """Hi {}, Your appointment time for today's vaccine clinic has changed. For your convenience, you may arrive anytime before your appointment time, {} at 1215 T L Townsend Dr, Rockwall, TX 75087. {}""".format(first_name, sched_time, link)
 
         data.append(
             (phone_number, message)
