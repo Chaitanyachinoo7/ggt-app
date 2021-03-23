@@ -41,12 +41,13 @@ session_id = generate_session_id()
 local_backups_path = cfg('vendors.healthtrackrx.inbound.local_backups_path')
 local_download_path = cfg('vendors.healthtrackrx.inbound.local_download_path')
 
-lab_inbound_bucket = 'ggt-sftp'
-labreport_bucket = 'ggt-labreports'
-lab_archive_bucket = 'ggt-sftp-archive'
+lab_inbound_bucket = cfg('lab_integrations.s3_bucket')
+labreport_bucket = cfg('lab_integrations.labreport_bucket')
+lab_archive_bucket = cfg('lab_integrations.archive_bucket')
 
 result_cache = {}
-MAX_FILE_IDLE_TIME = 3600 # in seconds
+MAX_FILE_IDLE_TIME = 3600  # in seconds
+
 
 def task_process_inbound_lab_reports():
     start = time.time()
@@ -78,7 +79,7 @@ def task_process_inbound_lab_reports():
 
 
 def process_pdf_results_for_lab(lab_id):
-    print('process_pdf_results_for_lab #'+str(lab_id))
+    print('process_pdf_results_for_lab #' + str(lab_id))
     key_suffix = '.pdf'
 
     if lab_id == 1:  # AIT
@@ -128,7 +129,7 @@ def process_pdf_results_for_lab(lab_id):
                     filename, last_modified=last_modified)
             else:
                 raise ValueError('Unknown Lab')
-        
+
             labreport_key = labreport_filename
 
             if requisition_id is None:
@@ -139,7 +140,8 @@ def process_pdf_results_for_lab(lab_id):
             add_to_inbound_data_table(
                 table_name, requisition_id, order_number, test_result, test_status)
 
-            # is it a Rejected Sample? #is labreport in s3? #did labreport to copy to s3 successfully
+            # is it a Rejected Sample? #is labreport in s3? #did labreport to
+            # copy to s3 successfully
             archive = (test_result == 'Rejected') or \
                 file_exists(lab_inbound_bucket, labreport_key) or \
                 copy_inbound_report_to_public_labreports_folder(
@@ -172,7 +174,7 @@ def preload_crl_rpt_data():
 
         try:
             arr = file_path.split('/')
-            filename = arr[len(arr)-1]
+            filename = arr[len(arr) - 1]
 
             # is a folder name
             if filename == '':
@@ -204,7 +206,7 @@ def preload_crl_rpt_data():
                 except Exception as err:
                     if last_modified and (datetime.datetime.now(datetime.timezone.utc) - last_modified).seconds > MAX_FILE_IDLE_TIME:
                         error_log(file_path, lab='CRL', last_modified=last_modified, order_number=_order_number, req_id=_requisition_id,
-                            reason='Unable to parse RPT file: {}'.format(str(err)))
+                                  reason='Unable to parse RPT file: {}'.format(str(err)))
                     print_error(
                         'Error processing — {} — {}'.format(err, filename))
 
@@ -303,7 +305,7 @@ def extract_report_info_ait(file_path, last_modified=None):
 
     try:
         arr = file_path.split('/')
-        filename = arr[len(arr)-1]
+        filename = arr[len(arr) - 1]
 
         # ignore old format reports
         if filename.startswith('Final-Report') or filename.startswith('requisitionReport') or filename.startswith('Preliminary-Report'):
@@ -318,8 +320,8 @@ def extract_report_info_ait(file_path, last_modified=None):
             test_status = 'Approved'
             filename = '{}.pdf'.format(order_number)
         elif test_result == 'Rejected':
-            #test_result = ''
-            #filename = ''
+            # test_result = ''
+            # filename = ''
             test_status = 'Rejected'
         else:
             test_status = None
@@ -329,7 +331,7 @@ def extract_report_info_ait(file_path, last_modified=None):
     except Exception as err:
         if last_modified and (datetime.datetime.now(datetime.timezone.utc) - last_modified).seconds > MAX_FILE_IDLE_TIME:
             error_log(file_path, lab='AIT', last_modified=last_modified, order_number=order_number, req_id=requisition_id,
-                reason=str(err))
+                      reason=str(err))
         print_error(err)
 
 
@@ -342,7 +344,7 @@ def extract_report_info_mawd(file_path, last_modified=None):
 
     try:
         arr = file_path.split('/')
-        filename = arr[len(arr)-1]
+        filename = arr[len(arr) - 1]
 
         # is a folder name
         if filename == '':
@@ -388,7 +390,7 @@ def extract_report_info_mawd(file_path, last_modified=None):
     except Exception as err:
         if last_modified and (datetime.datetime.now(datetime.timezone.utc) - last_modified).seconds > MAX_FILE_IDLE_TIME:
             error_log(file_path, lab='MAWD', last_modified=last_modified, order_number=order_number, req_id=vial_id,
-                reason=str(err))
+                      reason=str(err))
         print_error(err)
 
 
@@ -409,6 +411,7 @@ CONTACT_ID=ZSKFTP1
 REASON_TYPE=NS
 '''
 
+
 def archive_stale_rpt_files():
     key_prefix = 'crllabs/prod/results/'
     key_suffix = '.rpt'
@@ -420,7 +423,7 @@ def archive_stale_rpt_files():
         requisition_id = None
 
         arr = file_path.split('/')
-        filename = arr[len(arr)-1]
+        filename = arr[len(arr) - 1]
 
         # is a folder name
         if filename == '':
@@ -433,7 +436,8 @@ def archive_stale_rpt_files():
             if line.startswith('OBR'):
                 order_number = line.split('|')[2]
                 ggt_order_ids_mapped_rpt[order_number] = file_path
-                print("{0}. got order ID - {1} from file - {2}".format(counter, order_number, file_path))
+                print(
+                    "{0}. got order ID - {1} from file - {2}".format(counter, order_number, file_path))
                 break
         counter += 1
 
@@ -465,7 +469,7 @@ def extract_report_info_crl(file_path, last_modified=None):
 
     try:
         arr = file_path.split('/')
-        filename = arr[len(arr)-1]
+        filename = arr[len(arr) - 1]
 
         # is a folder name
         if filename == '':
@@ -491,7 +495,8 @@ def extract_report_info_crl(file_path, last_modified=None):
             file_path.replace(filename, ''), pdf_filename)
         filename = '{}.pdf'.format(order_number)
 
-        #result_cache[_order_number] = [_order_number, _requisition_id, _test_result, file_path]
+        # result_cache[_order_number] = [_order_number, _requisition_id,
+        # _test_result, file_path]
         test_result = result_cache[order_number][2]
         if test_result == 'Rejected':
             test_status = 'Rejected'
@@ -510,7 +515,7 @@ def extract_report_info_crl(file_path, last_modified=None):
         print(datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0))
         if last_modified and (datetime.datetime.now(datetime.timezone.utc) - last_modified).seconds > MAX_FILE_IDLE_TIME:
             error_log(file_path, lab='CRL', last_modified=last_modified, order_number=order_number, req_id=requisition_id,
-                reason=str(err))
+                      reason=str(err))
         print_error(err)
 
 
@@ -653,7 +658,7 @@ def update_test_samples_with_results():
 
 def extract_filename(file_path):
     arr = file_path.split('/')
-    filename = arr[len(arr)-1]
+    filename = arr[len(arr) - 1]
     return filename
 
 
@@ -674,4 +679,4 @@ def error_log(file_path, lab=None, last_modified=None, order_number=None, req_id
     if new_error not in errors:
         errors.append(new_error)
         with open('errors.json', 'w') as f:
-            json.dump({"errors" : errors}, f, indent=4)
+            json.dump({"errors": errors}, f, indent=4)

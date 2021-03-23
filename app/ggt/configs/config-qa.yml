@@ -71,6 +71,7 @@ aws:
   sqs_print_queue_base_url: https://sqs.us-east-1.amazonaws.com/135292740376/ggt-print-queue
   lab_reports_bucket_name: ggt-labreports
   default_link_expiration_time_limit: 300
+  ggt_ops_images: ggt-ops-images
 
 gcp:
   project_id: ggt-pfe-prod
@@ -218,4 +219,10 @@ image_urls:
   flu_shot:
     - 'http://ggt-image-server.com/flu' # Add a URL of a stock photo or S3 bucket
   payment:
-    - 'https://goget-static-content.s3.us-east-2.amazonaws.com/fit2fly_icon.png' # Add a URL of a stock photo or S3 bucket
+    - 'https://goget-static-content.s3.us-east-2.amazonaws.com/ggtlogo.png' # Add a URL of a stock photo or S3 bucket
+
+
+lab_integrations:
+  s3_bucket: ggt-sftp-dev
+  archive_bucket: ggt-sftp-archive-dev
+  labreport_bucket: ggt-labreports-dev

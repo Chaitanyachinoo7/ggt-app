@@ -84,7 +84,7 @@ from ggt.models.data_models.data_types import (
 
 from ggt.lib.storage import (
     file_exists_in_insurance_cards,
-    upload_insurance_card_from_base64_string
+    upload_insurance_card_from_base64_string, upload_test_result_image_from_base64_string
 )
 
 from ggt.lib.storage import get_temporary_lab_report_url
@@ -770,9 +770,30 @@ def __single_shot_vaccinations(booking_req: GgtBooking):
         appointment = create_appointment(booking_req)
 
         if appointment:
+            log_generic(
+                type=c.INFO,
+                message="Updating slot information",
+                function=whoami(),
+                appointment_id=appointment.id,
+                slot_id=booking_req.appointmentOneTime
+            )
             update = update_slot_information(booking_req.appointmentOneTime, appointment.id, slot_type='vax')
             if not update:
+                log_generic(
+                    type=c.INFO,
+                    message="Updating slot information FAILED",
+                    function=whoami(),
+                    appointment_id=appointment.id,
+                    slot_id=booking_req.appointmentOneTime
+                )
                 __assign_to_next_available_slot(booking_req.timeslot, appointment.id, slot_type='vax')
+            log_generic(
+                type=c.INFO,
+                message="Updated slot information",
+                function=whoami(),
+                appointment_id=appointment.id,
+                slot_id=booking_req.appointmentOneTime
+            )
 
         else:
             raise ValueError('error_creating_appointment')
@@ -1255,6 +1276,29 @@ class UpfrontPaymemtResponse():
     is_payment_required: bool = None
     total_cost: int = None
     billed_amount: int = None
+
+
+def __upload_test_result_image(result_image: str, appointment_id: int) -> bool:
+    try:
+        if result_image and len(result_image) > 0:
+            if "," in result_image:
+                base64string = result_image.split(",")[1]
+
+            dest_file_name = '{}.png'.format(appointment_id)
+            if upload_test_result_image_from_base64_string(base64string, dest_file_name):
+                print('uploaded image: {}'.format(dest_file_name))
+                return True
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            appointment_id=appointment_id,
+            result_image=result_image,
+            function=whoami(),
+            error=err
+        )
+
+    return False
 
 
 def __save_insurance_image(appointment_id: int, insurance_image: str) -> bool:

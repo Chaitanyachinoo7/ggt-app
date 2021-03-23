@@ -29,7 +29,7 @@ from ggt.models.data_models.schedules import (
     trim_schedule_generation_rules_start_dt,
     get_slots_matching_dt_list, ggv_get_schedule_locations_available_near_lat_lng, get_second_shot_available_times,
     delete_ggv_schedules_metrics_cache, delete_schedules_metrics_cache, get_second_slot_reschedule_dates,
-    get_ggv_available_dates, get_group_by_group_code
+    get_ggv_available_dates, get_group_by_group_code, get_available_ggv_locations_near_lat_lng
 )
 
 from ggt.models.data_models.locations import (
@@ -161,7 +161,7 @@ def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: float, rad
                     'result_time_hours': '{}h'.format(dtl.average_processing_time),
                     'slots_available': dtl.slot_count,
                     'type': 'public',
-                    'services_available': dtl.location.services_available,
+                    'services_available': json.loads(dtl.services_available),
                     'distance': dtl.distance,
                     'external': dtl.is_external,
                     'external_phone': dtl.external_phone,
@@ -346,8 +346,6 @@ def bp_get_second_slot_reschedule_dates(location_id, ap1_date):
         }
 
 
-
-
 def bp_get_ggv_schedule_times_available(location_id, date):
     available_times = []
     try:
@@ -369,7 +367,7 @@ def bp_get_ggv_schedule_times_available(location_id, date):
                         r['value'] = int(r['value'])
                     return temp
                 else:
-                    if (datetime.now() - start_time).total_seconds() > 100:
+                    if (datetime.now() - start_time).total_seconds() > 20:
                         return None
 
     except Exception as err:

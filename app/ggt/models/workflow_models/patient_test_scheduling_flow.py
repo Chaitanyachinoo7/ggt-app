@@ -483,12 +483,16 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
 
 
 def __assign_services(selected_services, sku):
+    if sku == c.SERVICE_CODE_COVID19_TEST_NV:
+        selected_services.covid_19_test_nv = True
     if sku == c.SERVICE_CODE_COVID19_TEST:
         selected_services.covid_19_test = True
     if sku == c.SERVICE_CODE_COVID19_TEST_MEXICO:
         selected_services.covid_19_test_mexico = True
     if sku == c.SERVICE_CODE_COVID19_TEST_ANTIGEN:
         selected_services.covid_19_test_antigen = True
+    if sku == c.SERVICE_CODE_COVID19_TEST_ANTIGEN_NV:
+        selected_services.covid_19_test_antigen_nv = True
     if sku == c.SERVICE_CODE_COVID19_TEST_MEXICO_ANTIGEN:
         selected_services.covid_19_test_antigen_mexico = True
     if sku == c.SERVICE_CODE_FLU_SHOT:

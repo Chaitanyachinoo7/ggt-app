@@ -48,8 +48,12 @@ outbound_file_prefix = cfg(
     'vendors.healthtrackrx.outbound.outbound_file_prefix')
 local_insurance_card_file_path = cfg(
     'vendors.healthtrackrx.outbound.local_insurance_card_file_path')
+bucket_name = cfg('lab_integrations.s3_bucket')
 
-#TODO: write processing log to files, raw log, success log, error log, summary log
+# TODO: write processing log to files, raw log, success log, error log,
+# summary log
+
+
 def task_process_hl7_lab_orders():
     print('\n\n************************************************\n\n')
     log_generic(
@@ -58,12 +62,14 @@ def task_process_hl7_lab_orders():
         task_session_id=session_id,
         info='Begin Processing outbound HL7 Lab Orders')
 
+    all_orders = []
     while True:
         orders = get_orders_ready_to_transmit(100)
         if len(orders) > 0:
             processed_orders = create_outbound_files(orders)
             update_to_with_lab_status(processed_orders)
             print('--------------------------')
+            all_orders.extend(processed_orders)
         else:
             break
 
@@ -73,8 +79,7 @@ def task_process_hl7_lab_orders():
         task_session_id=session_id,
         info='End Processing outbound Lab Reports')
     print('\n\n************************************************\n\n')
-
-
+    return all_orders
 
 
 def upload_insurance_files_from_gstore(orders):
@@ -90,7 +95,8 @@ def upload_insurance_files_from_gstore(orders):
                     file_path_pdf = "{}/{}".format(
                         local_insurance_card_file_path, filename)
                     appointment_id = order['id']
-                    blob = get_file_blob('ggt-insurance-cards-prod', '{}.png'.format(appointment_id))
+                    blob = get_file_blob(
+                        'ggt-insurance-cards-prod', '{}.png'.format(appointment_id))
                     if blob:
                         blob.download_to_filename(file_path_png)
                         Image.open(file_path_png).convert(
@@ -115,7 +121,7 @@ def __get_msh(order):
     if location_id == 2415:
         lab_name = 'MAWD'
     elif location_id == 2473:
-        pass #handled by other workers
+        pass  # handled by other workers
     else:
         lab_name = 'AIT'
 
@@ -126,9 +132,9 @@ def __get_msh(order):
         msh_4_sending_facility=order['client_site_code'],
         msh_5_receiving_application=lab_name,
         msh_6_receiving_facility=lab_name,
-        msh_7_datetime_of_message=order['today_dt'],#dt,
+        msh_7_datetime_of_message=order['today_dt'],  # dt,
         msh_9_message_type='ORM^O01',
-        msh_10_message_control_id=int(time.time()*1000),
+        msh_10_message_control_id=int(time.time() * 1000),
         msh_11_processing_id='P',
         msh_12_version_id='2.3'
     )
@@ -146,7 +152,8 @@ def __get_pid(order):
         pid_10_race=order['race'],  # Race
         pid_11_patient_address='{}^{}^{}^{}^{}^^^^'.format(
             order['addr1'], order['addr2'], order['city'], order['st'], order['zip']),  # Address^Address2^City^State^Zip Code
-        pid_13_phone_number_home=order['phone_number'].replace('+1',''),  # Phone
+        pid_13_phone_number_home=order[
+            'phone_number'].replace('+1', ''),  # Phone
         pid_18_patient_account_number='{}^^^P'.format(order['patient_id']),
         pid_20_drivers_license_number_patient='',
         pid_22_ethnic_group=order['ethnicity']  # Ethnicity
@@ -158,7 +165,8 @@ def __get_pv1(order):
         pv1_1_set_id=1,
         pv1_3_assigned_patient_location=order['test_location_st'],
         # Physician NPI^Provider Last Name^Provider First name
-        pv1_7_attending_doctor='{}^{}^{}'.format(order['physician_npi'], 'Khan', 'Samad'),
+        pv1_7_attending_doctor='{}^{}^{}'.format(
+            order['physician_npi'], 'Khan', 'Samad'),
         pv1_20_financial_class=order['bill']
     )
 
@@ -179,6 +187,7 @@ def __get_in1(order):
     )
 '''
 
+
 def __get_gt1(order):
     return GT1(
         gt1_1_set_id_gt1='',
@@ -186,7 +195,8 @@ def __get_gt1(order):
             order['last_name'], order['first_name']),  # Last Name^First Name
         gt1_5_guarantor_address='{}^{}^{}^{}^{}^^^^'.format(
             order['addr1'], order['addr2'], order['city'], order['st'], order['zip']),  # Address^Address2^City^State^Zip Code
-        gt1_6_guarantor_ph_num_home=order['phone_number'].replace('+1',''),  # Phone
+        gt1_6_guarantor_ph_num_home=order[
+            'phone_number'].replace('+1', ''),  # Phone
         gt1_7_guarantor_ph_num_business='',
         gt1_8_guarantor_datetime_of_birth=order['dob'].replace(
             '-', ''),  # Date of Birth
@@ -226,11 +236,14 @@ def __get_obr(order):
             order['sample_code'], 'AIT' if order['sample_code'] else ''),  # Sample Code^Lab Vial Owner
         obr_4_universal_service_identifier='RESPI507^COVID-19 Test',  # Panel Code^Panel Name
         obr_6_requested_datetime='',  # Date of Collection
-        obr_7_observation_datetime=order['date_of_collection'],  # Date of Collection
-        obr_15_specimen_source='^^^{}'.format(order['sample_source']),  # Sample Source
+        obr_7_observation_datetime=order[
+            'date_of_collection'],  # Date of Collection
+        obr_15_specimen_source='^^^{}'.format(
+            order['sample_source']),  # Sample Source
         # Physician NPI^Provider Last Name
-        obr_16_ordering_provider='{}^{}^{}'.format(order['physician_npi'], 'Khan', 'Samad'),
-        obr_17_order_callback_phone_number='4697892595', #WH Phopne number
+        obr_16_ordering_provider='{}^{}^{}'.format(
+            order['physician_npi'], 'Khan', 'Samad'),
+        obr_17_order_callback_phone_number='4697892595',  # WH Phopne number
         obr_21_filler_field_2='^^^^^^'
     )
 
@@ -251,6 +264,8 @@ OBX-5.3: extension (JPEG, PNG, etc.)
 OBX-5.4: 'Base64'
 OBX-5.5: The base64 encoded string for the image (with no line breaks)
 '''
+
+
 def __get_obx(order):
     obx2 = OBX(
         obx_1_set_id=2,
@@ -317,7 +332,8 @@ def __get_obx(order):
     obx10 = None
     if order['bill'] == 'DB':
         try:
-            blob = get_file_blob('ggt-insurance-cards-prod', '{}.png'.format(order['id']))
+            blob = get_file_blob('ggt-insurance-cards-prod',
+                                 '{}.png'.format(order['id']))
             if blob:
                 content = blob.download_as_string()
                 b64content = base64.b64encode(content)
@@ -325,8 +341,10 @@ def __get_obx(order):
                 obx10 = OBX(
                     obx_1_set_id=10,
                     obx_2_value_type='ED',
-                    obx_3_observation_identifier='INSURANCE^{}.png'.format(order['client_order_number']),
-                    obx_5_observation_value='^^PNG^Base64^{}'.format(b64content)
+                    obx_3_observation_identifier='INSURANCE^{}.png'.format(
+                        order['client_order_number']),
+                    obx_5_observation_value='^^PNG^Base64^{}'.format(
+                        b64content)
                 )
         except Exception as err:
             print(err)
@@ -356,7 +374,8 @@ def create_outbound_files(orders):
                 outbound_file_prefix,
                 order['id']
             )
-            local_file_path = "{}/{}".format(local_outbound_file_path, filename)
+            local_file_path = "{}/{}".format(
+                local_outbound_file_path, filename)
 
             '''
             with open(local_file_path, 'w', newline='') as hl7file:
@@ -364,45 +383,46 @@ def create_outbound_files(orders):
                 hl7file.write(_str)
             '''
 
-            if order['lab_id'] == 2 or str(order['sample_code']).startswith('MAWD'): #MAWD
-                if write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8','ignore'), 'mawdpath'):
+            # MAWD
+            if order['lab_id'] == 2 or str(order['sample_code']).startswith('MAWD'):
+                if write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8', 'ignore'), 'mawdpath'):
                     processed_orders.append(order)
                 else:
                     raise ValueError('S3 write failed for MAWD')
 
-            if order['lab_id'] == 1: #AIT
-                if write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8','ignore'), 'healthtrackrx_merth'):
+            if order['lab_id'] == 1:  # AIT
+                if write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8', 'ignore'), 'healthtrackrx_merth'):
                     processed_orders.append(order)
                 else:
                     raise ValueError('S3 write failed for AIT')
 
-            if order['lab_id'] == 4: #LAB3A
-                if write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8','ignore'), 'lab3a'):
+            if order['lab_id'] == 4:  # LAB3A
+                if write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8', 'ignore'), 'lab3a'):
                     processed_orders.append(order)
                 else:
                     raise ValueError('S3 write failed for LAB3A')
 
-            if order['lab_id'] == 5: #CHOPO
-                if write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8','ignore'), 'chopolabs'):
+            if order['lab_id'] == 5:  # CHOPO
+                if write_to_s3(filename, str(hl7_message).encode("utf-8").decode('utf-8', 'ignore'), 'chopolabs'):
                     processed_orders.append(order)
                 else:
                     raise ValueError('S3 write failed for CHOPO')
 
         except Exception as err:
-                #print_error(err)
-                print_error('Error generating HL7 for Order ID: {}'.format(order['id']))
+                # print_error(err)
+            print_error(
+                'Error generating HL7 for Order ID: {}'.format(order['id']))
 
     return processed_orders
 
 
 def write_to_s3(filename, body, lab_folder_path):
-    bucket_name = 'ggt-sftp'
     prefix = '{}/prod/orders/'.format(lab_folder_path)
-    if write_text_file(bucket_name, prefix+filename, body):
-        print_ok1('success {}'.format(bucket_name+'/'+prefix+filename))
+    if write_text_file(bucket_name, prefix + filename, body):
+        print_ok1('success {}'.format(bucket_name + '/' + prefix + filename))
         return True
     else:
-        print_error('FAILED {}'.format(bucket_name+'/'+prefix+filename))
+        print_error('FAILED {}'.format(bucket_name + '/' + prefix + filename))
         return False
 
 

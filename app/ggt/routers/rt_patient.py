@@ -42,7 +42,7 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
 
 # TODO: [GGT-193] Move this to a dedicated API
 from ggt.models.workflow_models.clinical_test_site_admin_flow import (
-    site_admin_general_search, get_all_services
+    site_admin_general_search, get_all_services, get_all_services_patient
 )
 
 
@@ -183,7 +183,7 @@ async def api_lookup_appointment(req: LookupAppointmentRequest):
 
 @router.get("/get_all_services", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_get_all_services():
-    return get_all_services()
+    return get_all_services_patient()
 
 
 @router.get("/appointment/result/{token}/{dob}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
