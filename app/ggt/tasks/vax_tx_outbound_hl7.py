@@ -62,7 +62,7 @@ def __get_pid(order):
     return PID(
         pid_1_set_id=1,
         pid_2_patient_id=order['patient_id'],  # External Code
-        pid_3_patient_identifier_list='^^^^PI',
+        pid_3_patient_identifier_list='{}^^^^{}'.format(order['patient_id'],'PI'),
         pid_5_patient_name='{}^{}^^^'.format(order['last_name'], order['first_name']),  # Last Name^First Name
         pid_7_date_time_of_birth=order['dob'].replace('-', ''),  # Date of Birth
         pid_8_administrative_sex=order['gender'],  # Gender
