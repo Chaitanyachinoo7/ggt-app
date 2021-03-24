@@ -31,7 +31,7 @@ from ggt.models.data_models.appointments import (
     update_appointment_with_test_completed, update_appointment_with_start_vax, update_appointment_with_notes_vax,
     update_appointment_with_scan_vial_vax, update_appointment_with_end_vax, __has_insurance_info,
     update_appointment_with_verify_insurance, get_service_type_by_appointment_id, create_consultation_note,
-    update_appointment_with_antigen_results
+    update_appointment_with_antigen_results, update_appointment_with_confirm_insurance_status
 )
 
 from ggt.lib.sys_log import (write_syslog)
@@ -87,6 +87,7 @@ def bp_appointment_update(provider_update_appointment_request, user):
     service_code = provider_update_appointment_request.service_code
     test_result = provider_update_appointment_request.test_result
     test_result_photo = provider_update_appointment_request.test_result_photo
+    insurance_status = provider_update_appointment_request.insurance_status
     try:
         appointment: GgtAppointment = get_appointment(appointment_id)
 
@@ -97,6 +98,10 @@ def bp_appointment_update(provider_update_appointment_request, user):
 
         if action == c.APPOINTMENT_ACTION_START_VAX:
             usuccess = update_appointment_with_start_vax(appointment, user, operator_location_id=operator_location_id)
+
+        if action == c.APPOINTMENT_ACTION_CONFIRM_INSURANCE_STATUS:
+            usuccess = update_appointment_with_confirm_insurance_status(appointment, user, insurance_status,
+                                                                        operator_location_id=operator_location_id)
 
         if action == c.APPOINTMENT_ACTION_VERIFY_INSURANCE:
             usuccess = update_appointment_with_verify_insurance(appointment, user,
@@ -279,7 +284,10 @@ def __next_action(appointment, service_code, pre_labeled=False):
             }
         else:
             switcher = {
-                c.APPOINTMENT_STATUS_SCHEDULED: c.APPOINTMENT_ACTION_CHECK_IN,
+                c.APPOINTMENT_STATUS_SCHEDULED: c.APPOINTMENT_ACTION_CONFIRM_INSURANCE_STATUS,
+                c.APPOINTMENT_STATUS_INSURANCE_PENDING: c.APPOINTMENT_ACTION_VERIFY_INSURANCE,
+                c.APPOINTMENT_STATUS_NO_INSURANCE: c.APPOINTMENT_ACTION_CHECK_IN,
+                c.APPOINTMENT_ACTION_VERIFY_INSURANCE: c.APPOINTMENT_ACTION_CHECK_IN,
                 c.APPOINTMENT_STATUS_CHECKED_IN: c.APPOINTMENT_ACTION_START_VAX,
                 c.APPOINTMENT_ACTION_START_VAX: c.APPOINTMENT_ACTION_NOTES_VAX,
                 # c.APPOINTMENT_ACTION_START_VAX: c.APPOINTMENT_ACTION_SCAN_VIAL_VAX,

@@ -532,6 +532,11 @@ class TestResultEnum(str, Enum):
     negative = 'negative'
 
 
+class YesNoEnum(str, Enum):
+    yes = 'yes'
+    no = 'no'
+
+
 class ProviderUpdateAppointmentRequest(BaseModel):
     appointment_id: str = None
     action: str = None
@@ -545,6 +550,7 @@ class ProviderUpdateAppointmentRequest(BaseModel):
     no_adverse_reactions: Optional[bool] = None
     test_result: Optional[TestResultEnum] = None
     test_result_photo: Optional[str] = None
+    insurance_status: Optional[YesNoEnum] = None
 
 
 class ProviderLookupAppointmentRequest(BaseModel):
