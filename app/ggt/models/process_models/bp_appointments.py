@@ -150,7 +150,7 @@ def bp_appointment_update(provider_update_appointment_request, user):
             usuccess = update_appointment_with_test_completed(appointment, user,
                                                               operator_location_id=operator_location_id,
                                                               is_antigen=__is_antigen(service_code))
-            if usuccess:
+            if usuccess and (not __is_antigen(service_code)):
                 __send_test_complete_sms(appointment)
 
         elif action == c.APPOINTMENT_ACTION_REPRINT:
