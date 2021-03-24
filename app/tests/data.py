@@ -346,6 +346,38 @@ test_samples = [
         "post_test_billed_status": 0,
         "create_dt": today,
         "update_dt": today
+    },
+    {
+        "id": 4,
+        "appointment_id": 4,
+        "group_code": None,
+        "patient_id": 1,
+        "patient_questionnaire_id": 1,
+        "provider_id": None,
+        "vial_id": "TEST",
+        "sample_collection_location_id": 1,
+        "sample_collection_start_dt": None,
+        "sample_collection_end_dt": None,
+        "pre_ship_label_scan_dt": "2020-12-14 19:58:05",
+        "lab_id": 4,
+        "lab_submission_batch_id": None,
+        "lab_physical_submission_dt": None,
+        "lab_electronic_submission_dt": None,
+        "lab_result_receive_dt": None,
+        "test_result": None,
+        "notification_status": None,
+        "notification_method": None,
+        "notification_acknowledgement_dt": None,
+        "consultation_status": "pending",
+        "consultation_notes": None,
+        "consultation_categorization": None,
+        "location_id": None,
+        "status": "ready_to_tx",
+        "test_type": "oral",
+        "initial_billed_status": 0,
+        "post_test_billed_status": 0,
+        "create_dt": today,
+        "update_dt": today
     }
 ]
 
@@ -622,6 +654,44 @@ patient_questionnaires = [
         "ggv_allergies": None,
         "serious_reaction": None
     }
+]
+
+labs = [
+    {
+        "id": 1,
+        "lab_name": "AIT/HealthTrackRx",
+        "lab_code": "AIT",
+        "create_dt": today,
+        "update_dt": today
+    },
+    {
+        "id": 2,
+        "lab_name": "MAWD Pathology Group",
+        "lab_code": "MAWD",
+        "create_dt": today,
+        "update_dt": today
+    },
+    {
+        "id": 3,
+        "lab_name": "Clinical Reference Laboratory",
+        "lab_code": "CRL",
+        "create_dt": today,
+        "update_dt": today
+    },
+    {
+        "id": 4,
+        "lab_name": "LAB3A",
+        "lab_code": "LAB3A",
+        "create_dt": today,
+        "update_dt": today
+    },
+    {
+        "id": 5,
+        "lab_name": "CHOPO Labs",
+        "lab_code": "CHOPO",
+        "create_dt": today,
+        "update_dt": today
+    },
 ]
 
 

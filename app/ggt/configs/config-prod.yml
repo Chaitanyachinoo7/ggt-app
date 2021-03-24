@@ -223,3 +223,32 @@ lab_integrations:
   s3_bucket: ggt-sftp
   archive_bucket: ggt-sftp-archive
   labreport_bucket: ggt-labreports
+  outbound_file_prefix: ggt-outbound
+
+  MAWD:
+    outbound_path: mawdpath/prod/orders/
+    inbound_path: mawdpath/prod/results/
+    inbound_data_table_name: mawdpath_inbound_data
+
+  AIT:
+    outbound_path: healthtrackrx_merth/prod/orders/
+    inbound_path: healthtrackrx/Reports/
+    inbound_data_table_name: healthtrackrx_inbound_data
+
+  CRL:
+    outbound_path: DOES_NOT_EXIST
+    inbound_path: crllabs/prod/results/
+    inbound_data_table_name: crl_inbound_data
+    api_username: WELLHEALTH
+    api_password: 38cvZtg4v8
+    api_url: https://api.crlclear.com/order
+
+  CHOPO:
+    outbound_path: chopolabs/prod/orders/
+    inbound_path: chopolabs/prod/results
+    inbound_data_table_name: chopo_inbound_data
+
+  LAB3A:
+    outbound_path: lab3a/prod/orders/
+    inbound_path: lab3a/prod/results
+    inbound_data_table_name: lab3a_inbound_data
