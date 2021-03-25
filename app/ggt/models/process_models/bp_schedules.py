@@ -369,6 +369,9 @@ def bp_get_ggv_schedule_times_available(location_id, date):
                     if temp['available_times']:
                         for r in temp['available_times']:
                             r['value'] = int(r['value'])
+                    print("xxxxx - {}".format(x))
+                    print(
+                        '***************************Exit - 1  {}******************************'.format(datetime.now()))
                     return temp
                 else:
                     if (datetime.now() - start_time).total_seconds() > 10:
@@ -386,7 +389,7 @@ def bp_get_ggv_schedule_times_available(location_id, date):
             error=err
         )
     print("xxxxx - {}".format(x))
-    print('***************************EXIT - 1  {}******************************'.format(datetime.now()))
+    print('***************************EXIT - 1 - end  {}******************************'.format(datetime.now()))
     return {
         "available_times": available_times
     }
@@ -415,6 +418,9 @@ def bp_get_second_shot_available_times(location_id, date):
                         for x in temp['available_times']:
                             for y in x['available_times']:
                                 y['value'] = int(y['value'])
+                    print("xxxxx - {}".format(x))
+                    print(
+                        '***************************Exit - 2  {}******************************'.format(datetime.now()))
                     return {
                         "available_dates": temp['available_times']
                     }
@@ -466,7 +472,7 @@ def bp_get_second_shot_available_times(location_id, date):
         )
 
     print("xxxxx - {}".format(x))
-    print('***************************Exit - 2  {}******************************'.format(datetime.now()))
+    print('***************************Exit - 2 - End {}******************************'.format(datetime.now()))
     return {
         "available_date_times": res
     }
