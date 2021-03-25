@@ -348,6 +348,7 @@ def bp_get_second_slot_reschedule_dates(location_id, ap1_date):
 
 def bp_get_ggv_schedule_times_available(location_id, date):
     available_times = []
+    x = 0
     try:
         print('***************************START - 1  {}******************************'.format(datetime.now()))
         request = {
@@ -360,7 +361,6 @@ def bp_get_ggv_schedule_times_available(location_id, date):
         msg_id = push_sqs_message(get_sqs_queue_url(location_id), r)
         if msg_id:
             start_time = datetime.now()
-            x = 0
             while True:
                 x = x + 1
                 res = read_from_dynamo(get_config_val('aws.dynamo_table_name'), msg_id)
@@ -385,6 +385,7 @@ def bp_get_ggv_schedule_times_available(location_id, date):
             function=whoami(),
             error=err
         )
+    print("xxxxx - {}".format(x))
     print('***************************EXIT - 1  {}******************************'.format(datetime.now()))
     return {
         "available_times": available_times
@@ -393,6 +394,7 @@ def bp_get_ggv_schedule_times_available(location_id, date):
 
 # @cached(cache=TTLCache(maxsize=1024, ttl=60))
 def bp_get_second_shot_available_times(location_id, date):
+    x = 0
     try:
         request = {
             "date": date,
@@ -404,7 +406,6 @@ def bp_get_second_shot_available_times(location_id, date):
         msg_id = push_sqs_message(get_sqs_queue_url(location_id), r)
         if msg_id:
             start_time = datetime.now()
-            x = 0
             while True:
                 x = x + 1
                 res = read_from_dynamo(get_config_val('aws.dynamo_table_name'), msg_id)
@@ -464,6 +465,7 @@ def bp_get_second_shot_available_times(location_id, date):
             error=err
         )
 
+    print("xxxxx - {}".format(x))
     print('***************************Exit - 2  {}******************************'.format(datetime.now()))
     return {
         "available_date_times": res
