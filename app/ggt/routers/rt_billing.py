@@ -41,9 +41,9 @@ async def api_update_insurance_record(record: InsuranceUpdateRecord):
     return update_insurance_record(record)
 
 
-@router.post("/validate_insurance_record", dependencies=[Security(authorize_user, scopes=[p.VALIDATE_INSURANCE_RECORD])])
-async def api_validate_insurance_record(record: InsuranceIDRecord):
-    return validate_insurance_record(record)
+# @router.post("/validate_insurance_record", dependencies=[Security(authorize_user, scopes=[p.VALIDATE_INSURANCE_RECORD])])
+# async def api_validate_insurance_record(record: InsuranceIDRecord):
+#     return validate_insurance_record(record)
 
 
 @router.post("/delete_insurance_record", dependencies=[Security(authorize_user, scopes=[p.DELETE_INSURANCE_RECORD])])
