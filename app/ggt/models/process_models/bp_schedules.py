@@ -360,7 +360,9 @@ def bp_get_ggv_schedule_times_available(location_id, date):
         msg_id = push_sqs_message(get_sqs_queue_url(location_id), r)
         if msg_id:
             start_time = datetime.now()
+            x = 0
             while True:
+                x = x + 1
                 res = read_from_dynamo(get_config_val('aws.dynamo_table_name'), msg_id)
                 if res and "Item" in res.keys():
                     temp = res['Item']
@@ -369,7 +371,10 @@ def bp_get_ggv_schedule_times_available(location_id, date):
                             r['value'] = int(r['value'])
                     return temp
                 else:
-                    if (datetime.now() - start_time).total_seconds() > 1:
+                    if (datetime.now() - start_time).total_seconds() > 10:
+                        print("xxxxx - {}".format(x))
+                        print('***************************Exit Failed - 1  {}******************************'.format(
+                            datetime.now()))
                         return None
 
     except Exception as err:
@@ -401,6 +406,7 @@ def bp_get_second_shot_available_times(location_id, date):
             start_time = datetime.now()
             x = 0
             while True:
+                x = x + 1
                 res = read_from_dynamo(get_config_val('aws.dynamo_table_name'), msg_id)
                 if res and "Item" in res.keys():
                     temp = res['Item']
@@ -412,8 +418,10 @@ def bp_get_second_shot_available_times(location_id, date):
                         "available_dates": temp['available_times']
                     }
                 else:
-                    if (datetime.now() - start_time).total_seconds() > 1:
+                    if (datetime.now() - start_time).total_seconds() > 10:
                         print("xxxxx - {}".format(x))
+                        print('***************************Exit Failed - 2  {}******************************'.format(
+                            datetime.now()))
                         return None
     # rows = get_second_shot_available_times(location_id, date)
     # dates = {}
