@@ -8,6 +8,7 @@ from cachetools import cached, LRUCache, TTLCache
 import ggt.lib.constants as c
 from ggt.lib.adapters.sqs_adapter import push_sqs_message
 from ggt.lib.adapters.twilio_adapter import send_twilio_sms
+from ggt.models.data_models.billers import create_insurance_record
 
 from ggt.models.data_models.data_types import (
     GgtAppointment
@@ -31,11 +32,11 @@ from ggt.models.data_models.appointments import (
     update_appointment_with_test_completed, update_appointment_with_start_vax, update_appointment_with_notes_vax,
     update_appointment_with_scan_vial_vax, update_appointment_with_end_vax, __has_insurance_info,
     update_appointment_with_verify_insurance, get_service_type_by_appointment_id, create_consultation_note,
-    update_appointment_with_antigen_results, update_appointment_with_confirm_insurance_status
+    update_appointment_with_antigen_results, update_appointment_with_confirm_insurance_status,
+    update_appointment_with_collect_insurance
 )
 
 from ggt.lib.sys_log import (write_syslog)
-
 
 ########################################################################################################
 # [Public] functions
@@ -78,6 +79,7 @@ def bp_get_appointment_info(appointment_id, dob, org_id=None):
     return False
 
 
+# TODO This function is too long, hard to read and still growing. Break this into multiple functions.
 def bp_appointment_update(provider_update_appointment_request, user):
     usuccess = False
     appointment_id = provider_update_appointment_request.appointment_id
@@ -88,8 +90,16 @@ def bp_appointment_update(provider_update_appointment_request, user):
     test_result = provider_update_appointment_request.test_result
     test_result_photo = provider_update_appointment_request.test_result_photo
     insurance_status = provider_update_appointment_request.insurance_status
+    insurance_details = provider_update_appointment_request.insurance_details
     try:
         appointment: GgtAppointment = get_appointment(appointment_id)
+
+        if action == c.APPOINTMENT_ACTION_COLLECT_INSURANCE:
+            usuccess = create_insurance_record(insurance_details)
+            if usuccess:
+                usuccess = update_appointment_with_collect_insurance(appointment,  operator_location_id=operator_location_id)
+                if usuccess and insurance_details.insurance_image:
+                    __save_insurance_image(appointment_id, insurance_details.insurance_image)
 
         if action == c.APPOINTMENT_ACTION_ANTIGEN_TEST_RESULTS:
             usuccess = update_appointment_with_antigen_results(appointment, test_result,
@@ -143,8 +153,10 @@ def bp_appointment_update(provider_update_appointment_request, user):
                 }
 
         elif action == c.APPOINTMENT_ACTION_SCAN_VIAL_VAX:
-            usuccess, reason_code = update_appointment_with_scan_vial_vax(appointment, provider_update_appointment_request.vial_data,
-                                                             user, operator_location_id=operator_location_id)
+            usuccess, reason_code = update_appointment_with_scan_vial_vax(appointment,
+                                                                          provider_update_appointment_request.vial_data,
+                                                                          user,
+                                                                          operator_location_id=operator_location_id)
             if not usuccess:
                 return {
                     c.STATUS: c.FAILED,
@@ -170,7 +182,7 @@ def bp_appointment_update(provider_update_appointment_request, user):
         if usuccess:
             return {
                 'appointment_id': appointment.id,
-                'next_action': __next_action(appointment, service_code,  __is_pre_labeled(appointment, workstation_id))
+                'next_action': __next_action(appointment, service_code, __is_pre_labeled(appointment, workstation_id))
             }
 
     except Exception as err:
@@ -285,9 +297,9 @@ def __next_action(appointment, service_code, pre_labeled=False):
         else:
             switcher = {
                 c.APPOINTMENT_STATUS_SCHEDULED: c.APPOINTMENT_ACTION_CONFIRM_INSURANCE_STATUS,
-                c.APPOINTMENT_STATUS_INSURANCE_PENDING: c.APPOINTMENT_ACTION_VERIFY_INSURANCE,
+                c.APPOINTMENT_STATUS_INSURANCE_PENDING: c.APPOINTMENT_ACTION_COLLECT_INSURANCE,
                 c.APPOINTMENT_STATUS_NO_INSURANCE: c.APPOINTMENT_ACTION_CHECK_IN,
-                c.APPOINTMENT_ACTION_VERIFY_INSURANCE: c.APPOINTMENT_ACTION_CHECK_IN,
+                c.APPOINTMENT_STATUS_INSURANCE_COLLECTED: c.APPOINTMENT_ACTION_CHECK_IN,
                 c.APPOINTMENT_STATUS_CHECKED_IN: c.APPOINTMENT_ACTION_START_VAX,
                 c.APPOINTMENT_ACTION_START_VAX: c.APPOINTMENT_ACTION_NOTES_VAX,
                 # c.APPOINTMENT_ACTION_START_VAX: c.APPOINTMENT_ACTION_SCAN_VIAL_VAX,
