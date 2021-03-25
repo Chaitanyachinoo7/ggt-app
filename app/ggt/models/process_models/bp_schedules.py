@@ -361,10 +361,11 @@ def bp_get_ggv_schedule_times_available(location_id, date):
             start_time = datetime.now()
             while True:
                 res = read_from_dynamo(get_config_val('aws.dynamo_table_name'), msg_id)
-                if "Item" in res.keys():
+                if res and "Item" in res.keys():
                     temp = res['Item']
-                    for r in temp['available_times']:
-                        r['value'] = int(r['value'])
+                    if temp['available_times']:
+                        for r in temp['available_times']:
+                            r['value'] = int(r['value'])
                     return temp
                 else:
                     if (datetime.now() - start_time).total_seconds() > 20:
@@ -408,7 +409,7 @@ def bp_get_second_shot_available_times(location_id, date):
                         "available_dates": temp['available_times']
                     }
                 else:
-                    if (datetime.now() - start_time).total_seconds() > 100:
+                    if (datetime.now() - start_time).total_seconds() > 20:
                         return None
     # rows = get_second_shot_available_times(location_id, date)
     # dates = {}
