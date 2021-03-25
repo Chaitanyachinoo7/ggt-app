@@ -303,20 +303,22 @@ def update_billing_status(appointment_id):
 
 def create_insurance_record(insurance_record):
     try:
-        sql = """INSERT INTO `insurance_info`
+        sql = """INSERT INTO `patient_insurance_details`
             (
             `patient_id`,
-            `insurance_carrier`,
-            `group_number`,
-            `member_number`,
-            `validated`)
+            `member_id`,
+            `group_no`,
+            `relationship`,
+            `payer`,
+            `level`)
                 VALUES
-                    (%s, %s, %s, %s, %s);"""
+                    (%s, %s, %s, %s, %s, %s);"""
         vals = (insurance_record.patient_id,
-                insurance_record.insurance_carrier,
-                insurance_record.group_number,
-                insurance_record.member_number,
-                insurance_record.validated)
+                insurance_record.member_id,
+                insurance_record.group_no,
+                insurance_record.relationship,
+                insurance_record.payer,
+                insurance_record.level)
         res = exec_insert(sql, vals)
         return res
 
@@ -329,18 +331,20 @@ def create_insurance_record(insurance_record):
 
 def update_insurance_record(insurance_record):
     try:
-        sql = """UPDATE `insurance_info` 
+        sql = """UPDATE `patient_insurance_details` 
                     SET
-                    `insurance_carrier` = %s,
-                    `group_number` = %s,
-                    `member_number` = %s,
-                    `validated` = %s
+                    `member_id` = %s,
+                    `group_no` = %s,
+                    `relationship` = %s,
+                    `payer` = %s,
+                    `level` = %s
                      WHERE `id` = %s"""
         vals = (
-            insurance_record.insurance_carrier,
-            insurance_record.group_number,
-            insurance_record.member_number,
-            insurance_record.validated,
+            insurance_record.member_id,
+            insurance_record.group_no,
+            insurance_record.relationship,
+            insurance_record.payer,
+            insurance_record.level,
             insurance_record.id)
         res = exec_update(sql, vals)
         return res
@@ -371,7 +375,7 @@ def validate_insurance_record(insurance_record):
 
 def delete_insurance_record(insurance_record):
     try:
-        sql = """DELETE FROM `insurance_info` 
+        sql = """DELETE FROM `patient_insurance_details` 
                  WHERE `id` = %s"""
         vals = (insurance_record.id,)
         res = exec_update(sql, vals)
