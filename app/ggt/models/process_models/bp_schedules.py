@@ -410,7 +410,7 @@ def bp_get_second_shot_available_times(location_id, date):
                         "available_dates": temp['available_times']
                     }
                 else:
-                    if (datetime.now() - start_time).total_seconds() > 20:
+                    if (datetime.now() - start_time).total_seconds() > 2:
                         return None
     # rows = get_second_shot_available_times(location_id, date)
     # dates = {}
