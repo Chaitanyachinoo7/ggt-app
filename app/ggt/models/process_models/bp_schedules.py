@@ -399,6 +399,7 @@ def bp_get_second_shot_available_times(location_id, date):
         msg_id = push_sqs_message(get_sqs_queue_url(location_id), r)
         if msg_id:
             start_time = datetime.now()
+            x = 0
             while True:
                 res = read_from_dynamo(get_config_val('aws.dynamo_table_name'), msg_id)
                 if res and "Item" in res.keys():
@@ -412,6 +413,7 @@ def bp_get_second_shot_available_times(location_id, date):
                     }
                 else:
                     if (datetime.now() - start_time).total_seconds() > 1:
+                        print("xxxxx - {}".format(x))
                         return None
     # rows = get_second_shot_available_times(location_id, date)
     # dates = {}
