@@ -349,6 +349,7 @@ def bp_get_second_slot_reschedule_dates(location_id, ap1_date):
 def bp_get_ggv_schedule_times_available(location_id, date):
     available_times = []
     try:
+        print('***************************START - 1  {}******************************'.format(datetime.now()))
         request = {
             "date": date,
             "id": location_id,
@@ -368,7 +369,7 @@ def bp_get_ggv_schedule_times_available(location_id, date):
                             r['value'] = int(r['value'])
                     return temp
                 else:
-                    if (datetime.now() - start_time).total_seconds() > 20:
+                    if (datetime.now() - start_time).total_seconds() > 1:
                         return None
 
     except Exception as err:
@@ -379,7 +380,7 @@ def bp_get_ggv_schedule_times_available(location_id, date):
             function=whoami(),
             error=err
         )
-
+    print('***************************EXIT - 1  {}******************************'.format(datetime.now()))
     return {
         "available_times": available_times
     }
@@ -393,7 +394,7 @@ def bp_get_second_shot_available_times(location_id, date):
             "id": location_id,
             "r_type": 2
         }
-
+        print('***************************START - 2  {}******************************'.format(datetime.now()))
         r = json.dumps(request)
         msg_id = push_sqs_message(get_sqs_queue_url(location_id), r)
         if msg_id:
@@ -410,7 +411,7 @@ def bp_get_second_shot_available_times(location_id, date):
                         "available_dates": temp['available_times']
                     }
                 else:
-                    if (datetime.now() - start_time).total_seconds() > 2:
+                    if (datetime.now() - start_time).total_seconds() > 1:
                         return None
     # rows = get_second_shot_available_times(location_id, date)
     # dates = {}
@@ -453,6 +454,7 @@ def bp_get_second_shot_available_times(location_id, date):
             error=err
         )
 
+    print('***************************Exit - 2  {}******************************'.format(datetime.now()))
     return {
         "available_date_times": res
     }
