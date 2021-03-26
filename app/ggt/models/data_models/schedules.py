@@ -1,3 +1,4 @@
+import random
 from datetime import datetime
 from typing import List, Set, Dict, Tuple, Optional
 from contextlib import suppress
@@ -678,7 +679,7 @@ def get_second_slot_reschedule_dates(location_id, ap1_date):
 
 
 def get_first_available_times(location_id, date):
-    sql = """SELECT DISTINCT 
+    sql = """SELECT 
                 time(start_dt) as start_time, 
                 id, 
                 start_dt, 
@@ -694,13 +695,14 @@ def get_first_available_times(location_id, date):
                 AND lock_time < NOW()
             ORDER BY id;""".format(location_id, date)
 
-    return replica_read_rows(sql)
+    res = replica_read_rows(sql)
+    return select_random_count(res, 5)
 
 
 def get_second_shot_available_times(location_id, date):
     try:
         sql = """
-            SELECT DISTINCT 
+            SELECT 
                 time(start_dt) as start_time, 
                 id, 
                 start_dt, 
@@ -715,7 +717,8 @@ def get_second_shot_available_times(location_id, date):
                 AND start_dt >= CONVERT_TZ(NOW(), '+00:00', '-06:00')
             ORDER BY id
         """.format(location_id, date)
-        return replica_read_rows(sql)
+        res =  replica_read_rows(sql)
+        return select_random_count(res, 5)
 
     except Exception as err:
         log_generic(
@@ -725,6 +728,16 @@ def get_second_shot_available_times(location_id, date):
         )
         return None
 
+
+def select_random_count(items, count):
+    # If empty list return it
+    if not items:
+        return items
+    # Shuffle items
+    random.shuffle(items)
+    shuffled = items[:count]
+    shuffled.sort(key= lambda x: x['start_dt'])
+    return shuffled
 
 def get_slot_information(slot_id, slot_type="test"):
     table = "schedules"
