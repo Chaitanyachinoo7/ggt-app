@@ -420,7 +420,7 @@ def bp_get_ggv_schedule_times_available(location_id, date):
         )
     print('***************************EXIT - 1 - end  {}******************************'.format(datetime.now()))
     return {
-        "available_times": res
+        "available_times": res[0]['available_times']
     }
 
 
@@ -500,9 +500,9 @@ def bp_get_second_shot_available_times(location_id, date):
             function=whoami(),
             error=err
         )
-    print('***************************Exit - 2 - End {}******************************'.format(datetime.now()))
+
     return {
-        "available_date_times": res
+        "available_times": res[0]['available_times']
     }
 
 
