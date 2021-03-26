@@ -18,12 +18,13 @@ from ggt.lib.db import (
     replica_read_row,
     replica_read_rows
 )
+from ggt.models.data_models.billers import create_insurance_record
 
 from ggt.models.data_models.data_types import (
     GgtAppointment,
     GgtBooking,
     GgtLocation,
-    GgtPatient, TestResultEnum
+    GgtPatient, TestResultEnum, YesNoEnum, InsuranceRecord
 )
 
 from ggt.models.data_models.clinical_test_sample import (
@@ -442,10 +443,26 @@ def update_appointment_with_start_vax(appointment: GgtAppointment, user, operato
                                        operator_location_id=operator_location_id)
 
 
+def update_appointment_with_confirm_insurance_status(appointment: GgtAppointment, user, insurance_status,
+                                                     operator_location_id=None):
+    status = c.APPOINTMENT_STATUS_INSURANCE_PENDING
+    if insurance_status == YesNoEnum.no:
+        status = c.APPOINTMENT_STATUS_NO_INSURANCE
+    return __update_appointment_status(appointment, status, user=user,
+                                       operator_location_id=operator_location_id)
+
+
 def update_appointment_with_antigen_results(appointment: GgtAppointment, test_result,
                                             operator_location_id=None):
     return __update_appointment_status_antigen_result(appointment, c.APPOINTMENT_STATUS_TEST_FINALIZED, test_result,
                                                       operator_location_id=operator_location_id)
+
+
+def update_appointment_with_collect_insurance(appointment: GgtAppointment,
+                                              operator_location_id=None):
+
+    return __update_appointment_status(appointment, c.APPOINTMENT_STATUS_INSURANCE_COLLECTED,
+                                       operator_location_id=operator_location_id)
 
 
 def update_appointment_with_verify_insurance(appointment: GgtAppointment, user, operator_location_id=None):
@@ -540,6 +557,9 @@ def __get_mapped_dt_field(status: str) -> str:
     switcher = {
         c.APPOINTMENT_STATUS_SCHEDULED: 'update_dt',
         c.APPOINTMENT_STATUS_CHECKED_IN: 'check_in_dt',
+        c.APPOINTMENT_STATUS_INSURANCE_COLLECTED: 'check_in_dt',
+        c.APPOINTMENT_STATUS_INSURANCE_PENDING: 'check_in_dt',
+        c.APPOINTMENT_STATUS_NO_INSURANCE: 'check_in_dt',
         c.APPOINTMENT_STATUS_TEST_IN_PROGRESS: 'test_start_dt',
         c.APPOINTMENT_STATUS_VIAL_SCANNED: 'test_start_dt',
         c.APPOINTMENT_ACTION_VERIFY_INSURANCE: 'test_start_dt',

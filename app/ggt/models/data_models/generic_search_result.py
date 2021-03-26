@@ -323,10 +323,11 @@ def find_patients(org_id, first_name='', middle_name='', last_name='', dob='', p
             u.email_verified AS provider_email_verified,
             u.picture AS provider_image_url,
             i.id AS insurance_id,
-            i.insurance_carrier AS insurance_carrier,
-            i.group_number AS insurance_group_number,
-            i.member_number AS insurance_member_number,
-            i.validated AS insurance_validated,
+            i.relationship AS insurance_relationship,
+            i.group_no AS insurance_group_number,
+            i.member_id AS insurance_member_id,
+            i.payer AS insurance_payer,
+            i.level AS insurance_level,
             sc.service_code AS service_code
         FROM
             patients p
@@ -345,7 +346,7 @@ def find_patients(org_id, first_name='', middle_name='', last_name='', dob='', p
                 LEFT JOIN
             ggt_users u ON u.external_id = c.provider_external_id
                 LEFT JOIN 
-            insurance_info i ON p.id = i.patient_id
+            patient_insurance_details i ON p.id = i.patient_id
                 LEFT JOIN
             appointment_services aps ON a.id = aps.appointment_id
                 LEFT JOIN
