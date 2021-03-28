@@ -13,7 +13,8 @@ from ggt.models.data_models.data_types import (
     PermissionsEnum as p,
     InsuranceEligibilityRequest,
     InsurancePayersListRequest, SecondAvailableDate, FinalizeGGVRegistrationRequest, FinalizeGGVPreRegistrationRequest,
-    PatientAppointmentLookup, VerificationToken, UpdateFirstAppointment, SecondSlotReschedule, UpdateSecondAppointment
+    PatientAppointmentLookup, VerificationToken, UpdateFirstAppointment, SecondSlotReschedule, UpdateSecondAppointment,
+    LookupGGVCertificateRequest
 )
 
 from ggt.models.workflow_models.patient_portal_flow import (
@@ -37,7 +38,7 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
     insurance_search_payer, get_ggv_screen_flow_seq, get_second_shot_available_times, ggv_finalize_registration,
     get_ggv_schedule_times_available, ggv_finalize_pre_registration, cache_test, verify_verification_token,
     reschedule_first_appointment, get_second_slot_reschedule_dates, reschedule_second_appointment,
-    get_ggv_schedule_dates_available
+    get_ggv_schedule_dates_available, lookup_certificate
 )
 
 # TODO: [GGT-193] Move this to a dedicated API
@@ -178,6 +179,16 @@ async def api_lookup_appointment(req: LookupAppointmentRequest):
     return lookup_appointment(
         req.appointment_id,
         req.dob
+    )
+
+
+@router.post("/ggv/lookup_certificate", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_lookup_certificate(req: LookupGGVCertificateRequest):
+    return lookup_certificate(
+        req.phone_number,
+        req.dob,
+        req.first_name,
+        req.last_name
     )
 
 

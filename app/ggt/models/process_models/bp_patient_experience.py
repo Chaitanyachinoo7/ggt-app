@@ -47,7 +47,7 @@ from ggt.models.data_models.appointments import (
     get_appointment_count_by_phone_dob,
     create_appointment,
     update_appointment_with_confirmed_scheduled,
-    update_appointment_with_receipt_token, release_ggv_slot, lock_ggv_slot, re_schedule_appointment
+    update_appointment_with_receipt_token, release_ggv_slot, lock_ggv_slot, re_schedule_appointment, lookup_certificate
 )
 
 from ggt.models.data_models.locations import (
@@ -548,6 +548,22 @@ def bp_has_appointments(phone_number: str, dob: str) -> bool:
         )
 
     return False
+
+
+def bp_lookup_certificate(phone_number, dob, first_name, last_name):
+    try:
+        return lookup_certificate(phone_number, dob, first_name, last_name)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            phone_number=phone_number,
+            dob=dob,
+            function=whoami(),
+            error=err
+        )
+
+    return None
 
 
 def bp_reschedule_first_appointment(otp, appointment_id_1, appointment_id_2, appointment_1_dt_id, appointment_2_dt_id,

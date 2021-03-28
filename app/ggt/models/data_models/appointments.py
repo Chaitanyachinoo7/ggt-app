@@ -383,6 +383,32 @@ def re_schedule_appointment(appointment_id, slot):
     return None
 
 
+def lookup_certificate(phone_number, dob, first_name, last_name):
+    try:
+        where_statement = "p.phone_number LIKE '%{}%'".format(phone_number)
+        where_statement = "{} AND p.dob LIKE '%{}%'".format(where_statement, dob)
+        where_statement = "{} AND p.first_name LIKE '%{}%'".format(where_statement, first_name)
+        where_statement = "{} AND p.last_name LIKE '%{}%'".format(where_statement, last_name)
+        sql = """SELECT 
+                    gc.*
+                FROM
+                    patients p
+                        JOIN
+                    ggv_certificates gc ON p.id = gc.patient_id
+                    WHERE {}""".format(where_statement)
+
+        rows = replica_read_rows(sql)
+        return __format_vax_certificate(rows)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+    return None
+
+
 def get_appointment_count_by_phone_dob(phone_number, dob):
     try:
         if dob:
@@ -551,6 +577,41 @@ def create_consultation_note(user, appointment_id, appointment_notes):
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
+
+def __format_vax_certificate(rows):
+    try:
+        if len(rows) > 0:
+            certificates = {
+                'patient_id': rows[0]['patient_id'],
+                'certificates': []
+            }
+
+            for row in rows:
+                service = {
+                    "appointment_id": row['appointment_id'],
+                    "check_in_dt": row['check_in_dt'],
+                    "patient_questionnaire_id": row['patient_questionnaire_id'],
+                    "service_code": row['service_code'],
+                    "vial_id": row['vial_id'],
+                    "image_id": row['image_id'],
+                    "vax_start_dt": row['vax_start_dt'],
+                    "vax_notes_dt": row['vax_notes_dt'],
+                    "vax_end_dt": row['vax_end_dt'],
+                    "injection_site": row['injection_site'],
+                    "no_adverse_reactions": row['no_adverse_reactions']
+                }
+                certificates['certificates'].append(service)
+            return certificates
+        else:
+            return {}
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+
 
 
 def __get_mapped_dt_field(status: str) -> str:

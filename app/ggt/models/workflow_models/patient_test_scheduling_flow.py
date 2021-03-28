@@ -20,7 +20,7 @@ from ggt.models.process_models.bp_patient_experience import (
     bp_get_wellpay_insurance_eligibility,
     bp_search_insurance_payer_list, bp_get_ggv_screen_flow_seq, bp_ggv_finalize_booking, bp_ggv_finalize_pre_booking,
     bp_create_pre_registration, bp_verify_verification_token, bp_reschedule_first_appointment,
-    bp_reschedule_second_appointment
+    bp_reschedule_second_appointment, bp_lookup_certificate
 )
 
 from ggt.models.process_models.bp_schedules import (
@@ -211,6 +211,18 @@ def lookup_appointment(appointment_id, dob):
         bp_get_appointment_info(
             appointment_id,
             dob
+        )
+    )
+
+
+@cached(cache=TTLCache(maxsize=1024, ttl=60))
+def lookup_certificate(phone_number, dob, first_name, last_name):
+    return y_response(
+        bp_lookup_certificate(
+            phone_number,
+            dob,
+            first_name,
+            last_name
         )
     )
 
