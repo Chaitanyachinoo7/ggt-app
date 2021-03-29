@@ -583,6 +583,7 @@ def __format_vax_certificate(rows):
         if len(rows) > 0:
             certificates = {
                 'patient_id': rows[0]['patient_id'],
+                'org_id': None, #TODO Get real value here.
                 'certificates': []
             }
 
