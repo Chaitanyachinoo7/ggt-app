@@ -1281,7 +1281,7 @@ def __map_row_to_dtl(row):
         dtl.location.image_thumbnail = row['image_thumbnail']
         dtl.location.billing_type = row['billing_type']
         dtl.location.collect_insurance_info = True if row['collect_insurance_info'] else False
-        dtl.services_available = row['services'] if row['services'] else None
+        dtl.services_available = row['services'] if 'services' in row.keys() else None
         dtl.location.allow_insurance_skip = True if row['allow_insurance_skip'] else False
         dtl.location.collect_upfront_payment = True if row['collect_upfront_payment'] else False
 
