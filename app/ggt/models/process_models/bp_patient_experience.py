@@ -2,10 +2,13 @@ import requests
 from fastapi import HTTPException
 from requests.auth import HTTPBasicAuth
 from cachetools import cached, LRUCache, TTLCache
+from starlette.responses import StreamingResponse
+
 import ggt.lib.constants as c
 import datetime
 from typing import List
 
+from ggt.lib.adapters.s3_adapter import read_file
 from ggt.lib.utils import (
     get_config_val as cfg,
     generate_otp,
@@ -47,7 +50,8 @@ from ggt.models.data_models.appointments import (
     get_appointment_count_by_phone_dob,
     create_appointment,
     update_appointment_with_confirmed_scheduled,
-    update_appointment_with_receipt_token, release_ggv_slot, lock_ggv_slot, re_schedule_appointment
+    update_appointment_with_receipt_token, release_ggv_slot, lock_ggv_slot, re_schedule_appointment, lookup_certificate,
+    is_open_patient
 )
 
 from ggt.models.data_models.locations import (
@@ -550,6 +554,22 @@ def bp_has_appointments(phone_number: str, dob: str) -> bool:
     return False
 
 
+def bp_lookup_certificate(phone_number, dob, first_name, last_name, token):
+    try:
+        return lookup_certificate(phone_number, dob, first_name, last_name, token)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            phone_number=phone_number,
+            dob=dob,
+            function=whoami(),
+            error=err
+        )
+
+    return None
+
+
 def bp_reschedule_first_appointment(otp, appointment_id_1, appointment_id_2, appointment_1_dt_id, appointment_2_dt_id,
                                     phone_number):
     try:
@@ -643,6 +663,31 @@ def bp_verify_verification_token(token):
         return False
 
 
+def bp_get_vax_certificate(patient_id, cert_id):
+    if __is_open(patient_id):
+
+        key = "{}/{}".format(patient_id, cert_id)
+        bucket = cfg('aws.vax_certificate_bucket')
+
+        blob = read_file(bucket, key)
+
+        def get_image(b):
+            yield b
+
+        if blob:
+            return StreamingResponse(get_image(blob),
+                                     media_type="image/jpg",
+                                     headers={
+                                         'Content-Disposition': 'inline; filename="vaccine_certificate.png"'
+                                     }
+                                     )
+
+        else:
+            raise HTTPException(status_code=404, detail='Image not found')
+    else:
+        return None
+
+
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
@@ -650,6 +695,9 @@ def bp_verify_verification_token(token):
 # TODO: Prevent from looking up slots that are already assigned to an appointment
 # TODO, doesn't check if it's already booked
 # TEMP, not using fixed slots since operational conditions allow oversubscribing
+
+def __is_open(patient_id):
+    return is_open_patient(patient_id)
 
 
 def __is_first_shot_taken(appointment_id):
@@ -770,9 +818,30 @@ def __single_shot_vaccinations(booking_req: GgtBooking):
         appointment = create_appointment(booking_req)
 
         if appointment:
+            log_generic(
+                type=c.INFO,
+                message="Updating slot information",
+                function=whoami(),
+                appointment_id=appointment.id,
+                slot_id=booking_req.appointmentOneTime
+            )
             update = update_slot_information(booking_req.appointmentOneTime, appointment.id, slot_type='vax')
             if not update:
+                log_generic(
+                    type=c.INFO,
+                    message="Updating slot information FAILED",
+                    function=whoami(),
+                    appointment_id=appointment.id,
+                    slot_id=booking_req.appointmentOneTime
+                )
                 __assign_to_next_available_slot(booking_req.timeslot, appointment.id, slot_type='vax')
+            log_generic(
+                type=c.INFO,
+                message="Updated slot information",
+                function=whoami(),
+                appointment_id=appointment.id,
+                slot_id=booking_req.appointmentOneTime
+            )
 
         else:
             raise ValueError('error_creating_appointment')

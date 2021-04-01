@@ -62,7 +62,7 @@ aws:
   dynamo_table_name: available_slots
   sqs_region: us-east-2
   queue_count: 2
-  sqs_url:  https://sqs.us-east-2.amazonaws.com/135292740376/available_time_requests
+  sqs_url:  https://sqs.us-east-2.amazonaws.com/135292740376/available_slot_queue_dev
   vax_sms_que: https://sqs.us-east-2.amazonaws.com/135292740376/vax_scheduled_sms_notification_queue
   region: us-east-2
   access_key_id: AKIAR7AATMMMGKHVWYP6
@@ -71,6 +71,7 @@ aws:
   lab_reports_bucket_name: ggt-labreports
   default_link_expiration_time_limit: 300
   ggt_ops_images: ggt-ops-images-dev
+  vax_certificate_bucket: ggt-vax-certificates-dev
   
 gcp:
   project_id: ggt-pfe-dev

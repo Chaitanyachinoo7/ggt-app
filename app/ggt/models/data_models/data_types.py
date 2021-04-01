@@ -703,6 +703,14 @@ class LookupAppointmentRequest(BaseModel):
     dob: str = None
 
 
+class LookupGGVCertificateRequest(BaseModel):
+    phone_number: str
+    dob: str
+    first_name: str
+    last_name: str
+    token: str
+
+
 class NotificationEnum(str, Enum):
     relocate = 'relocate'
     reschedule = 'reschedule'

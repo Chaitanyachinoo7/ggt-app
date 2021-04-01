@@ -29,7 +29,8 @@ from ggt.models.data_models.schedules import (
     trim_schedule_generation_rules_start_dt,
     get_slots_matching_dt_list, ggv_get_schedule_locations_available_near_lat_lng, get_second_shot_available_times,
     delete_ggv_schedules_metrics_cache, delete_schedules_metrics_cache, get_second_slot_reschedule_dates,
-    get_ggv_available_dates, get_group_by_group_code, get_available_ggv_locations_near_lat_lng
+    get_ggv_available_dates, get_group_by_group_code, get_available_ggv_locations_near_lat_lng,
+    get_first_available_times
 )
 
 from ggt.models.data_models.locations import (
@@ -348,27 +349,66 @@ def bp_get_second_slot_reschedule_dates(location_id, ap1_date):
 
 def bp_get_ggv_schedule_times_available(location_id, date):
     available_times = []
+    dates = {}
+    res = []
     try:
-        request = {
-            "date": date,
-            "id": location_id,
-            "r_type": 1
-        }
+        rows = get_first_available_times(location_id, date)
+        for row in rows:
+            d = datetime.strptime(str(row['start_time']), "%H:%M:%S")
+            day = str(datetime.strptime(str(row['start_dt'])[0:10], "%Y-%m-%d"))[0:10]
 
-        r = json.dumps(request)
-        msg_id = push_sqs_message(get_sqs_queue_url(location_id), r)
-        if msg_id:
-            start_time = datetime.now()
-            while True:
-                res = read_from_dynamo(get_config_val('aws.dynamo_table_name'), msg_id)
-                if "Item" in res.keys():
-                    temp = res['Item']
-                    for r in temp['available_times']:
-                        r['value'] = int(r['value'])
-                    return temp
-                else:
-                    if (datetime.now() - start_time).total_seconds() > 100:
-                        return None
+            if day in dates.keys():
+                dates[day]['available_times'].append(
+                    {
+                        "label": d.strftime("%I:%M %p"),
+                        "value": row['id']
+                    }
+                )
+            else:
+                dates[day] = {
+                    "available_times": [
+                        {
+                            "label": d.strftime("%I:%M %p"),
+                            "value": row['id']
+                        }
+                    ]
+                }
+
+        for key in dates.keys():
+            res.append({
+                "date": key,
+                "available_times": dates[key]['available_times']
+            })
+
+        # print('***************************START - 1  {}******************************'.format(datetime.now()))
+        # request = {
+        #     "date": date,
+        #     "id": location_id,
+        #     "r_type": 1
+        # }
+        #
+        # r = json.dumps(request)
+        # msg_id = push_sqs_message(get_sqs_queue_url(location_id), r)
+        # if msg_id:
+        #     start_time = datetime.now()
+        #     while True:
+        #         x = x + 1
+        #         res = read_from_dynamo(get_config_val('aws.dynamo_table_name'), msg_id)
+        #         if res and "Item" in res.keys():
+        #             temp = res['Item']
+        #             if temp['available_times']:
+        #                 for r in temp['available_times']:
+        #                     r['value'] = int(r['value'])
+        #             print("xxxxx - {}".format(x))
+        #             print(
+        #                 '***************************Exit - 1  {}******************************'.format(datetime.now()))
+        #             return temp
+        #         else:
+        #             if (datetime.now() - start_time).total_seconds() > 10:
+        #                 print("xxxxx - {}".format(x))
+        #                 print('***************************Exit Failed - 1  {}******************************'.format(
+        #                     datetime.now()))
+        #                 return None
 
     except Exception as err:
         log_generic(
@@ -378,68 +418,78 @@ def bp_get_ggv_schedule_times_available(location_id, date):
             function=whoami(),
             error=err
         )
-
+    print('***************************EXIT - 1 - end  {}******************************'.format(datetime.now()))
     return {
-        "available_times": available_times
+        "available_times": res[0]['available_times']
     }
 
 
 # @cached(cache=TTLCache(maxsize=1024, ttl=60))
 def bp_get_second_shot_available_times(location_id, date):
-    try:
-        request = {
-            "date": date,
-            "id": location_id,
-            "r_type": 2
-        }
-
-        r = json.dumps(request)
-        msg_id = push_sqs_message(get_sqs_queue_url(location_id), r)
-        if msg_id:
-            start_time = datetime.now()
-            while True:
-                res = read_from_dynamo(get_config_val('aws.dynamo_table_name'), msg_id)
-                if "Item" in res.keys():
-                    temp = res['Item']
-                    for x in temp['available_times']:
-                        for y in x['available_times']:
-                            y['value'] = int(y['value'])
-                    return {
-                        "available_dates": temp['available_times']
-                    }
-                else:
-                    if (datetime.now() - start_time).total_seconds() > 100:
-                        return None
-    # rows = get_second_shot_available_times(location_id, date)
-    # dates = {}
-    # res = []
+    # x = 0
     # try:
-    #     for row in rows:
-    #         d = datetime.strptime(str(row['start_time']), "%H:%M:%S")
-    #         day = str(datetime.strptime(str(row['start_dt'])[0:10], "%Y-%m-%d"))[0:10]
-    #
-    #         if day in dates.keys():
-    #             dates[day]['available_times'].append(
-    #                 {
-    #                     "label": d.strftime("%I:%M %p"),
-    #                     "value": row['id']
+    #     request = {
+    #         "date": date,
+    #         "id": location_id,
+    #         "r_type": 2
+    #     }
+    #     print('***************************START - 2  {}******************************'.format(datetime.now()))
+    #     r = json.dumps(request)
+    #     msg_id = push_sqs_message(get_sqs_queue_url(location_id), r)
+    #     if msg_id:
+    #         start_time = datetime.now()
+    #         while True:
+    #             x = x + 1
+    #             res = read_from_dynamo(get_config_val('aws.dynamo_table_name'), msg_id)
+    #             if res and "Item" in res.keys():
+    #                 temp = res['Item']
+    #                 if temp['available_times']:
+    #                     for x in temp['available_times']:
+    #                         for y in x['available_times']:
+    #                             y['value'] = int(y['value'])
+    #                 print("xxxxx - {}".format(x))
+    #                 print(
+    #                     '***************************Exit - 2  {}******************************'.format(datetime.now()))
+    #                 return {
+    #                     "available_dates": temp['available_times']
     #                 }
-    #             )
-    #         else:
-    #             dates[day] = {
-    #                 "available_times": [
-    #                     {
-    #                         "label": d.strftime("%I:%M %p"),
-    #                         "value": row['id']
-    #                     }
-    #                 ]
-    #             }
-    #
-    #     for key in dates.keys():
-    #         res.append({
-    #             "date": key,
-    #             "available_times": dates[key]['available_times']
-    #         })
+    #             else:
+    #                 if (datetime.now() - start_time).total_seconds() > 10:
+    #                     print("xxxxx - {}".format(x))
+    #                     print('***************************Exit Failed - 2  {}******************************'.format(
+    #                         datetime.now()))
+    #                     return None
+
+    rows = get_second_shot_available_times(location_id, date)
+    dates = {}
+    res = []
+    try:
+        for row in rows:
+            d = datetime.strptime(str(row['start_time']), "%H:%M:%S")
+            day = str(datetime.strptime(str(row['start_dt'])[0:10], "%Y-%m-%d"))[0:10]
+
+            if day in dates.keys():
+                dates[day]['available_times'].append(
+                    {
+                        "label": d.strftime("%I:%M %p"),
+                        "value": row['id']
+                    }
+                )
+            else:
+                dates[day] = {
+                    "available_times": [
+                        {
+                            "label": d.strftime("%I:%M %p"),
+                            "value": row['id']
+                        }
+                    ]
+                }
+
+        for key in dates.keys():
+            res.append({
+                "date": key,
+                "available_times": dates[key]['available_times']
+            })
 
     except Exception as err:
         log_generic(

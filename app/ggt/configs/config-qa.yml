@@ -72,6 +72,7 @@ aws:
   lab_reports_bucket_name: ggt-labreports
   default_link_expiration_time_limit: 300
   ggt_ops_images: ggt-ops-images
+  vax_certificate_bucket: ggt-vax-certificates
 
 gcp:
   project_id: ggt-pfe-prod

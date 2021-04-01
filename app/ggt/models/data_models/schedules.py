@@ -677,6 +677,26 @@ def get_second_slot_reschedule_dates(location_id, ap1_date):
         return None
 
 
+def get_first_available_times(location_id, date):
+    sql = """SELECT DISTINCT 
+                time(start_dt) as start_time, 
+                id, 
+                start_dt, 
+                end_dt, 
+                status
+            FROM 
+                ggv_schedules 
+            WHERE 
+                location_id = {} 
+                AND status = 'available' 
+                AND date(start_dt) = '{}'
+                AND start_dt >= CONVERT_TZ(NOW(), '+00:00', '-06:00')
+                AND lock_time < NOW()
+            ORDER BY id;""".format(location_id, date)
+
+    return replica_read_rows(sql)
+
+
 def get_second_shot_available_times(location_id, date):
     try:
         sql = """
@@ -687,7 +707,7 @@ def get_second_shot_available_times(location_id, date):
                 end_dt, 
                 status 
             FROM 
-                schedules 
+                ggv_schedules 
             WHERE 
                 location_id = {} 
                 AND status = 'available' 

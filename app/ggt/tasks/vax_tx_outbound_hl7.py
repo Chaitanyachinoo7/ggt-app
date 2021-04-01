@@ -62,35 +62,67 @@ def __get_pid(order):
     return PID(
         pid_1_set_id=1,
         pid_2_patient_id=order['patient_id'],  # External Code
-        pid_3_patient_identifier_list='^^^^PI',
+        pid_3_patient_identifier_list='{}^^^{}^{}'.format(order['patient_id'],'GOGETVAX','PI'),
         pid_5_patient_name='{}^{}^^^'.format(order['last_name'], order['first_name']),  # Last Name^First Name
         pid_7_date_time_of_birth=order['dob'].replace('-', ''),  # Date of Birth
         pid_8_administrative_sex=order['gender'],  # Gender
         pid_10_race=order['race'],  # Race
-        pid_11_patient_address='{}^{}^{}^{}^{}^^^^'.format(order['addr1'], order['addr2'], order['city'], order['st'], order['zip']),  # Address^Address2^City^State^Zip Code
+        pid_11_patient_address='{}^{}^{}^{}^{}^^^^{}'.format(order['addr1'], order['addr2'], order['city'], order['st'], order['zip'], '48397'),  # Address^Address2^City^State^Zip Code county fips = 48397
         pid_13_phone_number_home=order['phone_number'].replace('+1', ''),  # Phone
         pid_18_patient_account_number='{}^^^P'.format(order['patient_id']),
         pid_22_ethnic_group=order['ethnicity']  # Ethnicity
     )
 
-
 def __get_rxa(order):
+    if 'PFIZER' in order['service_code']:
+        vaccine_type = 'PFR'
+    elif 'MODERNA' in order['service_code']:
+        vaccine_type = 'MOD'
+    elif 'JNJ' in order['service_code']:
+        vaccine_type = 'JSN'
+    elif 'ASTRA' in order['service_code']:
+        vaccine_type = 'ASZ'
+    else:
+        return None
+
+    if vaccine_type == 'MOD':
+        rxa_5_administered_code = '207^Moderna COVID-19 Vaccine^CVX'
+        rxa_17_substance_manufacturer_name = 'MOD^Moderna US, Inc.^MVX'
+        rxa_6_administered_amount = '0.5'
+
+    elif vaccine_type == 'PFR':
+        rxa_5_administered_code = '208^Pfizer COVID-19 Vaccine^CVX'
+        rxa_17_substance_manufacturer_name = 'PFR^Pfizer-BioNTech^MVX'
+        rxa_6_administered_amount = '0.3'
+
+    elif vaccine_type == 'ASZ':
+        rxa_5_administered_code = '210^AstraZeneca COVID-19 Vaccine^CVX'
+        rxa_17_substance_manufacturer_name = 'ASZ^AstraZeneca Pharmaceuticals LP^MVX'
+        rxa_6_administered_amount = '0.5'
+
+    elif vaccine_type == 'JSN':
+        rxa_5_administered_code = '212^Janssen COVID-19 Vaccine^CVX'
+        rxa_17_substance_manufacturer_name = 'JSN^Janssen Products, LP^MVX'
+        rxa_6_administered_amount = '0.5'
+
+
     return RXA(
         rxa_1_give_sub_id_counter = '0',
         rxa_2_administration_sub_id_counter = '1',
         rxa_3_date_time_start_of_administration = '{}+0000'.format(format_date(order['vax_end_dt'])),
         rxa_4_date_time_end_of_administration = '{}+0000'.format(format_date(order['vax_end_dt'])),
-        rxa_5_administered_code = '207^COVID-19^CVX',
-        rxa_6_administered_amount = '.5',
-        rxa_7_administered_units = 'mL^MilliLiters^UCUM',
-        rxa_9_administration_notes = '00^NEW IMMUNIZATIONRECORD^NIP001',
+        rxa_5_administered_code = rxa_5_administered_code,
+        rxa_6_administered_amount = rxa_6_administered_amount,
+        rxa_7_administered_units = 'mL^MilliLiter^UCUM',
+        rxa_9_administration_notes = '00^New Immunization^NIP001',
         rxa_11_administered_at_location = '1117823000',
         rxa_15_substance_lot_number = '014M20A', #vaccine LOT number
         rxa_16_substance_expiration_date = '20691231',
-        rxa_17_substance_manufacturer_name = 'MOD^MODERNA^MVX',
+        rxa_17_substance_manufacturer_name = rxa_17_substance_manufacturer_name,
         rxa_20_completion_status = 'CP',
         rxa_21_action_code_rxa = 'A'
     )
+
 
 def __get_rxr(order):
     return RXR(
@@ -112,7 +144,7 @@ def __get_orc(order):
         # Date of Collection
         orc_9_datetime_of_transaction='{}+0000'.format(format_date(order['vax_end_dt'])),
         orc_10_entered_by='GGV',
-        orc_17_entering_organization='GGV'
+        orc_17_entering_organization='1117823000'
     )
 
 
@@ -122,6 +154,7 @@ def __get_obx(order):
     else:
         ins_value = 'V01^Private Pay/Insurance^HL70064'
 
+    '''
     obx1 = OBX(
         obx_1_set_id=1,
         obx_2_value_type='CE',
@@ -131,9 +164,10 @@ def __get_obx(order):
         obx_11_observation_result_status='F',
         obx_17_observation_method='VXC40^Eligibility captured at the immunization level^CDCPHINVS' 
     )
+    '''
 
     obx2 = OBX(
-        obx_1_set_id=2,
+        obx_1_set_id=1,
         obx_2_value_type='NM',
         obx_3_observation_identifier='30973-2^Dose Number in Series^LN',
         obx_4_observation_sub_id='1', #This set should be 2, if a CE record exists
@@ -143,17 +177,18 @@ def __get_obx(order):
         obx_14_datetime_of_the_observation='{}+0000'.format(format_date(order['vax_end_dt']))
     )
 
-    arr = [obx1, obx2]
+    arr = [obx2]
 
     return arr
 
 def format_date(dt):
     return str(dt).replace('-','').replace(':','').replace(' ','')
 
-def get_orders_ready_to_transmit(limit=5000):
+def get_orders_ready_to_transmit(group_code='', scheduled_dt='', limit=0):
     sql = """
         SELECT 
             a.id AS id,
+            sc.service_code,
             a.patient_id AS patient_id,
             REPLACE(p.first_name, ',', '') AS first_name,
             REPLACE(p.last_name, ',', '') AS last_name,
@@ -211,13 +246,17 @@ def get_orders_ready_to_transmit(limit=5000):
             JOIN locations l ON (a.sample_collection_location_id = l.id))
             JOIN patient_questionnaires q ON (q.id = a.patient_questionnaire_id)
             JOIN patient_insurance_details i ON (i.patient_id = a.patient_id))
+                JOIN
+            appointment_services s ON (s.appointment_id = a.id)
+                JOIN
+            services_catalog sc ON (sc.id = s.service_id)
         WHERE
-            a.group_code LIKE '%ROCKWALL%'
-            AND DATE(a.scheduled_dt) = '2021-02-27'
-            AND (a.status = 'end_vax'
-            OR a.status = 'test_completed')
+            a.group_code = '{}'
+                AND DATE(a.scheduled_dt) = '{}'
+                AND (a.status = 'end_vax'
+                OR a.status = 'test_completed')
         LIMIT {}
-            """.format(limit)
+            """.format(group_code, scheduled_dt, limit)
     return read_rows(sql,)
 
 
@@ -228,9 +267,15 @@ def create_outbound_files(orders):
     local_file_path = "{}/{}".format(local_outbound_file_path, filename)
 
     with open(local_file_path, 'w', newline='') as hl7file:
+        #batch header
+        hl7file.write('FHS|^~\&|\n')
+        hl7file.write('BHS|^~\&|\n')
 
         for order in orders:
             try:
+                import time
+                time.sleep(1/100)
+
                 hl7_message = VaxMessage()
                 hl7_message.msh = __get_msh(order)
                 hl7_message.pid = __get_pid(order)
@@ -248,13 +293,17 @@ def create_outbound_files(orders):
                 print_error(
                     'Error generating HL7 for Order ID: {}'.format(order['id']))
 
+        #batch footer
+        hl7file.write('BTS|1\n')
+        hl7file.write('FTS|\n')
+
     return processed_orders
 
 
 
 def process_vax_hl7():
     print('starting...')
-    orders = get_orders_ready_to_transmit()
+    orders = get_orders_ready_to_transmit(group_code='_ROCKWALL_', scheduled_dt='2021-03-25', limit=5000)
     create_outbound_files(orders)
     print('done')
 
