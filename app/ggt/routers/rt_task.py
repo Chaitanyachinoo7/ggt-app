@@ -38,6 +38,9 @@ from ggt.tasks.locations_processor import task_populate_gps_coordinates
 from ggt.tasks.misc_processor import task_process_misc
 from ggt.tasks.appsheet_database_processor import rebuild_appsheet_database
 # from ggt.tasks.outbound_lab_orders import task_process_outbound_lab_orders
+from ggt.tasks.lab_integration.outbound.process_outbound_orders import task_process_outbound_orders
+from ggt.tasks.lab_integration.inbound.process_inbound_orders import task_process_inbound_results
+
 from ggt.tasks.hl7_outbound_lab_orders import task_process_hl7_lab_orders
 from ggt.tasks.CRL_outbound_lab_orders import task_process_crl_lab_orders
 from ggt.tasks.report_notifications import task_schedule_result_notifications_and_followups
@@ -48,7 +51,7 @@ router = APIRouter()
 
 @router.post("/background_process_inbound_lab_reports", dependencies=[Security(authorize_user, scopes=[p.PROCESS_INBOUND_LAB_REPORTS])])
 async def api_background_process_inbound_lab_reports(background_tasks: BackgroundTasks):
-    background_tasks.add_task(task_process_inbound_lab_reports)
+    background_tasks.add_task(task_process_inbound_results)
     return {
         STATUS: SUCCESS,
         DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
@@ -57,17 +60,23 @@ async def api_background_process_inbound_lab_reports(background_tasks: Backgroun
 
 @router.post("/process_inbound_lab_reports", dependencies=[Security(authorize_user, scopes=[p.PROCESS_INBOUND_LAB_REPORTS])])
 async def api_process_inbound_lab_reports():
-    task_process_inbound_lab_reports()
+    task_process_inbound_results()
     return {STATUS: SUCCESS}
 
 
-# @router.post("/process_process_outbound_lab_orders", dependencies=[Security(authorize_user, scopes=[p.PROCESS_PROCESS_OUTBOUND_LAB_ORDERS])])
-# async def api_process_outbound_lab_orders(background_tasks: BackgroundTasks):
-#     background_tasks.add_task(task_process_outbound_lab_orders)
-#     return {
-#         STATUS: SUCCESS,
-#         DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
-#     }
+@router.post("/background_process_outbound_lab_orders", dependencies=[Security(authorize_user, scopes=[p.PROCESS_PROCESS_OUTBOUND_LAB_ORDERS])])
+async def api_background_process_outbound_lab_orders(background_tasks: BackgroundTasks):
+    background_tasks.add_task(task_process_outbound_lab_orders)
+    return {
+        STATUS: SUCCESS,
+        DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
+    }
+
+
+@router.post("/process_outbound_lab_orders", dependencies=[Security(authorize_user, scopes=[p.PROCESS_PROCESS_OUTBOUND_LAB_ORDERS])])
+async def api_process_outbound_lab_orders():
+    task_process_outbound_lab_orders()
+    return {STATUS: SUCCESS}
 
 
 @router.post("/process_hl7_lab_orders", dependencies=[Security(authorize_user, scopes=[p.PROCESS_PROCESS_OUTBOUND_LAB_ORDERS])])
@@ -86,6 +95,7 @@ async def api_process_crl_lab_orders(background_tasks: BackgroundTasks):
         STATUS: SUCCESS,
         DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
     }
+
 
 @router.post("/archive_stale_rpt_files", dependencies=[Security(authorize_user, scopes=[p.PROCESS_PROCESS_OUTBOUND_LAB_ORDERS])])
 async def api_archive_stale_rpt_files(background_tasks: BackgroundTasks):
@@ -124,13 +134,13 @@ async def api_process_voice_queue(background_tasks: BackgroundTasks):
 
 
 @router.get("/process_email_queue/{batch_size}/{offset}", dependencies=[Security(authorize_user, scopes=[p.PROCESS_EMAIL_QUEUE])])
-async def api_process_email_queue(batch_size: int = 10000, offset: int = 0):
+async def api_process_email_queue(batch_size: int=10000, offset: int=0):
     task_process_email_queue(batch_size, offset)
     return {STATUS: SUCCESS}
 
 
 @router.get("/process_sms_queue/{batch_size}/{offset}", dependencies=[Security(authorize_user, scopes=[p.PROCESS_SMS_QUEUE])])
-async def api_process_sms_queue(batch_size: int = 10000, offset: int = 0):
+async def api_process_sms_queue(batch_size: int=10000, offset: int=0):
     task_process_sms_queue(batch_size, offset)
     return {STATUS: SUCCESS}
 
@@ -152,6 +162,7 @@ async def api_process_sms_queue(background_tasks: BackgroundTasks, batch_size: i
         DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
     }
 '''
+
 
 @router.post("/notify_patients_relocate", dependencies=[Security(authorize_user, scopes=[p.NOTIFY_PATIENTS])])
 async def api_notify_patients(request: PatientRelocateNotificationRequest, background_tasks: BackgroundTasks):
@@ -232,7 +243,6 @@ async def api_rebuild_appsheet_database(background_tasks: BackgroundTasks):
         STATUS: SUCCESS,
         DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
     }
-
 
 # @router.post("/delete_ftp_files", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 # async def api_delete_ftp_files():
