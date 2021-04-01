@@ -21,7 +21,7 @@ from ggt.models.process_models.bp_care_provider_experience import (
 ########################################################################################################
 from ggt.models.process_models.bp_reporting import bp_get_stats_today, bp_get_stats_by_date, bp_get_sms_stats_by_date, \
     bp_get_email_stats_by_date, bp_aging_samples_with_lab, bp_get_user_activity, bp_get_patient_drill_down_by_date, \
-    bp_get_portal_stats_today
+    bp_get_portal_stats_today, bp_get_portal_stats
 
 
 @cached(cache=TTLCache(maxsize=1024, ttl=30))
@@ -83,6 +83,14 @@ def get_patient_drill_down_by_date(user, patient_drill_down_request):
             org_id
         )
     )
+
+
+def get_portal_stats(user, location_id, timestamp):
+    org_id = get_organization_id(user)
+    return y_response(
+        bp_get_portal_stats(org_id, location_id, timestamp)
+    )
+
 
 ########################################################################################################
 # [Protected] functions

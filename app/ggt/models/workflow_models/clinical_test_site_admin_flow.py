@@ -16,7 +16,7 @@ from ggt.models.process_models.bp_portal_experience import (
     bp_remove_service, bp_get_all_services, bp_get_locations, bp_create_group, bp_update_group, bp_get_states,
     bp_get_f11,
     bp_get_consent_forms,
-    bp_get_vax_waitlist_search_results, bp_get_all_services_patient
+    bp_get_vax_waitlist_search_results, bp_get_all_services_patient, bp_get_vax_registered_waitlist_around_location
 )
 
 from ggt.models.process_models.bp_schedules import (
@@ -225,6 +225,13 @@ def site_admin_vax_waitlist_search(data):
     return y_response(
         bp_get_vax_waitlist_search_results(data), True
     )
+
+
+def site_admin_vax_registered_waitlist_around_location(request):
+    return y_response(
+        bp_get_vax_registered_waitlist_around_location(request), True
+    )
+
 
 ########################################################################################################
 # [Protected] functions

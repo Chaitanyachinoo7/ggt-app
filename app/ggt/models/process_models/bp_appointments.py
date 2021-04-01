@@ -65,7 +65,8 @@ def bp_get_appointment_info(appointment_id, dob, org_id=None):
                 "patient_address": __formatted_patient_address(appointment),
                 "next_action": __next_action(appointment, appointment.service_selection_codes[0]),
                 "service_selection": appointment.service_selection,
-                "service_selection_codes": appointment.service_selection_codes
+                "service_selection_codes": appointment.service_selection_codes,
+                "patient_id": appointment.patient.id
             }
 
     except Exception as err:
