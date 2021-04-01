@@ -1521,3 +1521,7 @@ class PortalVaxWaitlistSearchRequest(BaseModel):
     offset: int = 0
 
 
+class PortalVaxRegisteredWaitAroundLocationRequest(BaseModel):
+    location_id: int
+    radius: int
+
