@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Security
+from datetime import  datetime
 
 from ggt.lib.auth import authorize_user
 from ggt.models.workflow_models.reporting_flow import get_stats_today, get_stats_by_date, get_sms_stats_by_date, \
     get_email_stats_by_date, aging_samples_with_lab, get_user_activity, get_patient_drill_down_by_date, \
-    get_portal_stats_today
+    get_portal_stats_today, get_portal_stats
 from ggt.models.data_models.data_types import PermissionsEnum as p, SummaryByDate, UserActivity, PatientDrilldownRequest
 
 router = APIRouter()
@@ -48,3 +49,9 @@ async def api_user_activity(req: UserActivity):
 async def api_patient_drill_down_by_date(patient_drill_down_request: PatientDrilldownRequest,
                                          user=Security(authorize_user, scopes=[p.CREATE_LOCATION])):
     return get_patient_drill_down_by_date(user, patient_drill_down_request)
+
+
+@router.get("/get_portal_stats")
+async def api_get_portal_stats(location_id: str = None, timestamp: datetime = datetime.now(),
+                               user=Security(authorize_user, scopes=[p.CREATE_LOCATION])):
+    return get_portal_stats(user, location_id, timestamp)
