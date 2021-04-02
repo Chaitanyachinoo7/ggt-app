@@ -62,7 +62,7 @@ aws:
   dynamo_table_name: available_slots
   sqs_region: us-east-2
   queue_count: 2
-  sqs_url:  https://sqs.us-east-2.amazonaws.com/135292740376/available_time_requests
+  sqs_url:  https://sqs.us-east-2.amazonaws.com/135292740376/available_slot_queue_dev
   vax_sms_que: https://sqs.us-east-2.amazonaws.com/135292740376/vax_scheduled_sms_notification_queue
   region: us-east-2
   access_key_id: AKIAR7AATMMMGKHVWYP6
@@ -71,19 +71,21 @@ aws:
   lab_reports_bucket_name: ggt-labreports
   default_link_expiration_time_limit: 300
   ggt_ops_images: ggt-ops-images-dev
+  vax_certificate_bucket: ggt-vax-certificates-dev
 
 gcp:
-  project_id: ggt-pfe-dev2
+  project_id: ggt-pfe-dev
   service_account_file: gcp-service-account.json
   default_link_expiration_time_limit: 300
   service_account_file_prod: gcp-service-account-prod.json
   all_inbound_files_bucket_name: ggt-all-inbound-files-prod
   lab_reports_bucket_name: ggt-lab-reports-prod
   insurance_cards_bucket_name: ggt-insurance-cards-prod
-  notification_archive_bucket_name: ggt-notification-archive-dev2
+  notification_archive_bucket_name: ggt-notification-archive-dev
   enable_cloud_profiler: false
   enable_cloud_logger: false
   cloud_logger_log_level: 3 # 0-error, 1-warning, 2-info, 3-debug.
+
 
 databases:
   mysql:
@@ -117,11 +119,10 @@ notifications:
 twilio:
   account_sid: AC9cef9b4155030ee2683281ccc72d4001
   auth_token: 62ee76165984c54f91ee80aac9cb3f0e
-  from_number: '+18772802151'
+  from_number: "+18772802151"
   account_sid_short_code: ACa718334f24171c002bc3ee69c59aae9e
   auth_token_short_code: e9a391c21722705f3c7902fcde7522a4
   from_number_short_code: "80578"
-
 sendgrid:
   sendgrid_api_key: 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
 
@@ -151,7 +152,7 @@ vendors:
   auth0:
     auth0_domain: gogettested.us.auth0.com
     api_audience: https://role-base-auth.test/api
-    algorithms: ['RS256']
+    algorithms: ["RS256"]
     roles: http://roles.ggt/roles
     management_client_id: 6ok7VWNkeOA6An5sN30Jl9gHoH4oUT8j
     management_sectret: Rwx8-mby99m5O-2aR14JKgoim0VV0FJuO6sefpDxXjKiQ18mys4JWf2oAO6_5Mha
@@ -191,22 +192,21 @@ vendors:
 
   slack:
     slack_token: xoxb-my-bot-token
-    slack_channel: '#my-channel'
+    slack_channel: "#my-channel"
     slack_icon_url: https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTuGqps7ZafuzUsViFGIremEL2a3NR0KO0s0RTCMXmzmREJd5m4MA&s
     slack_user_name: Double Images Monitor
 
 pfe:
   signup:
-    special_phone_1: '+14158888888'
-    special_phone_2: '+14159999999'
-    special_phone_3: '4158888888'
-    special_phone_4: '4159999999'
-    override_otp_code: '000000'
+    special_phone_1: "+14158888888"
+    special_phone_2: "+14159999999"
+    special_phone_3: "4158888888"
+    special_phone_4: "4159999999"
+    override_otp_code: "000000"
 
 
 security:
   ggv_secret: "thisistheggvtopsecret2021"
-
 
 payment:
   stripe:
@@ -219,4 +219,10 @@ image_urls:
   flu_shot:
     - 'http://ggt-image-server.com/flu' # Add a URL of a stock photo or S3 bucket
   payment:
-    - 'https://goget-static-content.s3.us-east-2.amazonaws.com/fit2fly_icon.png' # Add a URL of a stock photo or S3 bucket
+    - 'https://goget-static-content.s3.us-east-2.amazonaws.com/ggtlogo.png' # Add a URL of a stock photo or S3 bucket
+
+
+lab_integrations:
+  s3_bucket: ggt-sftp-dev
+  archive_bucket: ggt-sftp-archive-dev
+  labreport_bucket: ggt-labreports-dev

@@ -677,6 +677,26 @@ def get_second_slot_reschedule_dates(location_id, ap1_date):
         return None
 
 
+def get_first_available_times(location_id, date):
+    sql = """SELECT DISTINCT 
+                time(start_dt) as start_time, 
+                id, 
+                start_dt, 
+                end_dt, 
+                status
+            FROM 
+                ggv_schedules 
+            WHERE 
+                location_id = {} 
+                AND status = 'available' 
+                AND date(start_dt) = '{}'
+                AND start_dt >= CONVERT_TZ(NOW(), '+00:00', '-06:00')
+                AND lock_time < NOW()
+            ORDER BY id;""".format(location_id, date)
+
+    return replica_read_rows(sql)
+
+
 def get_second_shot_available_times(location_id, date):
     try:
         sql = """
@@ -687,7 +707,7 @@ def get_second_shot_available_times(location_id, date):
                 end_dt, 
                 status 
             FROM 
-                schedules 
+                ggv_schedules 
             WHERE 
                 location_id = {} 
                 AND status = 'available' 
@@ -1281,7 +1301,7 @@ def __map_row_to_dtl(row):
         dtl.location.image_thumbnail = row['image_thumbnail']
         dtl.location.billing_type = row['billing_type']
         dtl.location.collect_insurance_info = True if row['collect_insurance_info'] else False
-        dtl.services_available = row['services'] if row['services'] else None
+        dtl.services_available = row['services'] if 'services' in row.keys() else None
         dtl.location.allow_insurance_skip = True if row['allow_insurance_skip'] else False
         dtl.location.collect_upfront_payment = True if row['collect_upfront_payment'] else False
 

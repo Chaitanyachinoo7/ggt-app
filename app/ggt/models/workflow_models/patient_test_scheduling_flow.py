@@ -20,7 +20,7 @@ from ggt.models.process_models.bp_patient_experience import (
     bp_get_wellpay_insurance_eligibility,
     bp_search_insurance_payer_list, bp_get_ggv_screen_flow_seq, bp_ggv_finalize_booking, bp_ggv_finalize_pre_booking,
     bp_create_pre_registration, bp_verify_verification_token, bp_reschedule_first_appointment,
-    bp_reschedule_second_appointment
+    bp_reschedule_second_appointment, bp_lookup_certificate, bp_get_vax_certificate
 )
 
 from ggt.models.process_models.bp_schedules import (
@@ -162,8 +162,8 @@ def get_all_available_locations_and_times(group_code):
 
 @cached(cache=TTLCache(maxsize=1024, ttl=60))
 def get_schedule_times_available(
-    location_id,
-    date=date.today().strftime("%Y-%m-%d")
+        location_id,
+        date=date.today().strftime("%Y-%m-%d")
 ):
     return x_response(
         bp_get_schedule_times_available(
@@ -174,8 +174,8 @@ def get_schedule_times_available(
 
 
 def get_ggv_schedule_times_available(
-    location_id,
-    date=date.today().strftime("%Y-%m-%d")
+        location_id,
+        date=date.today().strftime("%Y-%m-%d")
 ):
     return x_response(
         bp_get_ggv_schedule_times_available(
@@ -216,6 +216,19 @@ def lookup_appointment(appointment_id, dob):
 
 
 @cached(cache=TTLCache(maxsize=1024, ttl=60))
+def lookup_certificate(phone_number, dob, first_name, last_name, token):
+    return y_response(
+        bp_lookup_certificate(
+            phone_number,
+            dob,
+            first_name,
+            last_name,
+            token
+        )
+    )
+
+
+@cached(cache=TTLCache(maxsize=1024, ttl=60))
 def lookup_test_result(token, dob):
     return x_response(
         bp_get_test_result(
@@ -248,8 +261,8 @@ def finalize_registration(finalize_registration_request):
             "appointment_id": appointment.id,
             "date": appointment.date_text,
             "location": appointment.location_text,
-            'total_balance': int(appointment.billed_amount*100),
-            'total_cost': int(appointment.total_cost*100),
+            'total_balance': int(appointment.billed_amount * 100),
+            'total_cost': int(appointment.total_cost * 100),
             'payment_url': appointment.payment_url,
             'payment_checkout_session': appointment.payment_checkout_session,
             c.STATUS: c.SUCCESS
@@ -282,16 +295,16 @@ def ggv_finalize_registration(finalize_registration_request):
         res["appointment_id_1"] = appointment_1.id
         res["date_1"] = appointment_1.date_text
         res["location_1"] = appointment_1.location_text
-        res['total_balance_1'] = int(appointment_1.billed_amount*100)
-        res['total_cost_1'] = int(appointment_1.total_cost*100)
+        res['total_balance_1'] = int(appointment_1.billed_amount * 100)
+        res['total_cost_1'] = int(appointment_1.total_cost * 100)
         res['payment_url_1'] = appointment_1.payment_url
 
         if appointment_2:
             res["appointment_id_2"] = appointment_2.id
             res["date_2"] = appointment_2.date_text
             res["location_2"] = appointment_2.location_text
-            res['total_balance_2'] = int(appointment_2.billed_amount*100)
-            res['total_cost_2'] = int(appointment_2.total_cost*100)
+            res['total_balance_2'] = int(appointment_2.billed_amount * 100)
+            res['total_cost_2'] = int(appointment_2.total_cost * 100)
             res['payment_url_2'] = appointment_2.payment_url
 
         return res
@@ -359,7 +372,8 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
 
         b.st = finalize_registration_request.patientAddress.state
         b.dob = finalize_registration_request.patientDetails.dob
-        if "patientVitals" in dict(finalize_registration_request).keys() and finalize_registration_request.patientVitals:
+        if "patientVitals" in dict(
+                finalize_registration_request).keys() and finalize_registration_request.patientVitals:
             b.height = finalize_registration_request.patientVitals.height
             b.weight = finalize_registration_request.patientVitals.weight
             b.meds = finalize_registration_request.patientVitals.medications
@@ -378,7 +392,8 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
             b.symptom_lack_of_smell = finalize_registration_request.symptoms.symptom_lack_of_smell
         b.covid_contact = finalize_registration_request.contactTracing
 
-        if "preExistingConditions" in dict(finalize_registration_request).keys() and finalize_registration_request.preExistingConditions:
+        if "preExistingConditions" in dict(
+                finalize_registration_request).keys() and finalize_registration_request.preExistingConditions:
             b.heart_disease = finalize_registration_request.preExistingConditions.heart_disease
             b.diabetes = finalize_registration_request.preExistingConditions.diabetes
             b.respiratory_disease = finalize_registration_request.preExistingConditions.respiratory_disease
@@ -446,7 +461,8 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
             b.services = selected_services
 
         b.language = finalize_registration_request.language
-        b.currency = finalize_registration_request.currency
+        if "currency" in finalize_registration_request.fields.keys():
+            b.currency = finalize_registration_request.currency
 
         with suppress(AttributeError):
             b.public_places_bars_restaurants_cafes = finalize_registration_request.publicPlaces.bars_restaurants_cafes
@@ -512,7 +528,6 @@ def __assign_services(selected_services, sku):
     return selected_services
 
 
-
 def insurance_eligibility(insurance_eligibility_request):
     return bp_get_wellpay_insurance_eligibility(insurance_eligibility_request)
 
@@ -525,6 +540,10 @@ def verify_verification_token(toke_verification_request):
     return x_response(
         bp_verify_verification_token(toke_verification_request.verification_token)
     )
+
+
+def get_vax_certificate(patient_id, cert_id):
+    return bp_get_vax_certificate(patient_id, cert_id)
 
 
 @cached(cache=TTLCache(maxsize=1024, ttl=180))

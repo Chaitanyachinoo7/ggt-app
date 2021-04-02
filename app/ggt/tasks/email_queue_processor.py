@@ -106,7 +106,7 @@ def update_email_status_to_retry(id):
     """
     vals = (id,)
     exec_update(sql, vals)
-
+ 
 
 def update_email_status_to_error(id):
     sql = """

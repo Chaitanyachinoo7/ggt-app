@@ -198,7 +198,7 @@ def get_portal_stats_today(org_id):
                                 AND org.id = %s AND org.is_active = 1
                         GROUP BY a.location_id
                         ORDER BY l.name) AS location_stats_for_dates;"""
-        vals = (org_id, )
+        vals = (org_id,)
         res_1 = replica_read_row(sql_1, vals)
 
         sql_2 = """SELECT 
@@ -528,6 +528,107 @@ def get_patient_drill_down_by_date(location_id, date, status, org_id):
         )
         return None
 
+
+def get_portal_stats(org_id, location_id, timestamp):
+    try:
+        get_all_locations = not location_id
+        operand = "OR" if get_all_locations else "AND"
+        appointment_count_sql = """
+                SELECT
+                   COUNT(a.id) as total_appointments, 
+                   CAST(SUM(if(a.status = 'pending', 1, 0)) AS UNSIGNED) pending_signups,
+                   CAST(SUM(IF(a.status = 'scheduled', 1, 0)) AS UNSIGNED) remaining_scheduled,
+                   CAST(SUM(IF(a.status = 'scheduled', 1, 0)) AS UNSIGNED) remaining_scheduled,
+                   CAST(SUM(IF(a.status = 'checked_in', 1, 0)) AS UNSIGNED) total_checked_in,
+                   CAST(SUM(IF(a.status = 'test_in_progress', 1, 0)) AS UNSIGNED) tests_in_progress,
+                   CAST(SUM(IF(a.status = 'start_vax', 1, 0)) AS UNSIGNED) vax_in_progress,
+                   CAST(SUM(IF(a.status = 'end_vax', 1, 0)) AS UNSIGNED) vax_completed,
+                   CAST(SUM(IF(a.status = 'test_completed', 1, 0)) AS UNSIGNED) test_completed,
+                   CAST(SUM(IF(a.status = 'cancelled', 1, 0)) AS UNSIGNED) test_cancelled,
+                   CAST(SUM(IF((ts.pre_ship_label_scan_dt IS NOT NULL), 1, 0)) AS UNSIGNED) scanned,
+                   CAST(SUM(IF((ts.pre_ship_label_scan_dt IS NULL), 1, 0)) AS UNSIGNED) not_scanned,
+                   a.location_id 
+                FROM (appointments a
+                    INNER JOIN 
+                      locations l 
+                        on l.id = a.location_id 
+                        ) LEFT JOIN test_samples ts ON ts.appointment_id = a.id
+                WHERE 
+                        DATE(a.scheduled_dt) = DATE(%s) 
+                AND
+                        l.org_id = %s
+                AND 
+                        (l.id = %s {} 1=1 ) 
+                GROUP BY a.location_id
+            """.format(operand)
+
+        vals = (timestamp, org_id, location_id)
+
+        appointment_stats = replica_read_rows(appointment_count_sql, vals)
+
+        appointment_by_hour_sql = """
+                SELECT 
+                    COUNT(*) AS all_appointments,
+                    DATE_FORMAT(a.scheduled_dt, '%l %p') AS dt,
+                    CONVERT(DATE_FORMAT(a.scheduled_dt, '%k'), UNSIGNED) as hour24,
+                    l.id as location_id
+                
+                FROM
+                    appointments a
+                     INNER JOIN locations l ON a.location_id = l.id
+                WHERE
+                        DATE(scheduled_dt) = DATE(%s)
+                        AND l.org_id = %s
+                        AND (l.id = %s {} 1=1 )
+                GROUP BY dt, l.id
+                ORDER BY l.id, hour24;
+                """.format(operand)
+
+        appoints_by_hour = replica_read_rows(appointment_by_hour_sql, vals)
+
+        hourly_no_show_sql = """SELECT 
+                        COUNT(*) AS no_show,
+                        DATE_FORMAT(a.scheduled_dt, '%l %p') AS dt,
+                        CONVERT( DATE_FORMAT(a.scheduled_dt, '%k') , UNSIGNED) AS hour24,
+                        l.id AS location_id
+                    FROM
+                        appointments a
+                            JOIN
+                        locations l ON l.id = a.location_id
+                            JOIN
+                        organizations org ON l.org_id = org.id
+                    WHERE
+                        TIMESTAMPDIFF(MINUTE,
+                            a.scheduled_dt,
+                            CONVERT_TZ(NOW(), '+00:00', l.time_zone_offset)) > 30
+                            AND CAST(a.scheduled_dt AS DATE) = CAST(CONVERT_TZ(%s, '+00:00', l.time_zone_offset)
+                            AS DATE)
+                            AND org.id = %s
+                            AND org.is_active = 1
+                            AND a.status = 'scheduled'
+                            AND (l.id = %s {} 1=1 )
+                    GROUP BY dt, l.id
+                    ORDER BY l.id, hour24
+                """.format(operand)
+
+        hourly_no_show = replica_read_rows(hourly_no_show_sql, vals)
+
+        # If no information return no data
+        if not appointment_stats:
+            return [{}]
+
+        __combine_appointments_info(appointment_stats, appoints_by_hour, hourly_no_show)
+        return appointment_stats
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
@@ -549,3 +650,19 @@ def __format_daily_matrix(res_1, res_2, res_3):
     res_1['appointments_by_hour'] = appointments_by_hour
     res_1['no_show_by_hour'] = no_show_by_hour
     return res_1
+
+
+# This function will append the hourly appointment information and no show to daily appointment information
+def __combine_appointments_info(daily_appointments, hourly_appointments, hourly_no_show):
+    for appointment_by_location in daily_appointments:
+        location_id = appointment_by_location['location_id']
+        appointment_by_location['appointments_by_hour'] = []
+        appointment_by_location['no_show_by_hour'] = []
+        if hourly_appointments:
+            hourly_appointments_on_location = filter(lambda item: item['location_id'] == location_id,
+                                                     hourly_appointments)
+            appointment_by_location['appointments_by_hour'] = list(hourly_appointments_on_location)
+        if hourly_no_show:
+            hourly_no_show_on_location = filter(lambda item: item['location_id'] == location_id, hourly_no_show)
+            appointment_by_location['no_show_by_hour'] = list(hourly_no_show_on_location)
+        appointment_by_location['no_show'] = len(appointment_by_location['no_show_by_hour'])

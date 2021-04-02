@@ -62,7 +62,7 @@ aws:
   dynamo_table_name: available_slots
   sqs_region: us-east-2
   queue_count: 2
-  sqs_url:  https://sqs.us-east-2.amazonaws.com/135292740376/available_time_requests
+  sqs_url:  https://sqs.us-east-2.amazonaws.com/135292740376/available_slot_queue_dev
   vax_sms_que: https://sqs.us-east-2.amazonaws.com/135292740376/vax_scheduled_sms_notification_queue
   region: us-east-2
   access_key_id: AKIAR7AATMMMGKHVWYP6
@@ -71,6 +71,7 @@ aws:
   lab_reports_bucket_name: ggt-labreports
   default_link_expiration_time_limit: 300
   ggt_ops_images: ggt-ops-images-dev
+  vax_certificate_bucket: ggt-vax-certificates-dev
 
 gcp:
   project_id: ggt-pfe-dev2
@@ -87,8 +88,8 @@ gcp:
 
 databases:
   mysql:
-    host: ggt-dev-db.cluster-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
-    read_replica_host: ggt-dev-db.cluster-ro-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+    host: dev-db-test-proxy-2.proxy-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+    read_replica_host: dev-db-test-proxy-2-read-only.endpoint.proxy-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
     username: admin
     password: hWMgl5Tfkqn30saQNp9M
     db: ggt_prod
@@ -226,3 +227,32 @@ lab_integrations:
   s3_bucket: ggt-sftp-dev
   archive_bucket: ggt-sftp-archive-dev
   labreport_bucket: ggt-labreports-dev
+  outbound_file_prefix: ggt-outbound
+
+  MAWD:
+    outbound_path: mawdpath/prod/orders/
+    inbound_path: mawdpath/prod/results/
+    inbound_data_table_name: mawdpath_inbound_data
+
+  AIT:
+    outbound_path: healthtrackrx_merth/prod/orders/
+    inbound_path: healthtrackrx/Reports/
+    inbound_data_table_name: healthtrackrx_inbound_data
+
+  CRL:
+    outbound_path: DOES_NOT_EXIST
+    inbound_path: crllabs/prod/results/
+    inbound_data_table_name: crl_inbound_data
+    api_username: WELLHEALTH
+    api_password: 38cvZtg4v8
+    api_url: https://api.crlclear.com/order
+
+  CHOPO:
+    outbound_path: chopolabs/prod/orders/
+    inbound_path: chopolabs/prod/results
+    inbound_data_table_name: chopo_inbound_data
+
+  LAB3A:
+    outbound_path: lab3a/prod/orders/
+    inbound_path: lab3a/prod/results
+    inbound_data_table_name: lab3a_inbound_data
