@@ -38,7 +38,7 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
     insurance_search_payer, get_ggv_screen_flow_seq, get_second_shot_available_times, ggv_finalize_registration,
     get_ggv_schedule_times_available, ggv_finalize_pre_registration, cache_test, verify_verification_token,
     reschedule_first_appointment, get_second_slot_reschedule_dates, reschedule_second_appointment,
-    get_ggv_schedule_dates_available
+    get_ggv_schedule_dates_available, lookup_certificate, get_vax_certificate
 )
 
 # TODO: [GGT-193] Move this to a dedicated API
@@ -61,12 +61,12 @@ async def api_ggv_get_available_locations(group_code: str, lat: float, lng: floa
 
 
 @router.post("/ggv/get_second_shot_available_times", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
-def api_get_second_shot_available_times(req: SecondAvailableDate):
+async def api_get_second_shot_available_times(req: SecondAvailableDate):
     return get_second_shot_available_times(req)
 
 
 @router.get("/ggv/get_available_times/{location_id}/{date}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
-def api_ggv_get_available_times_for_today(location_id: str, date: str):
+async def api_ggv_get_available_times_for_today(location_id: str, date: str):
     return get_ggv_schedule_times_available(
         location_id,
         date
@@ -74,7 +74,7 @@ def api_ggv_get_available_times_for_today(location_id: str, date: str):
 
 
 @router.post("/ggv/get_second_slot_reschedule_dates", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
-def api_get_second_slot_reschedule_dates(req: SecondSlotReschedule):
+async def api_get_second_slot_reschedule_dates(req: SecondSlotReschedule):
     return get_second_slot_reschedule_dates(
         req.location_id,
         req.first_appointment_date
