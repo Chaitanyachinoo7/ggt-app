@@ -532,6 +532,21 @@ class TestResultEnum(str, Enum):
     negative = 'negative'
 
 
+class YesNoEnum(str, Enum):
+    yes = 'yes'
+    no = 'no'
+
+
+class InsuranceRecord(BaseModel):
+    patient_id: str
+    member_id: str = None
+    group_no: str = None
+    relationship: str = None
+    payer: str = None
+    level: str = None
+    insurance_image: Optional[str] = None
+
+
 class ProviderUpdateAppointmentRequest(BaseModel):
     appointment_id: str = None
     action: str = None
@@ -545,6 +560,8 @@ class ProviderUpdateAppointmentRequest(BaseModel):
     no_adverse_reactions: Optional[bool] = None
     test_result: Optional[TestResultEnum] = None
     test_result_photo: Optional[str] = None
+    insurance_status: Optional[YesNoEnum] = None
+    insurance_details: Optional[InsuranceRecord] = None
 
 
 class ProviderLookupAppointmentRequest(BaseModel):
@@ -684,6 +701,14 @@ class ScheduleGenerationRule(BaseModel):
 class LookupAppointmentRequest(BaseModel):
     appointment_id: str = None
     dob: str = None
+
+
+class LookupGGVCertificateRequest(BaseModel):
+    phone_number: str
+    dob: str
+    first_name: str
+    last_name: str
+    token: str
 
 
 class NotificationEnum(str, Enum):
@@ -1241,20 +1266,13 @@ class GgtThirdPartyDbUpdateGroup(BaseModel):
     logo_2: str = None
 
 
-class InsuranceRecord(BaseModel):
-    patient_id: str
-    insurance_carrier: str = None
-    group_number: str = None
-    member_number: str = None
-    validated: int = 0
-
-
 class InsuranceUpdateRecord(BaseModel):
     id: str
-    insurance_carrier: str = None
-    group_number: str = None
-    member_number: str = None
-    validated: int = 0
+    member_id: str = None
+    group_no: str = None
+    relationship: str = None
+    payer: str = None
+    level: str = None
 
 
 class InsuranceIDRecord(BaseModel):
@@ -1510,4 +1528,8 @@ class PortalVaxWaitlistSearchRequest(BaseModel):
     limit: int = 20
     offset: int = 0
 
+
+class PortalVaxRegisteredWaitAroundLocationRequest(BaseModel):
+    location_id: int
+    radius: int
 

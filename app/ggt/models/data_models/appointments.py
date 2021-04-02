@@ -18,12 +18,13 @@ from ggt.lib.db import (
     replica_read_row,
     replica_read_rows
 )
+from ggt.models.data_models.billers import create_insurance_record
 
 from ggt.models.data_models.data_types import (
     GgtAppointment,
     GgtBooking,
     GgtLocation,
-    GgtPatient, TestResultEnum
+    GgtPatient, TestResultEnum, YesNoEnum, InsuranceRecord
 )
 
 from ggt.models.data_models.clinical_test_sample import (
@@ -216,6 +217,30 @@ def get_monthy_calendar(from_date: str, to_date: str, location_id: int):
     return None
 
 
+def is_open_patient(patient_id):
+    try:
+        sql = """
+            SELECT *
+            FROM
+                patients
+            WHERE
+                id = %s AND token_expire > NOW()
+            """
+
+        vals = (patient_id,)
+        return read_rows(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            patient_id=patient_id,
+            function=whoami(),
+            error=err
+        )
+
+    return None
+
+
 def positive_result_followup():
     try:
         sql = """
@@ -382,6 +407,34 @@ def re_schedule_appointment(appointment_id, slot):
     return None
 
 
+def lookup_certificate(phone_number, dob, first_name, last_name, token):
+    try:
+        where_statement = "p.phone_number LIKE '%{}%'".format(phone_number)
+        where_statement = "{} AND date(p.dob) = '{}'".format(where_statement, dob)
+        where_statement = "{} AND p.first_name LIKE '%{}%'".format(where_statement, first_name)
+        where_statement = "{} AND p.last_name LIKE '%{}%'".format(where_statement, last_name)
+        where_statement = "{} AND p.result_token = '{}' AND p.token_expire > NOW()".format(where_statement, token)
+        sql = """SELECT 
+                    gc.*,
+                   date(gc.check_in_dt) AS appointment_date
+                FROM
+                    patients p
+                        JOIN
+                    ggv_certificates gc ON p.id = gc.patient_id
+                    WHERE {}""".format(where_statement)
+
+        rows = replica_read_rows(sql)
+        return __format_vax_certificate(rows)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+    return None
+
+
 def get_appointment_count_by_phone_dob(phone_number, dob):
     try:
         if dob:
@@ -400,14 +453,14 @@ def get_appointment_count_by_phone_dob(phone_number, dob):
 
         else:
             sql = """
-            SELECT
+             SELECT 
                 COUNT(*) AS count
             FROM
-                appointments a
-                    JOIN
-                patients p ON (p.id = a.patient_id)
+                patients p
+                    LEFT JOIN
+                appointments a ON (p.id = a.patient_id)
             WHERE
-                p.phone_number = %s
+                p.phone_number= %s
             """
             vals = (phone_number,)
 
@@ -442,10 +495,26 @@ def update_appointment_with_start_vax(appointment: GgtAppointment, user, operato
                                        operator_location_id=operator_location_id)
 
 
+def update_appointment_with_confirm_insurance_status(appointment: GgtAppointment, user, insurance_status,
+                                                     operator_location_id=None):
+    status = c.APPOINTMENT_STATUS_INSURANCE_PENDING
+    if insurance_status == YesNoEnum.no:
+        status = c.APPOINTMENT_STATUS_NO_INSURANCE
+    return __update_appointment_status(appointment, status, user=user,
+                                       operator_location_id=operator_location_id)
+
+
 def update_appointment_with_antigen_results(appointment: GgtAppointment, test_result,
                                             operator_location_id=None):
     return __update_appointment_status_antigen_result(appointment, c.APPOINTMENT_STATUS_TEST_FINALIZED, test_result,
                                                       operator_location_id=operator_location_id)
+
+
+def update_appointment_with_collect_insurance(appointment: GgtAppointment,
+                                              operator_location_id=None):
+
+    return __update_appointment_status(appointment, c.APPOINTMENT_STATUS_INSURANCE_COLLECTED,
+                                       operator_location_id=operator_location_id)
 
 
 def update_appointment_with_verify_insurance(appointment: GgtAppointment, user, operator_location_id=None):
@@ -535,11 +604,58 @@ def create_consultation_note(user, appointment_id, appointment_notes):
 # [Protected] functions
 ########################################################################################################
 
+def __format_vax_certificate(rows):
+    try:
+        if len(rows) > 0:
+            certificates = {
+                'patient_id': rows[0]['patient_id'],
+                'certificates': []
+            }
+
+            for row in rows:
+                image = "/api/vax_certificate/{}/{}.jpg".format(row['patient_id'], row['id'])
+                service = {
+                    "appointment_id": row['appointment_id'],
+                    "appointment_date": row['appointment_date'],
+                    "patient_questionnaire_id": row['patient_questionnaire_id'],
+                    "brand": __get_brand(row['service_code']),
+                    "service_code": row['service_code'],
+                    "lot_no": row['lot_no'],
+                    "appointment_time": None,
+                    "org_name": None,
+                    "images": [image]
+                }
+                certificates['certificates'].append(service)
+            return certificates
+        else:
+            return {}
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+
+
+def __get_brand(service_code):
+    if service_code == c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_1 or service_code == c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_2:
+        return "Pfizer"
+    elif service_code == c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_1 or service_code == c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_2:
+        return "Moderna"
+    elif service_code == c.SERVICE_CODE_COVID_19_VACCINE_JNJ:
+        return "J & J"
+    else:
+        return ""
+
 
 def __get_mapped_dt_field(status: str) -> str:
     switcher = {
         c.APPOINTMENT_STATUS_SCHEDULED: 'update_dt',
         c.APPOINTMENT_STATUS_CHECKED_IN: 'check_in_dt',
+        c.APPOINTMENT_STATUS_INSURANCE_COLLECTED: 'check_in_dt',
+        c.APPOINTMENT_STATUS_INSURANCE_PENDING: 'check_in_dt',
+        c.APPOINTMENT_STATUS_NO_INSURANCE: 'check_in_dt',
         c.APPOINTMENT_STATUS_TEST_IN_PROGRESS: 'test_start_dt',
         c.APPOINTMENT_STATUS_VIAL_SCANNED: 'test_start_dt',
         c.APPOINTMENT_ACTION_VERIFY_INSURANCE: 'test_start_dt',
@@ -608,6 +724,18 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
     vial_id = None if vial_id == '' else vial_id
     usuccess = False
     reason_code = ''
+
+    log_generic(
+        position=3,
+        type=c.INFO,
+        appointment_id=appointment.id,
+        function=whoami(),
+        action=status,
+        workstation_id=workstation_id,
+        operator_location_id=operator_location_id,
+        vial_id=vial_id,
+        injection_site=injection_site
+    )
 
     try:
         # Check if a vial has already been assigned, if so, don't allow update to proceed
