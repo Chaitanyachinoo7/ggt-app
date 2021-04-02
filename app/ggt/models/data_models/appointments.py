@@ -217,6 +217,30 @@ def get_monthy_calendar(from_date: str, to_date: str, location_id: int):
     return None
 
 
+def is_open_patient(patient_id):
+    try:
+        sql = """
+            SELECT *
+            FROM
+                patients
+            WHERE
+                id = %s AND token_expire > NOW()
+            """
+
+        vals = (patient_id,)
+        return read_rows(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            patient_id=patient_id,
+            function=whoami(),
+            error=err
+        )
+
+    return None
+
+
 def positive_result_followup():
     try:
         sql = """
@@ -383,14 +407,16 @@ def re_schedule_appointment(appointment_id, slot):
     return None
 
 
-def lookup_certificate(phone_number, dob, first_name, last_name):
+def lookup_certificate(phone_number, dob, first_name, last_name, token):
     try:
         where_statement = "p.phone_number LIKE '%{}%'".format(phone_number)
-        where_statement = "{} AND p.dob LIKE '%{}%'".format(where_statement, dob)
+        where_statement = "{} AND date(p.dob) = '{}'".format(where_statement, dob)
         where_statement = "{} AND p.first_name LIKE '%{}%'".format(where_statement, first_name)
         where_statement = "{} AND p.last_name LIKE '%{}%'".format(where_statement, last_name)
+        where_statement = "{} AND p.result_token = '{}' AND p.token_expire > NOW()".format(where_statement, token)
         sql = """SELECT 
-                    gc.*
+                    gc.*,
+                   date(gc.check_in_dt) AS appointment_date
                 FROM
                     patients p
                         JOIN
@@ -583,23 +609,21 @@ def __format_vax_certificate(rows):
         if len(rows) > 0:
             certificates = {
                 'patient_id': rows[0]['patient_id'],
-                'org_id': None, #TODO Get real value here.
                 'certificates': []
             }
 
             for row in rows:
+                image = "/api/vax_certificate/{}/{}.jpg".format(row['patient_id'], row['id'])
                 service = {
                     "appointment_id": row['appointment_id'],
-                    "check_in_dt": row['check_in_dt'],
+                    "appointment_date": row['appointment_date'],
                     "patient_questionnaire_id": row['patient_questionnaire_id'],
+                    "brand": __get_brand(row['service_code']),
                     "service_code": row['service_code'],
-                    "vial_id": row['vial_id'],
-                    "image_id": row['image_id'],
-                    "vax_start_dt": row['vax_start_dt'],
-                    "vax_notes_dt": row['vax_notes_dt'],
-                    "vax_end_dt": row['vax_end_dt'],
-                    "injection_site": row['injection_site'],
-                    "no_adverse_reactions": row['no_adverse_reactions']
+                    "lot_no": row['lot_no'],
+                    "appointment_time": None,
+                    "org_name": None,
+                    "images": [image]
                 }
                 certificates['certificates'].append(service)
             return certificates
@@ -613,6 +637,16 @@ def __format_vax_certificate(rows):
             error=err
         )
 
+
+def __get_brand(service_code):
+    if service_code == c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_1 or service_code == c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_2:
+        return "Pfizer"
+    elif service_code == c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_1 or service_code == c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_2:
+        return "Moderna"
+    elif service_code == c.SERVICE_CODE_COVID_19_VACCINE_JNJ:
+        return "J & J"
+    else:
+        return ""
 
 
 def __get_mapped_dt_field(status: str) -> str:

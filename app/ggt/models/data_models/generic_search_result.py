@@ -598,3 +598,108 @@ def find_patients_in_vax_waitlist(data):
             error=err
         )
         return None
+
+
+def get_vax_registered_waitlist_around_location(location_id, radius):
+
+    try:
+        sql1 = "SELECT lat, lng FROM locations WHERE id=%s"
+        location = replica_read_row(sql1, (location_id,))
+
+        if location is None:
+            return []
+
+        lat = location["lat"]
+        lng = location["lng"]
+
+        sql2 = """
+        SELECT
+            vpr.id as vax_pre_reg_id,
+            q.id AS q_id,
+            p.id AS patient_id,
+            p.first_name AS first_name,
+            p.middle_name AS middle_name,
+            p.last_name AS last_name,
+            p.gender AS gender,
+            p.height_ft AS height_ft,
+            p.height_in AS height_in,
+            p.weight_lb AS weight_lb,
+            (CASE
+                WHEN (p.race = 'race_american_indian') THEN 'American Indian or Alaska Native'
+                WHEN (p.race = 'race_asian') THEN 'Asian'
+                WHEN (p.race = 'race_black') THEN 'Black or African American'
+                WHEN (p.race = 'race_hawaiian') THEN 'Native Hawaiian or Other Pacific Islander'
+                WHEN (p.race = 'race_other') THEN 'Other'
+                WHEN (p.race = 'race_white') THEN 'White'
+                ELSE 'Unknown'
+            END) AS race,
+            (CASE
+                WHEN (p.ethnicity = 'true') THEN 'Hispanic or Latino'
+                WHEN (p.ethnicity = 'false') THEN 'Not Hispanic or Latino'
+                WHEN (p.ethnicity = 'hispanic_latino_spanish') THEN 'Hispanic or Latino'
+                ELSE 'Unknown'
+            END) AS ethnicity,
+            p.addr1 AS addr1,
+            p.addr2 AS addr2,
+            p.addr3 AS addr3,
+            p.city AS city,
+            p.county AS county,
+            p.st AS st,
+            p.zip AS zip,
+            p.dob AS dob,
+            p.phone_number AS phone_number,
+            p.phone_number_verified AS phone_number_verified,
+            p.email AS email,
+            p.email_verified AS email_verified,
+            p.create_dt AS register_dt,
+            p.token AS token,
+            q.symptom_fever AS symptom_fever,
+            q.symptom_shortness_breath AS symptom_shortness_breath,
+            q.symptom_cough AS symptom_cough,
+            q.symptom_chest_pain AS symptom_chest_pain,
+            q.symptom_lack_of_smell AS symptom_lack_of_smell,
+            q.symptom_other_breathing AS symptom_other_breathing,
+            q.covid_contact AS covid_contact,
+            q.prescription_use AS prescription_use,
+            q.heart_disease AS heart_disease,
+            q.diabetes AS diabetes,
+            q.respiratory_diseases AS respiratory_diseases,
+            q.autoimmune_disease AS autoimmune_disease,
+            q.other_chronic AS other_chronic,
+            q.allergies AS allergies,
+            '' AS insurance_photo,
+            q.insurance_details,
+            q.serious_reaction AS ggv_serious_reaction,
+            q.ggv_allergies AS ggv_allergies,
+            q.long_term_health AS ggv_long_term_health,
+            q.immune_system AS ggv_immune_system,
+            q.immune_system_medications AS ggv_immune_system_medications,
+            q.nervous_system AS ggv_nervous_system,
+            q.blood_transfusion AS ggv_blood_transfusion,
+            q.recent_vaccinations AS ggv_recent_vaccinations,
+            (3963 * ACOS(COS(RADIANS(%s)) * COS(RADIANS(z.Latitude)) * COS(RADIANS(z.Longitude) - RADIANS(%s)) + SIN(RADIANS(%s)) * SIN(RADIANS(z.Latitude)))) AS distance
+        FROM
+            patients p
+        INNER JOIN
+            vax_pre_registrations vpr on p.id = vpr.patient_id
+        INNER JOIN
+            patient_questionnaires q ON q.id = vpr.patient_questionnaire_id
+        INNER JOIN
+            z_zipcodes z on p.zip = z.Zip
+        WHERE
+            vpr.status = "registered"
+            AND (3963 * ACOS(COS(RADIANS(%s)) * COS(RADIANS(z.Latitude)) * COS(RADIANS(z.Longitude) - RADIANS(%s)) + SIN(RADIANS(%s)) * SIN(RADIANS(z.Latitude)))) < %s
+        ORDER BY
+            distance
+        """
+        vals = (lat, lng, lat, lat, lng, lat, radius)
+        return replica_read_rows(sql2, vals)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+

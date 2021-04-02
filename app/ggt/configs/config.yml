@@ -1,10 +1,10 @@
 app_name: ggt-api
 app_version: 1.1
-log_level: INFO
-base_url: https://start.GoGetTested.com
-portal_url: https://portal.gogettested.com
-ops_url: https://ops.gogettested.com
-env: PROD
+log_level: DEBUG
+base_url: https://start-dev.GoGetTested.com
+portal_url: https://portal-dev.gogettested.com
+ops_url: https://ops-dev.gogettested.com
+env: DEV
 default_timezone: CST
 
 server:
@@ -59,39 +59,42 @@ docs:
   redoc_url: /redoc
 
 aws:
-  dynamo_table_name: prod_available_slots
+  dynamo_table_name: available_slots
   sqs_region: us-east-2
   queue_count: 2
-  sqs_url: https://sqs.us-east-2.amazonaws.com/135292740376/available_slot_management_queue_{}
+  sqs_url:  https://sqs.us-east-2.amazonaws.com/135292740376/available_slot_queue_dev
   vax_sms_que: https://sqs.us-east-2.amazonaws.com/135292740376/vax_scheduled_sms_notification_queue
-  region: us-east-1
+  region: us-east-2
   access_key_id: AKIAR7AATMMMGKHVWYP6
   secret_access_key: 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
   sqs_print_queue_base_url: https://sqs.us-east-1.amazonaws.com/135292740376/ggt-print-queue
   lab_reports_bucket_name: ggt-labreports
   default_link_expiration_time_limit: 300
-  ggt_ops_images: ggt-ops-images
+  ggt_ops_images: ggt-ops-images-dev
+  vax_certificate_bucket: ggt-vax-certificates-dev
 
 gcp:
-  project_id: ggt-pfe-prod
+  project_id: ggt-pfe-dev
   service_account_file: gcp-service-account.json
   default_link_expiration_time_limit: 300
   service_account_file_prod: gcp-service-account-prod.json
   all_inbound_files_bucket_name: ggt-all-inbound-files-prod
   lab_reports_bucket_name: ggt-lab-reports-prod
   insurance_cards_bucket_name: ggt-insurance-cards-prod
-  notification_archive_bucket_name: ggt-notification-archive-prod
+  notification_archive_bucket_name: ggt-notification-archive-dev
   enable_cloud_profiler: false
   enable_cloud_logger: false
   cloud_logger_log_level: 3 # 0-error, 1-warning, 2-info, 3-debug.
 
+
 databases:
   mysql:
-    host: prod-ggt-aurora.cluster-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
-    read_replica_host: reader.cluster-custom-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+    host: ggt-dev-db.cluster-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+    read_replica_host: ggt-dev-db.cluster-ro-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
     username: admin
     password: hWMgl5Tfkqn30saQNp9M
     db: ggt_prod
+
 
   sqlite:
     tasks_sqlite_db: /Users/suresh/ggt-tasks/ggt_tasks_local_cache.db
@@ -116,17 +119,16 @@ notifications:
 twilio:
   account_sid: AC9cef9b4155030ee2683281ccc72d4001
   auth_token: 62ee76165984c54f91ee80aac9cb3f0e
-  from_number: '+18772802151'
+  from_number: "+18772802151"
   account_sid_short_code: ACa718334f24171c002bc3ee69c59aae9e
   auth_token_short_code: e9a391c21722705f3c7902fcde7522a4
   from_number_short_code: "80578"
-
 sendgrid:
   sendgrid_api_key: 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
 
 google:
   maps:
-    api_key: AIzaSyAf7kDO2y7Hz7HYb3LHqvXimqJQcA6X8DQ
+    api_key: AIzaSyBH2PDb_3WMu7MxHpG5DlwZ66PyJ0rv5aQ
     base_url: https://maps.googleapis.com/maps/api/staticmap
     geo_url: https://maps.googleapis.com/maps/api/geocode/json
     zoom_level: 10
@@ -149,8 +151,8 @@ app:
 vendors:
   auth0:
     auth0_domain: gogettested.us.auth0.com
-    api_audience: https://pfe-api.gogettested.com/api
-    algorithms: ['RS256']
+    api_audience: https://role-base-auth.test/api
+    algorithms: ["RS256"]
     roles: http://roles.ggt/roles
     management_client_id: 6ok7VWNkeOA6An5sN30Jl9gHoH4oUT8j
     management_sectret: Rwx8-mby99m5O-2aR14JKgoim0VV0FJuO6sefpDxXjKiQ18mys4JWf2oAO6_5Mha
@@ -176,10 +178,11 @@ vendors:
       outbound_file_prefix: ggt-outbound-mawd
 
   wellpay:
-    endpoint: https://api.getwellpay.com/api/public/v1
+    endpoint: https://api-staging.getwellpay.com/api/public/v1
     auth_user: suresh@wellpay.com
-    auth_password: y7f{=/$>VfRF$vqE
+    auth_password: 8,tp{Na{76<~@.>(
     npi: 1780944496
+
   kdhe:
     hostname: sl64.endpoint.com
     username: sftpwellhealth
@@ -189,29 +192,28 @@ vendors:
 
   slack:
     slack_token: xoxb-my-bot-token
-    slack_channel: '#my-channel'
+    slack_channel: "#my-channel"
     slack_icon_url: https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTuGqps7ZafuzUsViFGIremEL2a3NR0KO0s0RTCMXmzmREJd5m4MA&s
     slack_user_name: Double Images Monitor
 
 pfe:
   signup:
-    special_phone_1: '+14158888888'
-    special_phone_2: '+14159999999'
-    special_phone_3: '4158888888'
-    special_phone_4: '4159999999'
-    override_otp_code: '000000'
+    special_phone_1: "+14158888888"
+    special_phone_2: "+14159999999"
+    special_phone_3: "4158888888"
+    special_phone_4: "4159999999"
+    override_otp_code: "000000"
 
 
 security:
   ggv_secret: "thisistheggvtopsecret2021"
 
-
 payment:
   stripe:
-    secret_key: "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"
+    secret_key: "sk_test_51IRhpxAf0ltvHUzx80AaXczh8OjQWDEhRJmqdugww38vmUPBmDeOlRRWlU0QMgxB5bSy3X6vCAOfEuXRntZIbckl00XKX9qAIN"
   navigation:
-    success_url: "https://start.gogettested.com/appointment/{}/pay/success?token={}"
-    cancel_url: "https://start.gogettested.com"
+    success_url: "https://start-dev.gogettested.com/appointment/{}/pay/success?token={}"
+    cancel_url: "https://start-dev.gogettested.com"
 
 image_urls:
   flu_shot:
@@ -219,7 +221,8 @@ image_urls:
   payment:
     - 'https://goget-static-content.s3.us-east-2.amazonaws.com/ggtlogo.png' # Add a URL of a stock photo or S3 bucket
 
+
 lab_integrations:
-  s3_bucket: ggt-sftp
-  archive_bucket: ggt-sftp-archive
-  labreport_bucket: ggt-labreports
+  s3_bucket: ggt-sftp-dev
+  archive_bucket: ggt-sftp-archive-dev
+  labreport_bucket: ggt-labreports-dev

@@ -20,7 +20,7 @@ from ggt.models.process_models.bp_patient_experience import (
     bp_get_wellpay_insurance_eligibility,
     bp_search_insurance_payer_list, bp_get_ggv_screen_flow_seq, bp_ggv_finalize_booking, bp_ggv_finalize_pre_booking,
     bp_create_pre_registration, bp_verify_verification_token, bp_reschedule_first_appointment,
-    bp_reschedule_second_appointment, bp_lookup_certificate
+    bp_reschedule_second_appointment, bp_lookup_certificate, bp_get_vax_certificate
 )
 
 from ggt.models.process_models.bp_schedules import (
@@ -216,13 +216,14 @@ def lookup_appointment(appointment_id, dob):
 
 
 @cached(cache=TTLCache(maxsize=1024, ttl=60))
-def lookup_certificate(phone_number, dob, first_name, last_name):
+def lookup_certificate(phone_number, dob, first_name, last_name, token):
     return y_response(
         bp_lookup_certificate(
             phone_number,
             dob,
             first_name,
-            last_name
+            last_name,
+            token
         )
     )
 
@@ -260,8 +261,8 @@ def finalize_registration(finalize_registration_request):
             "appointment_id": appointment.id,
             "date": appointment.date_text,
             "location": appointment.location_text,
-            'total_balance': int(appointment.billed_amount*100),
-            'total_cost': int(appointment.total_cost*100),
+            'total_balance': int(appointment.billed_amount * 100),
+            'total_cost': int(appointment.total_cost * 100),
             'payment_url': appointment.payment_url,
             'payment_checkout_session': appointment.payment_checkout_session,
             c.STATUS: c.SUCCESS
@@ -294,16 +295,16 @@ def ggv_finalize_registration(finalize_registration_request):
         res["appointment_id_1"] = appointment_1.id
         res["date_1"] = appointment_1.date_text
         res["location_1"] = appointment_1.location_text
-        res['total_balance_1'] = int(appointment_1.billed_amount*100)
-        res['total_cost_1'] = int(appointment_1.total_cost*100)
+        res['total_balance_1'] = int(appointment_1.billed_amount * 100)
+        res['total_cost_1'] = int(appointment_1.total_cost * 100)
         res['payment_url_1'] = appointment_1.payment_url
 
         if appointment_2:
             res["appointment_id_2"] = appointment_2.id
             res["date_2"] = appointment_2.date_text
             res["location_2"] = appointment_2.location_text
-            res['total_balance_2'] = int(appointment_2.billed_amount*100)
-            res['total_cost_2'] = int(appointment_2.total_cost*100)
+            res['total_balance_2'] = int(appointment_2.billed_amount * 100)
+            res['total_cost_2'] = int(appointment_2.total_cost * 100)
             res['payment_url_2'] = appointment_2.payment_url
 
         return res
@@ -538,6 +539,10 @@ def verify_verification_token(toke_verification_request):
     return x_response(
         bp_verify_verification_token(toke_verification_request.verification_token)
     )
+
+
+def get_vax_certificate(patient_id, cert_id):
+    return bp_get_vax_certificate(patient_id, cert_id)
 
 
 @cached(cache=TTLCache(maxsize=1024, ttl=180))

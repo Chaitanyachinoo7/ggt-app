@@ -708,6 +708,7 @@ class LookupGGVCertificateRequest(BaseModel):
     dob: str
     first_name: str
     last_name: str
+    token: str
 
 
 class NotificationEnum(str, Enum):

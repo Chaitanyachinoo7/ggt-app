@@ -31,7 +31,8 @@ def cleanup_db():
               'workstations', 'users', 'insurance_info', 'appointment_services', 'organizations', 'organization_requests',
               'patient_questionnaires', 'locations_metrics_cache', 'schedules_metrics_cache', 'patient_consultations',
               'group_codes_to_locations_mapping', 'ggt_users', 'result_notification_campaigns', 'patient_questionnaires',
-              'healthtrackrx_inbound_data', 'crl_inbound_data', 'mawdpath_inbound_data', 'processed_inbound_files']
+              'healthtrackrx_inbound_data', 'crl_inbound_data', 'mawdpath_inbound_data', 'processed_inbound_files', 'labs',
+              'inbound_processing_errors', 'outbound_processing_errors', 'lab3a_inbound_data']
     for table in tables[::-1]:
         print("Cleaning up table:", table)
         sql = """delete from {} where id > -1""".format(table)
@@ -82,3 +83,5 @@ def test_populate_db(cleanup_db):
         insert('ggt_users', row)
     for row in data.result_notification_campaigns:
         insert('result_notification_campaigns', row)
+    for row in data.labs:
+        insert('labs', row)
