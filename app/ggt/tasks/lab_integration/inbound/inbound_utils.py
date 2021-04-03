@@ -317,7 +317,7 @@ def archive_inbound_file(lab_id, source_bucket, source_path, dest_bucket, dest_p
 
         # prevent override of previous file, add dt suffix
         if file_exists(dest_bucket, dest_path):
-            source_path = source_path.replace(
+            dest_path = dest_path.replace(
                 '.', '-{}.'.format(datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S")))
 
         try:
