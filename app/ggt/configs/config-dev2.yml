@@ -89,7 +89,8 @@ gcp:
 databases:
   mysql:
     host: dev-db-test-proxy-2.proxy-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
-    read_replica_host: dev-db-test-proxy-2-read-only.endpoint.proxy-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+    read_replica_host: dev-db-test-proxy-2.proxy-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+#    read_replica_host: dev-db-test-proxy-2-read-only.endpoint.proxy-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
     username: admin
     password: hWMgl5Tfkqn30saQNp9M
     db: ggt_prod

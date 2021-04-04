@@ -27,10 +27,40 @@ crl_api_url = cfg('lab_integrations.CRL.api_url')
 bucket_name = cfg('lab_integrations.s3_bucket')
 
 
+CRL_RACE_MAP = {
+    '1002-5': "American Indian or Alaska Native",
+    '2028-9': "Asian",
+    '2054-5': "Black or African-American",
+    '2076-8': "Native Hawaiian or Other Pacific Islander",
+    '2131-1': "Other Race",
+    '2106-3': "White",
+    'Unknown': "Unknown/undetermined"
+}
+
+CRL_ETHNICITY_MAP = {
+    "H": "Hispanic or Latino",
+    "N": "Not Hispanic or Latino",
+    "U": "Unknown"
+}
+
+CRL_GENDER_MAP = {
+    "M": "Male",
+    "F": "Female",
+    "U": "Other"
+}
+
+
 def _get_crl_api_payload(order):
     """
     Generates the CRL API payload given the order details
     """
+
+    dob = order["dob"]
+    dob = "{}-{}-{}".format(dob[:4], dob[4:6], dob[6:])
+
+    race = CRL_RACE_MAP.get(order["race"], "Unknown/undetermined")
+    ethnicity = CRL_ETHNICITY_MAP.get(order["ethnicity"], "Unknown")
+    gender = CRL_GENDER_MAP.get(order["gender"], "Other")
 
     crl_payload = {
         "order": {
@@ -56,8 +86,8 @@ def _get_crl_api_payload(order):
         "recipient": {
             "firstName": order["first_name"],
             "lastName": order["last_name"],
-            "birthDate": order["dob"],
-            "gender": order["gender"],
+            "birthDate": dob,
+            "gender": gender,
             "phone": order["phone_number"].replace("+1", ""),
             "email": "",
             "address": {
@@ -67,8 +97,8 @@ def _get_crl_api_payload(order):
                 "state": order["st"],
                 "zip": order["zip"],
             },
-            "ethnicity": order["ethnicity"],
-            "race": order["race"],
+            "ethnicity": ethnicity,
+            "race": race,
             "guardianfirstName": "ON FILE WITH",
             "guardianlastName": "WELLHEALTH",
             "guardianPhone": "8778378461",
@@ -230,6 +260,7 @@ def create_outbound_requests(orders):
                 continue
 
             processed.append(order)
+            continue
 
         # for all other labs, generate hl7 file and place it in s3
         hl7_util = HL7(order.copy())
