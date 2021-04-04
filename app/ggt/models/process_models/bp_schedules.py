@@ -502,7 +502,7 @@ def bp_get_second_shot_available_times(location_id, date):
         )
 
     return {
-        "available_date_times": res
+        "available_dates": res
     }
 
 
