@@ -66,7 +66,7 @@ async def api_process_inbound_lab_reports():
 
 @router.post("/background_process_outbound_lab_orders", dependencies=[Security(authorize_user, scopes=[p.PROCESS_PROCESS_OUTBOUND_LAB_ORDERS])])
 async def api_background_process_outbound_lab_orders(background_tasks: BackgroundTasks):
-    background_tasks.add_task(task_process_outbound_lab_orders)
+    background_tasks.add_task(task_process_outbound_orders)
     return {
         STATUS: SUCCESS,
         DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
@@ -75,7 +75,7 @@ async def api_background_process_outbound_lab_orders(background_tasks: Backgroun
 
 @router.post("/process_outbound_lab_orders", dependencies=[Security(authorize_user, scopes=[p.PROCESS_PROCESS_OUTBOUND_LAB_ORDERS])])
 async def api_process_outbound_lab_orders():
-    task_process_outbound_lab_orders()
+    task_process_outbound_orders()
     return {STATUS: SUCCESS}
 
 
