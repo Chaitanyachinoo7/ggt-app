@@ -162,8 +162,8 @@ def get_all_available_locations_and_times(group_code):
 
 @cached(cache=TTLCache(maxsize=1024, ttl=60))
 def get_schedule_times_available(
-        location_id,
-        date=date.today().strftime("%Y-%m-%d")
+    location_id,
+    date=date.today().strftime("%Y-%m-%d")
 ):
     return x_response(
         bp_get_schedule_times_available(
@@ -174,8 +174,8 @@ def get_schedule_times_available(
 
 
 def get_ggv_schedule_times_available(
-        location_id,
-        date=date.today().strftime("%Y-%m-%d")
+    location_id,
+    date=date.today().strftime("%Y-%m-%d")
 ):
     return x_response(
         bp_get_ggv_schedule_times_available(
@@ -372,8 +372,7 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
 
         b.st = finalize_registration_request.patientAddress.state
         b.dob = finalize_registration_request.patientDetails.dob
-        if "patientVitals" in dict(
-                finalize_registration_request).keys() and finalize_registration_request.patientVitals:
+        if "patientVitals" in dict(finalize_registration_request).keys() and finalize_registration_request.patientVitals:
             b.height = finalize_registration_request.patientVitals.height
             b.weight = finalize_registration_request.patientVitals.weight
             b.meds = finalize_registration_request.patientVitals.medications
@@ -392,8 +391,7 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
             b.symptom_lack_of_smell = finalize_registration_request.symptoms.symptom_lack_of_smell
         b.covid_contact = finalize_registration_request.contactTracing
 
-        if "preExistingConditions" in dict(
-                finalize_registration_request).keys() and finalize_registration_request.preExistingConditions:
+        if "preExistingConditions" in dict(finalize_registration_request).keys() and finalize_registration_request.preExistingConditions:
             b.heart_disease = finalize_registration_request.preExistingConditions.heart_disease
             b.diabetes = finalize_registration_request.preExistingConditions.diabetes
             b.respiratory_disease = finalize_registration_request.preExistingConditions.respiratory_disease
@@ -526,6 +524,7 @@ def __assign_services(selected_services, sku):
     if sku == c.SERVICE_CODE_COVID_19_VACCINE_JNJ:
         selected_services.covid_19_vax_jnj = True
     return selected_services
+
 
 
 def insurance_eligibility(insurance_eligibility_request):
