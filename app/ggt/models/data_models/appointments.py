@@ -456,9 +456,10 @@ def get_appointment_count_by_phone_dob(phone_number, dob):
             SELECT
                 COUNT(*) AS count
             FROM
-                appointments a
-                    JOIN
-                patients p ON (p.id = a.patient_id)
+                
+                patients p
+                    LEFT JOIN
+                appointments a ON (p.id = a.patient_id)
             WHERE
                 p.phone_number = %s
             """
