@@ -50,7 +50,8 @@ from ggt.models.data_models.appointments import (
     get_appointment_count_by_phone_dob,
     create_appointment,
     update_appointment_with_confirmed_scheduled,
-    update_appointment_with_receipt_token, release_ggv_slot, lock_ggv_slot, re_schedule_appointment, lookup_certificate
+    update_appointment_with_receipt_token, release_ggv_slot, lock_ggv_slot, re_schedule_appointment, lookup_certificate,
+    is_open_patient
 )
 
 from ggt.models.data_models.locations import (
