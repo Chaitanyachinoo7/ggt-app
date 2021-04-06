@@ -51,7 +51,7 @@ from ggt.models.data_models.appointments import (
     create_appointment,
     update_appointment_with_confirmed_scheduled,
     update_appointment_with_receipt_token, release_ggv_slot, lock_ggv_slot, re_schedule_appointment, lookup_certificate,
-    is_open_patient
+    is_open_patient, update_appointment_with_payment_session
 )
 
 from ggt.models.data_models.locations import (
@@ -349,6 +349,7 @@ def bp_finalize_booking(booking_req: GgtBooking, finalize_registration_request):
             # appointment.payment_url = __inject_payment_flow(appointment)
             appointment.payment_checkout_session = \
                 __inject_payment_checkout_session(appointment, upfront_payment_info, booking_req, selected_services)
+            update_appointment_with_payment_session(appointment)
         else:
             # payment not required, confirm the appointment and notify
             update_appointment_with_confirmed_scheduled(appointment)
