@@ -11,4 +11,6 @@ RUN pip install -r requirements.txt
 
 COPY ./app app
 
+RUN export PYTHONPATH="${PYTHONPATH}:/var/task/app"
+
 CMD ["app/main.handler"]
