@@ -49,6 +49,7 @@ pdfplumber = "*"
 pdfrw = "*"
 reportlab = "*"
 stripe = "*"
+mangum = "*"
 
 [requires]
 python_version = "3.7"

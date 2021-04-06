@@ -1,5 +1,6 @@
 # system
 import uvicorn
+from mangum import Mangum
 
 # third party
 from fastapi import FastAPI
@@ -189,3 +190,7 @@ if __name__ == '__main__':
         port=cfg('server.port'),
         debug=cfg('log_level'),
     )
+
+
+# Lambda function handler
+handler = Mangum(app=app)
