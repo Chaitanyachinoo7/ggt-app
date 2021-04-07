@@ -60,6 +60,7 @@ def generate_results_pdf(rows):
     for row in rows:
         try:
             create_antigen_report_pdf(row)
+            success_appointment_ids.append(row['appointment_id'])
         except Exception as e:
             print(e)
 
