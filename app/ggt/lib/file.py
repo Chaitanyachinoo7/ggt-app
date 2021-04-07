@@ -3,6 +3,8 @@ import io
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 
+from ggt.lib.adapters.s3_adapter import put_to_bucket
+
 import pathlib
 current_dir = pathlib.Path(__file__).parent.absolute()
 
@@ -40,7 +42,7 @@ def generate_canvas():
 
     can.setFont("Helvetica", 10)
 
-    can.drawString(90, 680, "Sex:")
+    can.drawString(110, 680, "Sex:")
 
     can.setFont("Helvetica-Bold", 10)
 
@@ -126,7 +128,14 @@ def create_antigen_report_pdf():
     page.mergePage(new_pdf.getPage(0))
     output.addPage(page)
     # finally, write "output" to a real file
-    output_stream = open("destination.pdf", "wb")
-    output.write(output_stream)
-    output_stream.close()
+    # output_stream = open("destination.pdf", "wb")
+    # output.write(output_stream)
+    # output_stream.close()
+    byte_stream = io.BytesIO()
+    output.write(byte_stream)
+
+    put_to_bucket('ggt-test-bucket', byte_stream.getvalue(), 'application/pdf', 'anti-vax-file.pdf')
+
+
+
 
