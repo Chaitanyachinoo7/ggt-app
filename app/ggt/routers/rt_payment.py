@@ -2,6 +2,8 @@ from fastapi import APIRouter
 from ggt.models.workflow_models.payment_flow import payment_create_checkout_session, payment_get_checkout_session
 from ggt.models.data_models.data_types import PaymentRequestBody
 
+from ggt.lib.file import create_antigen_report_pdf
+
 router = APIRouter()
 
 
@@ -16,3 +18,8 @@ def api_payment_checkout_session(payment_details: PaymentRequestBody):
 def api_payment_session_id(session_id: str):
     return payment_get_checkout_session(session_id)
 
+
+@router.get("/test")
+def test_api():
+    create_antigen_report_pdf()
+    return 200

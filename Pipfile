@@ -49,6 +49,7 @@ pdfplumber = "*"
 pdfrw = "*"
 reportlab = "*"
 stripe = "*"
+pypdf2 = "*"
 
 [requires]
 python_version = "3.7"
