@@ -4,22 +4,26 @@ from datetime import datetime
 # ORGANIZATION_ID = 1
 # SEASON_ID = 1
 # PATH = pathlib.Path(__file__).parent.absolute()
-
+from PIL import Image
 from PyPDF2 import PdfFileWriter, PdfFileReader
 import io
+import pathlib
+
+from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from dateutil.relativedelta import relativedelta
 
-from ggt.lib.adapters.s3_adapter import put_to_bucket
-
-import pathlib
-current_dir = pathlib.Path(__file__).parent.absolute()
+from ggt.lib.adapters.s3_adapter import put_to_bucket, read_file
 
 from ggt.lib.adapters.mysql_adapter import exec_batch_execute, replica_read_rows, exec_update
 from ggt.lib.utils import get_config_val
 
 lab_report_bucket = get_config_val('lab_integrations.labreport_bucket')
+current_dir = pathlib.Path(__file__).parent.absolute()
+
+test_image_bucket = get_config_val("aws.ggt_ops_images")
+antigen_test_result_bucket = 'ggt-test-bucket'
 
 
 def generate_antigen_results_pdf():
@@ -79,7 +83,7 @@ def update_test_samples(processed_appointment_ids=[]):
     return exec_update(sql)
 
 
-def generate_canvas(details):
+def generate_patient_test_result_canvas(details):
     packet = io.BytesIO()
     # create a new PDF with Reportlab
     can = canvas.Canvas(packet, pagesize=letter)
@@ -125,7 +129,8 @@ def generate_canvas(details):
 
     can.setFont("Helvetica-Bold", 10)
 
-    can.drawString(60, 660, "21/05/2021 (GMT-6)")
+    sample_collection_dt = details['sample_collection_end_dt']
+    can.drawString(60, 660, sample_collection_dt.strftime("%d/%m/%y %z"))
 
     can.setFont("Helvetica", 10)
 
@@ -145,21 +150,24 @@ def generate_canvas(details):
 
     can.drawString(60, 530, "Result")
 
-    is_result_postive = details['test_result'] == 'pos'
-    displayed_result = '__POSITIVE__' if is_result_postive else "___NEGATIVE___"
+    is_result_positive = details['test_result'] == 'pos'
+    displayed_result = '__POSITIVE__' if is_result_positive else "___NEGATIVE___"
 
     can.drawString(60, 495, displayed_result)
 
     can.setFont("Helvetica", 10)
 
     can.drawString(130, 465, "Sample collection: ")
-    can.drawString(220, 465, "12:32h (GMT-6))")
+
+    sample_collection_dt = details['sample_collection_end_dt']
+    can.drawString(220, 465, sample_collection_dt.strftime("%H:%Mh"))
 
     can.drawString(175, 435, "Report: ")
-    can.drawString(220, 435, "12:47h (GMT-6))")
+    report_gent_dt = details['report_gen_dt']
+    can.drawString(220, 435, report_gent_dt.strftime("%H:%Mh"))
 
     can.drawString(70, 405, "Sample processing technician: ")
-    can.drawString(220, 405, "7946")
+    can.drawString(220, 405, "")
 
     can.setFont("Helvetica-Bold", 10)
 
@@ -187,30 +195,74 @@ def generate_canvas(details):
     return packet
 
 
-def create_antigen_report_pdf(details):
-
-    packet = generate_canvas(details)
+def generate_patients_test_result_page(details):
+    # Get the canvas object
+    packet = generate_patient_test_result_canvas(details)
 
     # move to the beginning of the StringIO buffer
     packet.seek(0)
     new_pdf = PdfFileReader(packet)
+
+    return new_pdf
+
+
+def generate_patient_test_image_canvas(image):
+    packet = io.BytesIO()
+    # create a new PDF with Reportlab
+    can = canvas.Canvas(packet, pagesize=letter)
+
+    can.drawImage(image, 150, 400, 100, 100)
+    can.save()
+    return packet
+
+
+def generate_patient_test_result_image_page(details):
+    try:
+        image_name = 'test_result_images/{}.png'.format(details['appointment_id'])
+        img_bytes = read_file(test_image_bucket, image_name)
+        if not img_bytes:
+            return None
+        # Generate image from the byte
+        img = Image.open(io.BytesIO(img_bytes))
+        packet = generate_patient_test_image_canvas(ImageReader(img))
+
+        # move to the beginning of the StringIO buffer
+        packet.seek(0)
+        new_pdf = PdfFileReader(packet)
+
+        return new_pdf
+
+    except Exception as err:
+        print(err)
+        return None
+
+
+def create_antigen_report_pdf(details):
+
     # read your existing PDF
     existing_pdf = PdfFileReader(open(current_dir.joinpath("../templates/pdf/antigen-report-no-text.pdf"), "rb"))
+
+    pdf_with_test_result = generate_patients_test_result_page(details)
+    pdf_with_test_image = generate_patient_test_result_image_page(details)
     output = PdfFileWriter()
-    # add the "watermark" (which is the new pdf) on the existing page
+
+    # First page will have patient details
     page = existing_pdf.getPage(0)
-    page.mergePage(new_pdf.getPage(0))
+    page.mergePage(pdf_with_test_result.getPage(0))
     output.addPage(page)
-    # finally, write "output" to a real file
-    # output_stream = open("destination.pdf", "wb")
-    # output.write(output_stream)
-    # output_stream.close()
+
+    # If there is an image pdf, append it to the second page
+    if pdf_with_test_image:
+        empty_page = existing_pdf.getPage(1)
+        empty_page.mergePage(pdf_with_test_image.getPage(0))
+        output.addPage(empty_page)
+
+    # Create in memory byte stream to get the content of the pdf
     byte_stream = io.BytesIO()
     output.write(byte_stream)
 
-    file_name = "{} {} report".format(details['first_name'], details['last_name'])
+    # S3 file name
+    file_name = "{} {} {} report.pdf".format(details['first_name'], details['last_name'], details['appointment_id'])
 
-    put_to_bucket('ggt-test-bucket', byte_stream.getvalue(), 'application/pdf', file_name)
-
-
-
+    # Push to S3
+    put_to_bucket(antigen_test_result_bucket, byte_stream.getvalue(), 'application/pdf', file_name)
