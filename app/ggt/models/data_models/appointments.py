@@ -701,6 +701,26 @@ def create_consultation_note(user, appointment_id, appointment_notes):
     return exec_insert(sql, vals)
 
 
+def update_appointment_with_payment_session(appointment: GgtAppointment):
+    sql = """UPDATE `appointments`
+                        SET
+                        payment_session = %s
+                    WHERE
+                        id = %s; """
+    vals = (appointment.payment_checkout_session, appointment.id)
+    return exec_update(sql, vals)
+
+
+def update_appointment_status_to_checked_in(appointment_id):
+    sql = """UPDATE `appointments`
+                        SET
+                        status = %s
+                    WHERE
+                        status = %s AND id = %s; """
+    vals = (c.APPOINTMENT_STATUS_CHECKED_IN, c.APPOINTMENT_STATUS_INSURANCE_PENDING, appointment_id)
+    return exec_update(sql, vals)
+
+
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
