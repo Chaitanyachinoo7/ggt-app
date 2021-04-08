@@ -46,7 +46,8 @@ from ggt.lib.adapters.s3_adapter import uploadDirectory, create_folder, get_temp
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-from ggt.models.process_models.bp_patient_experience import __upload_vax_card_image
+from ggt.models.process_models.bp_patient_experience import __upload_vax_card_image, __send_ggv_certificate_level_1_sms, \
+    __send_ggv_certificate_level_1_email
 
 
 def bp_cc_search_details_by_name_and_dob(last_name, dob):
@@ -767,5 +768,8 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
 
     if cert_id and patient_id:
         __upload_vax_card_image(image, patient_id, cert2_id)
+
+    __send_ggv_certificate_level_1_sms(first_name, phone_number)
+    __send_ggv_certificate_level_1_email(first_name, email)
 
     return True

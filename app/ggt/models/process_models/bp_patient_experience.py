@@ -978,6 +978,38 @@ def __send_ggv_qrcode_sms(appointment: GgtAppointment, dose, out_of):
     return None
 
 
+def __send_ggv_certificate_level_1_sms(first_name, phone_number):
+    try:
+        message = """Hi {}, The 1st level verification of your vaccine card is complete. 
+        You can access your digital vaccine certificate by clicking below. 
+        \nhttps://start.gogetvax.com""".format(
+            first_name
+        )
+
+        send_sms(phone_number,
+                 message.replace('\t', ''))
+
+        log_generic(
+            type=c.INFO,
+            first_name=first_name,
+            phone_number=phone_number,
+            message=message,
+            function=whoami()
+        )
+
+        return True
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            appointment=appointment,
+            function=whoami(),
+            error=err
+        )
+
+    return None
+
+
 def __send_ggv_pre_registration_sms(first_name, phone_number):
     try:
         message = "Hi {} " \
@@ -1112,6 +1144,50 @@ def __send_ggv_qrcode_email(appointment: GgtAppointment):
             from_email,
             from_name,
             appointment.patient.email,
+            subject,
+            html_content
+        )
+
+        return True
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            appointment=appointment,
+            function=whoami(),
+            error=err
+        )
+
+    return False
+
+
+def __send_ggv_certificate_level_1_email(first_name, email):
+    try:
+        from_email = cfg('notifications.from_email')
+        from_name = cfg('notifications.from_name')
+
+        template_vars = {
+            "first_name": first_name
+        }
+
+        subject = "{}, The 1st level verification of your vaccine card is complete.".format(
+            first_name)
+
+        subject = render_from_string(
+            subject,
+            **template_vars
+        )
+
+        template_name = 'GGV-2-COMPLETED-LEVEL-1.html'
+        html_content = render_template(
+            template_name,
+            **template_vars
+        )
+
+        send_email(
+            from_email,
+            from_name,
+            email,
             subject,
             html_content
         )
