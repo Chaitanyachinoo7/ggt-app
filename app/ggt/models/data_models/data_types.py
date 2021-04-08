@@ -1533,3 +1533,17 @@ class PortalVaxRegisteredWaitAroundLocationRequest(BaseModel):
     location_id: int
     radius: int
 
+
+class VaxCertificate(BaseModel):
+    first_name: str
+    last_name: str
+    phone_number: str
+    email: str
+    dob: str
+    first_vax_dt: str = None
+    second_vax_dt: str = None
+    vax_type: str
+    vax_1_lot_number: str = None
+    vax_2_lot_number: str = None
+    vax_image: str = None
+
