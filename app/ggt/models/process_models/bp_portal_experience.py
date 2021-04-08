@@ -764,7 +764,7 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
 
     cert_id = cert1_id
     if cert_id is None:
-        cert1_id = cert2_id
+        cert_id = cert2_id
 
     if cert_id and patient_id:
         __upload_vax_card_image(image, patient_id, cert2_id)
