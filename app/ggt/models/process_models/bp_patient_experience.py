@@ -789,9 +789,9 @@ def __generate_pk_pass(pkpass_req, patient, verification):
         passfile.labelColor = "rgb(238, 191, 217)"
         passfile.barcode = Barcode(message=message, format="PKBarcodeFormatQR")
         passfile.addFile("icon.png", open(
-            "ggt/configs/images/Group 4GGV-2.png", "rb"))
+            "ggt/configs/images/Group 4GGV-4.png", "rb"))
         passfile.addFile("logo.png", open(
-            "ggt/configs/images/Group 4GGV-2.png", "rb"))
+            "ggt/configs/images/Group 4GGV-4.png", "rb"))
         _ = passfile.create(cert_pem,
                             key_pem,
                             wwdr_pem,
