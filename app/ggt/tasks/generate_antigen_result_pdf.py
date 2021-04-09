@@ -42,7 +42,8 @@ def get_all_appointment_information():
                     ts.sample_collection_end_dt,
                     ts.lab_electronic_submission_dt AS 'report_gen_dt',
                     ts.appointment_id,
-                    ts.id
+                    ts.id,
+                    p.id AS 'patient_id'
                 FROM
                     test_samples ts
                         JOIN
@@ -64,7 +65,7 @@ def generate_results_pdf(rows):
     for row in rows:
         try:
             create_antigen_report_pdf(row)
-            success_appointment_ids.append(row['appointment_id'])
+            # success_appointment_ids.append(row['appointment_id'])
         except Exception as e:
             print(e)
 
@@ -94,7 +95,7 @@ def generate_patient_test_result_canvas(details):
     can.drawString(460, 770, str(details['appointment_id']))
 
     can.drawString(410, 760, "Patient ID: ")
-    can.drawString(460, 760, str(details['id']))
+    can.drawString(460, 760, str(details['patient_id']))
 
     can.drawString(460, 720, "Check-Up")
 
@@ -211,7 +212,7 @@ def generate_patient_test_image_canvas(image):
     # create a new PDF with Reportlab
     can = canvas.Canvas(packet, pagesize=letter)
 
-    can.drawImage(image, 150, 400, 100, 100)
+    can.drawImage(image, 150, 175, 400, 400)
     can.save()
     return packet
 
