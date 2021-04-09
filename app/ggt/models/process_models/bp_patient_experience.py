@@ -52,7 +52,7 @@ from ggt.models.data_models.appointments import (
     create_appointment,
     update_appointment_with_confirmed_scheduled,
     update_appointment_with_receipt_token, release_ggv_slot, lock_ggv_slot, re_schedule_appointment, lookup_certificate,
-    is_open_patient, lookup_pkpass
+    is_open_patient, update_appointment_with_payment_session
 )
 
 from ggt.models.data_models.locations import (
@@ -89,7 +89,8 @@ from ggt.models.data_models.data_types import (
 
 from ggt.lib.storage import (
     file_exists_in_insurance_cards,
-    upload_insurance_card_from_base64_string, upload_test_result_image_from_base64_string
+    upload_insurance_card_from_base64_string, upload_test_result_image_from_base64_string,
+    upload_vax_card_image_from_base64_string
 )
 
 from ggt.lib.storage import get_temporary_lab_report_url
@@ -357,8 +358,8 @@ def bp_finalize_booking(booking_req: GgtBooking, finalize_registration_request):
             # Below method is commented due to the use of an undefined method
             # appointment.payment_url = __inject_payment_flow(appointment)
             appointment.payment_checkout_session = \
-                __inject_payment_checkout_session(
-                    appointment, upfront_payment_info, booking_req, selected_services)
+                __inject_payment_checkout_session(appointment, upfront_payment_info, booking_req, selected_services)
+            update_appointment_with_payment_session(appointment)
         else:
             # payment not required, confirm the appointment and notify
             update_appointment_with_confirmed_scheduled(appointment)
@@ -1100,6 +1101,38 @@ def __send_ggv_qrcode_sms(appointment: GgtAppointment, dose, out_of):
     return None
 
 
+def __send_ggv_certificate_level_1_sms(first_name, phone_number):
+    try:
+        message = """Hi {}, The 1st level verification of your vaccine card is complete. 
+        You can access your digital vaccine certificate by clicking below. 
+        \nhttps://start.gogetvax.com""".format(
+            first_name
+        )
+
+        send_sms(phone_number,
+                 message.replace('\t', ''))
+
+        log_generic(
+            type=c.INFO,
+            first_name=first_name,
+            phone_number=phone_number,
+            message=message,
+            function=whoami()
+        )
+
+        return True
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            appointment=appointment,
+            function=whoami(),
+            error=err
+        )
+
+    return None
+
+
 def __send_ggv_pre_registration_sms(first_name, phone_number):
     try:
         message = "Hi {} " \
@@ -1234,6 +1267,50 @@ def __send_ggv_qrcode_email(appointment: GgtAppointment):
             from_email,
             from_name,
             appointment.patient.email,
+            subject,
+            html_content
+        )
+
+        return True
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            appointment=appointment,
+            function=whoami(),
+            error=err
+        )
+
+    return False
+
+
+def __send_ggv_certificate_level_1_email(first_name, email):
+    try:
+        from_email = cfg('notifications.from_email')
+        from_name = cfg('notifications.from_name')
+
+        template_vars = {
+            "first_name": first_name
+        }
+
+        subject = "{}, The 1st level verification of your vaccine card is complete.".format(
+            first_name)
+
+        subject = render_from_string(
+            subject,
+            **template_vars
+        )
+
+        template_name = 'GGV-2-COMPLETED-LEVEL-1.html'
+        html_content = render_template(
+            template_name,
+            **template_vars
+        )
+
+        send_email(
+            from_email,
+            from_name,
+            email,
             subject,
             html_content
         )
@@ -1466,6 +1543,29 @@ def __upload_test_result_image(result_image: str, appointment_id: int) -> bool:
         log_generic(
             type=c.ERROR,
             appointment_id=appointment_id,
+            result_image=result_image,
+            function=whoami(),
+            error=err
+        )
+
+    return False
+
+
+def __upload_vax_card_image(result_image: str, patient_id: int, cert_id: int) -> bool:
+    try:
+        if result_image and len(result_image) > 0:
+            if "," in result_image:
+                base64string = result_image.split(",")[1]
+
+            dest_file_name = '{}/{}.jpg'.format(patient_id, cert_id)
+            if upload_vax_card_image_from_base64_string(base64string, dest_file_name):
+                print('uploaded image: {}'.format(dest_file_name))
+                return True
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            patient_id=patient_id,
             result_image=result_image,
             function=whoami(),
             error=err

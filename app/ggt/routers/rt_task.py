@@ -45,6 +45,7 @@ from ggt.tasks.hl7_outbound_lab_orders import task_process_hl7_lab_orders
 from ggt.tasks.CRL_outbound_lab_orders import task_process_crl_lab_orders
 from ggt.tasks.report_notifications import task_schedule_result_notifications_and_followups
 from ggt.tasks.sms_queue_processor import task_process_sms_queue
+from ggt.tasks.update_stripe_payments_processor import update_stripe_payments
 
 router = APIRouter()
 
@@ -239,6 +240,15 @@ async def api_list_ftp_files():
 @router.post("/rebuild_appsheet_database", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_rebuild_appsheet_database(background_tasks: BackgroundTasks):
     background_tasks.add_task(rebuild_appsheet_database)
+    return {
+        STATUS: SUCCESS,
+        DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
+    }
+
+
+@router.post("/process_appointments_against_stripe", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_process_appointments_against_stripe(background_tasks: BackgroundTasks):
+    background_tasks.add_task(update_stripe_payments)
     return {
         STATUS: SUCCESS,
         DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE

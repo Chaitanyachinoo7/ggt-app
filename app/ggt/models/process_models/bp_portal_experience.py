@@ -5,6 +5,7 @@ import ggt.lib.constants as c
 from ggt.lib.utils import (
     log_generic,
     whoami)
+from ggt.models.data_models import patients
 from ggt.models.data_models.clinical_test_results import (
     get_all_test_results,
     search_details_by_name_and_dob,
@@ -15,6 +16,7 @@ from ggt.models.data_models.clinical_test_sample import (
     record_label_scan,
     lab_status_update
 )
+from ggt.models.data_models.data_types import VaxCertificate
 from ggt.models.data_models.generic_search_result import (
     find_patients,
     find_patients_for_vaccineation,
@@ -40,9 +42,12 @@ import os
 import shutil
 from ggt.lib.adapters.s3_adapter import uploadDirectory, create_folder, get_temp_vaccine_consent_url
 
+
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
+from ggt.models.process_models.bp_patient_experience import __upload_vax_card_image, __send_ggv_certificate_level_1_sms, \
+    __send_ggv_certificate_level_1_email
 
 
 def bp_cc_search_details_by_name_and_dob(last_name, dob):
@@ -89,7 +94,8 @@ def bp_get_general_search_results(org_id, first_name, middle_name, last_name, do
             appointment_date = datetime.strptime(appointment_date, "%m%d%Y")
 
         search_results = find_patients(org_id, first_name, middle_name, last_name, dob, phone_number,
-                                       email, appointment_id, group_code, appointment_date, location_id, vial_id, sort_field,
+                                       email, appointment_id, group_code, appointment_date, location_id, vial_id,
+                                       sort_field,
                                        sort_type, token=token, is_patient=is_patient)
         if group_vax_results:
             return __group_vax_results(search_results)
@@ -120,31 +126,36 @@ def bp_get_f11(appointment_ids):
             error=err
         )
 
+
 def delete_temp_folder_structure(date):
-    shutil.rmtree(date+'/f11_overlay/')
-    shutil.rmtree(date+'/consent_overlay/')
+    shutil.rmtree(date + '/f11_overlay/')
+    shutil.rmtree(date + '/consent_overlay/')
+
 
 def upload_to_S3(date):
-    create_folder("ggt-sftp", "brownwoodv/"+date)
+    create_folder("ggt-sftp", "brownwoodv/" + date)
     uploadDirectory(date, "ggt-sftp")
+
 
 def get_consent_form_URLs(patients, date):
     response_URLs = []
     for patient in patients:
-        response_URLs.append(get_temp_vaccine_consent_url('brownwoodv/'+date+'/'+patient["last_name"].upper(
-        )+'_'+patient["first_name"].upper()+'_'+str(patient["dob"])+'_immtrac.pdf', "ggt-sftp"))
-        response_URLs.append(get_temp_vaccine_consent_url('brownwoodv/'+date+'/'+patient["last_name"].upper(
-        )+'_'+patient["first_name"].upper()+'_'+str(patient["dob"])+'_consent.pdf', "ggt-sftp"))
+        response_URLs.append(get_temp_vaccine_consent_url('brownwoodv/' + date + '/' + patient["last_name"].upper(
+        ) + '_' + patient["first_name"].upper() + '_' + str(patient["dob"]) + '_immtrac.pdf', "ggt-sftp"))
+        response_URLs.append(get_temp_vaccine_consent_url('brownwoodv/' + date + '/' + patient["last_name"].upper(
+        ) + '_' + patient["first_name"].upper() + '_' + str(patient["dob"]) + '_consent.pdf', "ggt-sftp"))
     return response_URLs
+
 
 def create_temp_folder_structure():
     date = datetime.now().strftime('%Y%m%d%H%M%S')
     os.mkdir(date)
-    os.mkdir(date+'/f11_overlay/')
-    os.mkdir(date+'/consent_overlay/')
-    os.mkdir(date+'/f11/')
-    os.mkdir(date+'/consent/')
+    os.mkdir(date + '/f11_overlay/')
+    os.mkdir(date + '/consent_overlay/')
+    os.mkdir(date + '/f11/')
+    os.mkdir(date + '/consent/')
     return date
+
 
 def mergePDFs(patients, date):
     try:
@@ -154,16 +165,17 @@ def mergePDFs(patients, date):
                 create_overlay(date, str(patient["id"]), patient, data_dict)
                 create_overlay_consent_form(date, str(patient["id"]), patient)
                 merge_pdfs('ggt/configs/vaccine-pdfs/F11-12956.pdf',
-                        './'+date+'/f11_overlay/simple_form_overlay_' +
-                        str(patient["id"])+'.pdf',
-                        './'+date+'/f11/'+patient["last_name"].upper(
-                        )+'_'+patient["first_name"].upper()+'_'+str(patient["dob"])+'_immtrac.pdf', data_dict)
+                           './' + date + '/f11_overlay/simple_form_overlay_' +
+                           str(patient["id"]) + '.pdf',
+                           './' + date + '/f11/' + patient["last_name"].upper(
+                           ) + '_' + patient["first_name"].upper() + '_' + str(patient["dob"]) + '_immtrac.pdf',
+                           data_dict)
 
                 merge_pdfs('ggt/configs/vaccine-pdfs/COVID Concent Form.pdf',
-                        './'+date+'/consent_overlay/consent_form_simple_form_overlay_' +
-                        str(patient["id"])+'.pdf',
-                        './'+date+'/consent/'+patient["last_name"].upper(
-                        )+'_'+patient["first_name"].upper()+'_'+str(patient["dob"])+'_consent.pdf')
+                           './' + date + '/consent_overlay/consent_form_simple_form_overlay_' +
+                           str(patient["id"]) + '.pdf',
+                           './' + date + '/consent/' + patient["last_name"].upper(
+                           ) + '_' + patient["first_name"].upper() + '_' + str(patient["dob"]) + '_consent.pdf')
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -180,9 +192,9 @@ def bp_get_consent_forms(patient_ids):
 
 
 def create_overlay(date, patient_id, patient, data_dict, mother_first_name="", mother_maiden_name=""):
-    try: 
+    try:
         c = canvas.Canvas(
-            './'+date+'/f11_overlay/simple_form_overlay_'+patient_id+'.pdf')
+            './' + date + '/f11_overlay/simple_form_overlay_' + patient_id + '.pdf')
         update_string_in_pdf(c, 25, 678, patient["last_name"].upper())
         update_string_in_pdf(c, 25, 646, patient["first_name"].upper())
         update_string_in_pdf(c, 320, 646, patient["middle_name"].upper())
@@ -221,7 +233,7 @@ def create_overlay(date, patient_id, patient, data_dict, mother_first_name="", m
         update_string_in_pdf(c, 25, 577, patient["addr1"].upper())
         # update_string_in_pdf(c, 320, 602, "1234")
         phone = patient["phone_number"][2:]
-        update_string_in_pdf(c, 420, 577, phone[:3]+"-"+phone[3:6]+"-"+phone[6:])
+        update_string_in_pdf(c, 420, 577, phone[:3] + "-" + phone[3:6] + "-" + phone[6:])
         update_string_in_pdf(c, 25, 545, patient["city"].upper())
         update_string_in_pdf(c, 315, 545, patient["st"])
         update_string_in_pdf(c, 360, 545, patient["zip"])
@@ -231,12 +243,13 @@ def create_overlay(date, patient_id, patient, data_dict, mother_first_name="", m
         c.drawString(
             55, 195, str(patient["scheduled_dt"]))
         c.drawString(
-            300, 223, patient["first_name"].upper() + " " + patient["middle_name"].upper()+" " + patient["last_name"].upper())
+            300, 223,
+            patient["first_name"].upper() + " " + patient["middle_name"].upper() + " " + patient["last_name"].upper())
         pdfmetrics.registerFont(
             TTFont('Allura-Regular', 'ggt/configs/vaccine-pdfs/Allura-Regular.ttf'))
         c.setFont("Allura-Regular", 15)
         c.drawString(
-            300, 195, patient["first_name"] + " " + patient["middle_name"]+" " + patient["last_name"])
+            300, 195, patient["first_name"] + " " + patient["middle_name"] + " " + patient["last_name"])
         c.save()
     except Exception as err:
         log_generic(
@@ -249,7 +262,7 @@ def create_overlay(date, patient_id, patient, data_dict, mother_first_name="", m
 def create_overlay_consent_form(date, patient_id, patient, mother_first_name="", mother_maiden_name=""):
     try:
         c = canvas.Canvas(
-            './'+date+'/consent_overlay/consent_form_simple_form_overlay_'+patient_id+'.pdf')
+            './' + date + '/consent_overlay/consent_form_simple_form_overlay_' + patient_id + '.pdf')
         c.drawString(50, 530, patient["last_name"].upper())
         c.drawString(205, 530, patient["first_name"].upper())
         c.drawString(350, 530, str(patient["dob"]))
@@ -259,12 +272,12 @@ def create_overlay_consent_form(date, patient_id, patient, mother_first_name="",
             c.drawString(504, 544, "x")
         c.drawString(50, 502, patient["addr1"].upper())
         phone = patient["phone_number"][2:]
-        c.drawString(350, 502, phone[:3]+"-"+phone[3:6]+"-"+phone[6:])
+        c.drawString(350, 502, phone[:3] + "-" + phone[3:6] + "-" + phone[6:])
         c.drawString(50, 465, patient["city"].upper())
         c.drawString(300, 465, patient["st"])
         c.drawString(350, 465, patient["zip"])
-        c.drawString(62, 200, "x") # Moderna
-        c.drawString(200, 176, "x") # Intramuscular
+        c.drawString(62, 200, "x")  # Moderna
+        c.drawString(200, 176, "x")  # Intramuscular
         if patient["injection_site"] == "right_arm":
             c.drawString(73, 152, "x")
         elif patient["injection_site"] == "left_arm":
@@ -272,7 +285,8 @@ def create_overlay_consent_form(date, patient_id, patient, mother_first_name="",
         c.drawString(120, 129, str(patient["vax_end_dt"]))
         c.showPage()
         c.drawString(
-            200, 720, patient["first_name"].upper() + " " + patient["middle_name"].upper()+" " + patient["last_name"].upper())
+            200, 720,
+            patient["first_name"].upper() + " " + patient["middle_name"].upper() + " " + patient["last_name"].upper())
         dob_splits = str(patient["dob"]).split('-')
         c.drawString(205, 702, dob_splits[1])
         c.drawString(245, 702, dob_splits[2])
@@ -285,17 +299,18 @@ def create_overlay_consent_form(date, patient_id, patient, mother_first_name="",
             error=err
         )
 
+
 def update_string_in_pdf(c, x, y, entry):
     for char in entry:
         c.drawString(x, y, char)
         x = x + 14.3
 
 
-ANNOT_KEY = '/Annots'           # key for all annotations within a page
-ANNOT_FIELD_KEY = '/T'          # Name of field. i.e. given ID of field
-ANNOT_FORM_type = '/FT'         # Form type (e.g. text/button)
-ANNOT_FORM_button = '/Btn'      # ID for buttons, i.e. a checkbox
-ANNOT_FORM_text = '/Tx'         # ID for textbox
+ANNOT_KEY = '/Annots'  # key for all annotations within a page
+ANNOT_FIELD_KEY = '/T'  # Name of field. i.e. given ID of field
+ANNOT_FORM_type = '/FT'  # Form type (e.g. text/button)
+ANNOT_FORM_button = '/Btn'  # ID for buttons, i.e. a checkbox
+ANNOT_FORM_text = '/Tx'  # ID for textbox
 SUBTYPE_KEY = '/Subtype'
 WIDGET_SUBTYPE_KEY = '/Widget'
 
@@ -334,6 +349,7 @@ def merge_pdfs(form_pdf, overlay_pdf, output, data_dict=None):
             function=whoami(),
             error=err
         )
+
 
 def bp_create_group(group):
     try:
@@ -482,7 +498,7 @@ def bp_update_location(location, org_id):
             s_success = assign_all_services(tuple(location_services))
             if s_success is None or not s_success:
                 return None
-        _location = search_locations('', '', '', '', org_id,  id=location_id)
+        _location = search_locations('', '', '', '', org_id, id=location_id)
         return _location
 
     except Exception as err:
@@ -641,7 +657,7 @@ def __process_services(services):
                 "service_code": service['service_code'],
                 "service_name": service['service_name'],
                 "price": {
-                    service['currency']:  service['price']
+                    service['currency']: service['price']
                 },
                 "self_pay_amount": {
                     service['currency']: service['selfpay_amount']
@@ -676,3 +692,84 @@ def bp_get_vax_registered_waitlist_around_location(request):
             error=err
         )
 
+
+def bp_add_vax_certificate(request: VaxCertificate):
+    try:
+        return __process_vax_yes(
+            request.first_name,
+            request.last_name,
+            request.phone_number,
+            request.email,
+            request.dob,
+            request.vax_type,
+            request.first_vax_dt,
+            request.second_vax_dt,
+            request.vax_1_lot_number,
+            request.vax_2_lot_number,
+            request.vax_image,
+        )
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+
+
+def __process_vax_yes(first_name, last_name, phone_number, email, dob,
+                      vax_type, vax_1_date, vax_2_date, lot_1, lot_2, image):
+    vax_code_1 = ""
+    vax_code_2 = ""
+    cert2_id = None
+    cert1_id = None
+
+    patient_row = patients.get_existing_patients(
+        phone_number, first_name, last_name, dob)
+    if patient_row:
+        patient_id = patient_row['id']
+    else:
+        patient_id = patients.create_vax_yes_patient(
+            first_name, last_name, phone_number, email, dob)
+
+    if vax_type == 'pfizer':
+        vax_code_1 = c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_1
+        vax_code_2 = c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_2
+
+    if vax_type == 'moderna':
+        vax_code_1 = c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_1
+        vax_code_2 = c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_2
+
+    if vax_type == 'janssen':
+        vax_code_1 = c.SERVICE_CODE_COVID_19_VACCINE_JNJ
+
+    try:
+        vax_1_date = "{} 00:00:00".format(vax_1_date)
+        if vax_1_date and lot_1:
+            cert1_id = patients.create_cert(
+                patient_id, vax_1_date, vax_code_1, lot_1)
+    except Exception as err1:
+        print("Error processing caert1", err1)
+        return None
+
+    try:
+        vax_2_date = "{} 00:00:00".format(vax_2_date)
+
+        if vax_2_date and lot_2:
+            cert2_id = patients.create_cert(
+                patient_id, vax_2_date, vax_code_2, lot_2)
+    except Exception as err1:
+        print("Error processing cert2", err1)
+        return None
+
+    cert_id = cert1_id
+    if cert_id is None:
+        cert_id = cert2_id
+
+    if cert_id and patient_id:
+        __upload_vax_card_image(image, patient_id, cert_id)
+
+    __send_ggv_certificate_level_1_sms(first_name, phone_number)
+    __send_ggv_certificate_level_1_email(first_name, email)
+
+    return True
