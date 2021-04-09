@@ -195,7 +195,6 @@ def delete_file(source_bucket, source_key):
 
 def get_temp_lab_report_url(filename: str, lab_reports_bucket_name=lab_reports_bucket_name):
     try:
-        print(filename, lab_reports_bucket_name)
         url = __boto_connect_client('s3').generate_presigned_url(
             ClientMethod='get_object',
             Params={

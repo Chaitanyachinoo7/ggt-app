@@ -155,7 +155,7 @@ def get_appointment(appointment_id: int, org_id=None) -> GgtAppointment:
             p.result_token,
             GROUP_CONCAT(c.service_code) as service_codes,
             GROUP_CONCAT(s.service_description) as service_descriptions,
-            org.name as org_name,
+            org.name as org_name
         FROM
             appointments a
                 JOIN
