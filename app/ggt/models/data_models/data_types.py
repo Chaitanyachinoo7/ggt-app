@@ -710,6 +710,13 @@ class LookupGGVCertificateRequest(BaseModel):
     last_name: str
     token: str
 
+class LookupGGVWalletPassRequest(BaseModel):
+    phone_number: str
+    dob: str
+    first_name: str
+    last_name: str
+    token: str
+    type: str = 'i'
 
 class NotificationEnum(str, Enum):
     relocate = 'relocate'
@@ -1456,6 +1463,11 @@ class InsurancePayersListRequest(BaseModel):
     page: int = 1
     limit: int = 10
 
+class PKPassRequest(BaseModel):
+    type: str = 'i' # i = ios, a = android
+    patient_id: str
+    phone_number: str
+    otp: int
 
 class VerificationToken(BaseModel):
     verification_token: str

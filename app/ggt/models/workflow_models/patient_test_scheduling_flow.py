@@ -20,7 +20,8 @@ from ggt.models.process_models.bp_patient_experience import (
     bp_get_wellpay_insurance_eligibility,
     bp_search_insurance_payer_list, bp_get_ggv_screen_flow_seq, bp_ggv_finalize_booking, bp_ggv_finalize_pre_booking,
     bp_create_pre_registration, bp_verify_verification_token, bp_reschedule_first_appointment,
-    bp_reschedule_second_appointment, bp_lookup_certificate, bp_get_vax_certificate
+    bp_reschedule_second_appointment, bp_lookup_certificate, bp_get_vax_certificate,
+    bp_get_wallet_pass
 )
 
 from ggt.models.process_models.bp_schedules import (
@@ -551,3 +552,9 @@ def cache_test(t_id):
     while (datetime.now() - x).seconds < 5:
         pass
     return {"response": t_id}
+
+def get_wallet_pass(pkpass_request):
+    # return x_response(
+    return bp_get_wallet_pass(pkpass_request)
+    # )
+    

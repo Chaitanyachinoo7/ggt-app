@@ -287,7 +287,9 @@ async def api_cc_patient_lookup(portal_cc_patient_lookup_request: PortalCcPatien
     )
 
 
-@router.post("/site-admin/generate_vaccine_forms_brownwood", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
+# @router.post("/site-admin/generate_vaccine_forms_brownwood", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
+@router.post("/site-admin/generate_vaccine_forms_brownwood")
+
 def generate_vaccine_forms_brownwood(portal_admin_get_f11_request: PortalAdminGetF11Request):
     return site_admin_get_f11(portal_admin_get_f11_request.appointment_ids)
 

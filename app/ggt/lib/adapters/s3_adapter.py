@@ -195,6 +195,7 @@ def delete_file(source_bucket, source_key):
 
 def get_temp_lab_report_url(filename: str, lab_reports_bucket_name=lab_reports_bucket_name):
     try:
+        print(filename, lab_reports_bucket_name)
         url = __boto_connect_client('s3').generate_presigned_url(
             ClientMethod='get_object',
             Params={
@@ -350,6 +351,26 @@ def get_temp_vaccine_consent_url(filename: str, lab_reports_bucket_name=lab_repo
         )
         return None
 
+def get_temp_pkpass_url(filename, bucket_name):
+    try:
+        url = __boto_connect_client('s3', region_name='us-east-2').generate_presigned_url(
+            ClientMethod='get_object',
+            Params={
+                'Bucket': bucket_name,
+                'Key': filename
+            },
+            ExpiresIn=default_link_expiration_time_limit
+        )
+        return url
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
 
 def upload_image_from_base64_string(base64string, destination_filename, key=None):
     if key:
@@ -358,6 +379,17 @@ def upload_image_from_base64_string(base64string, destination_filename, key=None
         s3 = __boto_connect_resource('s3')
         obj = s3.Object(ops_image_bucket_name, destination_filename)
         return obj.put(Body=base64.b64decode(base64string))
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+def uploadFile(path, key, bucketName):
+    try:
+        __boto_connect_client('s3').upload_file(path, bucketName, key)
     except Exception as err:
         log_generic(
             type=ERROR,

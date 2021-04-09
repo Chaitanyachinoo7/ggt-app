@@ -155,7 +155,7 @@ def get_appointment(appointment_id: int, org_id=None) -> GgtAppointment:
             p.result_token,
             GROUP_CONCAT(c.service_code) as service_codes,
             GROUP_CONCAT(s.service_description) as service_descriptions,
-            org.name as org_name
+            org.name as org_name,
         FROM
             appointments a
                 JOIN
@@ -189,7 +189,66 @@ def get_appointment(appointment_id: int, org_id=None) -> GgtAppointment:
 
     return None
 
+def get_ggv_patient(patient_id: int):
+    try:
+        where_statement = "ggv.patient_id = {}".format(patient_id)
+        sql = """
+        SELECT
+            l.addr1 AS location_addr1,
+            l.addr2 AS location_addr2,
+            l.city AS location_city,
+            l.st AS location_st,
+            l.zip AS location_zip,
+            l.lat,
+            l.lng,
+            p.id,
+            p.dob AS patient_dob,
+            p.first_name AS patient_first_name,
+            p.middle_name AS patient_middle_name,
+            p.last_name AS patient_last_name,
+            p.addr1 AS patient_addr1,
+            p.addr2 AS patient_addr2,
+            p.city AS patient_city,
+            p.st AS patient_st,
+            p.zip AS patient_zip,
+            p.phone_number AS patient_phone_number,
+            p.email,
+            p.gender,
+            p.dob,
+            p.token,
+            p.result_token,
+            GROUP_CONCAT(c.service_code) as service_codes,
+            GROUP_CONCAT(s.service_description) as service_descriptions,
+            org.name as org_name,
+            ggv.*
+        FROM
+            ggv_certificates ggv ON a.patient_id = ggv.patient_id
+                JOIN
+            patients p ON a.patient_id = p.id
+                JOIN
+            locations l ON a.location_id = l.id
+                LEFT JOIN
+            appointment_services s ON (s.appointment_id = a.id)
+                LEFT JOIN
+            services_catalog c ON (c.id = s.service_id)
+				LEFT JOIN
+			organizations org ON org.id = l.org_id
+        WHERE
+                {}
+        """.format(where_statement)
 
+        row = read_row(sql)
+        return row
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            patient_id=patient_id,
+            function=whoami(),
+            error=err
+        )
+
+    return None
 def get_monthy_calendar(from_date: str, to_date: str, location_id: int):
     try:
         sql = """
@@ -422,7 +481,6 @@ def lookup_certificate(phone_number, dob, first_name, last_name, token):
                         JOIN
                     ggv_certificates gc ON p.id = gc.patient_id
                     WHERE {}""".format(where_statement)
-
         rows = replica_read_rows(sql)
         return __format_vax_certificate(rows)
 
@@ -434,6 +492,34 @@ def lookup_certificate(phone_number, dob, first_name, last_name, token):
         )
     return None
 
+def lookup_pkpass(phone_number, dob, first_name, last_name, token):
+    try:
+        where_statement = "p.phone_number LIKE '%{}%'".format(phone_number)
+        where_statement = "{} AND date(p.dob) = '{}'".format(where_statement, dob)
+        where_statement = "{} AND p.first_name LIKE '%{}%'".format(where_statement, first_name)
+        where_statement = "{} AND p.last_name LIKE '%{}%'".format(where_statement, last_name)
+        where_statement = "{} AND p.result_token = '{}' AND p.token_expire > NOW()".format(where_statement, token)
+        sql = """SELECT 
+                    gc.*,
+                    a.*,
+                    p.*
+                FROM
+                    patients p
+                        JOIN
+                    ggv_certificates gc ON p.id = gc.patient_id
+                        JOIN
+                    appointments a ON a.id = gc.appointment_id
+                    WHERE {}""".format(where_statement)
+        rows = replica_read_rows(sql)
+        return __format_pkpass_records(rows)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+    return None
 
 def get_appointment_count_by_phone_dob(phone_number, dob):
     try:
@@ -638,6 +724,35 @@ def __format_vax_certificate(rows):
             error=err
         )
 
+def __format_pkpass_records(rows):
+    try:
+        if len(rows) > 0:
+            pkpass = {
+                'patient_id': rows[0]['patient_id'],
+                'first_name': rows[0]['first_name'],
+                'last_name': rows[0]['last_name'],
+                'dob': rows[0]['dob'].strftime('%m/%d/%Y'),
+                'certificates': []
+            }
+            for row in rows:
+                service = {
+                    "appointment_id": row['appointment_id'],
+                    "appointment_date": row['vax_end_dt'].strftime('%m/%d/%Y'),
+                    "brand": __get_brand(row['service_code']),
+                    "service_code": row['service_code'],
+                    "lot_no": row['lot_no']
+                }
+                pkpass['certificates'].append(service)
+            return pkpass
+        else:
+            return {}
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
 
 def __get_brand(service_code):
     if service_code == c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_1 or service_code == c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_2:
