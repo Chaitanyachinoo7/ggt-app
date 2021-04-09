@@ -545,6 +545,7 @@ class InsuranceRecord(BaseModel):
     payer: str = None
     level: str = None
     insurance_image: Optional[str] = None
+    appointment_id: str = None
 
 
 class ProviderUpdateAppointmentRequest(BaseModel):
@@ -710,6 +711,13 @@ class LookupGGVCertificateRequest(BaseModel):
     last_name: str
     token: str
 
+class LookupGGVWalletPassRequest(BaseModel):
+    phone_number: str
+    dob: str
+    first_name: str
+    last_name: str
+    token: str
+    type: str = 'i'
 
 class NotificationEnum(str, Enum):
     relocate = 'relocate'
@@ -1273,6 +1281,8 @@ class InsuranceUpdateRecord(BaseModel):
     relationship: str = None
     payer: str = None
     level: str = None
+    insurance_image: Optional[str] = None
+    appointment_id: str = None
 
 
 class InsuranceIDRecord(BaseModel):
@@ -1456,6 +1466,11 @@ class InsurancePayersListRequest(BaseModel):
     page: int = 1
     limit: int = 10
 
+class PKPassRequest(BaseModel):
+    type: str = 'i' # i = ios, a = android
+    patient_id: str
+    phone_number: str
+    otp: int
 
 class VerificationToken(BaseModel):
     verification_token: str
@@ -1532,4 +1547,18 @@ class PortalVaxWaitlistSearchRequest(BaseModel):
 class PortalVaxRegisteredWaitAroundLocationRequest(BaseModel):
     location_id: int
     radius: int
+
+
+class VaxCertificate(BaseModel):
+    first_name: str
+    last_name: str
+    phone_number: str
+    email: str
+    dob: str
+    first_vax_dt: str = None
+    second_vax_dt: str = None
+    vax_type: str
+    vax_1_lot_number: str = None
+    vax_2_lot_number: str = None
+    vax_image: str = None
 

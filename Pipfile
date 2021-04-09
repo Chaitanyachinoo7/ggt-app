@@ -49,7 +49,7 @@ pdfplumber = "*"
 pdfrw = "*"
 reportlab = "*"
 stripe = "*"
-pypdf2 = "*"
+wallet-py3k = "*"
 
 [requires]
 python_version = "3.7"

@@ -53,6 +53,7 @@ origins:
   - http://localhost:3000
   - http://localhost:5000
   - http://localhost:8000
+  - https://vaxyes-ops.gogetvax.com
 
 docs:
   swagger_url: /docs
@@ -88,8 +89,8 @@ gcp:
 
 databases:
   mysql:
-    host: ggt-db-proxy-omg.proxy-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
-    read_replica_host: ggt-db-proxy-omg-read-only.endpoint.proxy-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+    host: prod-ggt-aurora.cluster-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+    read_replica_host: prod-ggt-aurora.cluster-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
     username: admin
     password: hWMgl5Tfkqn30saQNp9M
     db: ggt_prod
