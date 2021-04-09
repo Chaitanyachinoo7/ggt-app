@@ -23,7 +23,7 @@ lab_report_bucket = get_config_val('lab_integrations.labreport_bucket')
 current_dir = pathlib.Path(__file__).parent.absolute()
 
 test_image_bucket = get_config_val("aws.ggt_ops_images")
-antigen_test_result_bucket = 'ggt-test-bucket'
+antigen_test_result_bucket = get_config_val('lab_integrations.labreport_bucket')
 
 
 def generate_antigen_results_pdf():
