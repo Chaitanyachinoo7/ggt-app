@@ -43,7 +43,8 @@ def get_all_appointment_information():
                     ts.lab_electronic_submission_dt AS 'report_gen_dt',
                     ts.appointment_id,
                     ts.id,
-                    p.id AS 'patient_id'
+                    p.id AS 'patient_id',
+                    LOWER(p.city) AS 'city'
                 FROM
                     test_samples ts
                         JOIN
@@ -65,7 +66,7 @@ def generate_results_pdf(rows):
     for row in rows:
         try:
             create_antigen_report_pdf(row)
-            # success_appointment_ids.append(row['appointment_id'])
+            success_appointment_ids.append(row['appointment_id'])
         except Exception as e:
             print(e)
 
@@ -82,6 +83,23 @@ def update_test_samples(processed_appointment_ids=[]):
                         status = 'lab_result_received'
                     WHERE id IN {}""".format(str(tuple(processed_appointment_ids)))
     return exec_update(sql)
+
+
+def get_doctors_signature(details):
+    city = details['city']
+    if city == 'kansas' or city == 'reno':
+        return {
+            'name': 'Dr. Matthew Roberson, MD',
+            'licence': 'NPI: 1871590570',
+            'institute': 'SK Primary PLLC',
+            'id': ''
+        }
+    return {
+        'name': 'Dr. Alejandro Estanes Hernández',
+        'licence': 'Professional license 2649517',
+        'institute': 'Universidad Nacional Autónoma de México UNAM',
+        'id': 'RVC-D103208-1-35-042'
+    }
 
 
 def generate_patient_test_result_canvas(details):
@@ -167,9 +185,6 @@ def generate_patient_test_result_canvas(details):
     report_gent_dt = details['report_gen_dt']
     can.drawString(220, 435, report_gent_dt.strftime("%H:%Mh"))
 
-    can.drawString(70, 405, "Sample processing technician: ")
-    can.drawString(220, 405, "")
-
     can.setFont("Helvetica-Bold", 10)
 
     can.drawString(60, 360, "Method: Immunoassay")
@@ -180,16 +195,18 @@ def generate_patient_test_result_canvas(details):
 
     can.drawString(60, 190, "Sincerely,")
 
+    doctors_info = get_doctors_signature(details)
+
     can.setFont("Helvetica-Bold", 10)
 
-    can.drawString(60, 170, "Dr. Alejandro Estanes Hernández")
+    can.drawString(60, 170, doctors_info['name'])
 
     can.setFont("Helvetica", 10)
 
-    can.drawString(60, 150, "Professional license 2649517")
+    can.drawString(60, 150, doctors_info['licence'])
 
-    can.drawString(60, 130, "Universidad Nacional Autónoma de México UNAM")
-    can.drawString(60, 110, "RVC-D103208-1-35-042")
+    can.drawString(60, 130, doctors_info['institute'])
+    can.drawString(60, 110, doctors_info['id'])
 
     can.save()
 
@@ -241,7 +258,7 @@ def generate_patient_test_result_image_page(details):
 def create_antigen_report_pdf(details):
 
     # read your existing PDF
-    existing_pdf = PdfFileReader(open(current_dir.joinpath("../templates/pdf/antigen-report-no-text.pdf"), "rb"))
+    existing_pdf = PdfFileReader(open(current_dir.joinpath("../templates/pdf/antigen-report-blank.pdf"), "rb"))
 
     pdf_with_test_result = generate_patients_test_result_page(details)
     pdf_with_test_image = generate_patient_test_result_image_page(details)
@@ -266,4 +283,9 @@ def create_antigen_report_pdf(details):
     file_name = "{} {} {} report.pdf".format(details['first_name'], details['last_name'], details['appointment_id'])
 
     # Push to S3
-    put_to_bucket(antigen_test_result_bucket, byte_stream.getvalue(), 'application/pdf', file_name)
+    # put_to_bucket(antigen_test_result_bucket, byte_stream.getvalue(), 'application/pdf', file_name)
+
+    outputStream = open(file_name, "wb")
+    output.write(outputStream)
+    outputStream.close()
+
