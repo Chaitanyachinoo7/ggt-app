@@ -280,7 +280,7 @@ def create_antigen_report_pdf(details):
     output.write(byte_stream)
 
     # S3 file name
-    file_name = "{} {} {} report.pdf".format(details['first_name'], details['last_name'], details['appointment_id'])
+    file_name = "{}.pdf".format(details['appointment_id'])
 
     # Push to S3
     put_to_bucket(antigen_test_result_bucket, byte_stream.getvalue(), 'application/pdf', file_name)
