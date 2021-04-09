@@ -554,7 +554,7 @@ def cache_test(t_id):
     return {"response": t_id}
 
 def get_wallet_pass(pkpass_request):
-    # return x_response(
-    return bp_get_wallet_pass(pkpass_request)
-    # )
+    return x_response(
+         bp_get_wallet_pass(pkpass_request)
+    )
     

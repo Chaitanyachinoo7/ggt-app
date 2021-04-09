@@ -66,7 +66,8 @@ def create_appointment(appointment_req: GgtBooking, ggv_slot=1):
             appointment_req.language
         )
         appointment_id = exec_insert(sql, vals)
-        __add_services_to_appointment(appointment_id, appointment_req, ggv_slot=ggv_slot)
+        __add_services_to_appointment(
+            appointment_id, appointment_req, ggv_slot=ggv_slot)
         return get_appointment(appointment_id)
 
     except Exception as err:
@@ -189,6 +190,7 @@ def get_appointment(appointment_id: int, org_id=None) -> GgtAppointment:
 
     return None
 
+
 def get_ggv_patient(patient_id: int):
     try:
         where_statement = "ggv.patient_id = {}".format(patient_id)
@@ -249,6 +251,8 @@ def get_ggv_patient(patient_id: int):
         )
 
     return None
+
+
 def get_monthy_calendar(from_date: str, to_date: str, location_id: int):
     try:
         sql = """
@@ -469,10 +473,14 @@ def re_schedule_appointment(appointment_id, slot):
 def lookup_certificate(phone_number, dob, first_name, last_name, token):
     try:
         where_statement = "p.phone_number LIKE '%{}%'".format(phone_number)
-        where_statement = "{} AND date(p.dob) = '{}'".format(where_statement, dob)
-        where_statement = "{} AND p.first_name LIKE '%{}%'".format(where_statement, first_name)
-        where_statement = "{} AND p.last_name LIKE '%{}%'".format(where_statement, last_name)
-        where_statement = "{} AND p.result_token = '{}' AND p.token_expire > NOW()".format(where_statement, token)
+        where_statement = "{} AND date(p.dob) = '{}'".format(
+            where_statement, dob)
+        where_statement = "{} AND p.first_name LIKE '%{}%'".format(
+            where_statement, first_name)
+        where_statement = "{} AND p.last_name LIKE '%{}%'".format(
+            where_statement, last_name)
+        where_statement = "{} AND p.result_token = '{}' AND p.token_expire > NOW()".format(
+            where_statement, token)
         sql = """SELECT 
                     gc.*,
                    date(gc.check_in_dt) AS appointment_date
@@ -492,12 +500,16 @@ def lookup_certificate(phone_number, dob, first_name, last_name, token):
         )
     return None
 
+
 def lookup_pkpass(phone_number, dob, first_name, last_name, token):
     try:
         where_statement = "p.phone_number LIKE '%{}%'".format(phone_number)
-        where_statement = "{} AND date(p.dob) = '{}'".format(where_statement, dob)
-        where_statement = "{} AND p.first_name LIKE '%{}%'".format(where_statement, first_name)
-        where_statement = "{} AND p.last_name LIKE '%{}%'".format(where_statement, last_name)
+        where_statement = "{} AND date(p.dob) = '{}'".format(
+            where_statement, dob)
+        where_statement = "{} AND p.first_name LIKE '%{}%'".format(
+            where_statement, first_name)
+        where_statement = "{} AND p.last_name LIKE '%{}%'".format(
+            where_statement, last_name)
         where_statement = "{} AND p.result_token = '{}' AND p.token_expire > NOW()".format(where_statement, token)
         sql = """SELECT 
                     gc.*,
@@ -520,6 +532,7 @@ def lookup_pkpass(phone_number, dob, first_name, last_name, token):
             error=err
         )
     return None
+
 
 def get_appointment_count_by_phone_dob(phone_number, dob):
     try:
@@ -683,18 +696,9 @@ def create_consultation_note(user, appointment_id, appointment_notes):
                         )
                     VALUES
                         (%s, %s, NOW(), NOW(), %s, %s); """
-    vals = (provider_external_id, appointment_id, 'vax_consultation', appointment_notes)
+    vals = (provider_external_id, appointment_id,
+            'vax_consultation', appointment_notes)
     return exec_insert(sql, vals)
-
-
-def update_appointment_with_payment_session(appointment: GgtAppointment):
-    sql = """UPDATE `appointments`
-                        SET
-                        payment_session = %s
-                    WHERE
-                        id = %s; """
-    vals = (appointment.payment_checkout_session, appointment.id)
-    return exec_update(sql, vals)
 
 
 ########################################################################################################
@@ -710,7 +714,8 @@ def __format_vax_certificate(rows):
             }
 
             for row in rows:
-                image = "/api/vax_certificate/{}/{}.jpg".format(row['patient_id'], row['id'])
+                image = "/api/vax_certificate/{}/{}.jpg".format(
+                    row['patient_id'], row['id'])
                 service = {
                     "appointment_id": row['appointment_id'],
                     "appointment_date": row['appointment_date'],
@@ -734,6 +739,7 @@ def __format_vax_certificate(rows):
             error=err
         )
 
+
 def __format_pkpass_records(rows):
     try:
         if len(rows) > 0:
@@ -742,7 +748,10 @@ def __format_pkpass_records(rows):
                 'first_name': rows[0]['first_name'],
                 'last_name': rows[0]['last_name'],
                 'dob': rows[0]['dob'].strftime('%m/%d/%Y'),
-                'certificates': []
+                'level': '1',
+                'verfiedDate': rows[0]['create_dt'].strftime('%m/%d/%Y'),
+                'certificates': [],
+                'certNo': str(rows[0]['id'])
             }
             for row in rows:
                 service = {
@@ -763,6 +772,7 @@ def __format_pkpass_records(rows):
             function=whoami(),
             error=err
         )
+
 
 def __get_brand(service_code):
     if service_code == c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_1 or service_code == c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_2:
@@ -898,7 +908,8 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
                 WHERE
                     id = %s
                 """.format(__get_mapped_dt_field(status))
-            vals = (vial_id, status, lot_no, expiration_date, gtin, operator_location_id, appointment.id)
+            vals = (vial_id, status, lot_no, expiration_date,
+                    gtin, operator_location_id, appointment.id)
 
         else:
             # proceed with updating other info
@@ -915,7 +926,8 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
                                 WHERE
                                     id = %s
                                 """.format(__get_mapped_dt_field(status))
-                vals = (status, injection_site, operator_location_id, no_adverse_reactions, appointment.id)
+                vals = (status, injection_site, operator_location_id,
+                        no_adverse_reactions, appointment.id)
 
             else:
                 sql = """
@@ -989,7 +1001,8 @@ def __create_provider_appointment_activity(user, appointment_id, function, statu
                     VALUES
                         (%s, %s, %s, %s, %s, %s, %s)"""
 
-            vals = (appointment_id, user_ext_id, function, status, vial_id, workstation_id, operator_location_id)
+            vals = (appointment_id, user_ext_id, function, status,
+                    vial_id, workstation_id, operator_location_id)
             exec_insert(sql, vals)
 
     except Exception as err:
@@ -1088,37 +1101,48 @@ def __add_services_to_appointment(appointment_id: int, appointment_req: GgtBooki
         #     add_service_to_appointment(appointment_id, vaccine_service_code)
 
         if appointment_req.services.covid_19_vax_jnj:
-            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_JNJ)
+            add_service_to_appointment(
+                appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_JNJ)
 
         if appointment_req.services.covid_19_vax_moderna_1 and ggv_slot == 1:
-            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_1)
+            add_service_to_appointment(
+                appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_1)
 
         if appointment_req.services.covid_19_vax_moderna_2 and ggv_slot == 2:
-            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_2)
+            add_service_to_appointment(
+                appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_2)
 
         if appointment_req.services.covid_19_vax_pfizer_1 and ggv_slot == 1:
-            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_1)
+            add_service_to_appointment(
+                appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_1)
 
         if appointment_req.services.covid_19_vax_pfizer_2 and ggv_slot == 2:
-            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_2)
+            add_service_to_appointment(
+                appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_2)
 
         if appointment_req.services.covid_19_test:
-            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST)
+            add_service_to_appointment(
+                appointment_id, c.SERVICE_CODE_COVID19_TEST)
 
         if appointment_req.services.covid_19_test_nv:
-            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST_NV)
+            add_service_to_appointment(
+                appointment_id, c.SERVICE_CODE_COVID19_TEST_NV)
 
         if appointment_req.services.covid_19_test_mexico:
-            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST_MEXICO)
+            add_service_to_appointment(
+                appointment_id, c.SERVICE_CODE_COVID19_TEST_MEXICO)
 
         if appointment_req.services.covid_19_test_antigen:
-            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST_ANTIGEN)
+            add_service_to_appointment(
+                appointment_id, c.SERVICE_CODE_COVID19_TEST_ANTIGEN)
 
         if appointment_req.services.covid_19_test_antigen_mexico:
-            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST_MEXICO_ANTIGEN)
+            add_service_to_appointment(
+                appointment_id, c.SERVICE_CODE_COVID19_TEST_MEXICO_ANTIGEN)
 
         if appointment_req.services.covid_19_test_antigen_nv:
-            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST_ANTIGEN_NV)
+            add_service_to_appointment(
+                appointment_id, c.SERVICE_CODE_COVID19_TEST_ANTIGEN_NV)
 
         if appointment_req.services.flue_shot:
             add_service_to_appointment(appointment_id, c.SERVICE_CODE_FLU_SHOT)

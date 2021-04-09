@@ -51,8 +51,8 @@ from ggt.models.data_models.appointments import (
     get_appointment_count_by_phone_dob,
     create_appointment,
     update_appointment_with_confirmed_scheduled,
-    update_appointment_with_receipt_token, release_ggv_slot, lock_ggv_slot, re_schedule_appointment, lookup_certificate,
-    is_open_patient, update_appointment_with_payment_session
+    update_appointment_with_receipt_token, release_ggv_slot, lock_ggv_slot, re_schedule_appointment, lookup_certificate, lookup_pkpass,
+    is_open_patient
 )
 
 from ggt.models.data_models.locations import (
@@ -358,7 +358,8 @@ def bp_finalize_booking(booking_req: GgtBooking, finalize_registration_request):
             # Below method is commented due to the use of an undefined method
             # appointment.payment_url = __inject_payment_flow(appointment)
             appointment.payment_checkout_session = \
-                __inject_payment_checkout_session(appointment, upfront_payment_info, booking_req, selected_services)
+                __inject_payment_checkout_session(
+                    appointment, upfront_payment_info, booking_req, selected_services)
             update_appointment_with_payment_session(appointment)
         else:
             # payment not required, confirm the appointment and notify
@@ -736,6 +737,7 @@ def __generate_wallet_pass(pkpass_req, patient, verification):
             passFile = __generate_pk_pass(pkpass_req, patient, verification)
             uploadFile(str(patient["patient_id"])+".pkpass",
                        str(patient["patient_id"])+".pkpass", "pkpass-prod")
+            os.remove(str(patient["patient_id"])+".pkpass")
             return {
                 "pkpass_url": get_temp_pkpass_url(
                     str(patient["patient_id"])+".pkpass", "pkpass-prod")
@@ -756,7 +758,7 @@ def __generate_pk_pass(pkpass_req, patient, verification):
         certs = patient["certificates"]
         message = "https://start.gogettested.com/login"
         cardInfo.addHeaderField(
-            'header', 'Covid 19 | Level 1 Verified ', 'STATUS')
+            'header', 'Covid 19 | Level '+patient["level"]+' Verified ', 'STATUS')
         cardInfo.addPrimaryField(key='Name', value=patient["first_name"] + " " + patient["last_name"]
                                  + " | " + str(patient["dob"]), label='NAME & DATE OF BIRTH')
         if len(certs) > 0:
@@ -765,7 +767,7 @@ def __generate_pk_pass(pkpass_req, patient, verification):
                 'LOT1', certs[0]["lot_no"], 'LOT NUMBER')
             cardInfo.addSecondaryField(
                 'DATE1', certs[0]["appointment_date"], 'DATE')
-            cardInfo.addSecondaryField('CRT', "NA", 'CERT.#')
+            cardInfo.addSecondaryField('CRT', patient["certNo"], 'CERT.#')
             if len(certs) > 1:
                 cardInfo.addAuxiliaryField(
                     'DOSE2', certs[1]["brand"], 'DOSE 2')
@@ -773,7 +775,7 @@ def __generate_pk_pass(pkpass_req, patient, verification):
                     'LOT2', certs[1]["lot_no"], 'LOT NUMBER')
                 cardInfo.addAuxiliaryField(
                     'DATE2', certs[1]["appointment_date"], 'DATE')
-            cardInfo.addAuxiliaryField('DateVerified', "NA", 'DATE VERFD')
+            cardInfo.addAuxiliaryField('DateVerified', patient["verfiedDate"], 'DATE VERIFIED')
 
         passfile = Pass(cardInfo,
                         passTypeIdentifier=pass_type_identifier,
