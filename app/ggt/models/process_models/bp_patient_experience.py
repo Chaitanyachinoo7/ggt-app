@@ -711,6 +711,7 @@ def bp_get_wallet_pass(pkpass_req):
     try:
         patient = lookup_pkpass(pkpass_req.phone_number, pkpass_req.dob,
                                 pkpass_req.first_name, pkpass_req.last_name, pkpass_req.token)
+        print(patient)
         if patient:
             return __generate_wallet_pass(pkpass_req, patient, verification=None)
     except Exception as err:
