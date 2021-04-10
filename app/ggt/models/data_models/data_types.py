@@ -545,6 +545,7 @@ class InsuranceRecord(BaseModel):
     payer: str = None
     level: str = None
     insurance_image: Optional[str] = None
+    appointment_id: str = None
 
 
 class ProviderUpdateAppointmentRequest(BaseModel):
@@ -1280,6 +1281,8 @@ class InsuranceUpdateRecord(BaseModel):
     relationship: str = None
     payer: str = None
     level: str = None
+    insurance_image: Optional[str] = None
+    appointment_id: str = None
 
 
 class InsuranceIDRecord(BaseModel):
