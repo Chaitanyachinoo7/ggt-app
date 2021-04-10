@@ -503,25 +503,23 @@ def lookup_certificate(phone_number, dob, first_name, last_name, token):
 
 def lookup_pkpass(phone_number, dob, first_name, last_name, token):
     try:
-        where_statement = "p.phone_number LIKE '%{}%'".format(phone_number)
+        where_statement = "p.phone_number = '{}'".format(phone_number)
         where_statement = "{} AND date(p.dob) = '{}'".format(
             where_statement, dob)
-        where_statement = "{} AND p.first_name LIKE '%{}%'".format(
+        where_statement = "{} AND p.first_name = '{}'".format(
             where_statement, first_name)
-        where_statement = "{} AND p.last_name LIKE '%{}%'".format(
+        where_statement = "{} AND p.last_name = '{}'".format(
             where_statement, last_name)
         where_statement = "{} AND p.result_token = '{}' AND p.token_expire > NOW()".format(where_statement, token)
         sql = """SELECT 
                     gc.*,
-                    a.*,
                     p.*
                 FROM
                     patients p
                         JOIN
                     ggv_certificates gc ON p.id = gc.patient_id
-                        JOIN
-                    appointments a ON a.id = gc.appointment_id
                     WHERE {}""".format(where_statement)
+        print(sql)
         rows = replica_read_rows(sql)
         return __format_pkpass_records(rows)
 
@@ -768,7 +766,7 @@ def __format_pkpass_records(rows):
                 'first_name': rows[0]['first_name'],
                 'last_name': rows[0]['last_name'],
                 'dob': rows[0]['dob'].strftime('%m/%d/%Y'),
-                'level': '1',
+                'level': str(rows[0]['verification_level']),
                 'verfiedDate': rows[0]['create_dt'].strftime('%m/%d/%Y'),
                 'certificates': [],
                 'certNo': str(rows[0]['id'])
@@ -776,10 +774,10 @@ def __format_pkpass_records(rows):
             for row in rows:
                 service = {
                     "appointment_id": row['appointment_id'],
-                    "appointment_date": row['vax_end_dt'].strftime('%m/%d/%Y'),
+                    "appointment_date": row['check_in_dt'].strftime('%m/%d/%Y'),
                     "brand": __get_brand(row['service_code']),
                     "service_code": row['service_code'],
-                    "lot_no": row['lot_no']
+                    "lot_no": str(row['lot_no'])
                 }
                 pkpass['certificates'].append(service)
             return pkpass
