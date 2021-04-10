@@ -426,25 +426,25 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
         b.location_id = finalize_registration_request.location
         b.timeslot_id = finalize_registration_request.timeSlot
 
-        if "appointmentOneTime" in finalize_registration_request.fields.keys():
+        if "appointmentOneTime" in finalize_registration_request.dict().keys():
             b.appointmentOneTime = finalize_registration_request.appointmentOneTime
-        if "verification_token" in finalize_registration_request.fields.keys():
+        if "verification_token" in finalize_registration_request.dict().keys():
             b.verification_token = finalize_registration_request.verification_token
-        if "appointmentTwoTime" in finalize_registration_request.fields.keys():
+        if "appointmentTwoTime" in finalize_registration_request.dict().keys():
             b.appointmentTwoTime = finalize_registration_request.appointmentTwoTime
-        if "symptomsVax" in finalize_registration_request.fields.keys():
+        if "symptomsVax" in finalize_registration_request.dict().keys():
             b.symptomsVax = finalize_registration_request.symptomsVax
-        if "covid19ConfirmedCase" in finalize_registration_request.fields.keys():
+        if "covid19ConfirmedCase" in finalize_registration_request.dict().keys():
             b.covid19ConfirmedCase = finalize_registration_request.covid19ConfirmedCase
-        if "pregnancy" in finalize_registration_request.fields.keys():
+        if "pregnancy" in finalize_registration_request.dict().keys():
             b.pregnancy = finalize_registration_request.pregnancy
-        if "allergicReaction" in finalize_registration_request.fields.keys():
+        if "allergicReaction" in finalize_registration_request.dict().keys():
             b.allergicReaction = finalize_registration_request.allergicReaction
-        if "eggAllergy" in finalize_registration_request.fields.keys():
+        if "eggAllergy" in finalize_registration_request.dict().keys():
             b.eggAllergy = finalize_registration_request.eggAllergy
-        if "guillianBarre" in finalize_registration_request.fields.keys():
+        if "guillianBarre" in finalize_registration_request.dict().keys():
             b.guillianBarre = finalize_registration_request.guillianBarre
-        if "pre_register" in finalize_registration_request.fields.keys():
+        if "pre_register" in finalize_registration_request.dict().keys():
             b.pre_register = finalize_registration_request.pre_register
 
         if "selectedServices" in dict(finalize_registration_request).keys():
@@ -460,7 +460,7 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
             b.services = selected_services
 
         b.language = finalize_registration_request.language
-        if "currency" in finalize_registration_request.fields.keys():
+        if "currency" in finalize_registration_request.dict().keys():
             b.currency = finalize_registration_request.currency
 
         with suppress(AttributeError):
