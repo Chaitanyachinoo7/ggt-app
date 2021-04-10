@@ -210,9 +210,16 @@ class Symptoms(BaseModel):
     symptom_fever: bool = None
     symptom_short_breath: bool = None
     symptom_cough: bool = None
-    symptom_chest_pains: bool = None
-    symptom_other: bool = None
+    symptom_chest_pains: bool = None  # To be removed
+    symptom_other: bool = None  # To be removed
     symptom_lack_of_smell: bool = None
+    symptom_fatigue: bool = None
+    symptom_muscle_body_aches: bool = None
+    symptom_headache: bool = None
+    symptom_sore_throat: bool = None
+    symptom_congestion_runny_nose: bool = None
+    symptom_nausea_vomitting: bool = None
+    symptom_diarrhea: bool = None
 
 
 class PatientDetails(BaseModel):
@@ -1019,6 +1026,13 @@ class GgtBooking(BaseModel):
     symptom_chestpains: bool = False
     symptom_others: bool = False
     symptom_lack_of_smell: bool = False
+    symptom_fatigue: bool = False
+    symptom_muscle_body_aches: bool = False
+    symptom_headache: bool = False
+    symptom_sore_throat: bool = False
+    symptom_congestion_runny_nose: bool = False
+    symptom_nausea_vomitting: bool = False
+    symptom_diarrhea: bool = False
 
     covid_contact: bool = False
 

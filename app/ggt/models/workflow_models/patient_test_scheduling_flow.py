@@ -390,6 +390,15 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
             b.symptom_chestpains = finalize_registration_request.symptoms.symptom_chest_pains
             b.symptom_others = finalize_registration_request.symptoms.symptom_other
             b.symptom_lack_of_smell = finalize_registration_request.symptoms.symptom_lack_of_smell
+
+            b.symptom_fatigue = finalize_registration_request.symptoms.symptom_fatigue
+            b.symptom_muscle_body_aches = finalize_registration_request.symptoms.symptom_muscle_body_aches
+            b.symptom_headache = finalize_registration_request.symptoms.symptom_headache
+            b.symptom_sore_throat = finalize_registration_request.symptoms.symptom_sore_throat
+            b.symptom_congestion_runny_nose = finalize_registration_request.symptoms.symptom_congestion_runny_nose
+            b.symptom_nausea_vomitting = finalize_registration_request.symptoms.symptom_nausea_vomitting
+            b.symptom_diarrhea = finalize_registration_request.symptoms.symptom_diarrhea
+
         b.covid_contact = finalize_registration_request.contactTracing
 
         if "preExistingConditions" in dict(finalize_registration_request).keys() and finalize_registration_request.preExistingConditions:
