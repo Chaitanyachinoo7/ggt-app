@@ -216,7 +216,7 @@ def extract_details_from_filename(inbound_filename, lab_id):
             test_status = 'Approved'
             labreport_filename = '{}.pdf'.format(order_number)
 
-        elif test_result in ['Rejected', 'INON'] or 'SPECIMEN_UNACCEPTABLE' in inbound_filename:
+        elif test_result in ['Rejected', 'INON'] or 'SPECIMEN_UNACCEPTABLE' in inbound_filename or 'SpecimenUnacceptable' in inbound_filename:
             test_status = 'Rejected'
             test_result = 'Rejected'
 

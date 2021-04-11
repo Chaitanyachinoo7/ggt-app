@@ -68,7 +68,7 @@ def _get_crl_api_payload(order):
             "reference": order["client_order_number"],
             "barcodeNumber": order["sample_code"],
             "performedByAdult": True,
-            "registrationDate": order["date_of_collection"],
+            "registrationDate": order["date_of_collection_crl"],
             "testCode": "U847",
             "specimenType": "ORAL-OM-505",
             "physicianFirstName": "Samad",
@@ -151,6 +151,29 @@ def get_orders_ready_to_transmit(limit=100):
                 ELSE DATE_FORMAT(CONVERT_TZ(NOW(), '+00:00', '-06:00'),
                         '%Y%m%d%H%m%s')
             END) AS date_of_collection,
+
+            (CASE
+                WHEN (t.sample_collection_start_dt IS NOT NULL) THEN 
+                    DATE_FORMAT(CONVERT_TZ(t.sample_collection_start_dt,
+                            '+00:00',
+                            '-06:00'),
+                    '%Y-%m-%d %H:%m:%s.000')
+                WHEN (t.sample_collection_end_dt IS NOT NULL) THEN 
+                    DATE_FORMAT(CONVERT_TZ(t.sample_collection_end_dt,
+                            '+00:00',
+                            '-06:00'),
+                    '%Y-%m-%d %H:%m:%s.000')
+                WHEN (t.pre_ship_label_scan_dt IS NOT NULL) THEN 
+                    DATE_FORMAT(CONVERT_TZ(t.pre_ship_label_scan_dt,
+                            '+00:00',
+                            '-06:00'),
+                    '%Y-%m-%d %H:%m:%s.000')
+                ELSE DATE_FORMAT(CONVERT_TZ(NOW(),
+                            '+00:00',
+                            '-06:00'),
+                    '%Y-%m-%d %H:%m:%s.000')
+            END) AS date_of_collection_crl,
+            
             (CASE
                 WHEN (p.race = 'race_american_indian') THEN '1002-5'
                 WHEN (p.race = 'race_asian') THEN '2028-9'
