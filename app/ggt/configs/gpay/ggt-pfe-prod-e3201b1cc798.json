@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "ggt-pfe-prod",
+  "private_key_id": "e3201b1cc798d455aa61b32277a3a03ea769744e",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCVSFst9BnjYvsC\nXQTMzbiEgNOkIkiriwMxnbkLTxYNKIZdmcNrgq0sdi7aLVlHGxJNAY0FawuI4X9h\n6sdTpeNS6VmSTmJB5kMWFKp2W2BU4aQDAmAQYdjgG1SRFavyNXJRcN7JGWEZmbqA\nDqO38mEfxfV0vi4PJ9JmE0U+lKMmGslp4JgUxlcAfptRuvJRHdtDgxwlBsl+0dXw\ngoEMACow7yCUPWn6BHCMDcyYJdq4h+92Zi3ZJrxVoyO+mL7TAenc7I90IYNACYql\na97DFimxDqjifPP1U6OpyTcv5QYruPKV4tSgNifIRGPNv2S9s3R8qF0k6vWiVmOv\nAQjsN+gnAgMBAAECggEAQv102VLUuTsmPAHFESjyOBfdoaa26LAZr07BhscnNKFu\nZpuFW/4Iu06PqN231hZaaI8dGwTV6MeUk7q5Vxq2v/KyfNrK8hqkGUkN084elQiq\nwqTyufdGzQ7GrNLGVgtQ8SYO+7x1W/kl/ahUJMxSdGEvzIM5hRiQLLlSFgq6ifLE\nbBQICsrNiY/PgeHux/imi0tSsCEBEl14oeDhXWVDnw3SZ6AdUq/ShPrLNdct4gdF\nNbg3d9wpxz0yz9CGWElumiZpsZdhxrC/p7kIaRZEcjlgXqLA8fPWtmZClOa3JhvJ\nz/aTmNbk1DBNOm7yPbbGjnUCwK3jJnNNIfZzqUjfsQKBgQDSOK1GUJ8IDz3Y+NaK\nZ3xOg9Nw3TkaGHmr/dIDKnHozY6wkIG5Oj1t9ysV7vIvqUtJqDwfFHk+ecM1G2yu\nMxA2qvxMfCDdshj/3w1ZwXUfQIGSe9csRYK/Kss7hYahxEeYWez5Y+7BZu4qeerf\nediJM2vtBNUQXjXM1tRYx9vnVwKBgQC1yn6VUgKzzflpJhefbXARZlReyv+imceo\nW8j/YwKqzInPq7CKSg3dQxSq//dyhVhKqKgQmrLC2CCo36qqDhCD9nssDb3lZfIf\nkqCEZ5pMeS3SoXJRO1lw+E8xhjT5lhQfLfbYBjAriBWi0TuDQL0dxWl3Jfo1Hq0G\nesJ4+5qTsQKBgF+yoV6jEOJQXe1JyhCTb4kmhbiZXIc+oRTkpRf/2H8MJGrIPeWe\nV5yZqil/7ww3Wyiax1O2tEL2lyCz7VOXt0fLqrL+xs9lZfAFEETNxo2FhfazHY7v\nzcdMqdvcux8lBRqbxT76eRPd0YnQmlVFWIeMuxLY4k1jNcab/Wq1AKxdAoGAGACV\neAes/aqLbLuv0Mf1TQbSyvVIjWJ6fxsnTbj36C87XuUPWSLv86/gsbc8J629e5YL\nIq4aPimlHkbx1KQowBOyLZ3e3cP5FPwaH4FCWSiCyVWxr1IDvCu84RAUPIP5Qiii\nd+FRSN4d5TJ1Bh5tGdov06B7Cbp0I+/fb3Pg8/ECgYAAnxQAVwcWi966c/IFS9O2\nI7r9uU/fIojQdf5kQAziGIMiX9zc6uRFZ3YBzfZZCivx6dKzhaWvM3qrbvtNz9R0\n+//PYG/0ibSz9T5r/w2fyTkND7+F2AbHsVCJ1kc4Qs6bBxl9xCoyke0sOkQG2YI+\nKr32Lopx76woNK9Cs/Slww==\n-----END PRIVATE KEY-----\n",
+  "client_email": "ggv-gpay-wallet-pass@ggt-pfe-prod.iam.gserviceaccount.com",
+  "client_id": "102090014916720841972",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/ggv-gpay-wallet-pass%40ggt-pfe-prod.iam.gserviceaccount.com"
+}

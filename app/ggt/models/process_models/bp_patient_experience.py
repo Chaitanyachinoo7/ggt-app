@@ -4,7 +4,10 @@ from requests.auth import HTTPBasicAuth
 from cachetools import cached, LRUCache, TTLCache
 from starlette.responses import StreamingResponse, FileResponse
 from wallet.models import Pass, Barcode, Generic, TransitType
-
+import uuid
+import ggt.models.process_models.jwt as jwt
+from google.auth.transport.requests import AuthorizedSession
+from google.oauth2 import service_account
 import ggt.lib.constants as c
 import datetime
 from typing import List
@@ -711,6 +714,7 @@ def bp_get_wallet_pass(pkpass_req):
     try:
         patient = lookup_pkpass(pkpass_req.phone_number, pkpass_req.dob,
                                 pkpass_req.first_name, pkpass_req.last_name, pkpass_req.token)
+        print(patient)
         if patient:
             return __generate_wallet_pass(pkpass_req, patient, verification=None)
     except Exception as err:
@@ -742,6 +746,8 @@ def __generate_wallet_pass(pkpass_req, patient, verification):
                 "pkpass_url": get_temp_pkpass_url(
                     str(patient["patient_id"])+".pkpass", "pkpass-prod")
             }
+        elif(pkpass_req.type == 'a'):
+            return __generate_gpay_pass(pkpass_req, patient, verification)
 
     except Exception as err:
         log_generic(
@@ -750,6 +756,370 @@ def __generate_wallet_pass(pkpass_req, patient, verification):
             function=whoami(),
             error=err
         )
+
+
+def __generate_gpay_pass(pkpass_req, patient, verification):
+    classUid = 'EVENTTICKET_CLASS_' + str(uuid.uuid4())
+    classId = '%s.%s' % ("3388000000009256028", classUid)
+    objectUid = 'EVENTTICKET_OBJECT_' + str(uuid.uuid4())
+    objectId = '%s.%s' % ("3388000000009256028", objectUid)
+    return __skinnyJwt("EVENTTICKET", classId, objectId, patient)
+
+
+def __skinnyJwt(verticalType, classId, objectId, patient):
+    skinnyJwt = __makeSkinnyJwt(verticalType, classId, objectId, patient)
+    if skinnyJwt is not None:
+        return {"gpayPassURL": "https://pay.google.com/gp/v/save/" + skinnyJwt.decode('UTF-8')}
+
+
+def __makeSkinnyJwt(verticalType, classId, objectId, patient):
+
+    signedJwt = None
+    classResourcePayload = None
+    objectResourcePayload = None
+    classResponse = None
+    objectResponse = None
+
+    try:
+        # get class definition and object definition
+        classResourcePayload, objectResourcePayload = getClassAndObjectDefinitions(
+            verticalType, classId, objectId, classResourcePayload, objectResourcePayload, patient)
+
+        print('\nMaking REST call to insert class: (%s)' % (classId))
+        # make authorized REST call to explicitly insert class into Google server.
+        # if this is successful, you can check/update class definitions in Merchant Center GUI: https://pay.google.com/gp/m/issuer/list
+        classResponse = __insertClass(verticalType, classResourcePayload)
+
+        print('\nMaking REST call to insert object')
+        # make authorized REST call to explicitly insert object into Google server.
+        objectResponse = __insertObject(verticalType, objectResourcePayload)
+
+        # continue based on insert response status. Check https://developers.google.com/pay/passes/reference/v1/statuscodes
+        # check class insert response. Will print out if class insert succeeds or not. Throws error if class resource is malformed.
+        __handleInsertCallStatusCode(
+            classResponse, "class", classId, None, None)
+
+        # check object insert response. Will print out if object insert succeeds or not. Throws error if object resource is malformed, or if existing objectId's classId does not match the expected classId
+        __handleInsertCallStatusCode(
+            objectResponse, "object", objectId, classId, verticalType)
+
+        # put into JSON Web Token (JWT) format for Google Pay API for Passes
+        googlePassJwt = jwt.googlePassJwt()
+
+        # only need to add objectId in JWT because class and object definitions were pre-inserted via REST call
+        __loadObjectIntoJWT(verticalType, googlePassJwt, {"id": objectId})
+
+        # sign JSON to make signed JWT
+        signedJwt = googlePassJwt.generateSignedJwt()
+
+    except ValueError as err:
+        print(err.args)
+
+    # return "skinny" JWT. Try putting it into save link.
+    # See https://developers.google.com/pay/passes/guides/get-started/implementing-the-api/save-to-google-pay#add-link-to-email
+    return signedJwt
+
+
+def __loadObjectIntoJWT(verticalType, googlePassJwt, objectResourcePayload):
+    googlePassJwt.addEventTicketObject(objectResourcePayload)
+
+
+def __handleInsertCallStatusCode(insertCallResponse, idType, id, checkClassId=None, verticalType=None):
+    if insertCallResponse.status_code == 200:
+        print('%sId (%s) insertion success!\n' % (idType, id))
+    elif insertCallResponse.status_code == 409:  # id resource exists for this issuer account
+        print('%sId: (%s) already exists. %s' %
+              (idType, id, "PASS ALREADY EXISTS"))
+
+        # for object insert, do additional check
+        if idType == "object":
+            getCallResponse = None
+            # get existing object Id data
+            # if it is a new object Id, expected status is 409
+            getCallResponse = __getObject(verticalType, id)
+            # check if object's classId matches target classId
+            classIdOfObjectId = getCallResponse.json()['classId']
+            if classIdOfObjectId != checkClassId and checkClassId is not None:
+                raise ValueError('the classId of inserted object is (%s). It does not match the target classId (%s). The saved object will not have the class properties you expect.' % (
+                    classIdOfObjectId, checkClassId))
+    else:
+        raise ValueError('%s insert issue.' %
+                         (idType), insertCallResponse.text)
+
+    return
+
+
+def __getObject(verticalType, objectId):
+
+    headers = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8'
+    }
+    credentials = __makeOauthCredential()
+    response = None
+
+    # Define get() REST call of target vertical
+    uri = 'https://walletobjects.googleapis.com/walletobjects/v1'
+    postfix = 'Object'
+    path = __createPath(verticalType, postfix, objectId)
+
+    # There is no Google API for Passes Client Library for Python.
+    # Authorize a http client with credential generated from Google API client library.
+    # see https://google-auth.readthedocs.io/en/latest/user-guide.html#making-authenticated-requests
+    authed_session = AuthorizedSession(credentials)
+
+    # make the GET request to make an get(); this returns a response object
+    # other methods require different http methods; for example, get() requires authed_Session.get(...)
+    # check the reference API to make the right REST call
+    # https://developers.google.com/pay/passes/reference/v1/
+    # https://google-auth.readthedocs.io/en/latest/user-guide.html#making-authenticated-requests
+    response = authed_session.get(
+        uri+path          # REST API endpoint
+        , headers=headers  # Header; optional
+    )
+
+    return response
+
+
+def __createPath(verticalType, postfix, id_to_use=''):
+    return '/%s%s/%s' % ("eventTicket", postfix, id_to_use)
+
+
+def __makeOauthCredential():
+    # the variables are in config file
+    credentials = service_account.Credentials.from_service_account_file(
+        'ggt/configs/gpay/ggt-pfe-prod-e3201b1cc798.json', scopes=['https://www.googleapis.com/auth/wallet_object.issuer'])
+
+    return credentials
+
+
+def __insertClass(verticalType, payload):
+
+    headers = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8'
+    }
+    credentials = __makeOauthCredential()
+    response = None
+
+    # Define insert() REST call of target vertical
+    uri = 'https://walletobjects.googleapis.com/walletobjects/v1'
+    postfix = 'Class'
+    path = __createPath(verticalType, postfix)
+
+    # There is no Google API for Passes Client Library for Python.
+    # Authorize a http client with credential generated from Google API client library.
+    # see https://google-auth.readthedocs.io/en/latest/user-guide.html#making-authenticated-requests
+    authed_session = AuthorizedSession(credentials)
+
+    # make the POST request to make an insert(); this returns a response object
+    # other methods require different http methods; for example, get() requires authed_Session.get(...)
+    # check the reference API to make the right REST call
+    # https://developers.google.com/pay/passes/reference/v1/
+    # https://google-auth.readthedocs.io/en/latest/user-guide.html#making-authenticated-requests
+    response = authed_session.post(
+        uri+path          # REST API endpoint
+        , headers=headers  # Header; optional
+        # non-form-encoded Payload for POST. Check rest API for format based on method.
+        , json=payload
+    )
+    return response
+
+
+def __insertObject(verticalType, payload):
+
+    headers = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json; charset=UTF-8'
+    }
+    credentials = __makeOauthCredential()
+    response = None
+
+    # Define insert() REST call of target vertical
+    uri = 'https://walletobjects.googleapis.com/walletobjects/v1'
+    postfix = 'Object'
+    path = __createPath(verticalType, postfix)
+    # There is no Google API for Passes Client Library for Python.
+    # Authorize a http client with credential generated from Google API client library.
+    # see https://google-auth.readthedocs.io/en/latest/user-guide.html#making-authenticated-requests
+    authed_session = AuthorizedSession(credentials)
+
+    # make the POST request to make an insert(); this returns a response object
+    # other methods require different http methods; for example, get() requires authed_Session.get(...)
+    # check the reference API to make the right REST call
+    # https://developers.google.com/pay/passes/reference/v1/
+    # https://google-auth.readthedocs.io/en/latest/user-guide.html#making-authenticated-requests
+    response = authed_session.post(
+        uri+path          # REST API endpoint
+        , headers=headers  # Header; optional
+        # non-form-encoded Payload for POST. Check rest API for format based on method.
+        , json=payload
+    )
+    return response
+
+
+def getClassAndObjectDefinitions(verticalType, classId, objectId, classResourcePayload, objectResourcePayload, patient):
+    classResourcePayload = __makeEventTicketClassResource(classId, patient)
+    objectResourcePayload = __makeEventTicketObjectResource(
+        classId, objectId, patient)
+    return classResourcePayload, objectResourcePayload
+
+
+def __makeEventTicketClassResource(classId, patient):
+    # Define the resource representation of the Class
+    # values should be from your DB/services; here we hardcode information
+
+    payload = {}
+
+    # below defines an event ticket class. For more properties, check:
+    # https://developers.google.com/pay/passes/reference/v1/eventticketclass/insert
+    # https://developers.google.com/pay/passes/guides/pass-verticals/event-tickets/design
+    textModulesData = [{
+        "header": "STATUS", "body": 'Covid 19 | Level '+patient["level"]+' Verified ', "id": "status"
+    }]
+    certs = patient["certificates"]
+
+    if len(certs) > 0:
+        textModulesData.append({
+            "header": "DOSE 1", "body": certs[0]["brand"], "id": "dose1"
+        })
+        textModulesData.append({
+            "header": "LOT", "body": certs[0]["lot_no"], "id": "lot1"
+        })
+        textModulesData.append({
+            "header": "DATE", "body": certs[0]["appointment_date"], "id": "date1"
+        })
+        textModulesData.append({
+            "header": "CERT.#", "body": patient["certNo"], "id": "cert"
+        })
+        textModulesData.append({
+            "header": "DATE VERIFIED", "body": patient["verfiedDate"], "id": "certdate"
+        })
+        if len(certs) > 1:
+            textModulesData.append({
+                "header": "DOSE 2", "body": certs[1]["brand"], "id": "dose2"
+            })
+            textModulesData.append({
+                "header": "LOT", "body": certs[1]["lot_no"], "id": "lot2"
+            })
+            textModulesData.append({
+                "header": "DATE", "body": certs[1]["appointment_date"], "id": "date2"
+            })
+
+    payload = {
+        # required fields
+        "id": classId, "issuerName": "Go Get Inc.", "eventName": {
+            "defaultValue": {
+                "language": "en-US",
+                "value": patient["first_name"] + " " + patient["last_name"]
+                + " | " + str(patient["dob"])
+            }
+        }, "reviewStatus": "underReview",        # optional
+        "textModulesData": textModulesData,
+        "classTemplateInfo": {
+            "cardTemplateOverride": {
+                "cardRowTemplateInfos": [{
+                    "threeItems": {
+                        "startItem": {
+                            "firstValue": {
+                                "fields": [{
+                                    "fieldPath": "class.textModulesData['dose1']"
+                                }]
+                            },
+                            "secondValue": {
+                                "fields": [{
+                                    "fieldPath": "class.textModulesData['lot1']"
+                                }]
+                            }
+                        },
+                        "middleItem": {
+                            "firstValue": {
+                                "fields": [{
+                                    "fieldPath": "class.textModulesData['date1']"
+                                }]
+                            }
+                        },
+                        "endItem": {
+                            "firstValue": {
+                                "fields": [{
+                                    "fieldPath": "class.textModulesData['cert']"
+                                }]
+                            }
+                        },
+                    }
+                }, {
+                    "threeItems": {
+                        "startItem": {
+                            "firstValue": {
+                                "fields": [{
+                                    "fieldPath": "class.textModulesData['dose2']"
+                                }]
+                            },
+                            "secondValue": {
+                                "fields": [{
+                                    "fieldPath": "class.textModulesData['lot2']"
+                                }]
+                            }
+                        },
+                        "middleItem": {
+                            "firstValue": {
+                                "fields": [{
+                                    "fieldPath": "class.textModulesData['date2']"
+                                }]
+                            }
+                        },
+                        "endItem": {
+                            "firstValue": {
+                                "fields": [{
+                                    "fieldPath": "class.textModulesData['certdate']"
+                                }]
+                            }
+                        },
+                    }
+                }]
+            }
+        },
+        "linksModuleData": {
+            "uris": [{
+                "kind": "walletobjects#uri", "uri": "https://start.gogetvax.com/login", "description": "https://GoGetVax.com"
+            }]
+        }, "imageModulesData": [{
+            "mainImage": {
+                "kind": "walletobjects#image", "sourceUri": {
+                        "kind": "walletobjects#uri", "uri": "https://ggv-images.s3.us-east-2.amazonaws.com/603d1a91d1256d7264b72dbf_Group-4.png", "description": "https://www.gogetvax.com/"
+                }
+            }
+        }],
+        "logo": {
+            "kind": "walletobjects#image", "sourceUri": {
+                "kind": "walletobjects#uri", "uri": "https://ggv-images.s3.us-east-2.amazonaws.com/logo-ggv.png", "description": "https://www.gogetvax.com/"
+            }
+        },
+        "hexBackgroundColor": "#2c1b4b"
+    }
+    return payload
+
+
+def __makeEventTicketObjectResource(classId, objectId, patient):
+    # Define the resource representation of the Object
+    # values should be from your DB/services; here we hardcode information
+
+    payload = {}
+
+    # below defines an event ticket object. For more properties, check:
+    # https://developers.google.com/pay/passes/reference/v1/eventticketobject/insert
+    # https://developers.google.com/pay/passes/guides/pass-verticals/event-tickets/design
+
+    payload = {
+        # required fields
+        "id": objectId, "classId": classId, "state": "active"        # optional
+        , "barcode": {
+          "kind": "walletobjects#barcode", "type": "DATA_MATRIX", "value": "https://start.gogetvax.com/login",
+          "alternateText": 'Covid 19 | Level '+patient["level"]+' Verified '
+        },
+    }
+
+    return payload
 
 
 def __generate_pk_pass(pkpass_req, patient, verification):
@@ -775,7 +1145,8 @@ def __generate_pk_pass(pkpass_req, patient, verification):
                     'LOT2', certs[1]["lot_no"], 'LOT NUMBER')
                 cardInfo.addAuxiliaryField(
                     'DATE2', certs[1]["appointment_date"], 'DATE')
-            cardInfo.addAuxiliaryField('DateVerified', patient["verfiedDate"], 'DATE VERIFIED')
+            cardInfo.addAuxiliaryField(
+                'DateVerified', patient["verfiedDate"], 'DATE VERIFIED')
 
         passfile = Pass(cardInfo,
                         passTypeIdentifier=pass_type_identifier,
