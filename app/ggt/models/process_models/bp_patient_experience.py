@@ -714,7 +714,6 @@ def bp_get_wallet_pass(pkpass_req):
     try:
         patient = lookup_pkpass(pkpass_req.phone_number, pkpass_req.dob,
                                 pkpass_req.first_name, pkpass_req.last_name, pkpass_req.token)
-        print(patient)
         if patient:
             return __generate_wallet_pass(pkpass_req, patient, verification=None)
     except Exception as err:
@@ -785,12 +784,10 @@ def __makeSkinnyJwt(verticalType, classId, objectId, patient):
         classResourcePayload, objectResourcePayload = getClassAndObjectDefinitions(
             verticalType, classId, objectId, classResourcePayload, objectResourcePayload, patient)
 
-        print('\nMaking REST call to insert class: (%s)' % (classId))
         # make authorized REST call to explicitly insert class into Google server.
         # if this is successful, you can check/update class definitions in Merchant Center GUI: https://pay.google.com/gp/m/issuer/list
         classResponse = __insertClass(verticalType, classResourcePayload)
 
-        print('\nMaking REST call to insert object')
         # make authorized REST call to explicitly insert object into Google server.
         objectResponse = __insertObject(verticalType, objectResourcePayload)
 
