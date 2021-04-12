@@ -86,19 +86,11 @@ def update_test_samples(processed_appointment_ids=[]):
 
 
 def get_doctors_signature(details):
-    city = details['city']
-    if city == 'kansas' or city == 'reno':
-        return {
-            'name': 'Dr. Matthew Roberson, MD',
-            'licence': 'NPI: 1871590570',
-            'institute': 'SK Primary PLLC',
-            'id': ''
-        }
     return {
-        'name': 'Dr. Alejandro Estanes Hernández',
-        'licence': 'Professional license 2649517',
-        'institute': 'Universidad Nacional Autónoma de México UNAM',
-        'id': 'RVC-D103208-1-35-042'
+        'name': 'Dr. Matthew Roberson, MD',
+        'licence': 'NPI: 1871590570',
+        'institute': 'SK Primary PLLC',
+        'id': ''
     }
 
 
