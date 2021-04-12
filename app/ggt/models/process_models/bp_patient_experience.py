@@ -1083,13 +1083,13 @@ def __makeEventTicketClassResource(classId, patient):
         }, "imageModulesData": [{
             "mainImage": {
                 "kind": "walletobjects#image", "sourceUri": {
-                        "kind": "walletobjects#uri", "uri": "https://ggv-images.s3.us-east-2.amazonaws.com/603d1a91d1256d7264b72dbf_Group-4.png", "description": "https://www.gogetvax.com/"
+                        "kind": "walletobjects#uri", "uri": "https://ggv-images.s3.us-east-2.amazonaws.com/GGV+android+2.png", "description": "https://www.gogetvax.com/"
                 }
             }
         }],
         "logo": {
             "kind": "walletobjects#image", "sourceUri": {
-                "kind": "walletobjects#uri", "uri": "https://ggv-images.s3.us-east-2.amazonaws.com/logo-ggv.png", "description": "https://www.gogetvax.com/"
+                "kind": "walletobjects#uri", "uri": "https://ggv-images.s3.us-east-2.amazonaws.com/GGV+android+wallet.png", "description": "https://www.gogetvax.com/"
             }
         },
         "hexBackgroundColor": "#2c1b4b"
