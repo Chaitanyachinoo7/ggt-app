@@ -8,7 +8,8 @@ from ggt.lib.utils import log_generic, whoami, get_ggv_tokens, get_ggv_tokens_v2
 from ggt.models.data_models.data_types import CreateAuth0User, UserRolesEnum, DbOrgRequestStatusEnum
 from ggt.models.data_models.management import create_new_organization_request, list_org_requests, process_org_request, \
     get_org_request_user, create_new_organization, create_new_user, delete_user, update_user_role, get_user_by_ext_id, \
-    list_user, update_user, update_user_status, list_organizations, change_org_status
+    list_user, update_user, update_user_status, list_organizations, change_org_status, \
+    add_default_group_to_new_organization
 
 
 def bp_create_new_organization_request(req):
@@ -58,6 +59,7 @@ def bp_process_org_request(req, user):
                     auth_user = create_user_in_auth0(_user, req.id)
                     if auth_user:
                         create_new_organization(data, auth_user['id'])
+                        add_default_group_to_new_organization(data)
                         _x = get_user_in_auth0(auth_user['id']).json()
                         create_new_user(_x, [UserRolesEnum.org_admin])
                         send_new_account_creation_email(_x['given_name'], _x['email'], auth_user['password'], org=True)

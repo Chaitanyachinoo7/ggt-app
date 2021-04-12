@@ -25,8 +25,14 @@ def get_all_groups(user):
         # return replica_read_rows(sql)
 
         '''If groups are not shared Use this'''
-        sql = """SELECT * FROM groups
-                    WHERE org_id = %s OR group_code = '_DEFAULT_'"""
+        sql = """SELECT 
+                        *
+                    FROM
+                        groups g
+                            JOIN
+                        groups_to_org_map gom ON g.id = gom.group_id
+                    WHERE
+                        gom.org_id = %s """
         vals = (organization_id, )
         return replica_read_rows(sql, vals)
 

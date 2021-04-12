@@ -76,6 +76,42 @@ def create_new_organization(req, ext_id):
             error=err)
 
 
+def add_default_group_to_new_organization(req):
+    try:
+        sql = """insert into 
+                    groups_to_org_map (group_id, org_id) 
+                    values (%s, %s);"""
+        vals = (
+            1,
+            req['id']
+        )
+        return exec_insert(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err)
+
+
+def add_default_org_to_new_group(group_id):
+    try:
+        sql = """insert into 
+                    groups_to_org_map (group_id, org_id) 
+                    values (%s, %s);"""
+        vals = (
+            group_id,
+            1
+        )
+        return exec_insert(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err)
+
+
 def create_new_user(req, roles):
     try:
         sql = """INSERT IGNORE INTO ggt_users
