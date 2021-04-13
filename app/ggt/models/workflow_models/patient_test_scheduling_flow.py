@@ -513,6 +513,8 @@ def __assign_services(selected_services, sku):
         selected_services.covid_19_test = True
     if sku == c.SERVICE_CODE_COVID19_TEST_MEXICO:
         selected_services.covid_19_test_mexico = True
+    if sku == c.SERVICE_CODE_COVID_19_TEST_MX_RESORT:
+        selected_services.covid_19_test_mexico_resort = True
     if sku == c.SERVICE_CODE_COVID19_TEST_ANTIGEN:
         selected_services.covid_19_test_antigen = True
     if sku == c.SERVICE_CODE_COVID19_TEST_ANTIGEN_NV:
@@ -534,7 +536,6 @@ def __assign_services(selected_services, sku):
     if sku == c.SERVICE_CODE_COVID_19_VACCINE_JNJ:
         selected_services.covid_19_vax_jnj = True
     return selected_services
-
 
 
 def insurance_eligibility(insurance_eligibility_request):

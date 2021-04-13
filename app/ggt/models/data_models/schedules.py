@@ -739,6 +739,7 @@ def select_random_count(items, count):
     shuffled.sort(key= lambda x: x['start_dt'])
     return shuffled
 
+
 def get_slot_information(slot_id, slot_type="test"):
     table = "schedules"
     if slot_type == "vax":

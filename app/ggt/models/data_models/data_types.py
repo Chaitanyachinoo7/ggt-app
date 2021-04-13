@@ -13,6 +13,7 @@ class ServiceCodesEnum(str, Enum):
     covid_19_test = 'COVID_19_TEST'
     covid_19_test_nv = 'COVID_19_TEST_NV'
     covid_19_test_mexico = 'COVID_19_TEST_MEXICO'
+    covid_19_test_mexico_resort = 'COVID_19_TEST_MX_RESORT'
     covid_19_test_antigen = 'COVID_19_TEST_ANTIGEN'
     covid_19_test_antigen_nv = 'COVID_19_TEST_ANTIGEN_NV'
     covid_19_test_antigen_mexico = 'COVID_19_TEST_MEXICO_ANTIGEN'
@@ -976,6 +977,7 @@ class ServiceCodes(BaseModel):
     covid_19_test: bool = False
     covid_19_test_nv: bool = False
     covid_19_test_mexico: bool = False
+    covid_19_test_mexico_resort: bool = False
     covid_19_test_antigen: bool = False
     covid_19_test_antigen_nv: bool = False
     covid_19_test_antigen_mexico: bool = False

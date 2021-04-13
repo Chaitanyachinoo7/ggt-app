@@ -618,6 +618,7 @@ def __group_vax_results(results):
                 result["service_code"] == c.SERVICE_CODE_COVID19_TEST_NV or \
                 result["service_code"] == c.SERVICE_CODE_COVID19_TEST_ANTIGEN_NV or \
                 result["service_code"] == c.SERVICE_CODE_COVID19_TEST_MEXICO or \
+                result["service_code"] == c.SERVICE_CODE_COVID_19_TEST_MX_RESORT or \
                 result["service_code"] == c.SERVICE_CODE_COVID19_TEST_ANTIGEN or \
                 result["service_code"] == c.SERVICE_CODE_COVID19_TEST_MEXICO_ANTIGEN:
             grouped_results.append(
