@@ -94,6 +94,19 @@ def get_doctors_signature(details):
     }
 
 
+def get_test_result_displayed_text(details):
+    is_result_positive = details['test_result'] == 'pos'
+    is_result_negative = details['test_result'] == 'neg'
+
+    if is_result_positive:
+        return '___POSITIVE___'
+    if is_result_negative:
+        return '___NEGATIVE___'
+
+    # This is the fallback result if not negative or positive
+    return '___INCONCLUSIVE___'
+
+
 def generate_patient_test_result_canvas(details):
     packet = io.BytesIO()
     # create a new PDF with Reportlab
@@ -119,20 +132,21 @@ def generate_patient_test_result_canvas(details):
 
     can.setFont("Helvetica", 10)
 
-    can.drawString(30, 680, "Age:")
+    can.drawString(30, 680, "Date of Birth:")
 
     can.setFont("Helvetica-Bold", 10)
 
-    can.drawString(60, 680, "{} years".format(relativedelta(datetime.now(), details['dob']).years))
+    date_of_birth = details['dob']
+    can.drawString(90, 680, date_of_birth.strftime("%m/%d/%Y"))
 
     can.setFont("Helvetica", 10)
 
-    can.drawString(110, 680, "Sex:")
+    can.drawString(155, 680, "Sex:")
 
     can.setFont("Helvetica-Bold", 10)
 
     gender = details['gender'][0:1].upper()
-    can.drawString(130, 680, gender)
+    can.drawString(180, 680, gender)
 
     can.setFont("Helvetica", 10)
 
@@ -141,7 +155,7 @@ def generate_patient_test_result_canvas(details):
     can.setFont("Helvetica-Bold", 10)
 
     sample_collection_dt = details['sample_collection_end_dt']
-    can.drawString(60, 660, sample_collection_dt.strftime("%d/%m/%y %z"))
+    can.drawString(60, 660, sample_collection_dt.strftime("%m/%d/%Y %z"))
 
     can.setFont("Helvetica", 10)
 
@@ -161,9 +175,7 @@ def generate_patient_test_result_canvas(details):
 
     can.drawString(60, 530, "Result")
 
-    is_result_positive = details['test_result'] == 'pos'
-    displayed_result = '__POSITIVE__' if is_result_positive else "___NEGATIVE___"
-
+    displayed_result = get_test_result_displayed_text(details)
     can.drawString(60, 495, displayed_result)
 
     can.setFont("Helvetica", 10)
