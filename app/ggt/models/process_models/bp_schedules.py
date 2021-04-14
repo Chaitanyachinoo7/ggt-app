@@ -123,8 +123,8 @@ def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: float, rad
     if not group_code:
         group_code = c.DEFAULT_GROUP_CODE
 
-    if not date_str:
-        date_str = date.today().strftime("%Y-%m-%d")
+    # if not date_str:
+        # date_str = date.today().strftime("%Y-%m-%d")
 
     group_code = normalize_group_code(group_code)
     dtl_list = get_available_locations_near_lat_lng(
