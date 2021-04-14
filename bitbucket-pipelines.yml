@@ -55,7 +55,7 @@ pipelines:
             - docker build -t ggt-api:dev .
             - docker tag ggt-api:dev 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:dev
             - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:dev
-            - aws ecs update-service --region us-east-2 --cluster dev-us-east-2-cluster --service dev-us-east-2-service --force-new-deployment
+            - aws ecs update-service --region us-east-2 --cluster dev-us-east-2-cluster --service dev-service --force-new-deployment
 
 
     qa:
