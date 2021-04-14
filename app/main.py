@@ -10,7 +10,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 import ggt.lib.constants as c
 from ggt.lib.utils import (
     get_config_val as cfg,
-    app_init
+    # app_init
 )
 import sys, os
 from ggt.routers import (
@@ -29,7 +29,7 @@ from ggt.routers import (
     rt_payment,
 )
 
-app_init()
+# app_init()
 app = FastAPI(
     title="GGT",
     description="GGT API",
