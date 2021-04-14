@@ -15,7 +15,8 @@ from ggt.lib.adapters.google_adapter import (
 
 from ggt.lib.adapters.s3_adapter import (
     get_temp_lab_report_url as __get_temp_lab_report_url,
-    upload_image_from_base64_string as __upload_image_from_base64_string
+    upload_image_from_base64_string as __upload_image_from_base64_string,
+    upload_image_from_twilio as __upload_image_from_twilio
 )
 
 
@@ -62,6 +63,10 @@ def upload_test_result_image_from_base64_string(base64string, destination_filena
 
 def upload_vax_card_image_from_base64_string(base64string, destination_filename):
     return __upload_image_from_base64_string(base64string, destination_filename, vax_certificate_bucket)
+
+
+def upload_vax_card_image_from_twilio(url, destination_filename):
+    return __upload_image_from_twilio(url, destination_filename)
 
 
 def get_temporary_lab_report_url(filename):

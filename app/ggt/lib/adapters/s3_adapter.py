@@ -2,7 +2,7 @@ import base64
 import os
 import boto3
 from botocore.client import Config
-
+import requests
 from ggt.lib.utils import (
     get_config_val as cfg,
     log_generic,
@@ -350,6 +350,7 @@ def get_temp_vaccine_consent_url(filename: str, lab_reports_bucket_name=lab_repo
         )
         return None
 
+
 def get_temp_pkpass_url(filename, bucket_name):
     try:
         url = __boto_connect_client('s3', region_name='us-east-2').generate_presigned_url(
@@ -389,6 +390,28 @@ def upload_image_from_base64_string(base64string, destination_filename, bucket_n
         )
         return None
 
+
+def upload_image_from_twilio(url, file_name, bucket_name=None):
+    print(url)
+    r = requests.get(url, stream=True)
+
+    if bucket_name is None:
+        bucket_name = ops_image_bucket_name
+    session = boto3.Session()
+    s3 = __boto_connect_resource('s3')
+    bucket = s3.Bucket(bucket_name)
+    try:
+        bucket.upload_fileobj(r.raw, file_name)
+        return True
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 def uploadFile(path, key, bucketName):
     try:
         __boto_connect_client('s3').upload_file(path, bucketName, key)
@@ -399,4 +422,3 @@ def uploadFile(path, key, bucketName):
             error=err
         )
         return None
-

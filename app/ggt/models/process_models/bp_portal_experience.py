@@ -233,7 +233,8 @@ def create_overlay(date, patient_id, patient, data_dict, mother_first_name="", m
         update_string_in_pdf(c, 25, 577, patient["addr1"].upper())
         # update_string_in_pdf(c, 320, 602, "1234")
         phone = patient["phone_number"][2:]
-        update_string_in_pdf(c, 420, 577, phone[:3] + "-" + phone[3:6] + "-" + phone[6:])
+        update_string_in_pdf(
+            c, 420, 577, phone[:3] + "-" + phone[3:6] + "-" + phone[6:])
         update_string_in_pdf(c, 25, 545, patient["city"].upper())
         update_string_in_pdf(c, 315, 545, patient["st"])
         update_string_in_pdf(c, 360, 545, patient["zip"])
@@ -670,10 +671,14 @@ def __process_services(services):
                 }
             }
         else:
-            structured_service[service_code]["price"][service['currency']] = service['price']
-            structured_service[service_code]["self_pay_amount"][service['currency']] = service['selfpay_amount']
-            structured_service[service_code]["copay_amount"][service['currency']] = service['copay_amount']
-            structured_service[service_code]["insurance_amount"][service['currency']] = service['insurance_amount']
+            structured_service[service_code]["price"][service['currency']
+                ] = service['price']
+            structured_service[service_code]["self_pay_amount"][service['currency']
+                ] = service['selfpay_amount']
+            structured_service[service_code]["copay_amount"][service['currency']
+                ] = service['copay_amount']
+            structured_service[service_code]["insurance_amount"][service['currency']
+                ] = service['insurance_amount']
 
     response = {
         "result": list(structured_service.values())
@@ -732,20 +737,22 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
         patient_id = patients.create_vax_yes_patient(
             first_name, last_name, phone_number, email, dob)
 
-    if vax_type == 'pfizer':
+    if vax_type.lower() == 'pfizer':
         vax_code_1 = c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_1
         vax_code_2 = c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_2
 
-    if vax_type == 'moderna':
+    if vax_type.lower() == 'moderna':
         vax_code_1 = c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_1
         vax_code_2 = c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_2
 
-    if vax_type == 'janssen':
+    if vax_type.lower() == 'janssen':
         vax_code_1 = c.SERVICE_CODE_COVID_19_VACCINE_JNJ
 
     try:
         vax_1_date = "{} 00:00:00".format(vax_1_date)
         if vax_1_date and lot_1:
+            print("creating first crt", patient_id,
+                  vax_1_date, vax_code_1, lot_1)
             cert1_id = patients.create_cert(
                 patient_id, vax_1_date, vax_code_1, lot_1)
     except Exception as err1:
@@ -756,15 +763,16 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
         vax_2_date = "{} 00:00:00".format(vax_2_date)
 
         if vax_2_date and lot_2:
-            cert2_id = patients.create_cert(
+            print("creating second crt",  patient_id, vax_2_date, vax_code_2, lot_2)
+            cert2_id=patients.create_cert(
                 patient_id, vax_2_date, vax_code_2, lot_2)
     except Exception as err1:
         print("Error processing cert2", err1)
         return None
 
-    cert_id = cert1_id
+    cert_id=cert1_id
     if cert_id is None:
-        cert_id = cert2_id
+        cert_id=cert2_id
 
     if cert_id and patient_id:
         __upload_vax_card_image(image, patient_id, cert_id)
