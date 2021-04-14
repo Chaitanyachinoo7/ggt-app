@@ -52,6 +52,7 @@ pdfrw = "*"
 reportlab = "*"
 stripe = "*"
 wallet-py3k = "*"
+pypdf2 = "*"
 
 [requires]
 python_version = "3.7"

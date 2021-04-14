@@ -422,3 +422,34 @@ def uploadFile(path, key, bucketName):
             error=err
         )
         return None
+
+
+def put_to_bucket(bucket_name, body, content_type, filename):
+
+    try:
+        # If the file is already in AWS skip update
+        if file_exists(bucket_name, filename):
+            return False
+
+        # Push to S3
+        __boto_connect_client('s3').put_object(Body=body, Bucket=bucket_name, Key=filename,
+                                               ContentType=content_type)
+
+        log_generic(
+            type=INFO,
+            function=whoami(),
+            message="{} successfully pushed to S3".format(filename)
+        )
+
+        return True
+
+    except Exception as err:
+
+        log_generic(
+            typ=ERROR,
+            function=whoami(),
+            error=err,
+            # If an exception occurs, it will not stop notifications getting deleted, therefore log the content here
+            body=body
+        )
+        return False
