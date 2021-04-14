@@ -337,6 +337,14 @@ class SecondSlotReschedule(BaseModel):
     first_appointment_date: str
 
 
+class InsuranceVerification(BaseModel):
+    member_id: str = None
+    group_no: str = None
+    relationship: str = None
+    payer: str = None
+    level: str = None
+
+
 class FinalizeRegistrationRequest(BaseModel):
     groupCode: str = None
     phone_number: str = None
@@ -360,6 +368,7 @@ class FinalizeRegistrationRequest(BaseModel):
 
     serviceSelection: Optional[ServiceSelection] = None
     influenzaScreening: Optional[InfluenzaScreening] = None
+    insuranceVerification: Optional[InsuranceVerification] = None
     publicPlaces: Optional[PublicPlaces] = None
     date: Optional[str] = None
     location: Optional[int] = None
@@ -374,14 +383,6 @@ class FinalizeRegistrationRequest(BaseModel):
 class Payer(BaseModel):
     id: str = None
     displayName: str = None
-
-
-class InsuranceVerification(BaseModel):
-    member_id: str = None
-    group_no: str = None
-    relationship: str = None
-    payer: str = None
-    level: str = None
 
 
 class Covid19vaxScreening(BaseModel):

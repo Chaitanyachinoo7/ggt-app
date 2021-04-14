@@ -262,8 +262,8 @@ def finalize_registration(finalize_registration_request):
             "appointment_id": appointment.id,
             "date": appointment.date_text,
             "location": appointment.location_text,
-            'total_balance': int(appointment.billed_amount * 100),
-            'total_cost': int(appointment.total_cost * 100),
+            'total_balance': int((appointment.billed_amount if appointment.billed_amount else 0) * 100),
+            'total_cost': int((appointment.total_cost if appointment.total_cost else 0) * 100),
             'payment_url': appointment.payment_url,
             'payment_checkout_session': appointment.payment_checkout_session,
             c.STATUS: c.SUCCESS
