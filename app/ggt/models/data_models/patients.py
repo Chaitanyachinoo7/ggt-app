@@ -151,7 +151,7 @@ def create_vax_yes_patient(first_name, last_name, phone, email, dob):
 
 
 def create_cert(patient_id, vax_date, vax_type, lot):
-    sql = """INSERT INTO ggv_certificates (patient_id, check_in_dt, service_code, vial_id) 
+    sql = """INSERT INTO ggv_certificates (patient_id, check_in_dt, service_code, lot_no) 
        values (%s, %s, %s, %s)"""
     vals = (patient_id, vax_date, vax_type, lot)
     return exec_insert(sql, vals)
