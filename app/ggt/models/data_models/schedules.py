@@ -1041,7 +1041,12 @@ def __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, g
 
         where_statement = "1=1"
         if date_str:
-            where_statement = "{} AND date(next_appointment_available) = '{}'".format(where_statement, date_str)
+            where_statement = """{} AND l.location_id IN (SELECT 
+                                        location_id
+                                    FROM
+                                        schedules_metrics_cache
+                                    WHERE
+                                        local_scheduled_date = '{}')""".format(where_statement, date_str)
         sql = """
         SELECT DISTINCT
             l.location_id,
