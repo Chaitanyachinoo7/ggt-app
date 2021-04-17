@@ -1149,6 +1149,10 @@ def __add_services_to_appointment(appointment_id: int, appointment_req: GgtBooki
             add_service_to_appointment(
                 appointment_id, c.SERVICE_CODE_COVID19_TEST_MEXICO)
 
+        if appointment_req.services.covid_19_test_mexico_resort:
+            add_service_to_appointment(
+                appointment_id, c.SERVICE_CODE_COVID_19_TEST_MX_RESORT)
+
         if appointment_req.services.covid_19_test_antigen:
             add_service_to_appointment(
                 appointment_id, c.SERVICE_CODE_COVID19_TEST_ANTIGEN)

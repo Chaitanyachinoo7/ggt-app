@@ -274,6 +274,7 @@ def __next_action(appointment, service_code, pre_labeled=False):
             c.APPOINTMENT_STATUS_TEST_FINALIZED: c.APPOINTMENT_ACTION_NONE
         }
     elif service_code == c.SERVICE_CODE_COVID19_TEST_MEXICO or \
+            service_code == c.SERVICE_CODE_COVID_19_TEST_MX_RESORT or \
             service_code == c.SERVICE_CODE_COVID19_TEST_MEXICO_ANTIGEN:
         switcher = {
             c.APPOINTMENT_STATUS_SCHEDULED: c.APPOINTMENT_ACTION_CHECK_IN,

@@ -36,7 +36,7 @@ pipelines:
             - docker build -t ggt-api:dev2 .
             - docker tag ggt-api:dev2 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:dev2
             - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:dev2
-            - aws ecs update-service --region us-east-2 --cluster ggt-api-dev --service ggt-api-dev2 --force-new-deployment
+            - aws ecs update-service --region us-east-2 --cluster dev2-us-east-2-cluster --service dev2-us-east-2-service --force-new-deployment
 
     dev:
       - step:
@@ -55,7 +55,8 @@ pipelines:
             - docker build -t ggt-api:dev .
             - docker tag ggt-api:dev 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:dev
             - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:dev
-            - aws ecs update-service --region us-east-2 --cluster ggt-api-dev --service ggt-api-dev --force-new-deployment
+            - aws ecs update-service --region us-east-2 --cluster dev-us-east-2-cluster --service dev-service --force-new-deployment
+
 
     qa:
       - step:
@@ -74,7 +75,8 @@ pipelines:
             - docker build -t ggt-api:qa .
             - docker tag ggt-api:qa 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:qa
             - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:qa
-            - aws ecs update-service --region us-east-2 --cluster ggt-api-qa --service ggt-api-qa --force-new-deployment
+            - aws ecs update-service --region us-east-2 --cluster qa-us-east-2-cluster --service qa-us-east-2-service --force-new-deployment
+
 
     production-portal:
       - step:

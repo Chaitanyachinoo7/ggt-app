@@ -30,6 +30,7 @@ from ggt.models.data_models.locations import (
     create_location, update_location, assign_group, remove_group, assign_service, remove_service,
     get_all_locations_without_thumbnail, assign_all_groups, assign_all_services, remove_all_group, remove_all_service,
     get_states)
+from ggt.models.data_models.management import add_default_org_to_new_group
 from ggt.models.data_models.service_catalog import get_all_services, get_all_services_patient
 from ggt.models.data_models.users import (
     get_user_by_email
@@ -357,6 +358,7 @@ def bp_create_group(group):
         _id = create_group(group)
         if _id is None:
             return None
+        add_default_org_to_new_group(_id)
         return get_group_by_id(_id)
     except Exception as err:
         log_generic(
@@ -617,6 +619,7 @@ def __group_vax_results(results):
                 result["service_code"] == c.SERVICE_CODE_COVID19_TEST_NV or \
                 result["service_code"] == c.SERVICE_CODE_COVID19_TEST_ANTIGEN_NV or \
                 result["service_code"] == c.SERVICE_CODE_COVID19_TEST_MEXICO or \
+                result["service_code"] == c.SERVICE_CODE_COVID_19_TEST_MX_RESORT or \
                 result["service_code"] == c.SERVICE_CODE_COVID19_TEST_ANTIGEN or \
                 result["service_code"] == c.SERVICE_CODE_COVID19_TEST_MEXICO_ANTIGEN:
             grouped_results.append(

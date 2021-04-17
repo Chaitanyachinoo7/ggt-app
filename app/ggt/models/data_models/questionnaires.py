@@ -87,10 +87,18 @@ def create_patient_questionnaire(booking_req):
                 immune_system_medications,
                 nervous_system,
                 blood_transfusion,
-                recent_vaccinations
+                recent_vaccinations,
+                symptom_fatigue,
+                symptom_muscle_body_aches,
+                symptom_headache,
+                symptom_sore_throat,
+                symptom_congestion_runny_nose,
+                symptom_nausea_vomitting,
+                symptom_diarrhea
             )
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 
-        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,  %s, %s, %s, %s, %s, %s, %s, %s,  %s, %s, %s, %s, %s, %s)
+        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,  %s, %s, %s, %s, %s, %s, %s, %s,  %s, %s, %s, %s, %s, %s,
+        %s, %s, %s, %s, %s, %s, %s)
         """
 
         vals = (
@@ -150,8 +158,15 @@ def create_patient_questionnaire(booking_req):
             booking_req.immune_system_medications,
             booking_req.nervous_system,
             booking_req.blood_transfusion,
-            booking_req.recent_vaccinations
+            booking_req.recent_vaccinations,
 
+            booking_req.symptom_fatigue,
+            booking_req.symptom_muscle_body_aches,
+            booking_req.symptom_headache,
+            booking_req.symptom_sore_throat,
+            booking_req.symptom_congestion_runny_nose,
+            booking_req.symptom_nausea_vomitting,
+            booking_req.symptom_diarrhea
         )
 
         questionnaire_id = exec_insert(sql, vals)

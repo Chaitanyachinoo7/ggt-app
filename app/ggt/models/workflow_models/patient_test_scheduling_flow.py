@@ -262,8 +262,8 @@ def finalize_registration(finalize_registration_request):
             "appointment_id": appointment.id,
             "date": appointment.date_text,
             "location": appointment.location_text,
-            'total_balance': int(appointment.billed_amount * 100),
-            'total_cost': int(appointment.total_cost * 100),
+            'total_balance': int((appointment.billed_amount if appointment.billed_amount else 0) * 100),
+            'total_cost': int((appointment.total_cost if appointment.total_cost else 0) * 100),
             'payment_url': appointment.payment_url,
             'payment_checkout_session': appointment.payment_checkout_session,
             c.STATUS: c.SUCCESS
@@ -390,6 +390,15 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
             b.symptom_chestpains = finalize_registration_request.symptoms.symptom_chest_pains
             b.symptom_others = finalize_registration_request.symptoms.symptom_other
             b.symptom_lack_of_smell = finalize_registration_request.symptoms.symptom_lack_of_smell
+
+            b.symptom_fatigue = finalize_registration_request.symptoms.symptom_fatigue
+            b.symptom_muscle_body_aches = finalize_registration_request.symptoms.symptom_muscle_body_aches
+            b.symptom_headache = finalize_registration_request.symptoms.symptom_headache
+            b.symptom_sore_throat = finalize_registration_request.symptoms.symptom_sore_throat
+            b.symptom_congestion_runny_nose = finalize_registration_request.symptoms.symptom_congestion_runny_nose
+            b.symptom_nausea_vomitting = finalize_registration_request.symptoms.symptom_nausea_vomitting
+            b.symptom_diarrhea = finalize_registration_request.symptoms.symptom_diarrhea
+
         b.covid_contact = finalize_registration_request.contactTracing
 
         if "preExistingConditions" in dict(finalize_registration_request).keys() and finalize_registration_request.preExistingConditions:
@@ -504,6 +513,8 @@ def __assign_services(selected_services, sku):
         selected_services.covid_19_test = True
     if sku == c.SERVICE_CODE_COVID19_TEST_MEXICO:
         selected_services.covid_19_test_mexico = True
+    if sku == c.SERVICE_CODE_COVID_19_TEST_MX_RESORT:
+        selected_services.covid_19_test_mexico_resort = True
     if sku == c.SERVICE_CODE_COVID19_TEST_ANTIGEN:
         selected_services.covid_19_test_antigen = True
     if sku == c.SERVICE_CODE_COVID19_TEST_ANTIGEN_NV:
@@ -525,7 +536,6 @@ def __assign_services(selected_services, sku):
     if sku == c.SERVICE_CODE_COVID_19_VACCINE_JNJ:
         selected_services.covid_19_vax_jnj = True
     return selected_services
-
 
 
 def insurance_eligibility(insurance_eligibility_request):

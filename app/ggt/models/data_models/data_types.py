@@ -13,6 +13,7 @@ class ServiceCodesEnum(str, Enum):
     covid_19_test = 'COVID_19_TEST'
     covid_19_test_nv = 'COVID_19_TEST_NV'
     covid_19_test_mexico = 'COVID_19_TEST_MEXICO'
+    covid_19_test_mexico_resort = 'COVID_19_TEST_MX_RESORT'
     covid_19_test_antigen = 'COVID_19_TEST_ANTIGEN'
     covid_19_test_antigen_nv = 'COVID_19_TEST_ANTIGEN_NV'
     covid_19_test_antigen_mexico = 'COVID_19_TEST_MEXICO_ANTIGEN'
@@ -210,9 +211,16 @@ class Symptoms(BaseModel):
     symptom_fever: bool = None
     symptom_short_breath: bool = None
     symptom_cough: bool = None
-    symptom_chest_pains: bool = None
-    symptom_other: bool = None
+    symptom_chest_pains: bool = None  # To be removed
+    symptom_other: bool = None  # To be removed
     symptom_lack_of_smell: bool = None
+    symptom_fatigue: bool = None
+    symptom_muscle_body_aches: bool = None
+    symptom_headache: bool = None
+    symptom_sore_throat: bool = None
+    symptom_congestion_runny_nose: bool = None
+    symptom_nausea_vomitting: bool = None
+    symptom_diarrhea: bool = None
 
 
 class PatientDetails(BaseModel):
@@ -329,6 +337,14 @@ class SecondSlotReschedule(BaseModel):
     first_appointment_date: str
 
 
+class InsuranceVerification(BaseModel):
+    member_id: str = None
+    group_no: str = None
+    relationship: str = None
+    payer: str = None
+    level: str = None
+
+
 class FinalizeRegistrationRequest(BaseModel):
     groupCode: str = None
     phone_number: str = None
@@ -352,6 +368,7 @@ class FinalizeRegistrationRequest(BaseModel):
 
     serviceSelection: Optional[ServiceSelection] = None
     influenzaScreening: Optional[InfluenzaScreening] = None
+    insuranceVerification: Optional[InsuranceVerification] = None
     publicPlaces: Optional[PublicPlaces] = None
     date: Optional[str] = None
     location: Optional[int] = None
@@ -366,14 +383,6 @@ class FinalizeRegistrationRequest(BaseModel):
 class Payer(BaseModel):
     id: str = None
     displayName: str = None
-
-
-class InsuranceVerification(BaseModel):
-    member_id: str = None
-    group_no: str = None
-    relationship: str = None
-    payer: str = None
-    level: str = None
 
 
 class Covid19vaxScreening(BaseModel):
@@ -969,6 +978,7 @@ class ServiceCodes(BaseModel):
     covid_19_test: bool = False
     covid_19_test_nv: bool = False
     covid_19_test_mexico: bool = False
+    covid_19_test_mexico_resort: bool = False
     covid_19_test_antigen: bool = False
     covid_19_test_antigen_nv: bool = False
     covid_19_test_antigen_mexico: bool = False
@@ -1019,6 +1029,13 @@ class GgtBooking(BaseModel):
     symptom_chestpains: bool = False
     symptom_others: bool = False
     symptom_lack_of_smell: bool = False
+    symptom_fatigue: bool = False
+    symptom_muscle_body_aches: bool = False
+    symptom_headache: bool = False
+    symptom_sore_throat: bool = False
+    symptom_congestion_runny_nose: bool = False
+    symptom_nausea_vomitting: bool = False
+    symptom_diarrhea: bool = False
 
     covid_contact: bool = False
 

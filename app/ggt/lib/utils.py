@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from pprint import pformat
 
-import google.cloud.logging
+# import google.cloud.logging
 import phonenumbers
 import pyotp
 import ujson
@@ -114,56 +114,56 @@ def format_log_message(kwargs):
     else:
         return kwargs
 
-
-def app_init():
-    if get_config_val('gcp.enable_cloud_logger'):
-        init_cloud_logger()
+#
+# def app_init():
+#     if get_config_val('gcp.enable_cloud_logger'):
+#         init_cloud_logger()
 
     # if get_config_val('gcp.enable_cloud_profiler'):
     #    init_cloud_profiler()
 
-
-def init_cloud_logger():
-    '''
-    This will override default behavior of the python logger and stream logs to GCP
-    '''
-    curr_file = Path(__file__)
-    service_account_file = get_config_val('gcp.service_account_file')
-    service_account_file = curr_file.parent.parent.parent.joinpath(
-        'ggt/configs/{}'.format(service_account_file))
-    client = google.cloud.logging.Client.from_service_account_json(
-        service_account_file)
-
-    client.get_default_handler()
-    client.setup_logging()
-
-
-def init_cloud_profiler():
-    # TODO: Untested/Doesn't work
-    # Profiler initialization. It starts a daemon thread which continuously
-    # collects and uploads profiles. Best done as early as possible.
-    try:
-        curr_file = Path(__file__)
-        service_account_file = get_config_val('gcp.service_account_file')
-        service_account_file = curr_file.parent.parent.parent.joinpath(
-            'ggt/configs/{}'.format(service_account_file))
-        client = google.cloud.logging.Client.from_service_account_json(
-            service_account_file)
-
-        googlecloudprofiler.start(
-            service=get_config_val('app_name'),
-            service_version=get_config_val('app_version'),
-
-            # It defaults to 0 (error) if not set.
-            verbose=get_config_val('gcp.cloud_logger_log_level'),
-
-            # project_id must be set if not running on GCP.
-            project_id=get_config_val('gcp.project_id'),
-        )
-
-    except (ValueError, NotImplementedError) as exc:
-        logging.error(exc)
-
+#
+# def init_cloud_logger():
+#     '''
+#     This will override default behavior of the python logger and stream logs to GCP
+#     '''
+#     curr_file = Path(__file__)
+#     service_account_file = get_config_val('gcp.service_account_file')
+#     service_account_file = curr_file.parent.parent.parent.joinpath(
+#         'ggt/configs/{}'.format(service_account_file))
+#     client = google.cloud.logging.Client.from_service_account_json(
+#         service_account_file)
+#
+#     client.get_default_handler()
+#     client.setup_logging()
+#
+#
+# def init_cloud_profiler():
+#     # TODO: Untested/Doesn't work
+#     # Profiler initialization. It starts a daemon thread which continuously
+#     # collects and uploads profiles. Best done as early as possible.
+#     try:
+#         curr_file = Path(__file__)
+#         service_account_file = get_config_val('gcp.service_account_file')
+#         service_account_file = curr_file.parent.parent.parent.joinpath(
+#             'ggt/configs/{}'.format(service_account_file))
+#         client = google.cloud.logging.Client.from_service_account_json(
+#             service_account_file)
+#
+#         googlecloudprofiler.start(
+#             service=get_config_val('app_name'),
+#             service_version=get_config_val('app_version'),
+#
+#             # It defaults to 0 (error) if not set.
+#             verbose=get_config_val('gcp.cloud_logger_log_level'),
+#
+#             # project_id must be set if not running on GCP.
+#             project_id=get_config_val('gcp.project_id'),
+#         )
+#
+#     except (ValueError, NotImplementedError) as exc:
+#         logging.error(exc)
+#
 
 def x_response(res, allow=True, reason_code=None):
     try:
