@@ -1295,13 +1295,14 @@ class Message(BaseModel):
     orc: Optional[ORC] = ''
     obr: Optional[OBR] = ''
     obx_list: Optional[List[OBX]] = ''
+    in1: Optional[IN1] = ''
 
     def __str__(self):
         _str = ''
         for obx in self.obx_list:
             _str = _str + str(obx) + '\n'
 
-        return '{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}'.format(
+        return '{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}'.format(
             str(self.msh),
             str(self.pid),
             str(self.pv1),
@@ -1309,7 +1310,8 @@ class Message(BaseModel):
             str(self.dg1),
             str(self.orc),
             str(self.obr),
-            _str
+            _str,
+            str(self.in1)
         ).replace('None', '').replace('\n\n', '\n').replace('\n\n', '\n').replace('b\'', '').replace('\'|', '|')
 
 

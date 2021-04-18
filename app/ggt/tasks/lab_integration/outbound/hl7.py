@@ -30,6 +30,9 @@ class HL7:
             if self.order['bill'] == 'DB':
                 hl7_message.gt1 = self.__get_gt1(self.order)
 
+            if 'insurance_payer' in self.order:
+                hl7_message.in1 = self.__get_in1(self.order)
+
             return True, str(hl7_message), None
         except Exception as err:
             raise
@@ -251,3 +254,12 @@ class HL7:
 
         arr = [obx2, obx3, obx4, obx5, obx6, obx7, obx8, obx9, obx10]
         return arr
+
+    def __get_in1(self, order):
+        return IN1(
+            in1_1_set_id=1,
+            in1_2_insurance_plan_id=order['insurance_member_id'],
+            in1_3_insurance_company_id=order['insurance_payer'],
+            in1_4_insurance_company_name=order['insurance_payer'],
+            in1_8_group_number=order['insurance_group_no']
+        )

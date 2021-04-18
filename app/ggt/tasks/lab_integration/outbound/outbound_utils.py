@@ -285,6 +285,11 @@ def create_outbound_requests(orders):
             processed.append(order)
             continue
 
+        # fetch inusrance info for patient
+        if insurance_info_required(order['lab_id']):
+            ins = fetch_insurance_info(order['patient_id'])
+            order.update(ins)
+
         # for all other labs, generate hl7 file and place it in s3
         hl7_util = HL7(order.copy())
         result, hl7_string, *metadata = hl7_util.generate_string()
@@ -385,3 +390,32 @@ def update_to_with_lab_status(orders):
         """ % format_strings
 
     exec_update(sql, order_ids)
+
+
+def insurance_info_required(lab_id):
+
+    # lab_id 2 requires insurance info.
+    return lab_id in [2]
+
+
+def fetch_insurance_info(patient_id):
+    """
+    Fetches the insurance info for a patient_id
+    """
+
+    sql = """
+        SELECT 
+        payer as insurance_payer,
+        member_id as insurance_member_id,
+        group_no as insurance_group_no,
+        level as insurance_level
+        FROM
+            patient_insurance_details
+        WHERE
+            patient_id = %s AND relationship IS NOT NULL;
+    """
+    vals = (patient_id,)
+    info = read_rows(sql, vals)
+    if info:
+        return info[0]
+    return {}
