@@ -40,7 +40,7 @@ pipelines:
             - docker build -t ggt-api-lambda:dev2 -f lambda/Dockerfile .
             - docker tag ggt-api-lambda:dev2 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:dev2
             - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:dev2
-            - aws lambda update-function-code --function-name ggt-dev2-api-lambda --image-uri 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:dev2
+            - aws lambda update-function-code --region us-east-2 --function-name ggt-dev2-api-lambda --image-uri 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:dev2
 
     dev:
       - step:
