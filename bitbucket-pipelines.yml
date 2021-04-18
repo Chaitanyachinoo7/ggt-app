@@ -40,6 +40,7 @@ pipelines:
             - docker build -t ggt-api-lambda:dev2 -f lambda/Dockerfile .
             - docker tag ggt-api-lambda:dev2 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:dev2
             - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:dev2
+            - aws lambda update-function-code --function-name ggt-dev2-api-lambda --image-uri 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:dev2
 
     dev:
       - step:
@@ -62,6 +63,8 @@ pipelines:
             - docker build -t ggt-api-lambda:dev -f lambda/Dockerfile .
             - docker tag ggt-api-lambda:dev 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:dev
             - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:dev
+            - aws lambda update-function-code --function-name ggt-dev-api-lambda --image-uri 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:dev
+
 
 
     qa:
@@ -85,6 +88,8 @@ pipelines:
             - docker build -t ggt-api-lambda:qa -f lambda/Dockerfile .
             - docker tag ggt-api-lambda:qa 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:qa
             - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:qa
+            - aws lambda update-function-code --function-name ggt-qa-api-lambda --image-uri 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:qa
+
 
 
     production-portal:
@@ -108,6 +113,8 @@ pipelines:
             - docker build -t ggt-api-lambda:production-portal -f lambda/Dockerfile .
             - docker tag ggt-api-lambda:production-portal 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:production-portal
             - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:production-portal
+            - aws lambda update-function-code --function-name ggt-portal-api-lambda --image-uri 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:production-portal
+
 
     production-ops:
       - step:
@@ -130,6 +137,8 @@ pipelines:
             - docker build -t ggt-api-lambda:production-ops -f lambda/Dockerfile .
             - docker tag ggt-api-lambda:production-ops 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:production-ops
             - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:production-ops
+            - aws lambda update-function-code --function-name ggt-ops-api-lambda --image-uri 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:production-ops
+
 
     production-patient-aws:
       - step:
@@ -153,6 +162,8 @@ pipelines:
             - docker build -t ggt-api-lambda:production-pfe -f lambda/Dockerfile .
             - docker tag ggt-api-lambda:production-pfe 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:production-pfe
             - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:production-pfe
+            - aws lambda update-function-code --function-name ggt-pfe-api-lambda --image-uri 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:production-pfe
+
 
 
 options:
