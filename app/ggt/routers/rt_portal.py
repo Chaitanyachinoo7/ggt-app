@@ -29,7 +29,7 @@ from ggt.models.data_models.data_types import (
     PortalAdminGetF11Request,
     PortalAdminGetVaccineConsentFormRequest,
     PortalVaxWaitlistSearchRequest,
-    PortalVaxRegisteredWaitAroundLocationRequest
+    PortalVaxRegisteredWaitAroundLocationRequest, VaxCertificate
 )
 from ggt.models.workflow_models.admin_flow import (
     admin_get_all_test_results
@@ -64,7 +64,7 @@ from ggt.models.workflow_models.clinical_test_site_admin_flow import (
     site_admin_get_f11,
     site_admin_get_consent_forms,
     site_admin_vax_waitlist_search,
-    site_admin_vax_registered_waitlist_around_location
+    site_admin_vax_registered_waitlist_around_location, add_vax_certificate
 )
 
 router = APIRouter()
@@ -288,6 +288,7 @@ async def api_cc_patient_lookup(portal_cc_patient_lookup_request: PortalCcPatien
 
 
 @router.post("/site-admin/generate_vaccine_forms_brownwood", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
+
 def generate_vaccine_forms_brownwood(portal_admin_get_f11_request: PortalAdminGetF11Request):
     return site_admin_get_f11(portal_admin_get_f11_request.appointment_ids)
 
@@ -306,4 +307,9 @@ async def api_site_admin_vax_waitlist_search(portal_vax_waitlist_search: PortalV
 @router.post("/site-admin/get_vax_registered_waitlist_around_location", dependencies=[Security(authorize_user, scopes=[p.GET_SCHEDULE_GENERATION_RULES])])
 async def api_site_admin_vax_registered_waitlist_around_location(vax_registered_waitlist_around_location_request: PortalVaxRegisteredWaitAroundLocationRequest):
     return site_admin_vax_registered_waitlist_around_location(vax_registered_waitlist_around_location_request)
+
+
+@router.post("/site-admin/add-vax-certificate", dependencies=[Security(authorize_user, scopes=[p.GET_SCHEDULE_GENERATION_RULES])])
+async def api_add_vax_certificate(vax_certificate: VaxCertificate):
+    return add_vax_certificate(vax_certificate)
 

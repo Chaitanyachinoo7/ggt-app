@@ -722,8 +722,8 @@ def add_sched_rule(location_id):
         "slot_multiplier": 1,
         "local_start_time": "08:00:00",
         "local_end_time": "12:00:00",
-        "active_local_start_dt": "2021-03-08 08:00:00",
-        "active_local_end_dt": "2021-03-31 16:00:00",
+        "active_local_start_dt": "2021-03-04 08:00:00",
+        "active_local_end_dt": "2021-03-07 16:00:00",
         "sun": False,
         "mon": True,
         "tue": True,
@@ -761,10 +761,20 @@ def update_location_org(location_id):
     return exec_update(sql, vals)
 
 
+def get_locations():
+    sql = """select id from locations where country='MX'"""
+    rows = read_rows(sql)
+    locations = []
+    for row in rows:
+        locations.append(row['id'])
+    return locations
+
+
 def update_schedules():
-    locations = ['2631','2630','2629','2628','2627','2626','2625','2624','2623','2622','2621','2620','2619','2618','2617','2616','2615','2614','2613','2612','2611','2610','2609','2608','2607','2606','2605','2604','2603','2602','2601','2600','2599','2598','2597','2596','2595','2594','2593','2592','2591','2590','2589']
+    locations = get_locations()  # ['2631','2630','2629','2628','2627','2626','2625','2624','2623','2622','2621','2620','2619','2618','2617','2616','2615','2614','2613','2612','2611','2610','2609','2608','2607','2606','2605','2604','2603','2602','2601','2600','2599','2598','2597','2596','2595','2594','2593','2592','2591','2590','2589']
     for location_id in locations:
         add_sched_rule(location_id)
+
 
 def dedupe_tokens():
     from ggt.tasks.handle_duplicate_tokens import (

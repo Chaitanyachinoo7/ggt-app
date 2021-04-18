@@ -20,7 +20,8 @@ from ggt.models.process_models.bp_patient_experience import (
     bp_get_wellpay_insurance_eligibility,
     bp_search_insurance_payer_list, bp_get_ggv_screen_flow_seq, bp_ggv_finalize_booking, bp_ggv_finalize_pre_booking,
     bp_create_pre_registration, bp_verify_verification_token, bp_reschedule_first_appointment,
-    bp_reschedule_second_appointment, bp_lookup_certificate, bp_get_vax_certificate
+    bp_reschedule_second_appointment, bp_lookup_certificate, bp_get_vax_certificate,
+    bp_get_wallet_pass
 )
 
 from ggt.models.process_models.bp_schedules import (
@@ -261,8 +262,8 @@ def finalize_registration(finalize_registration_request):
             "appointment_id": appointment.id,
             "date": appointment.date_text,
             "location": appointment.location_text,
-            'total_balance': int(appointment.billed_amount * 100),
-            'total_cost': int(appointment.total_cost * 100),
+            'total_balance': int((appointment.billed_amount if appointment.billed_amount else 0) * 100),
+            'total_cost': int((appointment.total_cost if appointment.total_cost else 0) * 100),
             'payment_url': appointment.payment_url,
             'payment_checkout_session': appointment.payment_checkout_session,
             c.STATUS: c.SUCCESS
@@ -389,6 +390,15 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
             b.symptom_chestpains = finalize_registration_request.symptoms.symptom_chest_pains
             b.symptom_others = finalize_registration_request.symptoms.symptom_other
             b.symptom_lack_of_smell = finalize_registration_request.symptoms.symptom_lack_of_smell
+
+            b.symptom_fatigue = finalize_registration_request.symptoms.symptom_fatigue
+            b.symptom_muscle_body_aches = finalize_registration_request.symptoms.symptom_muscle_body_aches
+            b.symptom_headache = finalize_registration_request.symptoms.symptom_headache
+            b.symptom_sore_throat = finalize_registration_request.symptoms.symptom_sore_throat
+            b.symptom_congestion_runny_nose = finalize_registration_request.symptoms.symptom_congestion_runny_nose
+            b.symptom_nausea_vomitting = finalize_registration_request.symptoms.symptom_nausea_vomitting
+            b.symptom_diarrhea = finalize_registration_request.symptoms.symptom_diarrhea
+
         b.covid_contact = finalize_registration_request.contactTracing
 
         if "preExistingConditions" in dict(finalize_registration_request).keys() and finalize_registration_request.preExistingConditions:
@@ -425,25 +435,25 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
         b.location_id = finalize_registration_request.location
         b.timeslot_id = finalize_registration_request.timeSlot
 
-        if "appointmentOneTime" in finalize_registration_request.fields.keys():
+        if "appointmentOneTime" in finalize_registration_request.dict().keys():
             b.appointmentOneTime = finalize_registration_request.appointmentOneTime
-        if "verification_token" in finalize_registration_request.fields.keys():
+        if "verification_token" in finalize_registration_request.dict().keys():
             b.verification_token = finalize_registration_request.verification_token
-        if "appointmentTwoTime" in finalize_registration_request.fields.keys():
+        if "appointmentTwoTime" in finalize_registration_request.dict().keys():
             b.appointmentTwoTime = finalize_registration_request.appointmentTwoTime
-        if "symptomsVax" in finalize_registration_request.fields.keys():
+        if "symptomsVax" in finalize_registration_request.dict().keys():
             b.symptomsVax = finalize_registration_request.symptomsVax
-        if "covid19ConfirmedCase" in finalize_registration_request.fields.keys():
+        if "covid19ConfirmedCase" in finalize_registration_request.dict().keys():
             b.covid19ConfirmedCase = finalize_registration_request.covid19ConfirmedCase
-        if "pregnancy" in finalize_registration_request.fields.keys():
+        if "pregnancy" in finalize_registration_request.dict().keys():
             b.pregnancy = finalize_registration_request.pregnancy
-        if "allergicReaction" in finalize_registration_request.fields.keys():
+        if "allergicReaction" in finalize_registration_request.dict().keys():
             b.allergicReaction = finalize_registration_request.allergicReaction
-        if "eggAllergy" in finalize_registration_request.fields.keys():
+        if "eggAllergy" in finalize_registration_request.dict().keys():
             b.eggAllergy = finalize_registration_request.eggAllergy
-        if "guillianBarre" in finalize_registration_request.fields.keys():
+        if "guillianBarre" in finalize_registration_request.dict().keys():
             b.guillianBarre = finalize_registration_request.guillianBarre
-        if "pre_register" in finalize_registration_request.fields.keys():
+        if "pre_register" in finalize_registration_request.dict().keys():
             b.pre_register = finalize_registration_request.pre_register
 
         if "selectedServices" in dict(finalize_registration_request).keys():
@@ -459,7 +469,7 @@ def __map_to_booking_req(finalize_registration_request, ggv=False):
             b.services = selected_services
 
         b.language = finalize_registration_request.language
-        if "currency" in finalize_registration_request.fields.keys():
+        if "currency" in finalize_registration_request.dict().keys():
             b.currency = finalize_registration_request.currency
 
         with suppress(AttributeError):
@@ -503,6 +513,8 @@ def __assign_services(selected_services, sku):
         selected_services.covid_19_test = True
     if sku == c.SERVICE_CODE_COVID19_TEST_MEXICO:
         selected_services.covid_19_test_mexico = True
+    if sku == c.SERVICE_CODE_COVID_19_TEST_MX_RESORT:
+        selected_services.covid_19_test_mexico_resort = True
     if sku == c.SERVICE_CODE_COVID19_TEST_ANTIGEN:
         selected_services.covid_19_test_antigen = True
     if sku == c.SERVICE_CODE_COVID19_TEST_ANTIGEN_NV:
@@ -524,7 +536,6 @@ def __assign_services(selected_services, sku):
     if sku == c.SERVICE_CODE_COVID_19_VACCINE_JNJ:
         selected_services.covid_19_vax_jnj = True
     return selected_services
-
 
 
 def insurance_eligibility(insurance_eligibility_request):
@@ -551,3 +562,9 @@ def cache_test(t_id):
     while (datetime.now() - x).seconds < 5:
         pass
     return {"response": t_id}
+
+def get_wallet_pass(pkpass_request):
+    return x_response(
+         bp_get_wallet_pass(pkpass_request)
+    )
+    

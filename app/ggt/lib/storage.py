@@ -15,13 +15,19 @@ from ggt.lib.adapters.google_adapter import (
 
 from ggt.lib.adapters.s3_adapter import (
     get_temp_lab_report_url as __get_temp_lab_report_url,
-    upload_image_from_base64_string as __upload_image_from_base64_string
+    upload_image_from_base64_string as __upload_image_from_base64_string,
+    upload_image_from_twilio as __upload_image_from_twilio
 )
 
 
 # from ggt.lib.adapters.google_adapter import (
 #    get_temp_lab_report_url as __get_temp_lab_report_url
 # )
+from ggt.lib.utils import get_config_val
+
+ops_image_bucket_name = get_config_val('aws.ggt_ops_images')
+vax_certificate_bucket = get_config_val('aws.vax_certificate_bucket')
+
 
 def upload_to_all_inbound_files(local_file_path, destination_filename):
     return __upload_to_all_inbound_files(local_file_path, destination_filename)
@@ -52,7 +58,15 @@ def upload_insurance_card_from_base64_string(base64string, content_type, destina
 
 
 def upload_test_result_image_from_base64_string(base64string, destination_filename):
-    return __upload_image_from_base64_string(base64string, destination_filename, key='test_result_images')
+    return __upload_image_from_base64_string(base64string, destination_filename, ops_image_bucket_name, key='test_result_images')
+
+
+def upload_vax_card_image_from_base64_string(base64string, destination_filename):
+    return __upload_image_from_base64_string(base64string, destination_filename, vax_certificate_bucket)
+
+
+def upload_vax_card_image_from_twilio(url, destination_filename):
+    return __upload_image_from_twilio(url, destination_filename)
 
 
 def get_temporary_lab_report_url(filename):

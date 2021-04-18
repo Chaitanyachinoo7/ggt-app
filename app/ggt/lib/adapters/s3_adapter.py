@@ -2,7 +2,7 @@ import base64
 import os
 import boto3
 from botocore.client import Config
-
+import requests
 from ggt.lib.utils import (
     get_config_val as cfg,
     log_generic,
@@ -351,12 +351,36 @@ def get_temp_vaccine_consent_url(filename: str, lab_reports_bucket_name=lab_repo
         return None
 
 
-def upload_image_from_base64_string(base64string, destination_filename, key=None):
+def get_temp_pkpass_url(filename, bucket_name):
+    try:
+        url = __boto_connect_client('s3', region_name='us-east-2').generate_presigned_url(
+            ClientMethod='get_object',
+            Params={
+                'Bucket': bucket_name,
+                'Key': filename
+            },
+            ExpiresIn=default_link_expiration_time_limit
+        )
+        return url
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def upload_image_from_base64_string(base64string, destination_filename, bucket_name, key=None):
     if key:
         destination_filename = "{}/{}".format(key, destination_filename)
+
+    if bucket_name is None:
+        bucket_name = ops_image_bucket_name
     try:
         s3 = __boto_connect_resource('s3')
-        obj = s3.Object(ops_image_bucket_name, destination_filename)
+        obj = s3.Object(bucket_name, destination_filename)
         return obj.put(Body=base64.b64decode(base64string))
     except Exception as err:
         log_generic(
@@ -366,3 +390,66 @@ def upload_image_from_base64_string(base64string, destination_filename, key=None
         )
         return None
 
+
+def upload_image_from_twilio(url, file_name, bucket_name=None):
+    print(url)
+    r = requests.get(url, stream=True)
+
+    if bucket_name is None:
+        bucket_name = ops_image_bucket_name
+    session = boto3.Session()
+    s3 = __boto_connect_resource('s3')
+    bucket = s3.Bucket(bucket_name)
+    try:
+        bucket.upload_fileobj(r.raw, file_name)
+        return True
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def uploadFile(path, key, bucketName):
+    try:
+        __boto_connect_client('s3').upload_file(path, bucketName, key)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def put_to_bucket(bucket_name, body, content_type, filename):
+
+    try:
+        # If the file is already in AWS skip update
+        if file_exists(bucket_name, filename):
+            return False
+
+        # Push to S3
+        __boto_connect_client('s3').put_object(Body=body, Bucket=bucket_name, Key=filename,
+                                               ContentType=content_type)
+
+        log_generic(
+            type=INFO,
+            function=whoami(),
+            message="{} successfully pushed to S3".format(filename)
+        )
+
+        return True
+
+    except Exception as err:
+
+        log_generic(
+            typ=ERROR,
+            function=whoami(),
+            error=err,
+            # If an exception occurs, it will not stop notifications getting deleted, therefore log the content here
+            body=body
+        )
+        return False

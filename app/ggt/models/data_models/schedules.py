@@ -739,6 +739,7 @@ def select_random_count(items, count):
     shuffled.sort(key= lambda x: x['start_dt'])
     return shuffled
 
+
 def get_slot_information(slot_id, slot_type="test"):
     table = "schedules"
     if slot_type == "vax":
@@ -1037,6 +1038,15 @@ def __sort_by_field(task_list):
 def __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, group_code, map_thumbnail):
     try:
         map_thumbnail_field = 'l.image_thumbnail,' if map_thumbnail else "'' as image_thumbnail,"
+
+        where_statement = "1=1"
+        if date_str:
+            where_statement = """{} AND l.location_id IN (SELECT 
+                                        location_id
+                                    FROM
+                                        schedules_metrics_cache
+                                    WHERE
+                                        local_scheduled_date = '{}')""".format(where_statement, date_str)
         sql = """
         SELECT DISTINCT
             l.location_id,
@@ -1084,8 +1094,9 @@ def __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, g
                     groups g ON (g.id = glm.group_id)
                 WHERE
                     g.group_code = %s)
+                AND {}
         ORDER BY distance    
-        """.format(map_thumbnail_field)
+        """.format(map_thumbnail_field, where_statement)
 
         vals = (lat, lng, lat, lat, lng, lat, radius, group_code)
 

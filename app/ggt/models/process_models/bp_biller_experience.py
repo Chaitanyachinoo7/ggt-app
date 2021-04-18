@@ -7,6 +7,8 @@ from ggt.lib.utils import (
 from ggt.models.data_models.billers import get_billing_list, update_billing_status, create_insurance_record, \
     update_insurance_record, validate_insurance_record, delete_insurance_record
 
+from ggt.models.process_models.bp_patient_experience import __save_insurance_image
+from ggt.models.data_models.appointments import update_appointment_status_to_checked_in
 
 ########################################################################################################
 # [Public] functions
@@ -24,11 +26,27 @@ def bp_update_billing_status(appointment_id):
 
 
 def bp_create_insurance_record(record):
-    return create_insurance_record(record)
+    if create_insurance_record(record) is None:
+        return False
+
+    if record.appointment_id is not None:
+        update_appointment_status_to_checked_in(record.appointment_id)
+        if record.insurance_image is not None:
+            __save_insurance_image(record.appointment_id, record.insurance_image)
+
+    return True
 
 
 def bp_update_insurance_record(record):
-    return update_insurance_record(record)
+    if update_insurance_record(record) is None:
+        return False
+
+    if record.appointment_id is not None:
+        update_appointment_status_to_checked_in(record.appointment_id)
+        if record.insurance_image is not None:
+            __save_insurance_image(record.appointment_id, record.insurance_image)
+
+    return True
 
 
 def bp_validate_insurance_record(record):

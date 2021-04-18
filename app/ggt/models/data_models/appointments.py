@@ -66,7 +66,8 @@ def create_appointment(appointment_req: GgtBooking, ggv_slot=1):
             appointment_req.language
         )
         appointment_id = exec_insert(sql, vals)
-        __add_services_to_appointment(appointment_id, appointment_req, ggv_slot=ggv_slot)
+        __add_services_to_appointment(
+            appointment_id, appointment_req, ggv_slot=ggv_slot)
         return get_appointment(appointment_id)
 
     except Exception as err:
@@ -183,6 +184,68 @@ def get_appointment(appointment_id: int, org_id=None) -> GgtAppointment:
         log_generic(
             type=c.ERROR,
             appointment_id=appointment_id,
+            function=whoami(),
+            error=err
+        )
+
+    return None
+
+
+def get_ggv_patient(patient_id: int):
+    try:
+        where_statement = "ggv.patient_id = {}".format(patient_id)
+        sql = """
+        SELECT
+            l.addr1 AS location_addr1,
+            l.addr2 AS location_addr2,
+            l.city AS location_city,
+            l.st AS location_st,
+            l.zip AS location_zip,
+            l.lat,
+            l.lng,
+            p.id,
+            p.dob AS patient_dob,
+            p.first_name AS patient_first_name,
+            p.middle_name AS patient_middle_name,
+            p.last_name AS patient_last_name,
+            p.addr1 AS patient_addr1,
+            p.addr2 AS patient_addr2,
+            p.city AS patient_city,
+            p.st AS patient_st,
+            p.zip AS patient_zip,
+            p.phone_number AS patient_phone_number,
+            p.email,
+            p.gender,
+            p.dob,
+            p.token,
+            p.result_token,
+            GROUP_CONCAT(c.service_code) as service_codes,
+            GROUP_CONCAT(s.service_description) as service_descriptions,
+            org.name as org_name,
+            ggv.*
+        FROM
+            ggv_certificates ggv ON a.patient_id = ggv.patient_id
+                JOIN
+            patients p ON a.patient_id = p.id
+                JOIN
+            locations l ON a.location_id = l.id
+                LEFT JOIN
+            appointment_services s ON (s.appointment_id = a.id)
+                LEFT JOIN
+            services_catalog c ON (c.id = s.service_id)
+				LEFT JOIN
+			organizations org ON org.id = l.org_id
+        WHERE
+                {}
+        """.format(where_statement)
+
+        row = read_row(sql)
+        return row
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            patient_id=patient_id,
             function=whoami(),
             error=err
         )
@@ -410,10 +473,14 @@ def re_schedule_appointment(appointment_id, slot):
 def lookup_certificate(phone_number, dob, first_name, last_name, token):
     try:
         where_statement = "p.phone_number LIKE '%{}%'".format(phone_number)
-        where_statement = "{} AND date(p.dob) = '{}'".format(where_statement, dob)
-        where_statement = "{} AND p.first_name LIKE '%{}%'".format(where_statement, first_name)
-        where_statement = "{} AND p.last_name LIKE '%{}%'".format(where_statement, last_name)
-        where_statement = "{} AND p.result_token = '{}' AND p.token_expire > NOW()".format(where_statement, token)
+        where_statement = "{} AND date(p.dob) = '{}'".format(
+            where_statement, dob)
+        where_statement = "{} AND p.first_name LIKE '%{}%'".format(
+            where_statement, first_name)
+        where_statement = "{} AND p.last_name LIKE '%{}%'".format(
+            where_statement, last_name)
+        where_statement = "{} AND p.result_token = '{}' AND p.token_expire > NOW()".format(
+            where_statement, token)
         sql = """SELECT 
                     gc.*,
                    date(gc.check_in_dt) AS appointment_date
@@ -422,9 +489,38 @@ def lookup_certificate(phone_number, dob, first_name, last_name, token):
                         JOIN
                     ggv_certificates gc ON p.id = gc.patient_id
                     WHERE {}""".format(where_statement)
-
         rows = replica_read_rows(sql)
         return __format_vax_certificate(rows)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+    return None
+
+
+def lookup_pkpass(phone_number, dob, first_name, last_name, token):
+    try:
+        where_statement = "p.phone_number = '{}'".format(phone_number)
+        where_statement = "{} AND date(p.dob) = '{}'".format(
+            where_statement, dob)
+        where_statement = "{} AND p.first_name = '{}'".format(
+            where_statement, first_name)
+        where_statement = "{} AND p.last_name = '{}'".format(
+            where_statement, last_name)
+        where_statement = "{} AND p.result_token = '{}' AND p.token_expire > NOW()".format(where_statement, token)
+        sql = """SELECT 
+                    gc.*,
+                    p.*
+                FROM
+                    patients p
+                        JOIN
+                    ggv_certificates gc ON p.id = gc.patient_id
+                    WHERE {}""".format(where_statement)
+        rows = replica_read_rows(sql)
+        return __format_pkpass_records(rows)
 
     except Exception as err:
         log_generic(
@@ -597,8 +693,29 @@ def create_consultation_note(user, appointment_id, appointment_notes):
                         )
                     VALUES
                         (%s, %s, NOW(), NOW(), %s, %s); """
-    vals = (provider_external_id, appointment_id, 'vax_consultation', appointment_notes)
+    vals = (provider_external_id, appointment_id,
+            'vax_consultation', appointment_notes)
     return exec_insert(sql, vals)
+
+
+def update_appointment_with_payment_session(appointment: GgtAppointment):
+    sql = """UPDATE `appointments`
+                        SET
+                        payment_session = %s
+                    WHERE
+                        id = %s; """
+    vals = (appointment.payment_checkout_session, appointment.id)
+    return exec_update(sql, vals)
+
+
+def update_appointment_status_to_checked_in(appointment_id):
+    sql = """UPDATE `appointments`
+                        SET
+                        status = %s
+                    WHERE
+                        status = %s AND id = %s; """
+    vals = (c.APPOINTMENT_STATUS_CHECKED_IN, c.APPOINTMENT_STATUS_INSURANCE_PENDING, appointment_id)
+    return exec_update(sql, vals)
 
 
 ########################################################################################################
@@ -614,7 +731,8 @@ def __format_vax_certificate(rows):
             }
 
             for row in rows:
-                image = "/api/vax_certificate/{}/{}.jpg".format(row['patient_id'], row['id'])
+                image = "/api/vax_certificate/{}/{}.jpg".format(
+                    row['patient_id'], row['id'])
                 service = {
                     "appointment_id": row['appointment_id'],
                     "appointment_date": row['appointment_date'],
@@ -628,6 +746,40 @@ def __format_vax_certificate(rows):
                 }
                 certificates['certificates'].append(service)
             return certificates
+        else:
+            return {}
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+
+
+def __format_pkpass_records(rows):
+    try:
+        if len(rows) > 0:
+            pkpass = {
+                'patient_id': rows[0]['patient_id'],
+                'first_name': rows[0]['first_name'],
+                'last_name': rows[0]['last_name'],
+                'dob': rows[0]['dob'].strftime('%m/%d/%Y'),
+                'level': str(rows[0]['verification_level']),
+                'verfiedDate': rows[0]['create_dt'].strftime('%m/%d/%Y'),
+                'certificates': [],
+                'certNo': str(rows[0]['id'])
+            }
+            for row in rows:
+                service = {
+                    "appointment_id": row['appointment_id'],
+                    "appointment_date": row['check_in_dt'].strftime('%m/%d/%Y'),
+                    "brand": __get_brand(row['service_code']),
+                    "service_code": row['service_code'],
+                    "lot_no": str(row['lot_no'])
+                }
+                pkpass['certificates'].append(service)
+            return pkpass
         else:
             return {}
 
@@ -773,7 +925,8 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
                 WHERE
                     id = %s
                 """.format(__get_mapped_dt_field(status))
-            vals = (vial_id, status, lot_no, expiration_date, gtin, operator_location_id, appointment.id)
+            vals = (vial_id, status, lot_no, expiration_date,
+                    gtin, operator_location_id, appointment.id)
 
         else:
             # proceed with updating other info
@@ -790,7 +943,8 @@ def __update_appointment_status(appointment: GgtAppointment, status: str, vial_i
                                 WHERE
                                     id = %s
                                 """.format(__get_mapped_dt_field(status))
-                vals = (status, injection_site, operator_location_id, no_adverse_reactions, appointment.id)
+                vals = (status, injection_site, operator_location_id,
+                        no_adverse_reactions, appointment.id)
 
             else:
                 sql = """
@@ -864,7 +1018,8 @@ def __create_provider_appointment_activity(user, appointment_id, function, statu
                     VALUES
                         (%s, %s, %s, %s, %s, %s, %s)"""
 
-            vals = (appointment_id, user_ext_id, function, status, vial_id, workstation_id, operator_location_id)
+            vals = (appointment_id, user_ext_id, function, status,
+                    vial_id, workstation_id, operator_location_id)
             exec_insert(sql, vals)
 
     except Exception as err:
@@ -963,37 +1118,52 @@ def __add_services_to_appointment(appointment_id: int, appointment_req: GgtBooki
         #     add_service_to_appointment(appointment_id, vaccine_service_code)
 
         if appointment_req.services.covid_19_vax_jnj:
-            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_JNJ)
+            add_service_to_appointment(
+                appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_JNJ)
 
         if appointment_req.services.covid_19_vax_moderna_1 and ggv_slot == 1:
-            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_1)
+            add_service_to_appointment(
+                appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_1)
 
         if appointment_req.services.covid_19_vax_moderna_2 and ggv_slot == 2:
-            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_2)
+            add_service_to_appointment(
+                appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_2)
 
         if appointment_req.services.covid_19_vax_pfizer_1 and ggv_slot == 1:
-            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_1)
+            add_service_to_appointment(
+                appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_1)
 
         if appointment_req.services.covid_19_vax_pfizer_2 and ggv_slot == 2:
-            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_2)
+            add_service_to_appointment(
+                appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_2)
 
         if appointment_req.services.covid_19_test:
-            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST)
+            add_service_to_appointment(
+                appointment_id, c.SERVICE_CODE_COVID19_TEST)
 
         if appointment_req.services.covid_19_test_nv:
-            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST_NV)
+            add_service_to_appointment(
+                appointment_id, c.SERVICE_CODE_COVID19_TEST_NV)
 
         if appointment_req.services.covid_19_test_mexico:
-            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST_MEXICO)
+            add_service_to_appointment(
+                appointment_id, c.SERVICE_CODE_COVID19_TEST_MEXICO)
+
+        if appointment_req.services.covid_19_test_mexico_resort:
+            add_service_to_appointment(
+                appointment_id, c.SERVICE_CODE_COVID_19_TEST_MX_RESORT)
 
         if appointment_req.services.covid_19_test_antigen:
-            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST_ANTIGEN)
+            add_service_to_appointment(
+                appointment_id, c.SERVICE_CODE_COVID19_TEST_ANTIGEN)
 
         if appointment_req.services.covid_19_test_antigen_mexico:
-            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST_MEXICO_ANTIGEN)
+            add_service_to_appointment(
+                appointment_id, c.SERVICE_CODE_COVID19_TEST_MEXICO_ANTIGEN)
 
         if appointment_req.services.covid_19_test_antigen_nv:
-            add_service_to_appointment(appointment_id, c.SERVICE_CODE_COVID19_TEST_ANTIGEN_NV)
+            add_service_to_appointment(
+                appointment_id, c.SERVICE_CODE_COVID19_TEST_ANTIGEN_NV)
 
         if appointment_req.services.flue_shot:
             add_service_to_appointment(appointment_id, c.SERVICE_CODE_FLU_SHOT)

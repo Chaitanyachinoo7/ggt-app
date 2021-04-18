@@ -66,21 +66,21 @@ def create_patient_record(patient):
         """
 
         vals = (
-            patient.first_name, 
-            patient.middle_name, 
-            patient.last_name, 
+            patient.first_name,
+            patient.middle_name,
+            patient.last_name,
             patient.addr1,
-            patient.city, 
-            patient.st, 
-            patient.zip, 
-            patient.gender, 
+            patient.city,
+            patient.st,
+            patient.zip,
+            patient.gender,
             patient.height_ft,
-            patient.weight_lb, 
-            patient.ethnicity, 
-            patient.race,  
+            patient.weight_lb,
+            patient.ethnicity,
+            patient.race,
             patient.dob,
-            patient.phone_number, 
-            patient.phone_number_verified, 
+            patient.phone_number,
+            patient.phone_number_verified,
             patient.email,
             patient.token,
             patient.token,
@@ -91,10 +91,10 @@ def create_patient_record(patient):
 
     except Exception as err:
         log_generic(
-            type=ERROR, 
-            vals=vals, 
+            type=ERROR,
+            vals=vals,
             patient=patient,
-            function=whoami(), 
+            function=whoami(),
             error=err
         )
         return None
@@ -142,15 +142,33 @@ def create_pre_registration(patient_id, patient_questionnaire_id, group_code):
         return None
 
 
+def create_vax_yes_patient(first_name, last_name, phone, email, dob):
+    import uuid
+    sql = """INSERT INTO patients (first_name, last_name, phone_number, email, dob, phone_number_verified, token) 
+    values (%s, %s, %s, %s, %s, %s, %s)"""
+    vals = (first_name, last_name, phone, email, dob, 1, str(uuid.uuid4()))
+    return exec_insert(sql, vals)
+
+
+def create_cert(patient_id, vax_date, vax_type, lot):
+    sql = """INSERT INTO ggv_certificates (patient_id, check_in_dt, service_code, lot_no, verification_level) 
+       values (%s, %s, %s, %s, %s)"""
+    vals = (patient_id, vax_date, vax_type, lot, 1)
+    return exec_insert(sql, vals)
+
+
 def get_existing_patients(phone_number="", first_name="", last_name="", dob="", token=""):
 
     where_statement = "phone_number_verified = 1 AND token not like 'NOVERIFY%'"
     if phone_number != "":
-        where_statement = "{} AND phone_number = '{}'".format(where_statement, phone_number)
+        where_statement = "{} AND phone_number = '{}'".format(
+            where_statement, phone_number)
     if first_name != "":
-        where_statement = "{} AND first_name = '{}'".format(where_statement, first_name)
+        where_statement = "{} AND first_name = '{}'".format(
+            where_statement, first_name)
     if last_name != "":
-        where_statement = "{} AND last_name = '{}'".format(where_statement, last_name)
+        where_statement = "{} AND last_name = '{}'".format(
+            where_statement, last_name)
     if dob != "":
         where_statement = "{} AND dob = '{}'".format(where_statement, dob)
     if token != "":
@@ -387,9 +405,9 @@ def get_patient(patient_id):
         patient.token = row['token']
 
         log_generic(
-            type=INFO, 
+            type=INFO,
             patient_id=patient_id,
-            row=row, 
+            row=row,
             function=whoami()
         )
 
@@ -397,9 +415,9 @@ def get_patient(patient_id):
 
     except Exception as err:
         log_generic(
-            type=ERROR, 
+            type=ERROR,
             id=id,
-            function=whoami(), 
+            function=whoami(),
             error=err
         )
         return None
@@ -424,7 +442,7 @@ def get_patient_by_token(token, expect_no_match=False):
         vals = (token,)
         row = replica_read_row(sql, vals)
 
-        #When checking Table for duplicates, Null is the expected result
+        # When checking Table for duplicates, Null is the expected result
         if expect_no_match and row is None:
             return None
 
