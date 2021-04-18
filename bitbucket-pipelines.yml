@@ -37,6 +37,9 @@ pipelines:
             - docker tag ggt-api:dev2 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:dev2
             - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:dev2
             - aws ecs update-service --region us-east-2 --cluster dev2-us-east-2-cluster --service dev2-us-east-2-service --force-new-deployment
+            - docker build -t ggt-api-lambda:dev2 -f lambda/Dockerfile .
+            - docker tag ggt-api-lambda:dev2 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:dev2
+            - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:dev2
 
     dev:
       - step:
@@ -56,6 +59,9 @@ pipelines:
             - docker tag ggt-api:dev 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:dev
             - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:dev
             - aws ecs update-service --region us-east-2 --cluster dev-us-east-2-cluster --service dev-service --force-new-deployment
+            - docker build -t ggt-api-lambda:dev -f lambda/Dockerfile .
+            - docker tag ggt-api-lambda:dev 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:dev
+            - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:dev
 
 
     qa:
@@ -76,6 +82,9 @@ pipelines:
             - docker tag ggt-api:qa 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:qa
             - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:qa
             - aws ecs update-service --region us-east-2 --cluster qa-us-east-2-cluster --service qa-us-east-2-service --force-new-deployment
+            - docker build -t ggt-api-lambda:qa -f lambda/Dockerfile .
+            - docker tag ggt-api-lambda:qa 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:qa
+            - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:qa
 
 
     production-portal:
@@ -96,6 +105,9 @@ pipelines:
             - docker tag ggt-api:portal 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:portal
             - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:portal
             - aws ecs update-service --region us-east-2 --cluster portal-default-us-east-2-cluster --service portal-default-us-east-2-service --force-new-deployment
+            - docker build -t ggt-api-lambda:production-portal -f lambda/Dockerfile .
+            - docker tag ggt-api-lambda:production-portal 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:production-portal
+            - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:production-portal
 
     production-ops:
       - step:
@@ -115,6 +127,9 @@ pipelines:
             - docker tag ggt-api:ops 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:ops
             - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:ops
             - aws ecs update-service --region us-east-2 --cluster ops-default-us-east-2-cluster --service ops-default-us-east-2-service --force-new-deployment
+            - docker build -t ggt-api-lambda:production-ops -f lambda/Dockerfile .
+            - docker tag ggt-api-lambda:production-ops 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:production-ops
+            - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:production-ops
 
     production-patient-aws:
       - step:
@@ -135,6 +150,9 @@ pipelines:
             - docker tag ggt-api:latest 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:latest
             - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api:latest
             - aws ecs update-service --region us-east-2 --cluster pfe-default-us-east-2-cluster --service pfe-default-us-east-2-service --force-new-deployment
+            - docker build -t ggt-api-lambda:production-pfe -f lambda/Dockerfile .
+            - docker tag ggt-api-lambda:production-pfe 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:production-pfe
+            - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:production-pfe
 
 
 options:

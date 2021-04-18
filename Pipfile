@@ -52,6 +52,7 @@ reportlab = "*"
 stripe = "*"
 wallet-py3k = "*"
 pypdf2 = "*"
+mangum = "*"
 
 [requires]
 python_version = "3.7"
