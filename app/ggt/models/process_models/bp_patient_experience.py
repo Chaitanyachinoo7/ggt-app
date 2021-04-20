@@ -739,9 +739,9 @@ def __generate_wallet_pass(pkpass_req, patient, verification):
     try:
         if(pkpass_req.type == 'i'):
             passFile = __generate_pk_pass(pkpass_req, patient, verification)
-            uploadFile(str(patient["patient_id"])+".pkpass",
+            uploadFile("/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"),
                        str(patient["patient_id"])+".pkpass", "pkpass-prod")
-            os.remove(str(patient["patient_id"])+".pkpass")
+            # os.remove(str(patient["patient_id"])+".pkpass")
             return {
                 "pkpass_url": get_temp_pkpass_url(
                     str(patient["patient_id"])+".pkpass", "pkpass-prod")
@@ -1165,7 +1165,7 @@ def __generate_pk_pass(pkpass_req, patient, verification):
                             key_pem,
                             wwdr_pem,
                             key_pem_password,
-                            str(patient["patient_id"])+".pkpass")
+                            "/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"))
 
         return _
     except Exception as err:
