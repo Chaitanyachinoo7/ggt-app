@@ -53,6 +53,7 @@ def get_test_result_by_token(token):
                 SELECT * 
                 FROM detailed_test_results 
                 WHERE token = %s
+                AND test_result IS NOT NULL
                 ORDER by test_id DESC
                 LIMIT 1
             """
