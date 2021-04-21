@@ -26,7 +26,7 @@ def get_all_groups(user):
 
         '''If groups are not shared Use this'''
         sql = """SELECT 
-                        *
+                        g.*
                     FROM
                         groups g
                             JOIN
