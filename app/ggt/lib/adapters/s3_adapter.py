@@ -9,7 +9,6 @@ from ggt.lib.utils import (
     whoami
 )
 
-
 from ggt.lib.constants import (
     STATUS,
     SUCCESS,
@@ -17,7 +16,6 @@ from ggt.lib.constants import (
     INFO,
     ERROR
 )
-
 
 default_link_expiration_time_limit = cfg(
     'aws.default_link_expiration_time_limit')
@@ -220,7 +218,7 @@ def get_list_of_files(bucket_name, prefix):
     files = []
 
     for file in bucket.objects.filter(
-        Prefix=prefix
+            Prefix=prefix
     ):
         files.append(file.key)
 
@@ -412,20 +410,25 @@ def upload_image_from_twilio(url, file_name, bucket_name=None):
         return None
 
 
-def uploadFile(path, key, bucketName):
+def upload_file(path, key, bucket_name):
     try:
-        __boto_connect_client('s3').upload_file(path, bucketName, key)
+        __boto_connect_client('s3').upload_file(path, bucket_name, key)
+        if file_exists(bucket_name, key):
+            print("GGV-Wallet {} upload verified".format(key))
+            return True
+        else:
+            print("GGV-Wallet {} upload verification failed".format(key))
+            return False
     except Exception as err:
         log_generic(
             type=ERROR,
             function=whoami(),
             error=err
         )
-        return None
+        return False
 
 
 def put_to_bucket(bucket_name, body, content_type, filename):
-
     try:
         # If the file is already in AWS skip update
         if file_exists(bucket_name, filename):

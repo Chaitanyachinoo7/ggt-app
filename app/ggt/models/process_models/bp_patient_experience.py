@@ -12,7 +12,7 @@ import ggt.lib.constants as c
 import datetime
 from typing import List
 import os
-from ggt.lib.adapters.s3_adapter import read_file, uploadFile, get_temp_pkpass_url
+from ggt.lib.adapters.s3_adapter import read_file, upload_file, get_temp_pkpass_url
 from ggt.lib.utils import (
     get_config_val as cfg,
     generate_otp,
@@ -109,6 +109,8 @@ cert_pem = "ggt/configs/ios_certs/vaccine_wallet_crt.pem"
 key_pem = "ggt/configs/ios_certs/key.pem"
 wwdr_pem = "ggt/configs/ios_certs/WWDR.pem"
 key_pem_password = "ggtvaccine"
+
+
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
@@ -127,7 +129,7 @@ def bp_get_ggv_screen_flow_seq(group_code: str):
             req = False
             if group_info.ggv_required_screens:
                 req = True if (
-                    screen in group_info.ggv_required_screens) else False
+                        screen in group_info.ggv_required_screens) else False
 
             validations[screen] = {
                 "required": req
@@ -144,7 +146,7 @@ def bp_get_ggv_screen_flow_seq(group_code: str):
                     "provider_name": "Texas Immtrac2",
                     # "provider_name": group_info.consent_party_name,
                     "consent_url": group_info.consent_url if (
-                        group_info.consent_url and group_info.consent_url != '') else None,
+                            group_info.consent_url and group_info.consent_url != '') else None,
                     "additional_fields": group_info.additional_fields
                 }
             }
@@ -170,7 +172,7 @@ def bp_get_screen_flow_seq(group_code: str):
             req = False
             if group_info.required_screens:
                 req = True if (
-                    screen in group_info.required_screens) else False
+                        screen in group_info.required_screens) else False
 
             validations[screen] = {
                 "required": req
@@ -184,7 +186,7 @@ def bp_get_screen_flow_seq(group_code: str):
                     "intro_text": group_info.intro_text,
                     "provider_name": group_info.consent_party_name,
                     "consent_url": group_info.consent_url if (
-                        group_info.consent_url and group_info.consent_url != '') else None,
+                            group_info.consent_url and group_info.consent_url != '') else None,
                     "additional_fields": group_info.additional_fields
                 }
             }
@@ -702,8 +704,8 @@ def bp_get_vax_certificate(patient_id, cert_id):
                                      media_type="image/jpg",
                                      headers={
                                          'Content-Disposition': 'inline; filename="vaccine_certificate.png"'
-            }
-            )
+                                     }
+                                     )
 
         else:
             raise HTTPException(status_code=404, detail='Image not found')
@@ -717,6 +719,8 @@ def bp_get_wallet_pass(pkpass_req):
                                 pkpass_req.first_name, pkpass_req.last_name, pkpass_req.token)
         if patient:
             return __generate_wallet_pass(pkpass_req, patient, verification=None)
+        else:
+            print("GGV-Wallet could not find a patient")
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -725,6 +729,7 @@ def bp_get_wallet_pass(pkpass_req):
             error=err
         )
     return False
+
 
 ########################################################################################################
 # [Protected] functions
@@ -737,16 +742,19 @@ def bp_get_wallet_pass(pkpass_req):
 
 def __generate_wallet_pass(pkpass_req, patient, verification):
     try:
-        if(pkpass_req.type == 'i'):
-            passFile = __generate_pk_pass(pkpass_req, patient, verification)
-            uploadFile("/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"),
-                       str(patient["patient_id"])+".pkpass", "pkpass-prod")
-            # os.remove(str(patient["patient_id"])+".pkpass")
-            return {
-                "pkpass_url": get_temp_pkpass_url(
-                    str(patient["patient_id"])+".pkpass", "pkpass-prod")
-            }
-        elif(pkpass_req.type == 'a'):
+        if pkpass_req.type == 'i':
+            __generate_pk_pass(pkpass_req, patient, verification)
+            uploaded = upload_file("/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"),
+                                   str(patient["patient_id"]) + ".pkpass", "pkpass-prod")
+
+            if uploaded:
+                return {
+                    "pkpass_url": get_temp_pkpass_url(
+                        str(patient["patient_id"]) + ".pkpass", "pkpass-prod")
+                }
+            else:
+                return None
+        elif pkpass_req.type == 'a':
             return __generate_gpay_pass(pkpass_req, patient, verification)
 
     except Exception as err:
@@ -773,7 +781,6 @@ def __skinnyJwt(verticalType, classId, objectId, patient):
 
 
 def __makeSkinnyJwt(verticalType, classId, objectId, patient):
-
     signedJwt = None
     classResourcePayload = None
     objectResourcePayload = None
@@ -838,8 +845,9 @@ def __handleInsertCallStatusCode(insertCallResponse, idType, id, checkClassId=No
             # check if object's classId matches target classId
             classIdOfObjectId = getCallResponse.json()['classId']
             if classIdOfObjectId != checkClassId and checkClassId is not None:
-                raise ValueError('the classId of inserted object is (%s). It does not match the target classId (%s). The saved object will not have the class properties you expect.' % (
-                    classIdOfObjectId, checkClassId))
+                raise ValueError(
+                    'the classId of inserted object is (%s). It does not match the target classId (%s). The saved object will not have the class properties you expect.' % (
+                        classIdOfObjectId, checkClassId))
     else:
         raise ValueError('%s insert issue.' %
                          (idType), insertCallResponse.text)
@@ -848,7 +856,6 @@ def __handleInsertCallStatusCode(insertCallResponse, idType, id, checkClassId=No
 
 
 def __getObject(verticalType, objectId):
-
     headers = {
         'Accept': 'application/json',
         'Content-Type': 'application/json; charset=UTF-8'
@@ -872,7 +879,7 @@ def __getObject(verticalType, objectId):
     # https://developers.google.com/pay/passes/reference/v1/
     # https://google-auth.readthedocs.io/en/latest/user-guide.html#making-authenticated-requests
     response = authed_session.get(
-        uri+path          # REST API endpoint
+        uri + path  # REST API endpoint
         , headers=headers  # Header; optional
     )
 
@@ -886,13 +893,13 @@ def __createPath(verticalType, postfix, id_to_use=''):
 def __makeOauthCredential():
     # the variables are in config file
     credentials = service_account.Credentials.from_service_account_file(
-        'ggt/configs/gpay/ggt-pfe-prod-e3201b1cc798.json', scopes=['https://www.googleapis.com/auth/wallet_object.issuer'])
+        'ggt/configs/gpay/ggt-pfe-prod-e3201b1cc798.json',
+        scopes=['https://www.googleapis.com/auth/wallet_object.issuer'])
 
     return credentials
 
 
 def __insertClass(verticalType, payload):
-
     headers = {
         'Accept': 'application/json',
         'Content-Type': 'application/json; charset=UTF-8'
@@ -916,7 +923,7 @@ def __insertClass(verticalType, payload):
     # https://developers.google.com/pay/passes/reference/v1/
     # https://google-auth.readthedocs.io/en/latest/user-guide.html#making-authenticated-requests
     response = authed_session.post(
-        uri+path          # REST API endpoint
+        uri + path  # REST API endpoint
         , headers=headers  # Header; optional
         # non-form-encoded Payload for POST. Check rest API for format based on method.
         , json=payload
@@ -925,7 +932,6 @@ def __insertClass(verticalType, payload):
 
 
 def __insertObject(verticalType, payload):
-
     headers = {
         'Accept': 'application/json',
         'Content-Type': 'application/json; charset=UTF-8'
@@ -948,7 +954,7 @@ def __insertObject(verticalType, payload):
     # https://developers.google.com/pay/passes/reference/v1/
     # https://google-auth.readthedocs.io/en/latest/user-guide.html#making-authenticated-requests
     response = authed_session.post(
-        uri+path          # REST API endpoint
+        uri + path  # REST API endpoint
         , headers=headers  # Header; optional
         # non-form-encoded Payload for POST. Check rest API for format based on method.
         , json=payload
@@ -973,7 +979,7 @@ def __makeEventTicketClassResource(classId, patient):
     # https://developers.google.com/pay/passes/reference/v1/eventticketclass/insert
     # https://developers.google.com/pay/passes/guides/pass-verticals/event-tickets/design
     textModulesData = [{
-        "header": "STATUS", "body": 'Covid 19 | Level '+patient["level"]+' Verified ', "id": "status"
+        "header": "STATUS", "body": 'Covid 19 | Level ' + patient["level"] + ' Verified ', "id": "status"
     }]
     certs = patient["certificates"]
 
@@ -1010,9 +1016,9 @@ def __makeEventTicketClassResource(classId, patient):
             "defaultValue": {
                 "language": "en-US",
                 "value": patient["first_name"] + " " + patient["last_name"]
-                + " | " + str(patient["dob"])
+                         + " | " + str(patient["dob"])
             }
-        }, "reviewStatus": "underReview",        # optional
+        }, "reviewStatus": "underReview",  # optional
         "textModulesData": textModulesData,
         "classTemplateInfo": {
             "cardTemplateOverride": {
@@ -1079,18 +1085,23 @@ def __makeEventTicketClassResource(classId, patient):
         },
         "linksModuleData": {
             "uris": [{
-                "kind": "walletobjects#uri", "uri": "https://start.gogetvax.com/login", "description": "https://GoGetVax.com"
+                "kind": "walletobjects#uri", "uri": "https://start.gogetvax.com/login",
+                "description": "https://GoGetVax.com"
             }]
         }, "imageModulesData": [{
             "mainImage": {
                 "kind": "walletobjects#image", "sourceUri": {
-                        "kind": "walletobjects#uri", "uri": "https://ggv-images.s3.us-east-2.amazonaws.com/GGV+android+2.png", "description": "https://www.gogetvax.com/"
+                    "kind": "walletobjects#uri",
+                    "uri": "https://ggv-images.s3.us-east-2.amazonaws.com/GGV+android+2.png",
+                    "description": "https://www.gogetvax.com/"
                 }
             }
         }],
         "logo": {
             "kind": "walletobjects#image", "sourceUri": {
-                "kind": "walletobjects#uri", "uri": "https://ggv-images.s3.us-east-2.amazonaws.com/GGV+android+wallet.png", "description": "https://www.gogetvax.com/"
+                "kind": "walletobjects#uri",
+                "uri": "https://ggv-images.s3.us-east-2.amazonaws.com/GGV+android+wallet.png",
+                "description": "https://www.gogetvax.com/"
             }
         },
         "hexBackgroundColor": "#2c1b4b"
@@ -1110,10 +1121,10 @@ def __makeEventTicketObjectResource(classId, objectId, patient):
 
     payload = {
         # required fields
-        "id": objectId, "classId": classId, "state": "active"        # optional
+        "id": objectId, "classId": classId, "state": "active"  # optional
         , "barcode": {
-          "kind": "walletobjects#barcode", "type": "DATA_MATRIX", "value": "https://start.gogetvax.com/login",
-          "alternateText": 'Covid 19 | Level '+patient["level"]+' Verified '
+            "kind": "walletobjects#barcode", "type": "DATA_MATRIX", "value": "https://start.gogetvax.com/login",
+            "alternateText": 'Covid 19 | Level ' + patient["level"] + ' Verified '
         },
     }
 
@@ -1126,9 +1137,9 @@ def __generate_pk_pass(pkpass_req, patient, verification):
         certs = patient["certificates"]
         message = "https://start.gogettested.com/login"
         cardInfo.addHeaderField(
-            'header', 'Covid 19 | Level '+patient["level"]+' Verified ', 'STATUS')
+            'header', 'Covid 19 | Level ' + patient["level"] + ' Verified ', 'STATUS')
         cardInfo.addPrimaryField(key='Name', value=patient["first_name"] + " " + patient["last_name"]
-                                 + " | " + str(patient["dob"]), label='NAME & DATE OF BIRTH')
+                                                   + " | " + str(patient["dob"]), label='NAME & DATE OF BIRTH')
         if len(certs) > 0:
             cardInfo.addSecondaryField('DOSE1', certs[0]["brand"], 'DOSE 1')
             cardInfo.addSecondaryField(
@@ -1152,7 +1163,7 @@ def __generate_pk_pass(pkpass_req, patient, verification):
                         teamIdentifier=team_identifier)
         passfile.serialNumber = str(patient["patient_id"])
         passfile.description = "COVID 19 Vaccination card for " + \
-            patient["first_name"] + " " + patient["last_name"]
+                               patient["first_name"] + " " + patient["last_name"]
         passfile.backgroundColor = "rgb(44, 27, 75)"
         passfile.foregroundColor = "rgb(255, 255, 255)"
         passfile.labelColor = "rgb(238, 191, 217)"
@@ -1438,15 +1449,15 @@ def __send_ggv_qrcode_sms(appointment: GgtAppointment, dose, out_of):
                   "DO NOT ARRIVE EARLY OR LATE. You will not be allowed in the building or in the line more than 5 minutes early. If you are over 30 minutes late your appointment may be given to someone else to ensure vaccine is not wasted. Also make sure to bring an Acceptable ID, " \
                   "and QR code. Though not required, please bring your health insurance card as well." \
                   "\nReply Stop to cxl msgs".format(
-                      appointment.patient.first_name,
-                      dose,
-                      out_of,
-                      appointment.date_text,
-                      appointment.location_text,
-                      "https://start.gogetvax.com",
-                      appointment.id,
-                      appointment.patient.dob.strftime('%Y%m%d')
-                  )
+            appointment.patient.first_name,
+            dose,
+            out_of,
+            appointment.date_text,
+            appointment.location_text,
+            "https://start.gogetvax.com",
+            appointment.id,
+            appointment.patient.dob.strftime('%Y%m%d')
+        )
         international = is_international(appointment.patient.phone_number)
         send_sms(appointment.patient.phone_number,
                  message.replace('\t', ''), international=international)
