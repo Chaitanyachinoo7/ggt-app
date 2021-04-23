@@ -1173,12 +1173,14 @@ def __generate_pk_pass(pkpass_req, patient, verification):
         passfile.foregroundColor = "rgb(255, 255, 255)"
         passfile.labelColor = "rgb(238, 191, 217)"
         passfile.barcode = Barcode(message=message, format="PKBarcodeFormatQR")
+        print("LAMBDA_TASK_ROOT", os.environ['LAMBDA_TASK_ROOT'])
+        print("reading file from", os.environ['LAMBDA_TASK_ROOT'] + "/ggt/configs/images/Group 4GGV-4.png")
         passfile.addFile("icon.png", open(
-            "ggt/configs/images/Group 4GGV-4.png", "rb"))
+            os.environ['LAMBDA_TASK_ROOT'] + "/ggt/configs/images/Group 4GGV-4.png", "rb"))
         print("ggt/configs/images/Group 4GGV-4.png was found")
         passfile.addFile("logo.png", open(
-            "ggt/configs/images/Group 4GGV-4.png", "rb"))
-        print("ggt/configs/images/Group 4GGV-4.png was found")
+            "/ggt/configs/images/Group 4GGV-4.png", "rb"))
+        print("/ggt/configs/images/Group 4GGV-4.png was found")
         print("pkpass temp path:","/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"))
         _ = passfile.create(cert_pem,
                             key_pem,
