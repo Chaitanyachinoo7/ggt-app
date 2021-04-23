@@ -1182,6 +1182,12 @@ def __generate_pk_pass(pkpass_req, patient, verification):
             os.environ['LAMBDA_TASK_ROOT'] + "/ggt/configs/images/Group 4GGV-4.png", "rb"))
         print("/ggt/configs/images/Group 4GGV-4.png was found")
         print("pkpass temp path:","/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"))
+
+        for root, dirs, files in os.walk("."):
+            print(root)
+            print(dirs)
+            for filename in files:
+                print(filename)
         _ = passfile.create(cert_pem,
                             key_pem,
                             wwdr_pem,
