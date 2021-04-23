@@ -1182,10 +1182,10 @@ def __generate_pk_pass(pkpass_req, patient, verification):
                 print(filename)
         passfile.addFile("icon.png", open(
             "./app/ggt/configs/images/Group 4GGV-4.png", "rb"))
-        print("ggt/configs/images/Group 4GGV-4.png was found")
+        print("./app/ggt/configs/images/Group 4GGV-4.png was found")
         passfile.addFile("logo.png", open(
             "./app/ggt/configs/images/Group 4GGV-4.png", "rb"))
-        print("/ggt/configs/images/Group 4GGV-4.png was found")
+        print("./app/ggt/configs/images/Group 4GGV-4.png was found")
         print("pkpass temp path:","/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"))
         _ = passfile.create(cert_pem,
                             key_pem,
