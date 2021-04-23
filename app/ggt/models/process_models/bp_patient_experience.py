@@ -795,7 +795,7 @@ def __skinnyJwt(verticalType, classId, objectId, patient):
     except Exception as err:
         log_generic(
             type=c.ERROR,
-            gpaypass_req={verticalType, classId, objectId, patient},
+            gpaypass_req={},
             function=whoami(),
             error=err
         )
@@ -840,7 +840,7 @@ def __makeSkinnyJwt(verticalType, classId, objectId, patient):
             signedJwt = googlePassJwt.generateSignedJwt()
 
         except ValueError as err:
-            print(err.args)
+            print(err)
 
         # return "skinny" JWT. Try putting it into save link.
         # See https://developers.google.com/pay/passes/guides/get-started/implementing-the-api/save-to-google-pay#add-link-to-email
@@ -848,7 +848,7 @@ def __makeSkinnyJwt(verticalType, classId, objectId, patient):
     except Exception as err:
         log_generic(
             type=c.ERROR,
-            gpaypass_req={verticalType, classId, objectId, patient},
+            gpaypass_req={},
             function=whoami(),
             error=err
         )
@@ -856,7 +856,15 @@ def __makeSkinnyJwt(verticalType, classId, objectId, patient):
 
 
 def __loadObjectIntoJWT(verticalType, googlePassJwt, objectResourcePayload):
-    googlePassJwt.addEventTicketObject(objectResourcePayload)
+    try:
+        googlePassJwt.addEventTicketObject(objectResourcePayload)
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            gpaypass_req={},
+            function=whoami(),
+            error=err
+        )
 
 
 def __handleInsertCallStatusCode(insertCallResponse, idType, id, checkClassId=None, verticalType=None):
@@ -887,7 +895,7 @@ def __handleInsertCallStatusCode(insertCallResponse, idType, id, checkClassId=No
     except Exception as err:
         log_generic(
             type=c.ERROR,
-            gpaypass_req={insertCallResponse, idType, id, checkClassId, verticalType},
+            gpaypass_req={},
             function=whoami(),
             error=err
         )
@@ -926,7 +934,7 @@ def __getObject(verticalType, objectId):
     except Exception as err:
         log_generic(
             type=c.ERROR,
-            gpaypass_req={verticalType, objectId},
+            gpaypass_req={},
             function=whoami(),
             error=err
         )
@@ -934,7 +942,16 @@ def __getObject(verticalType, objectId):
 
 
 def __createPath(verticalType, postfix, id_to_use=''):
-    return '/%s%s/%s' % ("eventTicket", postfix, id_to_use)
+    try:
+        return '/%s%s/%s' % ("eventTicket", postfix, id_to_use)
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            gpaypass_req={},
+            function=whoami(),
+            error=err
+        )
+
 
 
 def __makeOauthCredential():
@@ -956,235 +973,280 @@ def __makeOauthCredential():
 
 
 def __insertClass(verticalType, payload):
-    headers = {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json; charset=UTF-8'
-    }
-    credentials = __makeOauthCredential()
-    response = None
+    try:
+        headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json; charset=UTF-8'
+        }
+        credentials = __makeOauthCredential()
+        response = None
 
-    # Define insert() REST call of target vertical
-    uri = 'https://walletobjects.googleapis.com/walletobjects/v1'
-    postfix = 'Class'
-    path = __createPath(verticalType, postfix)
+        # Define insert() REST call of target vertical
+        uri = 'https://walletobjects.googleapis.com/walletobjects/v1'
+        postfix = 'Class'
+        path = __createPath(verticalType, postfix)
 
-    # There is no Google API for Passes Client Library for Python.
-    # Authorize a http client with credential generated from Google API client library.
-    # see https://google-auth.readthedocs.io/en/latest/user-guide.html#making-authenticated-requests
-    authed_session = AuthorizedSession(credentials)
+        # There is no Google API for Passes Client Library for Python.
+        # Authorize a http client with credential generated from Google API client library.
+        # see https://google-auth.readthedocs.io/en/latest/user-guide.html#making-authenticated-requests
+        authed_session = AuthorizedSession(credentials)
 
-    # make the POST request to make an insert(); this returns a response object
-    # other methods require different http methods; for example, get() requires authed_Session.get(...)
-    # check the reference API to make the right REST call
-    # https://developers.google.com/pay/passes/reference/v1/
-    # https://google-auth.readthedocs.io/en/latest/user-guide.html#making-authenticated-requests
-    response = authed_session.post(
-        uri + path  # REST API endpoint
-        , headers=headers  # Header; optional
-        # non-form-encoded Payload for POST. Check rest API for format based on method.
-        , json=payload
-    )
-    return response
+        # make the POST request to make an insert(); this returns a response object
+        # other methods require different http methods; for example, get() requires authed_Session.get(...)
+        # check the reference API to make the right REST call
+        # https://developers.google.com/pay/passes/reference/v1/
+        # https://google-auth.readthedocs.io/en/latest/user-guide.html#making-authenticated-requests
+        response = authed_session.post(
+            uri + path  # REST API endpoint
+            , headers=headers  # Header; optional
+            # non-form-encoded Payload for POST. Check rest API for format based on method.
+            , json=payload
+        )
+        return response
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            gpaypass_req={},
+            function=whoami(),
+            error=err
+        )
+
 
 
 def __insertObject(verticalType, payload):
-    headers = {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json; charset=UTF-8'
-    }
-    credentials = __makeOauthCredential()
-    response = None
+    try:
+        headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json; charset=UTF-8'
+        }
+        credentials = __makeOauthCredential()
+        response = None
 
-    # Define insert() REST call of target vertical
-    uri = 'https://walletobjects.googleapis.com/walletobjects/v1'
-    postfix = 'Object'
-    path = __createPath(verticalType, postfix)
-    # There is no Google API for Passes Client Library for Python.
-    # Authorize a http client with credential generated from Google API client library.
-    # see https://google-auth.readthedocs.io/en/latest/user-guide.html#making-authenticated-requests
-    authed_session = AuthorizedSession(credentials)
+        # Define insert() REST call of target vertical
+        uri = 'https://walletobjects.googleapis.com/walletobjects/v1'
+        postfix = 'Object'
+        path = __createPath(verticalType, postfix)
+        # There is no Google API for Passes Client Library for Python.
+        # Authorize a http client with credential generated from Google API client library.
+        # see https://google-auth.readthedocs.io/en/latest/user-guide.html#making-authenticated-requests
+        authed_session = AuthorizedSession(credentials)
 
-    # make the POST request to make an insert(); this returns a response object
-    # other methods require different http methods; for example, get() requires authed_Session.get(...)
-    # check the reference API to make the right REST call
-    # https://developers.google.com/pay/passes/reference/v1/
-    # https://google-auth.readthedocs.io/en/latest/user-guide.html#making-authenticated-requests
-    response = authed_session.post(
-        uri + path  # REST API endpoint
-        , headers=headers  # Header; optional
-        # non-form-encoded Payload for POST. Check rest API for format based on method.
-        , json=payload
-    )
-    return response
+        # make the POST request to make an insert(); this returns a response object
+        # other methods require different http methods; for example, get() requires authed_Session.get(...)
+        # check the reference API to make the right REST call
+        # https://developers.google.com/pay/passes/reference/v1/
+        # https://google-auth.readthedocs.io/en/latest/user-guide.html#making-authenticated-requests
+        response = authed_session.post(
+            uri + path  # REST API endpoint
+            , headers=headers  # Header; optional
+            # non-form-encoded Payload for POST. Check rest API for format based on method.
+            , json=payload
+        )
+        return response
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            gpaypass_req={},
+            function=whoami(),
+            error=err
+        )
+
 
 
 def getClassAndObjectDefinitions(verticalType, classId, objectId, classResourcePayload, objectResourcePayload, patient):
-    classResourcePayload = __makeEventTicketClassResource(classId, patient)
-    objectResourcePayload = __makeEventTicketObjectResource(
-        classId, objectId, patient)
-    return classResourcePayload, objectResourcePayload
+    try:
+        classResourcePayload = __makeEventTicketClassResource(classId, patient)
+        objectResourcePayload = __makeEventTicketObjectResource(
+            classId, objectId, patient)
+        return classResourcePayload, objectResourcePayload
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            gpaypass_req={},
+            function=whoami(),
+            error=err
+        )
+
 
 
 def __makeEventTicketClassResource(classId, patient):
-    # Define the resource representation of the Class
-    # values should be from your DB/services; here we hardcode information
+    try:
+        # Define the resource representation of the Class
+        # values should be from your DB/services; here we hardcode information
 
-    payload = {}
+        payload = {}
 
-    # below defines an event ticket class. For more properties, check:
-    # https://developers.google.com/pay/passes/reference/v1/eventticketclass/insert
-    # https://developers.google.com/pay/passes/guides/pass-verticals/event-tickets/design
-    textModulesData = [{
-        "header": "STATUS", "body": 'Covid 19 | Level ' + patient["level"] + ' Verified ', "id": "status"
-    }]
-    certs = patient["certificates"]
+        # below defines an event ticket class. For more properties, check:
+        # https://developers.google.com/pay/passes/reference/v1/eventticketclass/insert
+        # https://developers.google.com/pay/passes/guides/pass-verticals/event-tickets/design
+        textModulesData = [{
+            "header": "STATUS", "body": 'Covid 19 | Level ' + patient["level"] + ' Verified ', "id": "status"
+        }]
+        certs = patient["certificates"]
 
-    if len(certs) > 0:
-        textModulesData.append({
-            "header": "DOSE 1", "body": certs[0]["brand"], "id": "dose1"
-        })
-        textModulesData.append({
-            "header": "LOT", "body": certs[0]["lot_no"], "id": "lot1"
-        })
-        textModulesData.append({
-            "header": "DATE", "body": certs[0]["appointment_date"], "id": "date1"
-        })
-        textModulesData.append({
-            "header": "CERT.#", "body": patient["certNo"], "id": "cert"
-        })
-        textModulesData.append({
-            "header": "DATE VERIFIED", "body": patient["verfiedDate"], "id": "certdate"
-        })
-        if len(certs) > 1:
+        if len(certs) > 0:
             textModulesData.append({
-                "header": "DOSE 2", "body": certs[1]["brand"], "id": "dose2"
+                "header": "DOSE 1", "body": certs[0]["brand"], "id": "dose1"
             })
             textModulesData.append({
-                "header": "LOT", "body": certs[1]["lot_no"], "id": "lot2"
+                "header": "LOT", "body": certs[0]["lot_no"], "id": "lot1"
             })
             textModulesData.append({
-                "header": "DATE", "body": certs[1]["appointment_date"], "id": "date2"
+                "header": "DATE", "body": certs[0]["appointment_date"], "id": "date1"
             })
+            textModulesData.append({
+                "header": "CERT.#", "body": patient["certNo"], "id": "cert"
+            })
+            textModulesData.append({
+                "header": "DATE VERIFIED", "body": patient["verfiedDate"], "id": "certdate"
+            })
+            if len(certs) > 1:
+                textModulesData.append({
+                    "header": "DOSE 2", "body": certs[1]["brand"], "id": "dose2"
+                })
+                textModulesData.append({
+                    "header": "LOT", "body": certs[1]["lot_no"], "id": "lot2"
+                })
+                textModulesData.append({
+                    "header": "DATE", "body": certs[1]["appointment_date"], "id": "date2"
+                })
 
-    payload = {
-        # required fields
-        "id": classId, "issuerName": "Go Get Inc.", "eventName": {
-            "defaultValue": {
-                "language": "en-US",
-                "value": patient["first_name"] + " " + patient["last_name"]
-                         + " | " + str(patient["dob"])
-            }
-        }, "reviewStatus": "underReview",  # optional
-        "textModulesData": textModulesData,
-        "classTemplateInfo": {
-            "cardTemplateOverride": {
-                "cardRowTemplateInfos": [{
-                    "threeItems": {
-                        "startItem": {
-                            "firstValue": {
-                                "fields": [{
-                                    "fieldPath": "class.textModulesData['dose1']"
-                                }]
+        payload = {
+            # required fields
+            "id": classId, "issuerName": "Go Get Inc.", "eventName": {
+                "defaultValue": {
+                    "language": "en-US",
+                    "value": patient["first_name"] + " " + patient["last_name"]
+                            + " | " + str(patient["dob"])
+                }
+            }, "reviewStatus": "underReview",  # optional
+            "textModulesData": textModulesData,
+            "classTemplateInfo": {
+                "cardTemplateOverride": {
+                    "cardRowTemplateInfos": [{
+                        "threeItems": {
+                            "startItem": {
+                                "firstValue": {
+                                    "fields": [{
+                                        "fieldPath": "class.textModulesData['dose1']"
+                                    }]
+                                },
+                                "secondValue": {
+                                    "fields": [{
+                                        "fieldPath": "class.textModulesData['lot1']"
+                                    }]
+                                }
                             },
-                            "secondValue": {
-                                "fields": [{
-                                    "fieldPath": "class.textModulesData['lot1']"
-                                }]
-                            }
-                        },
-                        "middleItem": {
-                            "firstValue": {
-                                "fields": [{
-                                    "fieldPath": "class.textModulesData['date1']"
-                                }]
-                            }
-                        },
-                        "endItem": {
-                            "firstValue": {
-                                "fields": [{
-                                    "fieldPath": "class.textModulesData['cert']"
-                                }]
-                            }
-                        },
-                    }
-                }, {
-                    "threeItems": {
-                        "startItem": {
-                            "firstValue": {
-                                "fields": [{
-                                    "fieldPath": "class.textModulesData['dose2']"
-                                }]
+                            "middleItem": {
+                                "firstValue": {
+                                    "fields": [{
+                                        "fieldPath": "class.textModulesData['date1']"
+                                    }]
+                                }
                             },
-                            "secondValue": {
-                                "fields": [{
-                                    "fieldPath": "class.textModulesData['lot2']"
-                                }]
-                            }
-                        },
-                        "middleItem": {
-                            "firstValue": {
-                                "fields": [{
-                                    "fieldPath": "class.textModulesData['date2']"
-                                }]
-                            }
-                        },
-                        "endItem": {
-                            "firstValue": {
-                                "fields": [{
-                                    "fieldPath": "class.textModulesData['certdate']"
-                                }]
-                            }
-                        },
-                    }
+                            "endItem": {
+                                "firstValue": {
+                                    "fields": [{
+                                        "fieldPath": "class.textModulesData['cert']"
+                                    }]
+                                }
+                            },
+                        }
+                    }, {
+                        "threeItems": {
+                            "startItem": {
+                                "firstValue": {
+                                    "fields": [{
+                                        "fieldPath": "class.textModulesData['dose2']"
+                                    }]
+                                },
+                                "secondValue": {
+                                    "fields": [{
+                                        "fieldPath": "class.textModulesData['lot2']"
+                                    }]
+                                }
+                            },
+                            "middleItem": {
+                                "firstValue": {
+                                    "fields": [{
+                                        "fieldPath": "class.textModulesData['date2']"
+                                    }]
+                                }
+                            },
+                            "endItem": {
+                                "firstValue": {
+                                    "fields": [{
+                                        "fieldPath": "class.textModulesData['certdate']"
+                                    }]
+                                }
+                            },
+                        }
+                    }]
+                }
+            },
+            "linksModuleData": {
+                "uris": [{
+                    "kind": "walletobjects#uri", "uri": "https://start.gogetvax.com/login",
+                    "description": "https://GoGetVax.com"
                 }]
-            }
-        },
-        "linksModuleData": {
-            "uris": [{
-                "kind": "walletobjects#uri", "uri": "https://start.gogetvax.com/login",
-                "description": "https://GoGetVax.com"
-            }]
-        }, "imageModulesData": [{
-            "mainImage": {
+            }, "imageModulesData": [{
+                "mainImage": {
+                    "kind": "walletobjects#image", "sourceUri": {
+                        "kind": "walletobjects#uri",
+                        "uri": "https://ggv-images.s3.us-east-2.amazonaws.com/GGV+android+2.png",
+                        "description": "https://www.gogetvax.com/"
+                    }
+                }
+            }],
+            "logo": {
                 "kind": "walletobjects#image", "sourceUri": {
                     "kind": "walletobjects#uri",
-                    "uri": "https://ggv-images.s3.us-east-2.amazonaws.com/GGV+android+2.png",
+                    "uri": "https://ggv-images.s3.us-east-2.amazonaws.com/GGV+android+wallet.png",
                     "description": "https://www.gogetvax.com/"
                 }
-            }
-        }],
-        "logo": {
-            "kind": "walletobjects#image", "sourceUri": {
-                "kind": "walletobjects#uri",
-                "uri": "https://ggv-images.s3.us-east-2.amazonaws.com/GGV+android+wallet.png",
-                "description": "https://www.gogetvax.com/"
-            }
-        },
-        "hexBackgroundColor": "#2c1b4b"
-    }
-    return payload
+            },
+            "hexBackgroundColor": "#2c1b4b"
+        }
+        return payload
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            gpaypass_req={},
+            function=whoami(),
+            error=err
+        )
+
 
 
 def __makeEventTicketObjectResource(classId, objectId, patient):
-    # Define the resource representation of the Object
-    # values should be from your DB/services; here we hardcode information
+    try:
+        # Define the resource representation of the Object
+        # values should be from your DB/services; here we hardcode information
 
-    payload = {}
+        payload = {}
 
-    # below defines an event ticket object. For more properties, check:
-    # https://developers.google.com/pay/passes/reference/v1/eventticketobject/insert
-    # https://developers.google.com/pay/passes/guides/pass-verticals/event-tickets/design
+        # below defines an event ticket object. For more properties, check:
+        # https://developers.google.com/pay/passes/reference/v1/eventticketobject/insert
+        # https://developers.google.com/pay/passes/guides/pass-verticals/event-tickets/design
 
-    payload = {
-        # required fields
-        "id": objectId, "classId": classId, "state": "active"  # optional
-        , "barcode": {
-            "kind": "walletobjects#barcode", "type": "DATA_MATRIX", "value": "https://start.gogetvax.com/login",
-            "alternateText": 'Covid 19 | Level ' + patient["level"] + ' Verified '
-        },
-    }
+        payload = {
+            # required fields
+            "id": objectId, "classId": classId, "state": "active"  # optional
+            , "barcode": {
+                "kind": "walletobjects#barcode", "type": "DATA_MATRIX", "value": "https://start.gogetvax.com/login",
+                "alternateText": 'Covid 19 | Level ' + patient["level"] + ' Verified '
+            },
+        }
 
-    return payload
+        return payload
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            gpaypass_req={},
+            function=whoami(),
+            error=err
+        )
+
 
 
 def __generate_pk_pass(pkpass_req, patient, verification):
