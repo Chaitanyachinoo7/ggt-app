@@ -43,7 +43,7 @@ class googlePassJwt:
     self.payload = {}
 
     # signer for RSA-SHA256. Uses same private key used in OAuth2.0
-    self.signer = cryptGoogle.RSASigner.from_service_account_file('ggt/configs/gpay/ggt-pfe-prod-e3201b1cc798.json')
+    self.signer = cryptGoogle.RSASigner.from_service_account_file('./app/ggt/configs/gpay/ggt-pfe-prod-e3201b1cc798.json')
 
   def addOfferClass(self, resourcePayload):
     self.payload.setdefault('offerClasses',[])
