@@ -830,13 +830,13 @@ def __makeSkinnyJwt(verticalType, classId, objectId, patient):
             __handleInsertCallStatusCode(
                 objectResponse, "object", objectId, classId, verticalType)
 
-            # put into JSON Web Token (JWT) format for Google Pay API for Passes
+            print("put into JSON Web Token (JWT) format for Google Pay API for Passes")
             googlePassJwt = jwt.googlePassJwt()
 
-            # only need to add objectId in JWT because class and object definitions were pre-inserted via REST call
+            print("only need to add objectId in JWT because class and object definitions were pre-inserted via REST call")
             __loadObjectIntoJWT(verticalType, googlePassJwt, {"id": objectId})
 
-            # sign JSON to make signed JWT
+            print("sign JSON to make signed JWT")
             signedJwt = googlePassJwt.generateSignedJwt()
 
         except ValueError as err:
