@@ -772,62 +772,87 @@ def __generate_wallet_pass(pkpass_req, patient, verification):
 
 
 def __generate_gpay_pass(pkpass_req, patient, verification):
-    classUid = 'EVENTTICKET_CLASS_' + str(uuid.uuid4())
-    classId = '%s.%s' % ("3388000000009256028", classUid)
-    objectUid = 'EVENTTICKET_OBJECT_' + str(uuid.uuid4())
-    objectId = '%s.%s' % ("3388000000009256028", objectUid)
-    return __skinnyJwt("EVENTTICKET", classId, objectId, patient)
+    try:
+        classUid = 'EVENTTICKET_CLASS_' + str(uuid.uuid4())
+        classId = '%s.%s' % ("3388000000009256028", classUid)
+        objectUid = 'EVENTTICKET_OBJECT_' + str(uuid.uuid4())
+        objectId = '%s.%s' % ("3388000000009256028", objectUid)
+        return __skinnyJwt("EVENTTICKET", classId, objectId, patient)
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            gpaypass_req=pkpass_req,
+            function=whoami(),
+            error=err
+        )
 
 
 def __skinnyJwt(verticalType, classId, objectId, patient):
-    skinnyJwt = __makeSkinnyJwt(verticalType, classId, objectId, patient)
-    if skinnyJwt is not None:
-        return {"gpayPassURL": "https://pay.google.com/gp/v/save/" + skinnyJwt.decode('UTF-8')}
+    try:
+        skinnyJwt = __makeSkinnyJwt(verticalType, classId, objectId, patient)
+        if skinnyJwt is not None:
+            return {"gpayPassURL": "https://pay.google.com/gp/v/save/" + skinnyJwt.decode('UTF-8')}
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            gpaypass_req={verticalType, classId, objectId, patient},
+            function=whoami(),
+            error=err
+        )
 
 
 def __makeSkinnyJwt(verticalType, classId, objectId, patient):
-    signedJwt = None
-    classResourcePayload = None
-    objectResourcePayload = None
-    classResponse = None
-    objectResponse = None
-
     try:
-        # get class definition and object definition
-        classResourcePayload, objectResourcePayload = getClassAndObjectDefinitions(
-            verticalType, classId, objectId, classResourcePayload, objectResourcePayload, patient)
+        signedJwt = None
+        classResourcePayload = None
+        objectResourcePayload = None
+        classResponse = None
+        objectResponse = None
 
-        # make authorized REST call to explicitly insert class into Google server.
-        # if this is successful, you can check/update class definitions in Merchant Center GUI: https://pay.google.com/gp/m/issuer/list
-        classResponse = __insertClass(verticalType, classResourcePayload)
+        try:
+            # get class definition and object definition
+            classResourcePayload, objectResourcePayload = getClassAndObjectDefinitions(
+                verticalType, classId, objectId, classResourcePayload, objectResourcePayload, patient)
 
-        # make authorized REST call to explicitly insert object into Google server.
-        objectResponse = __insertObject(verticalType, objectResourcePayload)
+            # make authorized REST call to explicitly insert class into Google server.
+            # if this is successful, you can check/update class definitions in Merchant Center GUI: https://pay.google.com/gp/m/issuer/list
+            classResponse = __insertClass(verticalType, classResourcePayload)
 
-        # continue based on insert response status. Check https://developers.google.com/pay/passes/reference/v1/statuscodes
-        # check class insert response. Will print out if class insert succeeds or not. Throws error if class resource is malformed.
-        __handleInsertCallStatusCode(
-            classResponse, "class", classId, None, None)
+            # make authorized REST call to explicitly insert object into Google server.
+            objectResponse = __insertObject(verticalType, objectResourcePayload)
 
-        # check object insert response. Will print out if object insert succeeds or not. Throws error if object resource is malformed, or if existing objectId's classId does not match the expected classId
-        __handleInsertCallStatusCode(
-            objectResponse, "object", objectId, classId, verticalType)
+            # continue based on insert response status. Check https://developers.google.com/pay/passes/reference/v1/statuscodes
+            # check class insert response. Will print out if class insert succeeds or not. Throws error if class resource is malformed.
+            __handleInsertCallStatusCode(
+                classResponse, "class", classId, None, None)
 
-        # put into JSON Web Token (JWT) format for Google Pay API for Passes
-        googlePassJwt = jwt.googlePassJwt()
+            # check object insert response. Will print out if object insert succeeds or not. Throws error if object resource is malformed, or if existing objectId's classId does not match the expected classId
+            __handleInsertCallStatusCode(
+                objectResponse, "object", objectId, classId, verticalType)
 
-        # only need to add objectId in JWT because class and object definitions were pre-inserted via REST call
-        __loadObjectIntoJWT(verticalType, googlePassJwt, {"id": objectId})
+            # put into JSON Web Token (JWT) format for Google Pay API for Passes
+            googlePassJwt = jwt.googlePassJwt()
 
-        # sign JSON to make signed JWT
-        signedJwt = googlePassJwt.generateSignedJwt()
+            # only need to add objectId in JWT because class and object definitions were pre-inserted via REST call
+            __loadObjectIntoJWT(verticalType, googlePassJwt, {"id": objectId})
 
-    except ValueError as err:
-        print(err.args)
+            # sign JSON to make signed JWT
+            signedJwt = googlePassJwt.generateSignedJwt()
 
-    # return "skinny" JWT. Try putting it into save link.
-    # See https://developers.google.com/pay/passes/guides/get-started/implementing-the-api/save-to-google-pay#add-link-to-email
-    return signedJwt
+        except ValueError as err:
+            print(err.args)
+
+        # return "skinny" JWT. Try putting it into save link.
+        # See https://developers.google.com/pay/passes/guides/get-started/implementing-the-api/save-to-google-pay#add-link-to-email
+        return signedJwt
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            gpaypass_req={verticalType, classId, objectId, patient},
+            function=whoami(),
+            error=err
+        )
+
 
 
 def __loadObjectIntoJWT(verticalType, googlePassJwt, objectResourcePayload):
@@ -835,60 +860,77 @@ def __loadObjectIntoJWT(verticalType, googlePassJwt, objectResourcePayload):
 
 
 def __handleInsertCallStatusCode(insertCallResponse, idType, id, checkClassId=None, verticalType=None):
-    if insertCallResponse.status_code == 200:
-        print('%sId (%s) insertion success!\n' % (idType, id))
-    elif insertCallResponse.status_code == 409:  # id resource exists for this issuer account
-        print('%sId: (%s) already exists. %s' %
-              (idType, id, "PASS ALREADY EXISTS"))
+    try:
+        if insertCallResponse.status_code == 200:
+            print('%sId (%s) insertion success!\n' % (idType, id))
+        elif insertCallResponse.status_code == 409:  # id resource exists for this issuer account
+            print('%sId: (%s) already exists. %s' %
+                (idType, id, "PASS ALREADY EXISTS"))
 
-        # for object insert, do additional check
-        if idType == "object":
-            getCallResponse = None
-            # get existing object Id data
-            # if it is a new object Id, expected status is 409
-            getCallResponse = __getObject(verticalType, id)
-            # check if object's classId matches target classId
-            classIdOfObjectId = getCallResponse.json()['classId']
-            if classIdOfObjectId != checkClassId and checkClassId is not None:
-                raise ValueError(
-                    'the classId of inserted object is (%s). It does not match the target classId (%s). The saved object will not have the class properties you expect.' % (
-                        classIdOfObjectId, checkClassId))
-    else:
-        raise ValueError('%s insert issue.' %
-                         (idType), insertCallResponse.text)
+            # for object insert, do additional check
+            if idType == "object":
+                getCallResponse = None
+                # get existing object Id data
+                # if it is a new object Id, expected status is 409
+                getCallResponse = __getObject(verticalType, id)
+                # check if object's classId matches target classId
+                classIdOfObjectId = getCallResponse.json()['classId']
+                if classIdOfObjectId != checkClassId and checkClassId is not None:
+                    raise ValueError(
+                        'the classId of inserted object is (%s). It does not match the target classId (%s). The saved object will not have the class properties you expect.' % (
+                            classIdOfObjectId, checkClassId))
+        else:
+            raise ValueError('%s insert issue.' %
+                            (idType), insertCallResponse.text)
 
-    return
+        return
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            gpaypass_req={insertCallResponse, idType, id, checkClassId, verticalType},
+            function=whoami(),
+            error=err
+        )
 
 
 def __getObject(verticalType, objectId):
-    headers = {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json; charset=UTF-8'
-    }
-    credentials = __makeOauthCredential()
-    response = None
+    try:
+        headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json; charset=UTF-8'
+        }
+        credentials = __makeOauthCredential()
+        response = None
 
-    # Define get() REST call of target vertical
-    uri = 'https://walletobjects.googleapis.com/walletobjects/v1'
-    postfix = 'Object'
-    path = __createPath(verticalType, postfix, objectId)
+        # Define get() REST call of target vertical
+        uri = 'https://walletobjects.googleapis.com/walletobjects/v1'
+        postfix = 'Object'
+        path = __createPath(verticalType, postfix, objectId)
 
-    # There is no Google API for Passes Client Library for Python.
-    # Authorize a http client with credential generated from Google API client library.
-    # see https://google-auth.readthedocs.io/en/latest/user-guide.html#making-authenticated-requests
-    authed_session = AuthorizedSession(credentials)
+        # There is no Google API for Passes Client Library for Python.
+        # Authorize a http client with credential generated from Google API client library.
+        # see https://google-auth.readthedocs.io/en/latest/user-guide.html#making-authenticated-requests
+        authed_session = AuthorizedSession(credentials)
 
-    # make the GET request to make an get(); this returns a response object
-    # other methods require different http methods; for example, get() requires authed_Session.get(...)
-    # check the reference API to make the right REST call
-    # https://developers.google.com/pay/passes/reference/v1/
-    # https://google-auth.readthedocs.io/en/latest/user-guide.html#making-authenticated-requests
-    response = authed_session.get(
-        uri + path  # REST API endpoint
-        , headers=headers  # Header; optional
-    )
+        # make the GET request to make an get(); this returns a response object
+        # other methods require different http methods; for example, get() requires authed_Session.get(...)
+        # check the reference API to make the right REST call
+        # https://developers.google.com/pay/passes/reference/v1/
+        # https://google-auth.readthedocs.io/en/latest/user-guide.html#making-authenticated-requests
+        response = authed_session.get(
+            uri + path  # REST API endpoint
+            , headers=headers  # Header; optional
+        )
 
-    return response
+        return response
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            gpaypass_req={verticalType, objectId},
+            function=whoami(),
+            error=err
+        )
+
 
 
 def __createPath(verticalType, postfix, id_to_use=''):
@@ -896,12 +938,21 @@ def __createPath(verticalType, postfix, id_to_use=''):
 
 
 def __makeOauthCredential():
-    # the variables are in config file
-    credentials = service_account.Credentials.from_service_account_file(
-        './app/ggt/configs/gpay/ggt-pfe-prod-e3201b1cc798.json',
-        scopes=['https://www.googleapis.com/auth/wallet_object.issuer'])
+    try:
+        # the variables are in config file
+        credentials = service_account.Credentials.from_service_account_file(
+            './app/ggt/configs/gpay/ggt-pfe-prod-e3201b1cc798.json',
+            scopes=['https://www.googleapis.com/auth/wallet_object.issuer'])
 
-    return credentials
+        return credentials
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            gpaypass_req={},
+            function=whoami(),
+            error=err
+        )
+
 
 
 def __insertClass(verticalType, payload):
