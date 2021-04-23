@@ -519,7 +519,9 @@ def lookup_pkpass(phone_number, dob, first_name, last_name, token):
                         JOIN
                     ggv_certificates gc ON p.id = gc.patient_id
                     WHERE {}""".format(where_statement)
+        print(sql)
         rows = replica_read_rows(sql)
+        print(rows)
         return __format_pkpass_records(rows)
 
     except Exception as err:

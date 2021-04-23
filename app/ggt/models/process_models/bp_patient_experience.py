@@ -717,6 +717,7 @@ def bp_get_wallet_pass(pkpass_req):
     try:
         patient = lookup_pkpass(pkpass_req.phone_number, pkpass_req.dob,
                                 pkpass_req.first_name, pkpass_req.last_name, pkpass_req.token)
+        print(patient)
         if patient:
             return __generate_wallet_pass(pkpass_req, patient, verification=None)
         else:
@@ -744,9 +745,13 @@ def __generate_wallet_pass(pkpass_req, patient, verification):
     try:
         if pkpass_req.type == 'i':
             __generate_pk_pass(pkpass_req, patient, verification)
+            print("__generate_pk_pass execution complete")
+            print("uploading from: ", "/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"))
+            print("uploading as:", str(patient["patient_id"]) + ".pkpass")
+            print("uploading to:", "pkpass-prod")
             uploaded = upload_file("/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"),
                                    str(patient["patient_id"]) + ".pkpass", "pkpass-prod")
-
+            print("upload_file execution complete")
             if uploaded:
                 return {
                     "pkpass_url": get_temp_pkpass_url(
@@ -1170,14 +1175,17 @@ def __generate_pk_pass(pkpass_req, patient, verification):
         passfile.barcode = Barcode(message=message, format="PKBarcodeFormatQR")
         passfile.addFile("icon.png", open(
             "ggt/configs/images/Group 4GGV-4.png", "rb"))
+        print("ggt/configs/images/Group 4GGV-4.png was found")
         passfile.addFile("logo.png", open(
             "ggt/configs/images/Group 4GGV-4.png", "rb"))
+        print("ggt/configs/images/Group 4GGV-4.png was found")
+        print("pkpass temp path:","/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"))
         _ = passfile.create(cert_pem,
                             key_pem,
                             wwdr_pem,
                             key_pem_password,
                             "/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"))
-
+        print("file was created at:","/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"))
         return _
     except Exception as err:
         log_generic(
