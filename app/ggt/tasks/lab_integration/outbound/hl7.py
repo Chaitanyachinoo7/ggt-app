@@ -261,5 +261,7 @@ class HL7:
             in1_2_insurance_plan_id=order['insurance_member_id'],
             in1_3_insurance_company_id=order['insurance_payer'],
             in1_4_insurance_company_name=order['insurance_payer'],
-            in1_8_group_number=order['insurance_group_no']
+            in1_8_group_number=order['insurance_group_no'],
+            in1_16_name_of_insured='{}^{}^^^'.format(
+                order['last_name'], order['first_name'])
         )

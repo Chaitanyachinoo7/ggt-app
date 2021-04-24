@@ -245,6 +245,7 @@ def get_orders_ready_to_transmit(limit=100):
             l.city AS test_location_city,
             l.zip as test_location_zip,
             l.country as test_location_country,
+            q.has_insurance_photo as has_insurance_photo,
             t.sample_collection_location_id,
             t.lab_id,
             DATE_FORMAT(CONVERT_TZ(NOW(), '+00:00', '-06:00'),
@@ -289,6 +290,10 @@ def create_outbound_requests(orders):
         if insurance_info_required(order['lab_id']):
             ins = fetch_insurance_info(order['patient_id'])
             order.update(ins)
+
+            # set flag to collect insurance card picture if available
+            if order['has_insurance_photo'] in ['1', 1]:
+                order['bill'] = 'DB'
 
         # for all other labs, generate hl7 file and place it in s3
         hl7_util = HL7(order.copy())

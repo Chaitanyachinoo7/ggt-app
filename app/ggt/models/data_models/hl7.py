@@ -253,7 +253,7 @@ class IN1(BaseModel):
     in1_7_insurance_co_phone_number: \
         Optional[constr(max_length=250)] = ''
     in1_8_group_number: \
-        Optional[constr(max_length=12)] = ''
+        Optional[constr(max_length=250)] = ''
     in1_9_group_name: \
         Optional[constr(max_length=250)] = ''
     in1_10_insureds_group_emp_id: \
