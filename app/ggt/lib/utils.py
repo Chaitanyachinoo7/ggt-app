@@ -186,7 +186,7 @@ def x_response(res, allow=True, reason_code=None):
     return failure_response(reason_code=reason_code)
 
 
-def y_response(res, allow=False):
+def y_response(res, allow=False, reason_code=None):
     try:
         if allow or res:
             return success_response_array(res)
@@ -198,7 +198,8 @@ def y_response(res, allow=False):
             function=whoami(),
             error=err
         )
-    return failure_response()
+    reason_code = reason_code if reason_code else ''
+    return failure_response(reason_code=reason_code)
 
 
 def success_response(kv=None):

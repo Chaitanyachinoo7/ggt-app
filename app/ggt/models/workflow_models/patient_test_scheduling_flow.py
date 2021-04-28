@@ -218,15 +218,14 @@ def lookup_appointment(appointment_id, dob):
 
 @cached(cache=TTLCache(maxsize=1024, ttl=60))
 def lookup_certificate(phone_number, dob, first_name, last_name, token):
-    return y_response(
-        bp_lookup_certificate(
+    res = bp_lookup_certificate(
             phone_number,
             dob,
             first_name,
             last_name,
             token
         )
-    )
+    return y_response(res[0], reason_code=res[1])
 
 
 @cached(cache=TTLCache(maxsize=1024, ttl=60))

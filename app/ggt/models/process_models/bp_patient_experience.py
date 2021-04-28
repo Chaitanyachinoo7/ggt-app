@@ -592,7 +592,7 @@ def bp_lookup_certificate(phone_number, dob, first_name, last_name, token):
             error=err
         )
 
-    return None
+    return None, None
 
 
 def bp_reschedule_first_appointment(otp, appointment_id_1, appointment_id_2, appointment_1_dt_id, appointment_2_dt_id,

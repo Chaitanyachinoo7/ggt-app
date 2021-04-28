@@ -490,7 +490,7 @@ def lookup_certificate(phone_number, dob, first_name, last_name, token):
                     ggv_certificates gc ON p.id = gc.patient_id
                     WHERE {}""".format(where_statement)
         rows = replica_read_rows(sql)
-        return __format_vax_certificate(rows)
+        return __format_vax_certificate(rows), "No certificate found."
 
     except Exception as err:
         log_generic(
@@ -498,7 +498,7 @@ def lookup_certificate(phone_number, dob, first_name, last_name, token):
             function=whoami(),
             error=err
         )
-    return None
+    return None, None
 
 
 def lookup_pkpass(phone_number, dob, first_name, last_name, token):
