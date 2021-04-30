@@ -600,16 +600,40 @@ class PortalCcTestLookupRequest(BaseModel):
     test_id: str = None
 
 
-class PortalCcPatientLookupRequest(BaseModel):
+class LookupCertificateRequest(BaseModel):
+    first_name: str = None
     last_name: str = None
     dob: str = None
+    phone_number: str = None
+
+
+class UpdatePatientInfoCert(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    dob: str
+    phone_number: str
+
+
+class UpdateCertInfo(BaseModel):
+    id: int
+    service_code: str
+    lot_no: str
+
+
+class UpdateCertImage(BaseModel):
+    patient_id: str
+    cert_id: str
+    image: str
 
 
 class PortalAdminGetF11Request(BaseModel):
     appointment_ids: List[str] = None
 
+
 class PortalAdminGetVaccineConsentFormRequest(BaseModel):
     patient_ids: List[str] = None
+
 
 class CCSendSMSRequest(BaseModel):
     first_name: str = None
@@ -713,12 +737,18 @@ class LookupAppointmentRequest(BaseModel):
     dob: str = None
 
 
+class PortalCcPatientLookupRequest(BaseModel):
+    last_name: str = None
+    dob: str = None
+
+
 class LookupGGVCertificateRequest(BaseModel):
     phone_number: str
     dob: str
     first_name: str
     last_name: str
     token: str
+
 
 class LookupGGVWalletPassRequest(BaseModel):
     phone_number: str

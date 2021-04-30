@@ -470,17 +470,23 @@ def re_schedule_appointment(appointment_id, slot):
     return None
 
 
-def lookup_certificate(phone_number, dob, first_name, last_name, token):
+def lookup_certificate(phone_number, dob, first_name, last_name, token=None):
     try:
-        where_statement = "p.phone_number LIKE '%{}%'".format(phone_number)
-        where_statement = "{} AND date(p.dob) = '{}'".format(
-            where_statement, dob)
-        where_statement = "{} AND p.first_name LIKE '%{}%'".format(
-            where_statement, first_name)
-        where_statement = "{} AND p.last_name LIKE '%{}%'".format(
-            where_statement, last_name)
-        where_statement = "{} AND p.result_token = '{}' AND p.token_expire > NOW()".format(
-            where_statement, token)
+        where_statement = "1=1"
+        if phone_number or phone_number != "":
+            where_statement = "{} AND p.phone_number LIKE '%{}%'".format(where_statement, phone_number)
+        if dob or dob != "":
+            where_statement = "{} AND date(p.dob) = '{}'".format(
+                where_statement, dob)
+        if first_name or first_name != "":
+            where_statement = "{} AND p.first_name LIKE '%{}%'".format(
+                where_statement, first_name)
+        if last_name or last_name != "":
+            where_statement = "{} AND p.last_name LIKE '%{}%'".format(
+                where_statement, last_name)
+        if token:
+            where_statement = "{} AND p.result_token = '{}' AND p.token_expire > NOW()".format(
+                where_statement, token)
         sql = """SELECT 
                     gc.*,
                    date(gc.check_in_dt) AS appointment_date
@@ -736,6 +742,7 @@ def __format_vax_certificate(rows):
                 image = "/api/vax_certificate/{}/{}.jpg".format(
                     row['patient_id'], row['id'])
                 service = {
+                    "cert_id": row['id'],
                     "appointment_id": row['appointment_id'],
                     "appointment_date": row['appointment_date'],
                     "patient_questionnaire_id": row['patient_questionnaire_id'],

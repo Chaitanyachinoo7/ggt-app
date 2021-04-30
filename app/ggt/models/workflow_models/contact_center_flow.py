@@ -29,6 +29,7 @@ def cc_view_test_details(auth_token, test_id):
         )
     )
 
+
 @cached(cache=TTLCache(maxsize=1024, ttl=60))
 def cc_search_details_by_name_and_dob(last_name, dob):
     return y_response(

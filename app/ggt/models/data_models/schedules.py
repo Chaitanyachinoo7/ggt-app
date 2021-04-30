@@ -21,6 +21,7 @@ from ggt.lib.db import (
     replica_read_row,
     replica_read_rows
 )
+from ggt.models.data_models.appointments import __get_brand
 
 from ggt.models.data_models.data_types import (
     GgtScheduleSlot,
@@ -127,6 +128,49 @@ def create_schedule_entry(location_id, start_dt, end_dt, duration, status):
             end_dt=end_dt,
             duration=duration,
             status=status,
+            error=err
+        )
+        return None
+
+
+def update_patient_ifo_cert(id, phone_number, dob, first_name, last_name):
+    try:
+        sql = """UPDATE patients SET 
+        first_name = %s, 
+        last_name = %s, 
+        dob = %s, 
+        phone_number = %s
+        WHERE id = %s"""
+        vals = (first_name, last_name, dob, phone_number, id)
+        return exec_update(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            patient_id=id,
+            phone_number=phone_number,
+            dob=dob,
+            first_name=first_name,
+            last_name=last_name,
+            error=err
+        )
+        return None
+
+
+def update_cert_info(id, service_code, lot_no):
+    try:
+        sql = """UPDATE ggv_certificates SET 
+        service_code = %s, 
+        lot_no = %s
+        WHERE id = %s"""
+        vals = (service_code, lot_no, id)
+        return exec_update(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
             error=err
         )
         return None
@@ -287,6 +331,47 @@ def update_schedule_generation_rule(data):
             error=err
         )
         return None
+
+
+def lookup_certificate(phone_number, dob, first_name, last_name, token=None):
+    try:
+        where_statement = "1=1"
+        if phone_number or phone_number != "":
+            where_statement = "{} AND p.phone_number LIKE '%{}%'".format(where_statement, phone_number)
+        if dob or dob != "":
+            where_statement = "{} AND date(p.dob) = '{}'".format(
+                where_statement, dob)
+        if first_name or first_name != "":
+            where_statement = "{} AND p.first_name LIKE '%{}%'".format(
+                where_statement, first_name)
+        if last_name or last_name != "":
+            where_statement = "{} AND p.last_name LIKE '%{}%'".format(
+                where_statement, last_name)
+        if token:
+            where_statement = "{} AND p.result_token = '{}' AND p.token_expire > NOW()".format(
+                where_statement, token)
+        sql = """SELECT 
+                    gc.*,
+                    p.first_name,
+                    p.last_name,
+                    p.dob,
+                    p.phone_number,
+                   date(gc.check_in_dt) AS appointment_date
+                FROM
+                    patients p
+                        JOIN
+                    ggv_certificates gc ON p.id = gc.patient_id
+                    WHERE {}""".format(where_statement)
+        rows = replica_read_rows(sql)
+        return __format_vax_certificate_portal(rows), "No certificate found."
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+    return None, None
 
 
 def delete_schedule_entries_by_location_id(location_id):
@@ -535,7 +620,7 @@ def get_group_by_group_code(group_code):
                     groups
                 WHERE
                     group_code = %s;"""
-    vals = (group_code, )
+    vals = (group_code,)
     return replica_read_row(sql, vals)
 
 
@@ -717,7 +802,7 @@ def get_second_shot_available_times(location_id, date):
                 AND start_dt >= CONVERT_TZ(NOW(), '+00:00', '-06:00')
             ORDER BY id
         """.format(location_id, date)
-        res =  replica_read_rows(sql)
+        res = replica_read_rows(sql)
         return select_random_count(res, 5)
 
     except Exception as err:
@@ -736,7 +821,7 @@ def select_random_count(items, count):
     # Shuffle items
     random.shuffle(items)
     shuffled = items[:count]
-    shuffled.sort(key= lambda x: x['start_dt'])
+    shuffled.sort(key=lambda x: x['start_dt'])
     return shuffled
 
 
@@ -903,7 +988,8 @@ def get_next_available_slot(slot_id, location_id, test_type):
              FROM
                     {}
              WHERE
-                location_id = %s AND status='available' AND lock_time < NOW() AND id > %s ORDER BY id ASC""".format(table)
+                location_id = %s AND status='available' AND lock_time < NOW() AND id > %s ORDER BY id ASC""".format(
+        table)
     vals = (location_id, slot_id)
     return replica_read_row(sql, vals)
 
@@ -934,6 +1020,7 @@ def update_appointment(appointment_id, scheduled_dt):
       """
     vals = (scheduled_dt, appointment_id)
     return exec_update(sql, vals)
+
 
 ########################################################################################################
 # [Protected] functions
@@ -1329,8 +1416,10 @@ def __map_row_to_dtl(row):
         dtl.location.allow_insurance_skip = True if row['allow_insurance_skip'] else False
         dtl.location.collect_upfront_payment = True if row['collect_upfront_payment'] else False
 
-        dtl.first_date_time_available = row['first_date_time_available'] if "first_date_time_available" in row.keys() else None
-        dtl.average_processing_time = row['average_processing_time'] if "average_processing_time" in row.keys() else None
+        dtl.first_date_time_available = row[
+            'first_date_time_available'] if "first_date_time_available" in row.keys() else None
+        dtl.average_processing_time = row[
+            'average_processing_time'] if "average_processing_time" in row.keys() else None
         dtl.slot_count = row['slot_count'] if "slot_count" in row.keys() else None
         dtl.location.services_available = list()
 
@@ -1378,3 +1467,47 @@ def __map_row_to_dtl(row):
         )
 
     return dtl, svc
+
+
+def __format_vax_certificate_portal(rows):
+    try:
+        if len(rows) > 0:
+            map = {}
+            for r in rows:
+                if r['patient_id'] not in map.keys():
+                    map[r['patient_id']] = {
+                        'patient_id': r['patient_id'],
+                        "first_name": r['first_name'],
+                        "last_name": r['last_name'],
+                        "dob": r['dob'],
+                        "phone_number": r['phone_number'],
+                        'certificates': []
+                    }
+
+            for row in rows:
+                image = "/api/vax_certificate/{}/{}.jpg".format(
+                        row['patient_id'], row['id'])
+                service = {
+                        "cert_id": row['id'],
+                        "verification_level": row['verification_level'],
+                        "appointment_id": row['appointment_id'],
+                        "appointment_date": row['appointment_date'],
+                        "patient_questionnaire_id": row['patient_questionnaire_id'],
+                        "brand": __get_brand(row['service_code']),
+                        "service_code": row['service_code'],
+                        "lot_no": row['lot_no'],
+                        "appointment_time": None,
+                        "org_name": None,
+                        "images": [image]
+                    }
+                map[row['patient_id']]['certificates'].append(service)
+            return list(map.values())
+        else:
+            return {}
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )

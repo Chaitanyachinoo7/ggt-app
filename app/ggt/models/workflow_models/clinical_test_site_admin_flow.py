@@ -8,6 +8,7 @@ from ggt.lib.utils import (
     whoami
 )
 from ggt.models.data_models.schedules import get_location_id_by_rule_id
+from ggt.models.process_models.bp_patient_experience import __upload_vax_card_image
 
 from ggt.models.process_models.bp_portal_experience import (
     bp_get_general_search_results,
@@ -27,7 +28,7 @@ from ggt.models.process_models.bp_schedules import (
     bp_update_schedule_generation_rule,
     bp_delete_schedule_generation_rule,
     bp_get_schedule_generation_rules,
-    bp_delete_schedule
+    bp_delete_schedule, bp_lookup_certificate, bp_update_patient_ifo_cert, bp_update_cert_info
 )
 
 import ggt.lib.constants as c
@@ -73,6 +74,8 @@ def site_admin_general_search(user, first_name, middle_name, last_name, dob, pho
 def site_admin_get_f11(appointment_ids):
     return y_response(
         bp_get_f11(appointment_ids))
+
+
 def site_admin_get_consent_forms(patient_ids):
     return y_response(
         bp_get_consent_forms(patient_ids))
@@ -194,6 +197,37 @@ def delete_schedule_generation_rule(id):
 def delete_schedule(location_id):
     return x_response(
         bp_delete_schedule(location_id)
+    )
+
+
+@cached(cache=TTLCache(maxsize=1024, ttl=60))
+def lookup_certificate(first_name, last_name, dob, phone_number):
+    return y_response(
+        bp_lookup_certificate(
+            first_name, last_name, dob, phone_number
+        )
+    )
+
+
+def update_patient_ifo_cert(id, first_name, last_name, dob, phone_number):
+    return x_response(
+        bp_update_patient_ifo_cert(
+            id, first_name, last_name, dob, phone_number
+        )
+    )
+
+
+def update_cert_info(id, service_code, lot_no):
+    return x_response(
+        bp_update_cert_info(
+            id, service_code, lot_no
+        )
+    )
+
+
+def update_cert_image(patient_id, cert_id, image):
+    return x_response(
+        __upload_vax_card_image(image, patient_id, cert_id)
     )
 
 

@@ -30,7 +30,7 @@ from ggt.models.data_models.schedules import (
     get_slots_matching_dt_list, ggv_get_schedule_locations_available_near_lat_lng, get_second_shot_available_times,
     delete_ggv_schedules_metrics_cache, delete_schedules_metrics_cache, get_second_slot_reschedule_dates,
     get_ggv_available_dates, get_group_by_group_code, get_available_ggv_locations_near_lat_lng,
-    get_first_available_times
+    get_first_available_times, lookup_certificate, update_patient_ifo_cert, update_cert_info
 )
 
 from ggt.models.data_models.locations import (
@@ -533,6 +533,58 @@ def bp_delete_schedule(location_id):
         log_generic(
             type=c.ERROR,
             location_id=location_id,
+            function=whoami(),
+            error=err
+        )
+
+    return False
+
+
+def bp_lookup_certificate(first_name, last_name, dob, phone_number):
+    try:
+        return lookup_certificate(phone_number, dob, first_name, last_name)[0]
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            first_name=first_name,
+            last_name=last_name,
+            dob=dob,
+            phone_number=phone_number,
+            function=whoami(),
+            error=err
+        )
+
+    return False
+
+
+def bp_update_patient_ifo_cert(id, first_name, last_name, dob, phone_number):
+    try:
+        return update_patient_ifo_cert(id, phone_number, dob, first_name, last_name)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            first_name=first_name,
+            last_name=last_name,
+            dob=dob,
+            phone_number=phone_number,
+            function=whoami(),
+            error=err
+        )
+
+    return False
+
+
+def bp_update_cert_info(id, service_code, lot_no):
+    try:
+        return update_cert_info(id, service_code, lot_no)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            service_code=service_code,
+            lot_no=lot_no,
             function=whoami(),
             error=err
         )

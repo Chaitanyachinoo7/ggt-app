@@ -29,7 +29,8 @@ from ggt.models.data_models.data_types import (
     PortalAdminGetF11Request,
     PortalAdminGetVaccineConsentFormRequest,
     PortalVaxWaitlistSearchRequest,
-    PortalVaxRegisteredWaitAroundLocationRequest, VaxCertificate
+    PortalVaxRegisteredWaitAroundLocationRequest, VaxCertificate, LookupCertificateRequest, UpdatePatientInfoCert,
+    UpdateCertInfo, UpdateCertImage
 )
 from ggt.models.workflow_models.admin_flow import (
     admin_get_all_test_results
@@ -64,7 +65,8 @@ from ggt.models.workflow_models.clinical_test_site_admin_flow import (
     site_admin_get_f11,
     site_admin_get_consent_forms,
     site_admin_vax_waitlist_search,
-    site_admin_vax_registered_waitlist_around_location, add_vax_certificate
+    site_admin_vax_registered_waitlist_around_location, add_vax_certificate, lookup_certificate,
+    update_patient_ifo_cert, update_cert_info, update_cert_image
 )
 
 router = APIRouter()
@@ -287,8 +289,46 @@ async def api_cc_patient_lookup(portal_cc_patient_lookup_request: PortalCcPatien
     )
 
 
-@router.post("/site-admin/generate_vaccine_forms_brownwood", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
+@router.post("/site-admin/lookup_certificate", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
+async def api_lookup_certificate(req: LookupCertificateRequest):
+    return lookup_certificate(
+        req.first_name,
+        req.last_name,
+        req.dob,
+        req.phone_number
+    )
 
+
+@router.post("/site-admin/update_patient_info_cert", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
+async def api_update_patient_ifo_cert(req: UpdatePatientInfoCert):
+    return update_patient_ifo_cert(
+        req.id,
+        req.first_name,
+        req.last_name,
+        req.dob,
+        req.phone_number
+    )
+
+
+@router.post("/site-admin/update_cert_info", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
+async def api_update_cert_info(req: UpdateCertInfo):
+    return update_cert_info(
+        req.id,
+        req.service_code,
+        req.lot_no
+    )
+
+
+@router.post("/site-admin/update_cert_image", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
+async def api_update_cert_image(req: UpdateCertImage):
+    return update_cert_image(
+        req.patient_id,
+        req.cert_id,
+        req.image
+    )
+
+
+@router.post("/site-admin/generate_vaccine_forms_brownwood", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
 def generate_vaccine_forms_brownwood(portal_admin_get_f11_request: PortalAdminGetF11Request):
     return site_admin_get_f11(portal_admin_get_f11_request.appointment_ids)
 
