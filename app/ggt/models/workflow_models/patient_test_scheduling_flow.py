@@ -218,6 +218,16 @@ def lookup_appointment(appointment_id, dob):
 
 @cached(cache=TTLCache(maxsize=1024, ttl=60))
 def lookup_certificate(phone_number, dob, first_name, last_name, token):
+    log_generic(
+        type=c.INFO,
+        phone_number=phone_number,
+        dob=dob,
+        first_name=first_name,
+        last_name=last_name,
+        token=token,
+        msg="CERTIFICATE_LOOKUP-{}".format(phone_number),
+        function=whoami()
+    )
     res = bp_lookup_certificate(
             phone_number,
             dob,
