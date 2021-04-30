@@ -286,6 +286,7 @@ def api_verify_verification_token(toke_verification_request: VerificationToken):
 def api_get_vax_certificate(patient_id: str, certificate_id: str):
     return get_vax_certificate(patient_id, certificate_id)
 
+
 @router.post("/vax_wallet_pass")
 def api_wallet_pass(req: LookupGGVWalletPassRequest):
     return get_wallet_pass(req)

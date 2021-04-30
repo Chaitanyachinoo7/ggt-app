@@ -561,8 +561,8 @@ def verify_verification_token(toke_verification_request):
     )
 
 
-def get_vax_certificate(patient_id, cert_id):
-    return bp_get_vax_certificate(patient_id, cert_id)
+def get_vax_certificate(patient_id, cert_id, pass_through=False):
+    return bp_get_vax_certificate(patient_id, cert_id, pass_through=pass_through)
 
 
 @cached(cache=TTLCache(maxsize=1024, ttl=180))
@@ -571,6 +571,7 @@ def cache_test(t_id):
     while (datetime.now() - x).seconds < 5:
         pass
     return {"response": t_id}
+
 
 def get_wallet_pass(pkpass_request):
     return x_response(

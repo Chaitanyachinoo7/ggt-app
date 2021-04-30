@@ -38,6 +38,7 @@ from ggt.models.workflow_models.admin_flow import (
 from ggt.models.workflow_models.contact_center_flow import (
     cc_search_details_by_name_and_dob
 )
+from ggt.models.workflow_models.patient_test_scheduling_flow import get_vax_certificate
 from ggt.models.workflow_models.portal_general_flow import (
     portal_get_user_role
 )
@@ -353,3 +354,7 @@ async def api_site_admin_vax_registered_waitlist_around_location(vax_registered_
 async def api_add_vax_certificate(vax_certificate: VaxCertificate):
     return add_vax_certificate(vax_certificate)
 
+
+@router.get("/vax_certificate/{patient_id}/{certificate_id}", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
+def api_get_vax_certificate(patient_id: str, certificate_id: str):
+    return get_vax_certificate(patient_id, certificate_id, pass_through=True)

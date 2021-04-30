@@ -688,8 +688,8 @@ def bp_verify_verification_token(token):
         return False
 
 
-def bp_get_vax_certificate(patient_id, cert_id):
-    if __is_open(patient_id):
+def bp_get_vax_certificate(patient_id, cert_id, pass_through=False):
+    if __is_open(patient_id) or pass_through:
 
         key = "{}/{}".format(patient_id, cert_id)
         bucket = cfg('aws.vax_certificate_bucket')
