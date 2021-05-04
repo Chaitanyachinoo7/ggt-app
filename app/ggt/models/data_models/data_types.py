@@ -619,6 +619,7 @@ class UpdateCertInfo(BaseModel):
     id: int
     service_code: str
     lot_no: str
+    vax_date: str
 
 
 class UpdateCertImage(BaseModel):

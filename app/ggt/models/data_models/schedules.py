@@ -158,14 +158,31 @@ def update_patient_ifo_cert(id, phone_number, dob, first_name, last_name):
         return None
 
 
-def update_cert_info(id, service_code, lot_no):
+def update_cert_info(id, service_code, lot_no, vax_date):
     try:
         sql = """UPDATE ggv_certificates SET 
         service_code = %s, 
-        lot_no = %s
+        lot_no = %s,
+        check_in_dt = %s
         WHERE id = %s"""
-        vals = (service_code, lot_no, id)
+        vals = (service_code, lot_no, vax_date, id)
         return exec_update(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def delete_certificate(cert_id):
+    try:
+        sql = """DELETE FROM ggv_certificates
+        WHERE id = %s"""
+        vals = (cert_id,)
+        return exec_delete(sql, vals)
 
     except Exception as err:
         log_generic(

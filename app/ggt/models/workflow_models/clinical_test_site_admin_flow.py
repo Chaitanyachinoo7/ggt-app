@@ -28,7 +28,7 @@ from ggt.models.process_models.bp_schedules import (
     bp_update_schedule_generation_rule,
     bp_delete_schedule_generation_rule,
     bp_get_schedule_generation_rules,
-    bp_delete_schedule, bp_lookup_certificate, bp_update_patient_ifo_cert, bp_update_cert_info
+    bp_delete_schedule, bp_lookup_certificate, bp_update_patient_ifo_cert, bp_update_cert_info, bp_delete_certificate
 )
 
 import ggt.lib.constants as c
@@ -217,10 +217,18 @@ def update_patient_ifo_cert(id, first_name, last_name, dob, phone_number):
     )
 
 
-def update_cert_info(id, service_code, lot_no):
+def update_cert_info(id, service_code, lot_no, vax_date):
     return x_response(
         bp_update_cert_info(
-            id, service_code, lot_no
+            id, service_code, lot_no, vax_date
+        )
+    )
+
+
+def delete_certificate(cert_id):
+    return x_response(
+        bp_delete_certificate(
+            cert_id
         )
     )
 
