@@ -360,10 +360,10 @@ def lookup_certificate(phone_number, dob, first_name, last_name, token=None):
                 where_statement, dob)
         if first_name or first_name != "":
             where_statement = "{} AND p.first_name LIKE '%{}%'".format(
-                where_statement, first_name)
+                where_statement, first_name.strip())
         if last_name or last_name != "":
             where_statement = "{} AND p.last_name LIKE '%{}%'".format(
-                where_statement, last_name)
+                where_statement, last_name.strip())
         if token:
             where_statement = "{} AND p.result_token = '{}' AND p.token_expire > NOW()".format(
                 where_statement, token)
