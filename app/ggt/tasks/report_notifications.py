@@ -350,7 +350,7 @@ def schedule_result_notifications_using_sms():
         token = row['token']
         phone_number = row['phone_number']
         data.append(
-            (phone_number, formatted_result_sms_message(first_name, token))
+            (phone_number, formatted_result_sms_message(first_name, token, test_id))
         )
         test_id_list.append(
             test_id
@@ -427,7 +427,7 @@ def formatted_result_email_message(row):
 
     template_vars = {
         "first_name": row['first_name'],
-        "result_link": "{}/r/{}".format(base_url, row['token'])
+        "result_link": "{}/r/{}+{}".format(base_url, row['token'], row['test_id'])
     }
 
     template_name = cfg('notifications.result_template')
@@ -681,11 +681,11 @@ def add_to_healthtrackrx_inbound_data_table():
         print("err:", err)
 
 
-def formatted_result_sms_message(first_name, token):
+def formatted_result_sms_message(first_name, token, test_id):
     base_url = cfg('base_url')
     return "Hi {}, your COVID-19 test results are ready. " \
-           "Follow this link to view {}/r/{} reply STOP to cancel msgs".format(
-               first_name, base_url, token)
+           "Follow this link to view {}/r/{}+{} reply STOP to cancel msgs".format(
+               first_name, base_url, token, test_id)
 
 
 # TODO: Bulk insert into Table instead of 1 query at a time

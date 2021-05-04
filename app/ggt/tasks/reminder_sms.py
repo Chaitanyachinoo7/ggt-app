@@ -154,7 +154,7 @@ def formatted_email_message(row):
 
         template_vars = {
             "first_name": row['first_name'],
-            "result_link": "{}/r/{}".format(base_url, row['token']),
+            "result_link": "{}/r/{}+{}".format(base_url, row['token'], row["id"]),
             "test_location_line1": str(row["addr1"]),
             "test_location_line2": str(row["addr2"]),
             "test_location_line3": str(row["city"]) + ", " + str(row["st"]) + " " + str(row["zip"]),

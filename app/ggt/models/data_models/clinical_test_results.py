@@ -47,17 +47,18 @@ def get_test_result(id):
         return False
 
 
-def get_test_result_by_token(token):
+def get_test_result_by_token(token, test_id=""):
     try:
         sql = """
                 SELECT * 
                 FROM detailed_test_results 
                 WHERE token = %s
                 AND test_result IS NOT NULL
+                AND ("" = %s OR test_id = %s)
                 ORDER by test_id DESC
                 LIMIT 1
             """
-        vals = (token,)
+        vals = (token, test_id, test_id,)
         return replica_read_row(sql, vals)
 
     except Exception as err:

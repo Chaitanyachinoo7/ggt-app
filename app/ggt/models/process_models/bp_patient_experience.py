@@ -516,7 +516,13 @@ def bp_finalize_payment(appointment_id: int, wp_receipt_token: str):
 
 def bp_get_test_result(token: str, dob: str):
     try:
-        lab_result = get_test_result_by_token(token)
+        parts = token.split("+")
+        test_id = ""
+        if len(parts) == 2:
+            token = parts[0]
+            test_id = parts[1]
+            
+        lab_result = get_test_result_by_token(token, test_id)
 
         if lab_result:
             patient_dob_us = lab_result['dob'].strftime("%m%d%Y")
