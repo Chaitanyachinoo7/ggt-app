@@ -558,6 +558,24 @@ def bp_lookup_certificate(first_name, last_name, dob, phone_number):
     return False
 
 
+def bp_lookup_unverified_certificate(first_name, last_name, dob, phone_number, limit, offset):
+    try:
+        return lookup_certificate(phone_number, dob, first_name, last_name, None, 1, limit, offset)[0]
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            first_name=first_name,
+            last_name=last_name,
+            dob=dob,
+            phone_number=phone_number,
+            function=whoami(),
+            error=err
+        )
+
+    return False
+
+
 def bp_update_patient_ifo_cert(id, first_name, last_name, dob, phone_number):
     try:
         return update_patient_ifo_cert(id, phone_number, dob, first_name, last_name)

@@ -607,6 +607,15 @@ class LookupCertificateRequest(BaseModel):
     phone_number: str = None
 
 
+class LookupUnverifiedCertificateRequest(BaseModel):
+    first_name: str = None
+    last_name: str = None
+    dob: str = None
+    phone_number: str = None
+    limit: int = 20
+    offset: int = 0
+
+
 class UpdatePatientInfoCert(BaseModel):
     id: int
     first_name: str
