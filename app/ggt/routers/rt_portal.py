@@ -302,7 +302,7 @@ async def api_lookup_certificate(req: LookupCertificateRequest):
 
 
 @router.post("/site-admin/lookup_unverified_certificate", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
-async def api_lookup_certificate(req: LookupUnverifiedCertificateRequest):
+async def api_lookup_unverified_certificate(req: LookupUnverifiedCertificateRequest):
     return lookup_unverified_certificate(
         req.first_name,
         req.last_name,
