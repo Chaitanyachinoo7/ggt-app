@@ -29,7 +29,8 @@ from ggt.models.process_models.bp_schedules import (
     bp_delete_schedule_generation_rule,
     bp_get_schedule_generation_rules,
     bp_delete_schedule, bp_lookup_certificate, bp_update_patient_ifo_cert, bp_update_cert_info, bp_delete_certificate,
-    bp_verify_certificate
+    bp_verify_certificate,
+    bp_lookup_unverified_certificate
 )
 
 import ggt.lib.constants as c
@@ -206,6 +207,14 @@ def lookup_certificate(first_name, last_name, dob, phone_number):
     return y_response(
         bp_lookup_certificate(
             first_name, last_name, dob, phone_number
+        )
+    )
+
+
+def lookup_unverified_certificate(first_name, last_name, dob, phone_number, limit, offset):
+    return y_response(
+        bp_lookup_unverified_certificate(
+            first_name, last_name, dob, phone_number, limit, offset
         )
     )
 

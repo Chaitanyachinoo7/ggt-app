@@ -350,7 +350,7 @@ def update_schedule_generation_rule(data):
         return None
 
 
-def lookup_certificate(phone_number, dob, first_name, last_name, token=None):
+def lookup_certificate(phone_number, dob, first_name, last_name, token=None, verification_level=None, limit=None, offset=None):
     try:
         where_statement = "1=1"
         if phone_number or phone_number != "":
@@ -367,6 +367,12 @@ def lookup_certificate(phone_number, dob, first_name, last_name, token=None):
         if token:
             where_statement = "{} AND p.result_token = '{}' AND p.token_expire > NOW()".format(
                 where_statement, token)
+        if verification_level:
+            where_statement = "{} AND gc.verification_level = {}".format(
+                where_statement, verification_level)
+        if limit and offset is not None:
+            where_statement = "{} ORDER BY p.id ASC LIMIT {} OFFSET {}".format(where_statement, limit, offset)
+
         sql = """SELECT 
                     gc.*,
                     p.first_name,
