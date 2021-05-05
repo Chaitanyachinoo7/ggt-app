@@ -28,7 +28,8 @@ from ggt.models.process_models.bp_schedules import (
     bp_update_schedule_generation_rule,
     bp_delete_schedule_generation_rule,
     bp_get_schedule_generation_rules,
-    bp_delete_schedule, bp_lookup_certificate, bp_update_patient_ifo_cert, bp_update_cert_info, bp_delete_certificate
+    bp_delete_schedule, bp_lookup_certificate, bp_update_patient_ifo_cert, bp_update_cert_info, bp_delete_certificate,
+    bp_verify_certificate
 )
 
 import ggt.lib.constants as c
@@ -280,6 +281,14 @@ def site_admin_vax_registered_waitlist_around_location(request):
 def add_vax_certificate(request):
     return y_response(
         bp_add_vax_certificate(request), True
+    )
+
+
+def verify_certificate(cert_id, verification_level):
+    return x_response(
+        bp_verify_certificate(
+            cert_id, verification_level
+        )
     )
 
 

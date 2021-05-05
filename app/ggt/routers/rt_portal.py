@@ -30,7 +30,7 @@ from ggt.models.data_models.data_types import (
     PortalAdminGetVaccineConsentFormRequest,
     PortalVaxWaitlistSearchRequest,
     PortalVaxRegisteredWaitAroundLocationRequest, VaxCertificate, LookupCertificateRequest, UpdatePatientInfoCert,
-    UpdateCertInfo, UpdateCertImage
+    UpdateCertInfo, UpdateCertImage, VerifyCertificateRequest
 )
 from ggt.models.workflow_models.admin_flow import (
     admin_get_all_test_results
@@ -67,7 +67,8 @@ from ggt.models.workflow_models.clinical_test_site_admin_flow import (
     site_admin_get_consent_forms,
     site_admin_vax_waitlist_search,
     site_admin_vax_registered_waitlist_around_location, add_vax_certificate, lookup_certificate,
-    update_patient_ifo_cert, update_cert_info, update_cert_image, delete_certificate
+    update_patient_ifo_cert, update_cert_info, update_cert_image, delete_certificate,
+    verify_certificate
 )
 
 router = APIRouter()
@@ -374,3 +375,12 @@ async def api_add_vax_certificate(vax_certificate: VaxCertificate):
 @router.get("/vax_certificate/{patient_id}/{certificate_id}", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
 def api_get_vax_certificate(patient_id: str, certificate_id: str):
     return get_vax_certificate(patient_id, certificate_id, pass_through=True)
+
+
+@router.post("/site-admin/verify_certificate", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
+async def api_verify_certificate(req: VerifyCertificateRequest):
+    return verify_certificate(
+        req.cert_id,
+        req.verification_level
+    )
+

@@ -1039,6 +1039,23 @@ def update_appointment(appointment_id, scheduled_dt):
     return exec_update(sql, vals)
 
 
+def verify_certificate(cert_id, verification_level):
+    try:
+        sql = """UPDATE ggv_certificates SET
+        verification_level = %s
+        WHERE id = %s"""
+        vals = (verification_level, cert_id,)
+        return exec_update(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################

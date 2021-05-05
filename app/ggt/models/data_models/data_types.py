@@ -1610,3 +1610,8 @@ class VaxCertificate(BaseModel):
     vax_2_lot_number: str = None
     vax_image: str = None
 
+
+class VerifyCertificateRequest(BaseModel):
+    cert_id: str
+    verification_level: int
+
