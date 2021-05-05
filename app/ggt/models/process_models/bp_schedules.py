@@ -766,8 +766,8 @@ def bp_verify_certificate(cert_id, verification_level):
     except Exception as err:
         log_generic(
             type=c.ERROR,
-            service_code=service_code,
-            lot_no=lot_no,
+            cert_id=cert_id,
+            verification_level=verification_level,
             function=whoami(),
             error=err
         )
