@@ -408,12 +408,9 @@ def upload_image_from_base64_string(base64string, destination_filename, bucket_n
         return None
 
 
-def upload_image_from_twilio(url, file_name, bucket_name=None):
+def upload_image_from_twilio(url, file_name, bucket_name):
     print(url)
     r = requests.get(url, stream=True)
-
-    if bucket_name is None:
-        bucket_name = ops_image_bucket_name
     session = boto3.Session()
     s3 = __boto_connect_resource('s3')
     bucket = s3.Bucket(bucket_name)

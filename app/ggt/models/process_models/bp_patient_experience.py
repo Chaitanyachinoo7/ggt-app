@@ -2071,7 +2071,7 @@ def __upload_vax_card_image(result_image: str, patient_id: int, cert_id: int) ->
     try:
         if result_image.find("api.twilio.com") != -1:
             return upload_vax_card_image_from_twilio(
-                result_image, '{}/{}.jpg'.format(patient_id, cert_id))
+                result_image, '{}/{}.jpg'.format(patient_id, cert_id), cfg('aws.vax_certificate_bucket'))
         elif result_image and len(result_image) > 0:
             if "," in result_image:
                 base64string = result_image.split(",")[1]

@@ -65,8 +65,8 @@ def upload_vax_card_image_from_base64_string(base64string, destination_filename)
     return __upload_image_from_base64_string(base64string, destination_filename, vax_certificate_bucket)
 
 
-def upload_vax_card_image_from_twilio(url, destination_filename):
-    return __upload_image_from_twilio(url, destination_filename)
+def upload_vax_card_image_from_twilio(url, destination_filename, bucket):
+    return __upload_image_from_twilio(url, destination_filename, bucket)
 
 
 def get_temporary_lab_report_url(filename):
