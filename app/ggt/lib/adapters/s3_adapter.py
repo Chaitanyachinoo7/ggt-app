@@ -369,6 +369,25 @@ def get_temp_pkpass_url(filename, bucket_name):
         )
         return None
 
+def get_temp_vax_cert_url(filename, bucket_name):
+    try:
+        url = __boto_connect_client('s3', region_name='us-east-2').generate_presigned_url(
+            ClientMethod='get_object',
+            Params={
+                'Bucket': bucket_name,
+                'Key': filename
+            },
+            ExpiresIn=default_link_expiration_time_limit
+        )
+        return url
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
 
 def upload_image_from_base64_string(base64string, destination_filename, bucket_name, key=None):
     if key:

@@ -29,6 +29,7 @@ from ggt.models.data_models.data_types import (
     GgtServiceCatalogItem
 )
 
+from ggt.lib.adapters.s3_adapter import get_temp_vax_cert_url
 
 ########################################################################################################
 # [Public] functions
@@ -1539,8 +1540,10 @@ def __format_vax_certificate_portal(rows):
                     }
 
             for row in rows:
-                image = "/api/vax_certificate/{}/{}.jpg".format(
-                        row['patient_id'], row['id'])
+                image = get_temp_vax_cert_url("{}/{}.jpg".format(
+                        row['patient_id'], row['id']), get_config_val('aws.vax_certificate_bucket'))
+                # image = "/api/vax_certificate/{}/{}.jpg".format(
+                #         row['patient_id'], row['id'])
                 service = {
                         "cert_id": row['id'],
                         "verification_level": row['verification_level'],
