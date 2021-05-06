@@ -31,7 +31,7 @@ from ggt.models.data_models.schedules import (
     delete_ggv_schedules_metrics_cache, delete_schedules_metrics_cache, get_second_slot_reschedule_dates,
     get_ggv_available_dates, get_group_by_group_code, get_available_ggv_locations_near_lat_lng,
     get_first_available_times, lookup_certificate, update_patient_ifo_cert, update_cert_info, delete_certificate,
-    verify_certificate
+    verify_certificate, get_patient_from_crt_number
 )
 
 from ggt.models.data_models.locations import (
@@ -44,7 +44,8 @@ from ggt.lib.maps import (
 )
 
 from cachetools import cached, LRUCache, TTLCache
-
+from ggt.models.process_models.bp_patient_experience import __upload_vax_card_image, __send_ggv_certificate_level_1_sms, \
+    __send_ggv_certificate_level_1_email
 
 ########################################################################################################
 # [Public] functions
@@ -761,7 +762,11 @@ def bp_get_schedule_generation_rules(location_id):
 
 def bp_verify_certificate(cert_id, verification_level):
     try:
-        return verify_certificate(cert_id, verification_level)
+        verify_certificate(cert_id, verification_level)
+        patient = get_patient_from_crt_number(cert_id)
+        __send_ggv_certificate_level_1_sms(patient["first_name"], patient["phone_number"])
+        __send_ggv_certificate_level_1_email(patient["first_name"], patient["email"])
+        return True
 
     except Exception as err:
         log_generic(

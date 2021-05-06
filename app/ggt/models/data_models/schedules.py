@@ -1061,7 +1061,21 @@ def verify_certificate(cert_id, verification_level):
         )
         return None
 
+def get_patient_from_crt_number(cert_id):
+    try:
+        sql = """select first_name, email, phone_number from patients p
+                JOIN ggv_certificates certs ON p.id = certs.patient_id
+                where certs.id = %s"""
+        vals = (cert_id,)
+        return replica_read_row(sql, vals)
 
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################

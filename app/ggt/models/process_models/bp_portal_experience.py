@@ -777,7 +777,7 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
     if cert_id and patient_id:
         __upload_vax_card_image(image, patient_id, cert_id)
 
-    __send_ggv_certificate_level_1_sms(first_name, phone_number)
-    __send_ggv_certificate_level_1_email(first_name, email)
+    # __send_ggv_certificate_level_1_sms(first_name, phone_number)
+    # __send_ggv_certificate_level_1_email(first_name, email)
 
     return True

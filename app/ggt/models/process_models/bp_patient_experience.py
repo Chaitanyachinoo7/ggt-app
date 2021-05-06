@@ -1619,7 +1619,7 @@ def __send_ggv_qrcode_sms(appointment: GgtAppointment, dose, out_of):
 
 def __send_ggv_certificate_level_1_sms(first_name, phone_number):
     try:
-        message = """Hi {}, The 1st level verification of your vaccine card is complete. 
+        message = """Hi {}, The 2nd level verification of your vaccine card is complete. 
         You can access your digital vaccine certificate by clicking below. 
         \nhttps://start.gogetvax.com""".format(
             first_name
@@ -1809,7 +1809,7 @@ def __send_ggv_certificate_level_1_email(first_name, email):
             "first_name": first_name
         }
 
-        subject = "{}, The 1st level verification of your vaccine card is complete.".format(
+        subject = "{}, The 2nd level verification of your vaccine card is complete.".format(
             first_name)
 
         subject = render_from_string(
