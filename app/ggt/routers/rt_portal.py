@@ -369,7 +369,7 @@ async def api_site_admin_vax_registered_waitlist_around_location(vax_registered_
     return site_admin_vax_registered_waitlist_around_location(vax_registered_waitlist_around_location_request)
 
 
-@router.post("/site-admin/add-vax-certificate")
+@router.post("/site-admin/add-vax-certificate", dependencies=[Security(authorize_user, scopes=[p.GET_SCHEDULE_GENERATION_RULES])])
 async def api_add_vax_certificate(vax_certificate: VaxCertificate):
     return add_vax_certificate(vax_certificate)
 
