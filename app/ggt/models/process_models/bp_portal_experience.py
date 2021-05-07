@@ -715,6 +715,7 @@ def bp_add_vax_certificate(request: VaxCertificate):
             request.vax_1_lot_number,
             request.vax_2_lot_number,
             request.vax_image,
+            request.id_image
         )
 
     except Exception as err:
@@ -726,7 +727,7 @@ def bp_add_vax_certificate(request: VaxCertificate):
 
 
 def __process_vax_yes(first_name, last_name, phone_number, email, dob,
-                      vax_type, vax_1_date, vax_2_date, lot_1, lot_2, image):
+                      vax_type, vax_1_date, vax_2_date, lot_1, lot_2, image, id_image):
     vax_code_1 = ""
     vax_code_2 = ""
     cert2_id = None
@@ -776,6 +777,7 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
 
     if cert_id and patient_id:
         __upload_vax_card_image(image, patient_id, cert_id)
+        __upload_vax_card_image(id_image, patient_id, str(cert_id) + '_id_image')
 
     # __send_ggv_certificate_level_1_sms(first_name, phone_number)
     # __send_ggv_certificate_level_1_email(first_name, email)

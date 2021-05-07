@@ -1542,6 +1542,8 @@ def __format_vax_certificate_portal(rows):
             for row in rows:
                 image = get_temp_vax_cert_url("{}/{}.jpg".format(
                         row['patient_id'], row['id']), get_config_val('aws.vax_certificate_bucket'))
+                id_image = get_temp_vax_cert_url("{}/{}.jpg".format(
+                        row['patient_id'], str(row['id'])+'_id_image'), get_config_val('aws.vax_certificate_bucket'))
                 # image = "/api/vax_certificate/{}/{}.jpg".format(
                 #         row['patient_id'], row['id'])
                 service = {
@@ -1555,7 +1557,7 @@ def __format_vax_certificate_portal(rows):
                         "lot_no": row['lot_no'],
                         "appointment_time": None,
                         "org_name": None,
-                        "images": [image]
+                        "images": [image, id_image]
                     }
                 map[row['patient_id']]['certificates'].append(service)
             return list(map.values())

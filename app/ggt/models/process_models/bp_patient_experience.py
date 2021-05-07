@@ -2067,7 +2067,7 @@ def __upload_test_result_image(result_image: str, appointment_id: int) -> bool:
     return False
 
 
-def __upload_vax_card_image(result_image: str, patient_id: int, cert_id: int) -> bool:
+def __upload_vax_card_image(result_image: str, patient_id: int, cert_id: str) -> bool:
     try:
         if result_image.find("api.twilio.com") != -1:
             return upload_vax_card_image_from_twilio(

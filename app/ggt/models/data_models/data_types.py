@@ -1618,6 +1618,7 @@ class VaxCertificate(BaseModel):
     vax_1_lot_number: str = None
     vax_2_lot_number: str = None
     vax_image: str = None
+    id_image: str = None
 
 
 class VerifyCertificateRequest(BaseModel):
