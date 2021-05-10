@@ -751,6 +751,7 @@ def __format_vax_certificate(rows):
                     "lot_no": row['lot_no'],
                     "appointment_time": None,
                     "org_name": None,
+                    "verification_level": row['verification_level'],
                     "images": [image]
                 }
                 certificates['certificates'].append(service)
