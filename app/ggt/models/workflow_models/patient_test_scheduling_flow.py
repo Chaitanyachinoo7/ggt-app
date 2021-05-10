@@ -235,6 +235,19 @@ def lookup_certificate(phone_number, dob, first_name, last_name, token):
             last_name,
             token
         )
+
+    if res[0] is None:
+        log_generic(
+            type=c.INFO,
+            phone_number=phone_number,
+            dob=dob,
+            first_name=first_name,
+            last_name=last_name,
+            token=token,
+            msg="CERTIFICATE_LOOKUP_FAILED - {}".format(phone_number),
+            function=whoami()
+        )
+
     return y_response(res[0], reason_code=res[1])
 
 
