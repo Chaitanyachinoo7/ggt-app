@@ -1624,9 +1624,13 @@ def __send_ggv_certificate_level_1_sms(first_name, phone_number):
         \nhttps://start.gogetvax.com""".format(
             first_name
         )
+        promoMessage = "Share this unique link with family & friends so they can get their digital cards too: \nhttp://www.vaxyes.com/friendsfree21"
 
         send_sms(phone_number,
                  message.replace('\t', ''))
+        
+        send_sms(phone_number,
+                 promoMessage)
 
         log_generic(
             type=c.INFO,
