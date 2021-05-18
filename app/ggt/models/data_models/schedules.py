@@ -194,12 +194,32 @@ def delete_certificate(cert_id):
         return None
 
 
-def get_certificate(cert_id):
+def get_certificate_stats():
     try:
-        sql = """SELECT * FROM ggv_certificates
-        WHERE id = %s"""
-        vals = (cert_id,)
-        return replica_read_row(sql, vals)
+        sql = """SELECT 
+        count(id) as counts,
+            (case
+		    when verification_level > 1 then 1
+		    when verification_level <= 1 then 0
+            end) as v_level
+        FROM
+        ggv_certificates
+        group by v_level"""
+        result = replica_read_rows(sql)
+        
+        verified = 0
+        unverified = 0
+
+        if(result[0]['v_level'] == 1):
+            verified = result[0]['counts']
+            unverified = result[1]['counts']
+        else:
+            verified = result[1]['counts']
+            unverified = result[0]['counts']
+        return {
+            "verified": verified,
+            "unverified": unverified
+        }
 
     except Exception as err:
         log_generic(
