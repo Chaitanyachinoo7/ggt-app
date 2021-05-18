@@ -194,6 +194,22 @@ def delete_certificate(cert_id):
         return None
 
 
+def get_certificate(cert_id):
+    try:
+        sql = """SELECT * FROM ggv_certificates
+        WHERE id = %s"""
+        vals = (cert_id,)
+        return replica_read_row(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 def get_schedule_generation_rules_by_location_id(location_id):
     try:
         sql = """

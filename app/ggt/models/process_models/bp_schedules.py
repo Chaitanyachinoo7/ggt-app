@@ -31,7 +31,7 @@ from ggt.models.data_models.schedules import (
     delete_ggv_schedules_metrics_cache, delete_schedules_metrics_cache, get_second_slot_reschedule_dates,
     get_ggv_available_dates, get_group_by_group_code, get_available_ggv_locations_near_lat_lng,
     get_first_available_times, lookup_certificate, update_patient_ifo_cert, update_cert_info, delete_certificate,
-    verify_certificate, get_patient_from_crt_number
+    verify_certificate, get_patient_from_crt_number, get_certificate
 )
 
 from ggt.models.data_models.locations import (
@@ -616,6 +616,21 @@ def bp_update_cert_info(id, service_code, lot_no, vax_date):
 def bp_delete_certificate(cert_id):
     try:
         return delete_certificate(cert_id)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            cert_id=cert_id,
+            function=whoami(),
+            error=err
+        )
+
+    return False
+
+
+def bp_get_certificate(cert_id):
+    try:
+        return get_certificate(cert_id)
 
     except Exception as err:
         log_generic(
