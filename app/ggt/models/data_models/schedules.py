@@ -194,6 +194,26 @@ def delete_certificate(cert_id):
         return None
 
 
+def get_phone_number_by_certificate_id(cert_id):
+    try:
+        sql = """SELECT 
+                    p.phone_number
+                FROM
+                    ggv_certificates gc
+                        JOIN
+                    patients p ON p.id = gc.patient_id;
+        WHERE gc.id = %s"""
+        vals = (cert_id,)
+        return replica_read_row(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
 def get_certificate_stats():
     try:
         sql = """SELECT 

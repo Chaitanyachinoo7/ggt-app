@@ -4,10 +4,11 @@ from datetime import date, datetime, timedelta
 from ggt.lib.adapters.dynamo_adapter import read_from_dynamo
 from ggt.lib.adapters.mysql_adapter import exec_update
 from ggt.lib.adapters.sqs_adapter import push_sqs_message
+from ggt.lib.sms import send_sms
 from ggt.lib.utils import (
     get_config_val,
     log_generic,
-    whoami, get_sqs_queue_url
+    whoami, get_sqs_queue_url, is_international
 )
 
 import ggt.lib.constants as c
@@ -31,7 +32,7 @@ from ggt.models.data_models.schedules import (
     delete_ggv_schedules_metrics_cache, delete_schedules_metrics_cache, get_second_slot_reschedule_dates,
     get_ggv_available_dates, get_group_by_group_code, get_available_ggv_locations_near_lat_lng,
     get_first_available_times, lookup_certificate, update_patient_ifo_cert, update_cert_info, delete_certificate,
-    verify_certificate, get_patient_from_crt_number, get_certificate_stats
+    verify_certificate, get_patient_from_crt_number, get_certificate_stats, get_phone_number_by_certificate_id
 )
 
 from ggt.models.data_models.locations import (
@@ -615,6 +616,16 @@ def bp_update_cert_info(id, service_code, lot_no, vax_date):
 
 def bp_delete_certificate(cert_id):
     try:
+        res = get_phone_number_by_certificate_id(cert_id)
+        phone_number = res['phone_number']
+        international = is_international(phone_number)
+        message = "We were unable to validate your submission. " \
+                  "You can resubmit your request by going to  " \
+                  "http://vaxyes.com  and entering in your phone number.  " \
+                  "Please make sure you take clear photos of your ID and " \
+                  "Vaccine card in order to process"
+        send_sms(phone_number,
+                 message.replace('\t', ''), international=international)
         return delete_certificate(cert_id)
 
     except Exception as err:
