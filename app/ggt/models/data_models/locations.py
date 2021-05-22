@@ -644,18 +644,38 @@ def __process_location_search(res):
     for row in res:
         service_ids = row['service_ids']
         group_ids = row['group_ids']
-        if service_ids is not None:
-            service_ids = service_ids.split(',')
-            service_ids = [int(x) for x in service_ids]
-            row['service_ids'] = service_ids
-        else:
-            row['service_ids'] = []
-        if group_ids is not None:
-            group_ids = group_ids.split(',')
-            group_ids = [int(x) for x in group_ids]
-            row['group_ids'] = group_ids
-        else:
-            row['group_ids'] = []
+        try:
+            if service_ids is not None:
+                service_ids = service_ids.split(',')
+                service_ids = [x for x in service_ids]
+                service_ids_int = []
+                for s_id in service_ids:
+                    try:
+                        service_ids_int.append(int(s_id))
+                    except Exception as err:
+                        pass
+
+                row['service_ids'] = service_ids_int
+            else:
+                row['service_ids'] = []
+            if group_ids is not None:
+                group_ids = group_ids.split(',')
+                group_ids = [x for x in group_ids]
+                group_ids_int = []
+                for g_id in group_ids:
+                    try:
+                        group_ids_int.append(int(g_id))
+                    except Exception as err:
+                        pass
+                row['group_ids'] = group_ids_int
+            else:
+                row['group_ids'] = []
+        except Exception as err:
+            log_generic(
+                type=c.ERROR,
+                function=whoami(),
+                error=err
+            )
     return res
 
 
