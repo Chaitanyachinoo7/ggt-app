@@ -96,6 +96,11 @@ async def api_get_screen_flow_seq(group_code: str):
     return get_screen_flow_seq(group_code)
 
 
+@router.get("/get_screen_flow_seq/{group_code}/{country_code}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_get_screen_flow_seq_with_country_code(group_code: str, country_code: str):
+    return get_screen_flow_seq(group_code, country_code)
+
+
 @router.post("/verify_phone", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_verify_phone(req: VerifyPhoneRequest):
     return initiate_verification_flow(req.phone_number, req.has_sms)

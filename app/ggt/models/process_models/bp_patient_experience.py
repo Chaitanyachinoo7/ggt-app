@@ -159,8 +159,18 @@ def bp_get_ggv_screen_flow_seq(group_code: str):
     }
 
 
-def bp_get_screen_flow_seq(group_code: str):
+def bp_get_screen_flow_seq(group_code: str, country_code="US"):
     group_info: GgtThirdPartyGroup = get_group_info(group_code)
+    if group_info.screen_seq and group_info.screen_seq == ["groups#US:_DEFAULT_", "MX:_DEFAULT_MX_"]:
+        if country_code == "US":
+            default_group: GgtThirdPartyGroup = get_group_info("_DEFAULT_")
+        if country_code == "MX":
+            default_group: GgtThirdPartyGroup = get_group_info("_DEFAULT_MX_")
+        else:
+            default_group: GgtThirdPartyGroup = get_group_info("_DEFAULT_")
+
+        group_info.screen_seq = default_group.screen_seq
+        group_info.required_screens = default_group.required_screens
 
     validations = {}
     screens = []
@@ -521,7 +531,7 @@ def bp_get_test_result(token: str, dob: str):
         if len(parts) == 2:
             token = parts[0]
             test_id = parts[1]
-            
+
         lab_result = get_test_result_by_token(token, test_id)
 
         if lab_result:
@@ -1619,8 +1629,8 @@ def __send_ggv_qrcode_sms(appointment: GgtAppointment, dose, out_of):
 
 def __send_ggv_certificate_level_1_sms(first_name, phone_number):
     try:
-        message = """Hi {}, the 2nd level verification of your vaccine card is complete. 
-        You can access your digital vaccine certificate by clicking below. 
+        message = """Hi {}, the 2nd level verification of your vaccine card is complete.
+        You can access your digital vaccine certificate by clicking below.
         \nhttps://start.gogetvax.com""".format(
             first_name
         )
@@ -1628,7 +1638,7 @@ def __send_ggv_certificate_level_1_sms(first_name, phone_number):
 
         send_sms(phone_number,
                  message.replace('\t', ''))
-        
+
         send_sms(phone_number,
                  promoMessage)
 

@@ -47,6 +47,7 @@ from ggt.tasks.CRL_outbound_lab_orders import task_process_crl_lab_orders
 from ggt.tasks.report_notifications import task_schedule_result_notifications_and_followups
 from ggt.tasks.sms_queue_processor import task_process_sms_queue
 from ggt.tasks.update_stripe_payments_processor import update_stripe_payments
+from ggt.tasks.appsheet_thirdparty_group_codes_processor import add_new_groups
 
 router = APIRouter()
 
@@ -244,6 +245,13 @@ async def api_rebuild_appsheet_database(background_tasks: BackgroundTasks):
     return {
         STATUS: SUCCESS,
         DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
+    }
+
+
+@router.post("/rebuild_third_party_group_codes_from_appsheet", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def rebuild_third_party_group_codes_from_appsheet():
+    return {
+        STATUS: add_new_groups()
     }
 
 

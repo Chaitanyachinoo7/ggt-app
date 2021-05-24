@@ -51,9 +51,9 @@ import ggt.lib.constants as c
 ########################################################################################################
 
 @cached(cache=TTLCache(maxsize=1024, ttl=600))
-def get_screen_flow_seq(group_code):
+def get_screen_flow_seq(group_code, country_code="US"):
     return x_response(
-        bp_get_screen_flow_seq(group_code)
+        bp_get_screen_flow_seq(group_code, country_code=country_code)
     )
 
 
@@ -590,4 +590,3 @@ def get_wallet_pass(pkpass_request):
     return x_response(
          bp_get_wallet_pass(pkpass_request)
     )
-    
