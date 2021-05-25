@@ -90,8 +90,8 @@ gcp:
 
 databases:
   mysql:
-    host: ggt-db-proxy-omg.proxy-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
-    read_replica_host: ggt-db-proxy-omg-read-only.endpoint.proxy-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+    host: ggt-prod-lambda.proxy-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+    read_replica_host: ggt-prod-lambda-read-only.endpoint.proxy-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
     username: aws_lambda_user
     password: hWMgl5Tfkqn30saQNp9M
     db: ggt_prod
