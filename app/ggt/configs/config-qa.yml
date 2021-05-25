@@ -92,7 +92,7 @@ databases:
   mysql:
     host: ggt-db-proxy-omg.proxy-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
     read_replica_host: ggt-db-proxy-omg-read-only.endpoint.proxy-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
-    username: admin
+    username: aws_lambda_user
     password: hWMgl5Tfkqn30saQNp9M
     db: ggt_prod
 
