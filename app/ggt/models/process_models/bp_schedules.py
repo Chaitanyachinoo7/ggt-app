@@ -1006,7 +1006,7 @@ def __map_dtl_list_to_available_locations(dtl_list):
 
 
 def normalize_group_code(group_code):
-    whitelist = set('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_')
+    whitelist = set('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_')
     group_code = ''.join(filter(whitelist.__contains__, group_code.upper()))
     return group_code
 
