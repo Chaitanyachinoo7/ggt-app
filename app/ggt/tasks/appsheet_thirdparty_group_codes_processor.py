@@ -10,7 +10,7 @@ def add_new_groups():
         appsheet_data = read_appsheet_data()
         location_ids = get_all_location_ids(org_id=1)
         for element in appsheet_data:
-            if element["approved"] == "Y":
+            if element["approved"].upper().startswith("Y"):
                 print("Processing Appsheet ID", element["id"])
                 group_id = insert_into_groups(element["group_code"])
                 print("Created new group:", element["group_code"], group_id)
@@ -92,7 +92,7 @@ def add_group_to_org_map(group_id, org_id):
 
 def read_appsheet_data(unprocessed_data_only=True):
     if unprocessed_data_only:
-        sql = """SELECT * FROM vendor_third_party_agents_groupcodes where is_processed = 0"""
+        sql = """SELECT * FROM vendor_third_party_agents_groupcodes where is_processed IN (0, NULL)"""
     else:
         sql = """SELECT * FROM vendor_third_party_agents_groupcodes"""
     return read_rows(sql,)
