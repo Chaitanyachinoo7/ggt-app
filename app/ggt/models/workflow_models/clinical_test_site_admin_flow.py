@@ -204,6 +204,8 @@ def delete_schedule(location_id):
 
 @cached(cache=TTLCache(maxsize=1024, ttl=60))
 def lookup_certificate(first_name, last_name, dob, phone_number):
+    print("inside" + whoami())
+    print(first_name, last_name, dob, phone_number)
     return y_response(
         bp_lookup_certificate(
             first_name, last_name, dob, phone_number

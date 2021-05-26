@@ -409,6 +409,7 @@ def update_schedule_generation_rule(data):
 
 def lookup_certificate(phone_number, dob, first_name, last_name, token=None, verification_level=None, limit=None, offset=None):
     try:
+        print("inside" + whoami())
         where_statement = "1=1"
         if phone_number or phone_number != "":
             where_statement = "{} AND p.phone_number LIKE '%{}%'".format(where_statement, phone_number)
@@ -429,7 +430,6 @@ def lookup_certificate(phone_number, dob, first_name, last_name, token=None, ver
                 where_statement, verification_level)
         if limit and offset is not None:
             where_statement = "{} ORDER BY p.id ASC LIMIT {} OFFSET {}".format(where_statement, limit, offset)
-
         sql = """SELECT 
                     gc.*,
                     p.first_name,
@@ -442,10 +442,13 @@ def lookup_certificate(phone_number, dob, first_name, last_name, token=None, ver
                         JOIN
                     ggv_certificates gc ON p.id = gc.patient_id
                     WHERE {}""".format(where_statement)
+        print(sql)
         rows = replica_read_rows(sql)
+        print(rows)
         return __format_vax_certificate_portal(rows), "No certificate found."
 
     except Exception as err:
+        print(err)
         log_generic(
             type=c.ERROR,
             function=whoami(),
@@ -1581,6 +1584,7 @@ def __map_row_to_dtl(row):
 
 
 def __format_vax_certificate_portal(rows):
+    print("inside" + whoami())
     try:
         if len(rows) > 0:
             map = {}
@@ -1621,6 +1625,7 @@ def __format_vax_certificate_portal(rows):
             return {}
 
     except Exception as err:
+        print(err)
         log_generic(
             type=c.ERROR,
             function=whoami(),

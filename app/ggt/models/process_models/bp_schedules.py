@@ -545,9 +545,12 @@ def bp_delete_schedule(location_id):
 
 def bp_lookup_certificate(first_name, last_name, dob, phone_number):
     try:
+        print("inside" + whoami())
+        print(first_name, last_name, dob, phone_number)
         return lookup_certificate(phone_number, dob, first_name, last_name)[0]
 
     except Exception as err:
+        print(err)
         log_generic(
             type=c.ERROR,
             first_name=first_name,

@@ -293,6 +293,7 @@ async def api_cc_patient_lookup(portal_cc_patient_lookup_request: PortalCcPatien
 
 @router.post("/site-admin/lookup_certificate", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
 async def api_lookup_certificate(req: LookupCertificateRequest):
+    print(req)
     return lookup_certificate(
         req.first_name,
         req.last_name,
