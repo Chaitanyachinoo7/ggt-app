@@ -30,7 +30,8 @@ from ggt.models.process_models.bp_schedules import (
     bp_get_schedule_generation_rules,
     bp_delete_schedule, bp_lookup_certificate, bp_update_patient_ifo_cert, bp_update_cert_info, bp_delete_certificate,
     bp_verify_certificate,
-    bp_lookup_unverified_certificate, bp_get_certificate_stats
+    bp_lookup_unverified_certificate, bp_get_certificate_stats,
+    bp_ocr
 )
 
 import ggt.lib.constants as c
@@ -306,7 +307,12 @@ def verify_certificate(cert_id, verification_level):
         )
     )
 
-
+def get_ocr(patient_id, cert_id):
+    return x_response(
+        bp_ocr(
+            patient_id, cert_id
+        )
+    )
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
