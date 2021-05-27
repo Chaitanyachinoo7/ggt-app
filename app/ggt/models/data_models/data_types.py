@@ -768,6 +768,26 @@ class LookupGGVWalletPassRequest(BaseModel):
     token: str
     type: str = 'i'
 
+class pristineObject(BaseModel):
+    dob: str
+    first_name: str
+    last_name: str
+
+class LookupGGVAddVaxCertRequest(BaseModel):
+    first_name: str
+    last_name: str
+    phone_number: str
+    email: str
+    dob: str
+    vax_type: str
+    first_vax_dt: str
+    vax_1_lot_number: str
+    second_vax_dt: str = None
+    vax_2_lot_number: str = None
+    pristine: pristineObject = None
+    vax_image: str
+    id_image: str
+
 class NotificationEnum(str, Enum):
     relocate = 'relocate'
     reschedule = 'reschedule'

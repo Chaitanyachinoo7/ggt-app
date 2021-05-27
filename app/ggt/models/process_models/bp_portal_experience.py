@@ -782,4 +782,8 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
     # __send_ggv_certificate_level_1_sms(first_name, phone_number)
     # __send_ggv_certificate_level_1_email(first_name, email)
 
-    return True
+    return {
+        "patient_id": patient_id,
+        "cert1_id": cert1_id,
+        "cert2_id": cert2_id
+    }
