@@ -18,8 +18,8 @@ writer_connection_config_dict = {
     # 'raise_on_warnings': True,
     'use_pure': False,
     'autocommit': True,
-    'pool_name': 'xwriterpool',
-    'pool_size': 5
+    # 'pool_name': 'xwriterpool',
+    # 'pool_size': 1
 }
 
 readonly_connection_config_dict = {
@@ -30,8 +30,8 @@ readonly_connection_config_dict = {
     # 'raise_on_warnings': True,
     'use_pure': False,
     'autocommit': True,
-    'pool_name': 'xreadonlypool',
-    'pool_size': 5
+    # 'pool_name': 'xreadonlypool',
+    # 'pool_size': 1
 }
 
 
