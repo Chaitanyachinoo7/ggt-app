@@ -815,7 +815,7 @@ def __get_vax_card_ocr(patient_id, cert_id):
     card_string = ""
     for index, item in enumerate(response["Blocks"]):
         if "Text" in item and item["BlockType"] == "WORD":
-            card_string = card_string + " "+ item["Text"]
+            card_string = card_string + " "+ item["Text"].replace(" ", "")
     return card_string.lstrip().strip("0").lower()
 
 def __photo_id_pristine(patient_id, cert_id, certRequest):
@@ -837,10 +837,10 @@ def __photo_id_pristine(patient_id, cert_id, certRequest):
 def __vax_card_pristine(patient_id, cert_id, certRequest):
     vax_ocr_string = __get_vax_card_ocr(patient_id, cert_id)
     print(vax_ocr_string)
-    first_vax_dt = datetime.strptime(certRequest.first_vax_dt, '%Y-%m-%d').strftime('%m/%d/%y')
+    first_vax_dt = datetime.strptime(certRequest.first_vax_dt, '%Y-%m-%d').strftime('%-m/%-d/%y')
     print(first_vax_dt)
     if(certRequest.vax_2_lot_number!= "" and certRequest.vax_2_lot_number != None):
-        second_vax_dt = datetime.strptime(certRequest.second_vax_dt, '%Y-%m-%d').strftime('%m/%d/%y')
+        second_vax_dt = datetime.strptime(certRequest.second_vax_dt, '%Y-%m-%d').strftime('%-m/%-d/%y')
         print(second_vax_dt)
         print(second_vax_dt.strip("0") in vax_ocr_string)
         print(certRequest.vax_2_lot_number.strip("0") in vax_ocr_string)
