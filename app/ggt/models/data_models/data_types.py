@@ -769,9 +769,9 @@ class LookupGGVWalletPassRequest(BaseModel):
     type: str = 'i'
 
 class pristineObject(BaseModel):
-    dob: str
-    first_name: str
-    last_name: str
+    dob: str = None
+    first_name: str = None
+    last_name: str = None
 
 class LookupGGVAddVaxCertRequest(BaseModel):
     first_name: str
