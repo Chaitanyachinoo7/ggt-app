@@ -817,13 +817,15 @@ def __get_vax_card_ocr(patient_id, cert_id):
     for index, item in enumerate(response["Blocks"]):
         if "Text" in item and item["BlockType"] == "WORD":
             card_string = card_string + " "+ item["Text"]
-    return card_string.lstrip().strip("0")
+    return card_string.lstrip().strip("0").lower()
 
 def __photo_id_pristine(patient_id, cert_id, certRequest):
     id_ocr_string = __get_vax_card_ocr(patient_id, str(cert_id) + '_id_image')
     print(id_ocr_string)
-    if(certRequest.first_name in id_ocr_string and 
-        certRequest.last_name in id_ocr_string):
+    print(certRequest.first_name.lower() in id_ocr_string)
+    print(certRequest.last_name.lower() in id_ocr_string)
+    if(certRequest.first_name.lower() in id_ocr_string and 
+        certRequest.last_name.lower() in id_ocr_string):
         print("first_name and last_name matched in photo id ocr")
         return True
     print("first_name and last_name did not match in photo id ocr")
@@ -845,20 +847,20 @@ def __vax_card_pristine(patient_id, cert_id, certRequest):
     print(certRequest.first_name in vax_ocr_string)
     print(certRequest.last_name in vax_ocr_string)
     if(certRequest.vax_2_lot_number != "" and certRequest.vax_2_lot_number != None and 
-        certRequest.vax_type in vax_ocr_string and 
+        certRequest.vax_type.lower() in vax_ocr_string and 
         first_vax_dt.strip("0") in vax_ocr_string and 
-        certRequest.vax_1_lot_number.strip("0") in vax_ocr_string and 
+        certRequest.vax_1_lot_number.strip("0").lower() in vax_ocr_string and 
         second_vax_dt.strip("0") in vax_ocr_string and 
-        certRequest.vax_2_lot_number.strip("0") in vax_ocr_string and 
-        certRequest.first_name in vax_ocr_string and 
-        certRequest.last_name in vax_ocr_string):
+        certRequest.vax_2_lot_number.strip("0").lower() in vax_ocr_string and 
+        certRequest.first_name.lower() in vax_ocr_string and 
+        certRequest.last_name.lower() in vax_ocr_string):
         return True
     elif((certRequest.vax_2_lot_number== "" or certRequest.vax_2_lot_number == None) and 
-            certRequest.vax_type in vax_ocr_string and 
+            certRequest.vax_type.lower() in vax_ocr_string and 
             first_vax_dt.strip("0") in vax_ocr_string and 
-            certRequest.vax_1_lot_number.strip("0") in vax_ocr_string and 
-            certRequest.first_name in vax_ocr_string and 
-            certRequest.last_name in vax_ocr_string):
+            certRequest.vax_1_lot_number.strip("0").lower() in vax_ocr_string and 
+            certRequest.first_name.lower() in vax_ocr_string and 
+            certRequest.last_name.lower() in vax_ocr_string):
             return True
     return False
 def __generate_wallet_pass(pkpass_req, patient, verification):
