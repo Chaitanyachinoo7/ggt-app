@@ -770,7 +770,6 @@ def bp_add_vax_certificate(req):
                 }
             else:
                 print("not __vax_card_pristine or not __photo_id_pristine")
-                add_vax_certificate(req)
                 return {
                     "level": 1
                 }
