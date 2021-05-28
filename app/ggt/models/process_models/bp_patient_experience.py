@@ -751,9 +751,10 @@ def bp_get_wallet_pass(pkpass_req):
 
 def bp_add_vax_certificate(req):
     try:
+        print(req)
         pristine = req.pristine
+        from ggt.models.process_models.bp_portal_experience import bp_add_vax_certificate as add_vax_certificate
         if(pristine and pristine.dob == req.dob and pristine.first_name == req.first_name and pristine.last_name == req.last_name):
-            from ggt.models.process_models.bp_portal_experience import bp_add_vax_certificate as add_vax_certificate
             certDetails = add_vax_certificate(req)
             print(certDetails)
             if(__vax_card_pristine(certDetails["patient_id"], certDetails["cert1_id"], req)):
