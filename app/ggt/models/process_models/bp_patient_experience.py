@@ -822,13 +822,17 @@ def __get_vax_card_ocr(patient_id, cert_id):
 def __photo_id_pristine(patient_id, cert_id, certRequest):
     id_ocr_string = __get_vax_card_ocr(patient_id, str(cert_id) + '_id_image')
     print(id_ocr_string)
+    date_of_birth = datetime.strptime(certRequest.dob, '%Y-%m-%d').strftime('%m/%d/%Y')
+    print(date_of_birth)
     print(certRequest.first_name.lower() in id_ocr_string)
     print(certRequest.last_name.lower() in id_ocr_string)
+    print(date_of_birth in id_ocr_string)
     if(certRequest.first_name.lower() in id_ocr_string and 
-        certRequest.last_name.lower() in id_ocr_string):
-        print("first_name and last_name matched in photo id ocr")
+        certRequest.last_name.lower() in id_ocr_string and 
+        date_of_birth in id_ocr_string):
+        print("first_name, last_name and dob matched in photo id ocr")
         return True
-    print("first_name and last_name did not match in photo id ocr")
+    print("first_name, last_name or dob did not match in photo id ocr")
     return False
 
 def __vax_card_pristine(patient_id, cert_id, certRequest):
@@ -844,8 +848,8 @@ def __vax_card_pristine(patient_id, cert_id, certRequest):
     print(certRequest.vax_type in vax_ocr_string)
     print(first_vax_dt.strip("0") in vax_ocr_string)
     print(certRequest.vax_1_lot_number.strip("0") in vax_ocr_string)
-    print(certRequest.first_name in vax_ocr_string)
-    print(certRequest.last_name in vax_ocr_string)
+    print(certRequest.first_name.lower() in vax_ocr_string)
+    print(certRequest.last_name.lower() in vax_ocr_string)
     if(certRequest.vax_2_lot_number != "" and certRequest.vax_2_lot_number != None and 
         certRequest.vax_type.lower() in vax_ocr_string and 
         first_vax_dt.strip("0") in vax_ocr_string and 
