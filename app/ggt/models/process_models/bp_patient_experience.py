@@ -762,7 +762,9 @@ def bp_add_vax_certificate(req):
                 print("__vax_card_pristine and __photo_id_pristine")
                 verify_certificate(certDetails["cert1_id"], "2")
                 verify_certificate(certDetails["cert2_id"], "2")
+                print("verification done")
                 patient = get_patient_from_crt_number(certDetails["cert1_id"])
+                print("patient", patient)
                 __send_ggv_certificate_level_1_sms(patient["first_name"], patient["phone_number"])
                 __send_ggv_certificate_level_1_email(patient["first_name"], patient["email"])
                 return {

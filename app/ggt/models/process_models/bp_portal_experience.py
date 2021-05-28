@@ -753,10 +753,11 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
         vax_code_1 = c.SERVICE_CODE_COVID_19_VACCINE_JNJ
 
     try:
-        vax_1_date = "{} 00:00:00".format(vax_1_date)
-        if vax_1_date and lot_1:
-            cert1_id = patients.create_cert(
-                patient_id, vax_1_date, vax_code_1, lot_1)
+        if patients.delete_cert(patient_id):
+            vax_1_date = "{} 00:00:00".format(vax_1_date)
+            if vax_1_date and lot_1:
+                cert1_id = patients.create_cert(
+                    patient_id, vax_1_date, vax_code_1, lot_1)
     except Exception as err1:
         print("Error processing caert1", err1)
         return None
