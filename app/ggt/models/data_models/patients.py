@@ -156,7 +156,12 @@ def create_cert(patient_id, vax_date, vax_type, lot):
     vals = (patient_id, vax_date, vax_type, lot, 1)
     return exec_insert(sql, vals)
 
-
+def delete_cert(patient_id):
+    print(patient_id)
+    sqld = """DELETE FROM ggv_certificates where patient_id = %s and id <> 0"""
+    deleted  = exec_delete(sqld, (patient_id,))
+    print(deleted)
+    return deleted
 def get_existing_patients(phone_number="", first_name="", last_name="", dob="", token=""):
 
     where_statement = "phone_number_verified = 1 AND token not like 'NOVERIFY%'"

@@ -68,7 +68,7 @@ from ggt.models.workflow_models.clinical_test_site_admin_flow import (
     site_admin_vax_waitlist_search,
     site_admin_vax_registered_waitlist_around_location, add_vax_certificate, lookup_certificate,
     update_patient_ifo_cert, update_cert_info, update_cert_image, delete_certificate,
-    verify_certificate, lookup_unverified_certificate, get_certificate_stats
+    verify_certificate, lookup_unverified_certificate, get_certificate_stats, get_ocr
 )
 
 router = APIRouter()
@@ -392,3 +392,6 @@ async def api_verify_certificate(req: VerifyCertificateRequest):
 async def api_get_certificate_stats():
     return get_certificate_stats()
 
+@router.get("/site-admin/ocr")
+async def api_get_ocr(patient_id, cert_id):
+    return get_ocr(patient_id, cert_id)

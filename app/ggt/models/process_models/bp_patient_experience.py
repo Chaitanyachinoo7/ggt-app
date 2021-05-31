@@ -100,7 +100,9 @@ from ggt.lib.storage import (
 from ggt.lib.storage import get_temporary_lab_report_url
 
 from ggt.models.process_models.bp_payment import bp_create_checkout_session
-
+from ggt.models.data_models.schedules import verify_certificate, get_patient_from_crt_number
+import boto3
+from datetime import datetime
 # ios pkpass constants
 pass_type_identifier = "pass.com.goget.vaccine"
 organization_name = "GoGet, Inc."
@@ -747,7 +749,45 @@ def bp_get_wallet_pass(pkpass_req):
         )
     return False
 
-
+def bp_add_vax_certificate(req):
+    try:
+        print(req)
+        pristine = req.pristine
+        from ggt.models.process_models.bp_portal_experience import bp_add_vax_certificate as add_vax_certificate
+        if(pristine and pristine.dob == req.dob and pristine.first_name == req.first_name and pristine.last_name == req.last_name):
+            certDetails = add_vax_certificate(req)
+            print(certDetails)
+            if(__vax_card_pristine(certDetails["patient_id"], certDetails["cert1_id"], req) and 
+            __photo_id_pristine(certDetails["patient_id"], certDetails["cert1_id"], req)):
+                print("__vax_card_pristine and __photo_id_pristine")
+                verify_certificate(certDetails["cert1_id"], "2")
+                verify_certificate(certDetails["cert2_id"], "2")
+                print("verification done")
+                patient = get_patient_from_crt_number(certDetails["cert1_id"])
+                print("patient", patient)
+                __send_ggv_certificate_level_1_sms(patient["first_name"], patient["phone_number"])
+                __send_ggv_certificate_level_1_email(patient["first_name"], patient["email"])
+                return {
+                    "level": 2
+                }
+            else:
+                print("not __vax_card_pristine or not __photo_id_pristine")
+                return {
+                    "level": 1
+                }
+        else:
+            print("not pristine")
+            add_vax_certificate(req)
+            return {
+                    "level": 1
+                }
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+    return False
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
@@ -755,8 +795,82 @@ def bp_get_wallet_pass(pkpass_req):
 # TODO: Prevent from looking up slots that are already assigned to an appointment
 # TODO, doesn't check if it's already booked
 # TEMP, not using fixed slots since operational conditions allow oversubscribing
+def __get_vax_card_ocr(patient_id, cert_id):
+    boto_client = boto3.client(
+        'textract',
+        aws_access_key_id=cfg('aws.access_key_id'),
+        aws_secret_access_key=cfg('aws.secret_access_key'),
+        region_name='us-east-2'
+    )
+    response = boto_client.analyze_document(
+        Document={
+            'S3Object': {
+                'Bucket': cfg('aws.vax_certificate_bucket'),
+                'Name': '{}/{}.jpg'.format(patient_id, cert_id)
+            }
+        },
+        FeatureTypes=[
+            'TABLES'
+        ]
+    )
+    # print(response)
+    card_string = ""
+    for index, item in enumerate(response["Blocks"]):
+        if "Text" in item and item["BlockType"] == "WORD":
+            card_string = card_string + " "+ item["Text"].replace(" ", "")
+    return card_string.lstrip().strip("0").lower()
 
+def __photo_id_pristine(patient_id, cert_id, certRequest):
+    id_ocr_string = __get_vax_card_ocr(patient_id, str(cert_id) + '_id_image')
+    print(id_ocr_string)
+    date_of_birth = datetime.strptime(certRequest.dob, '%Y-%m-%d').strftime('%m/%d/%Y')
+    print(date_of_birth)
+    print(certRequest.first_name.lower() in id_ocr_string)
+    print(certRequest.last_name.lower() in id_ocr_string)
+    print(date_of_birth in id_ocr_string)
+    if(certRequest.first_name.lower() in id_ocr_string and 
+        certRequest.last_name.lower() in id_ocr_string and 
+        date_of_birth in id_ocr_string):
+        print("first_name, last_name and dob matched in photo id ocr")
+        return True
+    print("first_name, last_name or dob did not match in photo id ocr")
+    return False
 
+def __vax_card_pristine(patient_id, cert_id, certRequest):
+    vax_ocr_string = __get_vax_card_ocr(patient_id, cert_id)
+    print(vax_ocr_string)
+    first_vax_dt = datetime.strptime(certRequest.first_vax_dt, '%Y-%m-%d')
+    print(first_vax_dt)
+    if(certRequest.vax_2_lot_number!= "" and certRequest.vax_2_lot_number != None):
+        second_vax_dt = datetime.strptime(certRequest.second_vax_dt, '%Y-%m-%d')
+        print(second_vax_dt)
+        print(second_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or second_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string)
+        print(certRequest.vax_2_lot_number.strip("0") in vax_ocr_string)
+    print(certRequest.vax_type in vax_ocr_string)
+    print(first_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or first_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string)
+    print(certRequest.vax_1_lot_number.strip("0") in vax_ocr_string)
+    print(certRequest.first_name.lower() in vax_ocr_string)
+    print(certRequest.last_name.lower() in vax_ocr_string)
+    if(certRequest.vax_2_lot_number != "" and certRequest.vax_2_lot_number != None and 
+        certRequest.vax_type.lower() in vax_ocr_string and 
+        (first_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or first_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or 
+        first_vax_dt.strftime('%-m,%-d,%y') in vax_ocr_string) and 
+        certRequest.vax_1_lot_number.strip("0").lower() in vax_ocr_string and 
+        (second_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or second_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or 
+        second_vax_dt.strftime('%-m,%-d,%Y') in vax_ocr_string) and 
+        certRequest.vax_2_lot_number.strip("0").lower() in vax_ocr_string and 
+        certRequest.first_name.lower() in vax_ocr_string and 
+        certRequest.last_name.lower() in vax_ocr_string):
+        return True
+    elif((certRequest.vax_2_lot_number== "" or certRequest.vax_2_lot_number == None) and 
+            certRequest.vax_type.lower() in vax_ocr_string and 
+            (first_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or first_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or 
+            first_vax_dt.strftime('%-m,%-d,%y') in vax_ocr_string) and 
+            certRequest.vax_1_lot_number.strip("0").lower() in vax_ocr_string and 
+            certRequest.first_name.lower() in vax_ocr_string and 
+            certRequest.last_name.lower() in vax_ocr_string):
+            return True
+    return False
 def __generate_wallet_pass(pkpass_req, patient, verification):
     try:
         if pkpass_req.type == 'i':
