@@ -21,7 +21,11 @@ from ggt.models.process_models.bp_patient_experience import (
     bp_search_insurance_payer_list, bp_get_ggv_screen_flow_seq, bp_ggv_finalize_booking, bp_ggv_finalize_pre_booking,
     bp_create_pre_registration, bp_verify_verification_token, bp_reschedule_first_appointment,
     bp_reschedule_second_appointment, bp_lookup_certificate, bp_get_vax_certificate,
+<<<<<<< HEAD
     bp_get_wallet_pass, bp_call_non_sms_phone
+=======
+    bp_get_wallet_pass, bp_add_vax_certificate
+>>>>>>> 30091cffd507c303809ccc78b70dfcf9c5eb3c30
 )
 
 from ggt.models.process_models.bp_schedules import (
@@ -594,4 +598,7 @@ def get_wallet_pass(pkpass_request):
 def call_non_sms_phone(phone_number):
     return x_response(
          bp_call_non_sms_phone(phone_number)
+def get_add_vax_certificate(req):
+    return x_response(
+         bp_add_vax_certificate(req)
     )

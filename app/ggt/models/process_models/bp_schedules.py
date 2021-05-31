@@ -47,7 +47,7 @@ from ggt.lib.maps import (
 from cachetools import cached, LRUCache, TTLCache
 from ggt.models.process_models.bp_patient_experience import __upload_vax_card_image, __send_ggv_certificate_level_1_sms, \
     __send_ggv_certificate_level_1_email
-
+import boto3
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
@@ -807,11 +807,105 @@ def bp_verify_certificate(cert_id, verification_level):
 
     return False
 
+def bp_ocr(patient_id, cert_id):
+    try:
+        images = __get_images(patient_id, cert_id)
+        get_ocr = __get_ocr(images)
+        return get_ocr
 
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            cert_id=cert_id,
+            patient_id=patient_id,
+            function=whoami(),
+            error=err
+        )
+
+    return False
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
 
+def __get_ocr(images):
+    boto_client = boto3.client(
+        'textract',
+        aws_access_key_id=get_config_val('aws.access_key_id'),
+        aws_secret_access_key=get_config_val('aws.secret_access_key'),
+        region_name='us-east-2'
+    )
+    response = boto_client.analyze_document(
+        Document={
+            'S3Object': {
+                'Bucket': get_config_val('aws.vax_certificate_bucket'),
+                'Name': images["image_1"]
+            }
+        },
+        FeatureTypes=[
+            'TABLES'
+        ]
+    )
+    # print(response)
+    card = {}
+    lastNameIndex = 0
+    for index, item in enumerate(response["Blocks"]):  
+        print(item)
+        if "Text" in item and item["Text"] == 'Last' and item["TextType"] == "PRINTED":
+            lastNameIndex = index
+            break
+    first_name = response["Blocks"][lastNameIndex-1]["Text"]
+    last_name = response["Blocks"][lastNameIndex-2]["Text"]
+    card["first_name"] = first_name
+    card["last_name"] = last_name
+    cell1 = [x for x in response["Blocks"] if (x["BlockType"] == "CELL" and x["RowIndex"] == 2 and x["ColumnIndex"] == 2)]
+    cell2 = [x for x in response["Blocks"] if (x["BlockType"] == "CELL" and x["RowIndex"] == 3 and x["ColumnIndex"] == 2)]
+    cell3 = [x for x in response["Blocks"] if (x["BlockType"] == "CELL" and x["RowIndex"] == 4 and x["ColumnIndex"] == 2)]
+    cell4 = [x for x in response["Blocks"] if (x["BlockType"] == "CELL" and x["RowIndex"] == 5 and x["ColumnIndex"] == 2)]
+    cell5 = [x for x in response["Blocks"] if (x["BlockType"] == "CELL" and x["RowIndex"] == 2 and x["ColumnIndex"] == 3)]
+    cell6 = [x for x in response["Blocks"] if (x["BlockType"] == "CELL" and x["RowIndex"] == 4 and x["ColumnIndex"] == 3)]
+    
+    if("Relationships" in cell1[0]):
+        value1 = ""
+        for entry in cell1[0]["Relationships"][0]["Ids"]:
+            temp = [x for x in response["Blocks"] if (x["BlockType"] == "WORD" and x["Id"] == entry)]
+            value1 = value1 + " " + temp[0]["Text"].upper()
+        card["dose1"] = value1.lstrip()
+    if("Relationships" in cell2[0]):
+        value2 = ""
+        for entry in cell2[0]["Relationships"][0]["Ids"]:
+            temp = [x for x in response["Blocks"] if (x["BlockType"] == "WORD" and x["Id"] == entry)]
+            value2 = value2 + " " + temp[0]["Text"].upper()
+        card["lot1"] = value2.lstrip()
+    if("Relationships" in cell3[0]):
+        value3 = ""
+        for entry in cell3[0]["Relationships"][0]["Ids"]:
+            temp = [x for x in response["Blocks"] if (x["BlockType"] == "WORD" and x["Id"] == entry)]
+            value3 = value3 + " " + temp[0]["Text"].upper()
+        card["dose2"] = value3.lstrip()
+    if("Relationships" in cell4[0]):
+        value4 = ""
+        for entry in cell4[0]["Relationships"][0]["Ids"]:
+            temp = [x for x in response["Blocks"] if (x["BlockType"] == "WORD" and x["Id"] == entry)]
+            value4 = value4 + " " + temp[0]["Text"].upper()
+        card["lot2"] = value4.lstrip()
+    if("Relationships" in cell5[0]):
+        value5 = ""
+        for entry in cell5[0]["Relationships"][0]["Ids"]:
+            temp = [x for x in response["Blocks"] if (x["BlockType"] == "WORD" and x["Id"] == entry)]
+            value5 = value5 + " " + temp[0]["Text"].upper()
+        card["date1"] = value5.lstrip()
+    if("Relationships" in cell6[0]):
+        value6 = ""
+        for entry in cell6[0]["Relationships"][0]["Ids"]:
+            temp = [x for x in response["Blocks"] if (x["BlockType"] == "WORD" and x["Id"] == entry)]
+            value6 = value6 + " " + temp[0]["Text"].upper()
+        card["date2"] = value6.lstrip()
+    return card
+def __get_images(patient_id, cert_id):
+    return {
+        "image_1": '{}/{}.jpg'.format(patient_id, cert_id),
+        "image_2": '{}/{}_id_image.jpg'.format(patient_id, cert_id)
+    }
 
 def __process_schedule_rule(rule):
     try:

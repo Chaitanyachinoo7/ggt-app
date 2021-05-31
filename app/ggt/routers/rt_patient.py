@@ -14,7 +14,7 @@ from ggt.models.data_models.data_types import (
     InsuranceEligibilityRequest,
     InsurancePayersListRequest, SecondAvailableDate, FinalizeGGVRegistrationRequest, FinalizeGGVPreRegistrationRequest,
     PatientAppointmentLookup, VerificationToken, UpdateFirstAppointment, SecondSlotReschedule, UpdateSecondAppointment,
-    LookupGGVCertificateRequest, LookupGGVWalletPassRequest
+    LookupGGVCertificateRequest, LookupGGVWalletPassRequest, LookupGGVAddVaxCertRequest
 )
 
 from ggt.models.workflow_models.patient_portal_flow import (
@@ -38,7 +38,11 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
     insurance_search_payer, get_ggv_screen_flow_seq, get_second_shot_available_times, ggv_finalize_registration,
     get_ggv_schedule_times_available, ggv_finalize_pre_registration, cache_test, verify_verification_token,
     reschedule_first_appointment, get_second_slot_reschedule_dates, reschedule_second_appointment,
+<<<<<<< HEAD
     get_ggv_schedule_dates_available, lookup_certificate, get_vax_certificate, get_wallet_pass, call_non_sms_phone
+=======
+    get_ggv_schedule_dates_available, lookup_certificate, get_vax_certificate, get_wallet_pass, get_add_vax_certificate
+>>>>>>> 30091cffd507c303809ccc78b70dfcf9c5eb3c30
 )
 
 # TODO: [GGT-193] Move this to a dedicated API
@@ -299,3 +303,6 @@ def api_wallet_pass(req: LookupGGVWalletPassRequest):
 @router.post("/call_non_sms_phone")
 def api_call_non_sms_phone(phone_number):
     return call_non_sms_phone(phone_number)
+@router.post("/add_vax_certificate")
+def api_add_vax_certificate(req: LookupGGVAddVaxCertRequest):
+    return get_add_vax_certificate(req)
