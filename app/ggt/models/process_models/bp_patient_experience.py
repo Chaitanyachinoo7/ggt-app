@@ -100,13 +100,10 @@ from ggt.lib.storage import (
 from ggt.lib.storage import get_temporary_lab_report_url
 
 from ggt.models.process_models.bp_payment import bp_create_checkout_session
-<<<<<<< HEAD
 from ggt.lib.adapters.twilio_adapter import place_twilio_otp
-=======
 from ggt.models.data_models.schedules import verify_certificate, get_patient_from_crt_number
 import boto3
 from datetime import datetime
->>>>>>> 30091cffd507c303809ccc78b70dfcf9c5eb3c30
 # ios pkpass constants
 pass_type_identifier = "pass.com.goget.vaccine"
 organization_name = "GoGet, Inc."
@@ -768,6 +765,10 @@ def bp_call_non_sms_phone(phone_number):
         log_generic(
             type=c.ERROR,
             phone_number=phone_number,
+            function=whoami(),
+            error=err
+        )
+    return False
 def bp_add_vax_certificate(req):
     try:
         print(req)
@@ -807,10 +808,7 @@ def bp_add_vax_certificate(req):
             error=err
         )
     return False
-<<<<<<< HEAD
 
-=======
->>>>>>> 30091cffd507c303809ccc78b70dfcf9c5eb3c30
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
