@@ -38,11 +38,7 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
     insurance_search_payer, get_ggv_screen_flow_seq, get_second_shot_available_times, ggv_finalize_registration,
     get_ggv_schedule_times_available, ggv_finalize_pre_registration, cache_test, verify_verification_token,
     reschedule_first_appointment, get_second_slot_reschedule_dates, reschedule_second_appointment,
-<<<<<<< HEAD
-    get_ggv_schedule_dates_available, lookup_certificate, get_vax_certificate, get_wallet_pass, call_non_sms_phone
-=======
-    get_ggv_schedule_dates_available, lookup_certificate, get_vax_certificate, get_wallet_pass, get_add_vax_certificate
->>>>>>> 30091cffd507c303809ccc78b70dfcf9c5eb3c30
+    get_ggv_schedule_dates_available, lookup_certificate, get_vax_certificate, get_wallet_pass, call_non_sms_phone, get_add_vax_certificate
 )
 
 # TODO: [GGT-193] Move this to a dedicated API

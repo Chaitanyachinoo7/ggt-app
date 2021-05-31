@@ -753,7 +753,6 @@ def bp_get_wallet_pass(pkpass_req):
         )
     return False
 
-<<<<<<< HEAD
 def bp_call_non_sms_phone(phone_number):
     try:
         phone_number = validate_phone_number_format(phone_number)
@@ -769,7 +768,6 @@ def bp_call_non_sms_phone(phone_number):
         log_generic(
             type=c.ERROR,
             phone_number=phone_number,
-=======
 def bp_add_vax_certificate(req):
     try:
         print(req)
@@ -805,7 +803,6 @@ def bp_add_vax_certificate(req):
     except Exception as err:
         log_generic(
             type=c.ERROR,
->>>>>>> 30091cffd507c303809ccc78b70dfcf9c5eb3c30
             function=whoami(),
             error=err
         )
