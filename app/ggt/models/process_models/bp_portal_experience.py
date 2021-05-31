@@ -388,7 +388,7 @@ def bp_create_location(location, org_id):
         if l is None:
             return None
         location_id = l['location_id']
-        group_ids = location.group_ids
+        group_ids = list(set(location.group_ids))
         service_ids = location.service_ids
         location_groups = []
         location_services = []
