@@ -100,7 +100,7 @@ from ggt.lib.storage import (
 from ggt.lib.storage import get_temporary_lab_report_url
 
 from ggt.models.process_models.bp_payment import bp_create_checkout_session
-
+from ggt.lib.adapters.twilio_adapter import place_twilio_otp
 # ios pkpass constants
 pass_type_identifier = "pass.com.goget.vaccine"
 organization_name = "GoGet, Inc."
@@ -747,6 +747,25 @@ def bp_get_wallet_pass(pkpass_req):
         )
     return False
 
+def bp_call_non_sms_phone(phone_number):
+    try:
+        phone_number = validate_phone_number_format(phone_number)
+        existing_patient = get_existing_patients(phone_number)
+        token = None
+        if existing_patient:
+            token = existing_patient['token']
+        otp_code, token = __create_pending_entry(phone_number, token)
+        print(otp_code)
+        return place_twilio_otp(phone_number, otp_code, "Go Get")
+        
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            phone_number=phone_number,
+            function=whoami(),
+            error=err
+        )
+    return False
 
 ########################################################################################################
 # [Protected] functions
@@ -1627,12 +1646,12 @@ def __send_ggv_qrcode_sms(appointment: GgtAppointment, dose, out_of):
     return None
 
 
-def __send_ggv_certificate_level_1_sms(first_name, phone_number):
+def __send_ggv_certificate_level_1_sms(first_name, phone_number, level):
     try:
-        message = """Hi {}, the 2nd level verification of your vaccine card is complete.
+        message = """Hi {}, the level {} verification of your vaccine card is complete.
         You can access your digital vaccine certificate by clicking below.
         \nhttps://start.gogetvax.com""".format(
-            first_name
+            first_name, level
         )
         promoMessage = "Share this unique link with family & friends so they can get their digital cards too: \nhttp://www.vaxyes.com/friendsfree21"
 
@@ -1814,7 +1833,7 @@ def __send_ggv_qrcode_email(appointment: GgtAppointment):
     return False
 
 
-def __send_ggv_certificate_level_1_email(first_name, email):
+def __send_ggv_certificate_level_1_email(first_name, email, level):
     try:
         from_email = cfg('notifications.from_email')
         from_name = cfg('notifications.from_name')
@@ -1823,15 +1842,15 @@ def __send_ggv_certificate_level_1_email(first_name, email):
             "first_name": first_name
         }
 
-        subject = "{}, The 2nd level verification of your vaccine card is complete.".format(
-            first_name)
+        subject = "{}, The level {} verification of your vaccine card is complete.".format(
+            first_name, level)
 
         subject = render_from_string(
             subject,
             **template_vars
         )
 
-        template_name = 'GGV-2-COMPLETED-LEVEL-1.html'
+        template_name = "GGV-2-COMPLETED-LEVEL-{}.html".format(level)
         html_content = render_template(
             template_name,
             **template_vars
