@@ -392,6 +392,6 @@ async def api_verify_certificate(req: VerifyCertificateRequest):
 async def api_get_certificate_stats():
     return get_certificate_stats()
 
-@router.get("/site-admin/ocr")
+@router.get("/site-admin/ocr", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
 async def api_get_ocr(patient_id, cert_id):
     return get_ocr(patient_id, cert_id)

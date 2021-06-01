@@ -64,7 +64,7 @@ from ggt.models.data_models.locations import (
 
 from ggt.models.data_models.schedules import (
     get_slot_information,
-    update_slot_information, get_next_available_slot, book_slot, update_appointment
+    update_slot_information, get_next_available_slot, book_slot, update_appointment, update_ocr
 )
 
 from ggt.models.data_models.clinical_test_results import (
@@ -774,19 +774,42 @@ def bp_add_vax_certificate(req):
         print(req)
         pristine = req.pristine
         from ggt.models.process_models.bp_portal_experience import bp_add_vax_certificate as add_vax_certificate
+        ocr = {
+            "patient_id": None, 
+            "first_name": 0, 
+            "last_name": 0, 
+            "vax_type": 0, 
+            "dob": 0, 
+            "cert1_id": None, 
+            "first_vax_dt": 0, 
+            "vax_1_lot_number": 0, 
+            "cert2_id": None, 
+            "second_vax_dt": 0, 
+            "vax_2_lot_number": 0
+        }
         if(pristine and pristine.dob == req.dob and pristine.first_name == req.first_name and pristine.last_name == req.last_name):
             certDetails = add_vax_certificate(req)
             print(certDetails)
-            if(__vax_card_pristine(certDetails["patient_id"], certDetails["cert1_id"], req) and 
-            __photo_id_pristine(certDetails["patient_id"], certDetails["cert1_id"], req)):
+            ocr["patient_id"] = certDetails["patient_id"]
+            ocr["cert1_id"] = certDetails["cert1_id"]
+            if certDetails["cert2_id"]:
+                ocr["cert2_id"] = certDetails["cert2_id"]
+            is_vax_card_pristine= __vax_card_pristine(certDetails["patient_id"], certDetails["cert1_id"], req, ocr)
+            is_photo_id_pristine = __photo_id_pristine(certDetails["patient_id"], certDetails["cert1_id"], req, ocr)
+            print(ocr)
+            print("updating ocr db")
+            __update_ocr_status(ocr["patient_id"], ocr["first_name"],ocr["last_name"],ocr["vax_type"],ocr["dob"],ocr["cert1_id"],ocr["first_vax_dt"],ocr["vax_1_lot_number"],
+            ocr["cert2_id"],ocr["second_vax_dt"],ocr["vax_2_lot_number"])
+            if(is_vax_card_pristine and is_photo_id_pristine):
                 print("__vax_card_pristine and __photo_id_pristine")
                 verify_certificate(certDetails["cert1_id"], "2")
-                verify_certificate(certDetails["cert2_id"], "2")
+                if certDetails["cert2_id"]:
+                    verify_certificate(certDetails["cert2_id"], "2")
                 print("verification done")
                 patient = get_patient_from_crt_number(certDetails["cert1_id"])
                 print("patient", patient)
-                __send_ggv_certificate_level_1_sms(patient["first_name"], patient["phone_number"], "1")
-                __send_ggv_certificate_level_1_email(patient["first_name"], patient["email"], "1")
+                __send_ggv_certificate_level_1_sms(patient["first_name"], patient["phone_number"], "2")
+                __send_ggv_certificate_level_1_email(patient["first_name"], patient["email"], "2")
                 return {
                     "level": 2
                 }
@@ -841,7 +864,7 @@ def __get_vax_card_ocr(patient_id, cert_id):
             card_string = card_string + " "+ item["Text"].replace(" ", "")
     return card_string.lstrip().strip("0").lower()
 
-def __photo_id_pristine(patient_id, cert_id, certRequest):
+def __photo_id_pristine(patient_id, cert_id, certRequest, ocr):
     id_ocr_string = __get_vax_card_ocr(patient_id, str(cert_id) + '_id_image')
     print(id_ocr_string)
     date_of_birth = datetime.strptime(certRequest.dob, '%Y-%m-%d').strftime('%m/%d/%Y')
@@ -849,6 +872,9 @@ def __photo_id_pristine(patient_id, cert_id, certRequest):
     print(certRequest.first_name.lower() in id_ocr_string)
     print(certRequest.last_name.lower() in id_ocr_string)
     print(date_of_birth in id_ocr_string)
+    ocr["first_name"] = 1 if certRequest.first_name.lower() in id_ocr_string else 0
+    ocr["last_name"] = 1 if certRequest.last_name.lower() in id_ocr_string else 0
+    ocr["dob"] = 1 if date_of_birth in id_ocr_string else 0
     if(certRequest.first_name.lower() in id_ocr_string and 
         certRequest.last_name.lower() in id_ocr_string and 
         date_of_birth in id_ocr_string):
@@ -857,21 +883,20 @@ def __photo_id_pristine(patient_id, cert_id, certRequest):
     print("first_name, last_name or dob did not match in photo id ocr")
     return False
 
-def __vax_card_pristine(patient_id, cert_id, certRequest):
+def __vax_card_pristine(patient_id, cert_id, certRequest, ocr):
     vax_ocr_string = __get_vax_card_ocr(patient_id, cert_id)
-    print(vax_ocr_string)
     first_vax_dt = datetime.strptime(certRequest.first_vax_dt, '%Y-%m-%d')
-    print(first_vax_dt)
     if(certRequest.vax_2_lot_number!= "" and certRequest.vax_2_lot_number != None):
         second_vax_dt = datetime.strptime(certRequest.second_vax_dt, '%Y-%m-%d')
-        print(second_vax_dt)
-        print(second_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or second_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string)
-        print(certRequest.vax_2_lot_number.strip("0") in vax_ocr_string)
-    print(certRequest.vax_type in vax_ocr_string)
-    print(first_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or first_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string)
-    print(certRequest.vax_1_lot_number.strip("0") in vax_ocr_string)
-    print(certRequest.first_name.lower() in vax_ocr_string)
-    print(certRequest.last_name.lower() in vax_ocr_string)
+    
+    ocr["vax_type"] = 1 if certRequest.vax_type.lower() in vax_ocr_string else 0
+    ocr["first_vax_dt"] = 1 if (first_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or first_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or 
+        first_vax_dt.strftime('%-m,%-d,%y') in vax_ocr_string) else 0
+    ocr["vax_1_lot_number"] = 1 if certRequest.vax_1_lot_number.strip("0").lower() else 0
+    if certRequest.vax_2_lot_number!= "" or certRequest.vax_2_lot_number != None:
+        ocr["second_vax_dt"] = 1 if (second_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or second_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or 
+        second_vax_dt.strftime('%-m,%-d,%Y') in vax_ocr_string) else 0
+        ocr["vax_2_lot_number"] = 1 if certRequest.vax_2_lot_number.strip("0").lower() in vax_ocr_string else 0
     if(certRequest.vax_2_lot_number != "" and certRequest.vax_2_lot_number != None and 
         certRequest.vax_type.lower() in vax_ocr_string and 
         (first_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or first_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or 
@@ -892,6 +917,10 @@ def __vax_card_pristine(patient_id, cert_id, certRequest):
             certRequest.last_name.lower() in vax_ocr_string):
             return True
     return False
+
+def __update_ocr_status(patient_id, first_name, last_name, vax_type, dob, cert1_id, first_vax_dt, vax_1_lot_number, cert2_id, second_vax_dt, vax_2_lot_number):
+    print(patient_id, first_name, last_name, vax_type, dob, cert1_id, first_vax_dt, vax_1_lot_number, cert2_id, second_vax_dt, vax_2_lot_number)
+    return update_ocr(patient_id, first_name, last_name, vax_type, dob, cert1_id, first_vax_dt, vax_1_lot_number, cert2_id, second_vax_dt, vax_2_lot_number)
 def __generate_wallet_pass(pkpass_req, patient, verification):
     try:
         if pkpass_req.type == 'i':
