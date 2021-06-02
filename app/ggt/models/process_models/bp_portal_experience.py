@@ -483,7 +483,7 @@ def bp_update_location(location, org_id):
         update_location(location)
         remove_all_group(location_id)
         remove_all_service(location_id)
-        group_ids = location.group_ids
+        group_ids = list(set(location.group_ids))
         service_ids = location.service_ids
         location_groups = []
         location_services = []
