@@ -614,18 +614,19 @@ def bp_update_cert_info(id, service_code, lot_no, vax_date):
     return False
 
 
-def bp_delete_certificate(cert_id):
+def bp_delete_certificate(cert_id, notify_customer):
     try:
-        res = get_phone_number_by_certificate_id(cert_id)
-        phone_number = res['phone_number']
-        international = is_international(phone_number)
-        message = "We were unable to validate your submission. " \
-                  "You can resubmit your request by going to  " \
-                  "http://vaxyes.com  and entering in your phone number.  " \
-                  "Please make sure you take clear photos of your ID and " \
-                  "Vaccine card in order to process"
-        send_sms(phone_number,
-                 message.replace('\t', ''), international=international)
+        if notify_customer:
+            res = get_phone_number_by_certificate_id(cert_id)
+            phone_number = res['phone_number']
+            international = is_international(phone_number)
+            message = "We were unable to validate your submission. " \
+                    "You can resubmit your request by going to  " \
+                    "http://vaxyes.com  and entering in your phone number.  " \
+                    "Please make sure you take clear photos of your ID and " \
+                    "Vaccine card in order to process"
+            send_sms(phone_number,
+                    message.replace('\t', ''), international=international)
         return delete_certificate(cert_id)
 
     except Exception as err:

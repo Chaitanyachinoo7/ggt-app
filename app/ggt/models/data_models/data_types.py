@@ -1625,3 +1625,8 @@ class VerifyCertificateRequest(BaseModel):
     cert_id: str
     verification_level: int
 
+
+class DeleteCertificateRequest(BaseModel):
+    cert_id: str
+    notify_customer: bool = True
+
