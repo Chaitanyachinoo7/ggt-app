@@ -792,8 +792,8 @@ def bp_verify_certificate(cert_id, verification_level):
     try:
         verify_certificate(cert_id, verification_level)
         patient = get_patient_from_crt_number(cert_id)
-        __send_ggv_certificate_level_1_sms(patient["first_name"], patient["phone_number"], str(verification_level))
-        __send_ggv_certificate_level_1_email(patient["first_name"], patient["email"], str(verification_level))
+        __send_ggv_certificate_level_1_sms(patient["first_name"].title(), patient["phone_number"], str(verification_level))
+        __send_ggv_certificate_level_1_email(patient["first_name"].title(), patient["email"], str(verification_level))
         return True
 
     except Exception as err:

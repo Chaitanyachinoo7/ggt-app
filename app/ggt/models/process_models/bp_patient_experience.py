@@ -808,8 +808,8 @@ def bp_add_vax_certificate(req):
                 print("verification done")
                 patient = get_patient_from_crt_number(certDetails["cert1_id"])
                 print("patient", patient)
-                __send_ggv_certificate_level_1_sms(patient["first_name"], patient["phone_number"], "2")
-                __send_ggv_certificate_level_1_email(patient["first_name"], patient["email"], "2")
+                __send_ggv_certificate_level_1_sms(patient["first_name"].title(), patient["phone_number"], "2")
+                __send_ggv_certificate_level_1_email(patient["first_name"].title(), patient["email"], "2")
                 return {
                     "level": 2
                 }
@@ -885,6 +885,7 @@ def __photo_id_pristine(patient_id, cert_id, certRequest, ocr):
 
 def __vax_card_pristine(patient_id, cert_id, certRequest, ocr):
     vax_ocr_string = __get_vax_card_ocr(patient_id, cert_id)
+    print(vax_ocr_string)
     first_vax_dt = datetime.strptime(certRequest.first_vax_dt, '%Y-%m-%d')
     if(certRequest.vax_2_lot_number!= "" and certRequest.vax_2_lot_number != None):
         second_vax_dt = datetime.strptime(certRequest.second_vax_dt, '%Y-%m-%d')
@@ -892,8 +893,8 @@ def __vax_card_pristine(patient_id, cert_id, certRequest, ocr):
     ocr["vax_type"] = 1 if certRequest.vax_type.lower() in vax_ocr_string else 0
     ocr["first_vax_dt"] = 1 if (first_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or first_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or 
         first_vax_dt.strftime('%-m,%-d,%y') in vax_ocr_string) else 0
-    ocr["vax_1_lot_number"] = 1 if certRequest.vax_1_lot_number.strip("0").lower() else 0
-    if certRequest.vax_2_lot_number!= "" or certRequest.vax_2_lot_number != None:
+    ocr["vax_1_lot_number"] = 1 if certRequest.vax_1_lot_number.strip("0").lower() in vax_ocr_string else 0
+    if certRequest.vax_2_lot_number!= "" and certRequest.vax_2_lot_number != None:
         ocr["second_vax_dt"] = 1 if (second_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or second_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or 
         second_vax_dt.strftime('%-m,%-d,%Y') in vax_ocr_string) else 0
         ocr["vax_2_lot_number"] = 1 if certRequest.vax_2_lot_number.strip("0").lower() in vax_ocr_string else 0
