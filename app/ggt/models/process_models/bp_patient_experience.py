@@ -773,7 +773,27 @@ def bp_call_non_sms_phone(phone_number):
     return False
 def bp_add_vax_certificate(req):
     try:
-        print(req)
+        log_generic(
+            type=c.INFO,
+            function=whoami(),
+            key="CERTIFICATE-ADD-REQUEST-RECEIVED",
+            first_name=req.first_name,
+            last_name=req.last_name,
+            phone_number=req.phone_number,
+            email=req.email,
+            dob=req.dob,
+            vax_type=req.vax_type,
+            first_vax_dt=req.first_vax_dt,
+            vax_1_lot_number=req.vax_1_lot_number,
+            second_vax_dt=req.second_vax_dt,
+            vax_2_lot_number=req.vax_2_lot_number,
+            pristine_dob=req.pristine.dob,
+            pristine_first_name=req.pristine.first_name,
+            pristine_last_name=req.pristine.last_name,
+            vax_image=1 if req.vax_image else 0,
+            id_image=1 if req.id_image else 0
+        )
+
         pristine = req.pristine
         from ggt.models.process_models.bp_portal_experience import bp_add_vax_certificate as add_vax_certificate
         ocr = {
