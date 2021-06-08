@@ -776,7 +776,7 @@ def bp_add_vax_certificate(req):
         log_generic(
             type=c.INFO,
             function=whoami(),
-            key="CERTIFICATE-ADD-REQUEST-RECEIVED",
+            msg="CERTIFICATE-ADD-REQUEST-RECEIVED",
             first_name=req.first_name,
             last_name=req.last_name,
             phone_number=req.phone_number,

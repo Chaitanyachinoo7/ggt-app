@@ -11,7 +11,6 @@ from pprint import pformat
 # import google.cloud.logging
 import phonenumbers
 import pyotp
-import ujson
 
 #import google.cloud.logging
 #import googlecloudprofiler
@@ -109,8 +108,10 @@ def log_generic(**kwargs):
 
 
 def format_log_message(kwargs):
-    return pformat(kwargs)
-    
+    if get_config_val('env').startswith("LOCAL"):
+        return pformat(kwargs)
+    else:
+        return ujson.dumps(kwargs)
 
 #
 # def app_init():
