@@ -104,7 +104,7 @@ from ggt.lib.adapters.twilio_adapter import place_twilio_otp
 from ggt.models.data_models.schedules import verify_certificate, get_patient_from_crt_number
 import boto3
 from datetime import datetime
-from google.cloud import vision
+# from google.cloud import vision
 service_account_file = cfg('gcp.service_account_file')
 # ios pkpass constants
 pass_type_identifier = "pass.com.goget.vaccine"
