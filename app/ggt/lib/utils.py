@@ -109,10 +109,8 @@ def log_generic(**kwargs):
 
 
 def format_log_message(kwargs):
-    if get_config_val('env').startswith("LOCAL"):
-        return pformat(kwargs)
-    else:
-        return kwargs
+    return pformat(kwargs)
+    
 
 #
 # def app_init():
