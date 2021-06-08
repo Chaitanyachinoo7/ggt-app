@@ -908,19 +908,19 @@ def __vax_card_pristine(patient_id, cert_id, certRequest: LookupGGVAddVaxCertReq
     
     ocr["vax_type"] = 1 if certRequest.vax_type.lower() in vax_ocr_string else 0
     ocr["first_vax_dt"] = 1 if (first_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or first_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or 
-        first_vax_dt.strftime('%-m,%-d,%y') in vax_ocr_string) else 0
+        first_vax_dt.strftime('%-m,%-d,%y') in vax_ocr_string or first_vax_dt.strftime('%b/%-d/%Y') in vax_ocr_string) else 0
     ocr["vax_1_lot_number"] = 1 if certRequest.vax_1_lot_number.strip("0").lower() in vax_ocr_string else 0
     if certRequest.vax_2_lot_number!= "" and certRequest.vax_2_lot_number != None:
         ocr["second_vax_dt"] = 1 if (second_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or second_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or 
-        second_vax_dt.strftime('%-m,%-d,%Y') in vax_ocr_string) else 0
+        second_vax_dt.strftime('%-m,%-d,%Y') in vax_ocr_string or second_vax_dt.strftime('%b/%-d/%Y') in vax_ocr_string) else 0
         ocr["vax_2_lot_number"] = 1 if certRequest.vax_2_lot_number.strip("0").lower() in vax_ocr_string else 0
     if(certRequest.vax_2_lot_number != "" and certRequest.vax_2_lot_number != None and 
         certRequest.vax_type.lower() in vax_ocr_string and 
         (first_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or first_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or 
-        first_vax_dt.strftime('%-m,%-d,%y') in vax_ocr_string) and 
+        first_vax_dt.strftime('%-m,%-d,%y') in vax_ocr_string or first_vax_dt.strftime('%b/%-d/%Y') in vax_ocr_string) and 
         certRequest.vax_1_lot_number.strip("0").lower() in vax_ocr_string and 
         (second_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or second_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or 
-        second_vax_dt.strftime('%-m,%-d,%Y') in vax_ocr_string) and 
+        second_vax_dt.strftime('%-m,%-d,%Y') in vax_ocr_string or second_vax_dt.strftime('%b/%-d/%Y') in vax_ocr_string) and 
         certRequest.vax_2_lot_number.strip("0").lower() in vax_ocr_string and 
         certRequest.first_name.lower() in vax_ocr_string and 
         certRequest.last_name.lower() in vax_ocr_string):
@@ -928,7 +928,7 @@ def __vax_card_pristine(patient_id, cert_id, certRequest: LookupGGVAddVaxCertReq
     elif((certRequest.vax_2_lot_number== "" or certRequest.vax_2_lot_number == None) and 
             certRequest.vax_type.lower() in vax_ocr_string and 
             (first_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or first_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or 
-            first_vax_dt.strftime('%-m,%-d,%y') in vax_ocr_string) and 
+            first_vax_dt.strftime('%-m,%-d,%y') in vax_ocr_string or first_vax_dt.strftime('%b/%-d/%Y') in vax_ocr_string) and 
             certRequest.vax_1_lot_number.strip("0").lower() in vax_ocr_string and 
             certRequest.first_name.lower() in vax_ocr_string and 
             certRequest.last_name.lower() in vax_ocr_string):
