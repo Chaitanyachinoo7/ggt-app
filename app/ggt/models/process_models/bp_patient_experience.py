@@ -104,7 +104,7 @@ from ggt.lib.adapters.twilio_adapter import place_twilio_otp
 from ggt.models.data_models.schedules import verify_certificate, get_patient_from_crt_number
 import boto3
 from datetime import datetime
-from google.cloud import vision
+# from google.cloud import vision
 service_account_file = cfg('gcp.service_account_file')
 # ios pkpass constants
 pass_type_identifier = "pass.com.goget.vaccine"
@@ -1810,12 +1810,17 @@ def __send_ggv_qrcode_sms(appointment: GgtAppointment, dose, out_of):
 
 def __send_ggv_certificate_level_1_sms(first_name, phone_number, level):
     try:
-        message = """Hi {}, the level {} verification of your vaccine card is complete.
-        You can access your digital vaccine certificate by clicking below.
-        \nhttps://start.gogetvax.com""".format(
-            first_name, level
-        )
-        promoMessage = "Share this unique link with family & friends so they can get their digital cards too: \nhttp://www.vaxyes.com/friendsfree21"
+        message = ''
+        if level == "1":
+            message = """Hi {}, your vax card request was successful - your level 1 digital card is available for immediate access through the secure online portal:\nhttps://start.gogetvax.com/login \nYou'll receive an update when our team has verified your submission to level 2. Please allow extra time for processing due to volume.""".format(
+                first_name,
+            )
+            promoMessage = "Share this unique link with family & friends so they can get their digital cards too:\nhttps://www.vaxyes.com/friendsfree21"
+        elif level == "2":
+            message = """Hi {}, congrats! Your vax card has been updated to level 2 verification. Your updated card is available here:\nhttps://start.gogetvax.com/login""".format(
+                first_name,
+            )
+            promoMessage = "Thanks for choosing the VaxYes service. Share this unique link with family & friends so they can get their digital cards too:\nhttps://www.vaxyes.com/friendsfree21"
 
         send_sms(phone_number,
                  message.replace('\t', ''))
