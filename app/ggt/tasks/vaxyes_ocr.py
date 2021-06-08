@@ -32,56 +32,9 @@ def run_ocr_on_vax_yes_cards():
         certs = get_unverified_certs(item["patient_id"])
         print(certs)
         if certs and len(certs):
-            vax_type = ""
-            if "PFIZER" in certs[0]["service_code"]:
-                vax_type = "pfizer"
-            elif "MODERNA" in certs[0]["service_code"]:
-                vax_type = "moderna"
-            elif "JNJ" in certs[0]["service_code"]:
-                vax_type = "janssen"
-            req = lambda: None
-            req.first_name = certs[0]["first_name"]
-            req.last_name = certs[0]["last_name"]
-            req.phone_number = certs[0]["phone_number"]
-            req.email = certs[0]["email"]
-            req.dob = certs[0]["dob"].strftime('%Y-%m-%d')
-            req.vax_type = vax_type
-            req.first_vax_dt = certs[0]["check_in_dt"].strftime('%Y-%m-%d')
-            req.vax_1_lot_number = certs[0]["lot_no"]
-            req.second_vax_dt = certs[1]["check_in_dt"].strftime('%Y-%m-%d') if len(certs)>1 else ""
-            req.vax_2_lot_number = certs[1]["lot_no"] if len(certs)>1 else ""
-            # req = {
-            #     "first_name": certs[0]["first_name"],
-            #     "last_name": certs[0]["last_name"],
-            #     "phone_number": certs[0]["phone_number"],
-            #     "email": certs[0]["email"],
-            #     "dob": certs[0]["dob"],
-            #     "vax_type": vax_type,
-            #     "first_vax_dt": certs[0]["check_in_dt"].strftime('%Y-%m-%d'),
-            #     "vax_1_lot_number": certs[0]["lot_no"],
-            #     "second_vax_dt": certs[1]["check_in_dt"] if len(certs)>1 else "",
-            #     "vax_2_lot_number": certs[1]["lot_no"] if len(certs)>1 else ""
-            # }
+            req = get_pristine_req(certs)
             print(req.first_name)
-            ocr = {
-                "patient_id": None, 
-                "first_name": 0, 
-                "last_name": 0, 
-                "vax_type": 0, 
-                "dob": 0, 
-                "cert1_id": None, 
-                "first_vax_dt": 0, 
-                "vax_1_lot_number": 0, 
-                "cert2_id": None, 
-                "second_vax_dt": 0, 
-                "vax_2_lot_number": 0
-            }
-            ocr["patient_id"] = item["patient_id"]
-            ocr["cert1_id"] = certs[0]["id"]
-            if len(certs)>1:
-                ocr["cert2_id"] = certs[1]["id"]
-            print(ocr)
-            
+            ocr = create_ocr_obj(item, certs)
             try:
                 is_vax_card_pristine= __vax_card_pristine(str(item["patient_id"]), str(certs[0]["cert_id"]), req, ocr)
                 is_photo_id_pristine = __photo_id_pristine(str(item["patient_id"]), str(certs[0]["cert_id"]), req, ocr)
@@ -98,6 +51,48 @@ def run_ocr_on_vax_yes_cards():
                     error=err
                 )
     print("L2 certs= "+ str(final))
+
+def create_ocr_obj(item, certs):
+    ocr = {
+        "patient_id": None, 
+        "first_name": 0, 
+        "last_name": 0, 
+        "vax_type": 0, 
+        "dob": 0, 
+        "cert1_id": None, 
+        "first_vax_dt": 0, 
+        "vax_1_lot_number": 0, 
+        "cert2_id": None, 
+        "second_vax_dt": 0, 
+        "vax_2_lot_number": 0
+    }
+    ocr["patient_id"] = item["patient_id"]
+    ocr["cert1_id"] = certs[0]["id"]
+    if len(certs)>1:
+        ocr["cert2_id"] = certs[1]["id"]
+    print(ocr)
+    return ocr
+
+def get_pristine_req(certs):
+    vax_type = ""
+    if "PFIZER" in certs[0]["service_code"]:
+        vax_type = "pfizer"
+    elif "MODERNA" in certs[0]["service_code"]:
+        vax_type = "moderna"
+    elif "JNJ" in certs[0]["service_code"]:
+        vax_type = "janssen"
+    req = lambda: None
+    req.first_name = certs[0]["first_name"]
+    req.last_name = certs[0]["last_name"]
+    req.phone_number = certs[0]["phone_number"]
+    req.email = certs[0]["email"]
+    req.dob = certs[0]["dob"].strftime('%Y-%m-%d')
+    req.vax_type = vax_type
+    req.first_vax_dt = certs[0]["check_in_dt"].strftime('%Y-%m-%d')
+    req.vax_1_lot_number = certs[0]["lot_no"]
+    req.second_vax_dt = certs[1]["check_in_dt"].strftime('%Y-%m-%d') if len(certs)>1 else ""
+    req.vax_2_lot_number = certs[1]["lot_no"] if len(certs)>1 else ""
+    return req
 def get_distinct_unverified_certs_patient_ids():
     print("inside get_distinct_unverified_certs_patient_ids")
     sql = """

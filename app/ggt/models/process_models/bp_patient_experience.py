@@ -22,7 +22,7 @@ from ggt.lib.utils import (
     whoami,
     get_translated_message, is_international
 )
-
+from ggt.models.data_models.data_types import LookupGGVAddVaxCertRequest
 from ggt.lib.sms import (send_sms)
 
 from ggt.lib.email import (
@@ -879,7 +879,6 @@ def __get_vax_card_ocr_gcp(content):
     response = client.text_detection(image=image)
     print(response.full_text_annotation.text)
     return response.full_text_annotation.text
-from ggt.models.data_models.data_types import LookupGGVAddVaxCertRequest
 def __photo_id_pristine(patient_id, cert_id, certRequest: LookupGGVAddVaxCertRequest, ocr):
     id_ocr_string = __get_vax_card_ocr(patient_id, str(cert_id) + '_id_image')
     print(id_ocr_string)
