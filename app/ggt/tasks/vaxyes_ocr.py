@@ -22,6 +22,8 @@ from ggt.models.data_models.data_types import (
 )
 from ggt.models.data_models.data_types import LookupGGVAddVaxCertRequest
 from ggt.models.process_models.bp_patient_experience import __vax_card_pristine, __photo_id_pristine, __update_ocr_status
+
+from ggt.lib.adapters.s3_adapter import get_temp_pkpass_url
 def run_ocr_on_vax_yes_cards():
     print("starting run_ocr_on_vax_yes_cards job")
     unverified_certs = get_distinct_unverified_certs_patient_ids()
@@ -32,7 +34,7 @@ def run_ocr_on_vax_yes_cards():
         certs = get_unverified_certs(item["patient_id"])
         print(certs)
         if certs and len(certs):
-            req = get_pristine_req(certs)
+            req = get_pristine_req(certs, str(item["patient_id"]))
             print(req.first_name)
             ocr = create_ocr_obj(item, certs)
             try:
@@ -73,7 +75,7 @@ def create_ocr_obj(item, certs):
     print(ocr)
     return ocr
 
-def get_pristine_req(certs):
+def get_pristine_req(certs, patient_id):
     vax_type = ""
     if "PFIZER" in certs[0]["service_code"]:
         vax_type = "pfizer"
@@ -92,6 +94,7 @@ def get_pristine_req(certs):
     req.vax_1_lot_number = certs[0]["lot_no"]
     req.second_vax_dt = certs[1]["check_in_dt"].strftime('%Y-%m-%d') if len(certs)>1 else ""
     req.vax_2_lot_number = certs[1]["lot_no"] if len(certs)>1 else ""
+    req.vax_image_url = get_temp_pkpass_url('{}/{}.jpg'.format(patient_id, str(certs[0]["cert_id"])), get_config_val('aws.vax_certificate_bucket'))
     return req
 def get_distinct_unverified_certs_patient_ids():
     print("inside get_distinct_unverified_certs_patient_ids")

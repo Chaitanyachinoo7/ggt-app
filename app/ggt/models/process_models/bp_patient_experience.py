@@ -104,7 +104,7 @@ from ggt.lib.adapters.twilio_adapter import place_twilio_otp
 from ggt.models.data_models.schedules import verify_certificate, get_patient_from_crt_number
 import boto3
 from datetime import datetime
-# from google.cloud import vision
+from google.cloud import vision
 service_account_file = cfg('gcp.service_account_file')
 # ios pkpass constants
 pass_type_identifier = "pass.com.goget.vaccine"
@@ -872,9 +872,8 @@ def __get_vax_card_ocr_gcp(content):
     client = vision.ImageAnnotatorClient()
     # import binascii
     # content1 = binascii.a2b_base64(content)
-    base64string = content.split(",")[1]
-    import base64
-    image = vision.Image(content=base64.b64decode(base64string))
+    image = vision.Image()
+    image.source.image_uri = content
     # print(image)
     response = client.text_detection(image=image)
     print(response.full_text_annotation.text)
@@ -882,17 +881,19 @@ def __get_vax_card_ocr_gcp(content):
 def __photo_id_pristine(patient_id, cert_id, certRequest: LookupGGVAddVaxCertRequest, ocr):
     id_ocr_string = __get_vax_card_ocr(patient_id, str(cert_id) + '_id_image')
     print(id_ocr_string)
-    date_of_birth = datetime.strptime(certRequest.dob, '%Y-%m-%d').strftime('%m/%d/%Y')
-    print(date_of_birth)
-    print(certRequest.first_name.lower() in id_ocr_string)
-    print(certRequest.last_name.lower() in id_ocr_string)
-    print(date_of_birth in id_ocr_string)
+    date_of_birth = datetime.strptime(certRequest.dob, '%Y-%m-%d')
     ocr["first_name"] = 1 if certRequest.first_name.lower() in id_ocr_string else 0
     ocr["last_name"] = 1 if certRequest.last_name.lower() in id_ocr_string else 0
-    ocr["dob"] = 1 if date_of_birth in id_ocr_string else 0
+    ocr["dob"] = 1 if (date_of_birth.strftime('%-m/%-d/%y') in id_ocr_string or date_of_birth.strftime('%m/%d/%y') in id_ocr_string or 
+        date_of_birth.strftime('%-m/%-d/%Y') in id_ocr_string or date_of_birth.strftime('%m/%d/%Y') in id_ocr_string or 
+        date_of_birth.strftime('%-m,%-d,%y') in id_ocr_string or date_of_birth.strftime('%b/%-d/%Y') in id_ocr_string or 
+        date_of_birth.strftime('%-m-%-d-%y') in id_ocr_string or date_of_birth.strftime('%m-%d-%y') in id_ocr_string or
+        date_of_birth.strftime('%-m,%-d,%y') in id_ocr_string or date_of_birth.strftime('%b/%-d/%Y') in id_ocr_string) else 0
     if(certRequest.first_name.lower() in id_ocr_string and 
         certRequest.last_name.lower() in id_ocr_string and 
-        date_of_birth in id_ocr_string):
+        (date_of_birth.strftime('%-m/%-d/%y') in id_ocr_string or date_of_birth.strftime('%m/%d/%y') in id_ocr_string or 
+        date_of_birth.strftime('%-m/%-d/%Y') in id_ocr_string or date_of_birth.strftime('%m/%d/%Y') in id_ocr_string or 
+        date_of_birth.strftime('%-m,%-d,%y') in id_ocr_string or date_of_birth.strftime('%b/%-d/%Y') in id_ocr_string)):
         print("first_name, last_name and dob matched in photo id ocr")
         return True
     print("first_name, last_name or dob did not match in photo id ocr")
@@ -900,34 +901,39 @@ def __photo_id_pristine(patient_id, cert_id, certRequest: LookupGGVAddVaxCertReq
 
 def __vax_card_pristine(patient_id, cert_id, certRequest: LookupGGVAddVaxCertRequest, ocr):
     vax_ocr_string = __get_vax_card_ocr(patient_id, cert_id)
-    # vax_ocr_string = vax_ocr_string + __get_vax_card_ocr_gcp(certRequest.vax_image)
+    vax_ocr_string = vax_ocr_string + " " + __get_vax_card_ocr_gcp(certRequest.vax_image_url)
     print(vax_ocr_string)
     first_vax_dt = datetime.strptime(certRequest.first_vax_dt, '%Y-%m-%d')
     if(certRequest.vax_2_lot_number!= "" and certRequest.vax_2_lot_number != None):
         second_vax_dt = datetime.strptime(certRequest.second_vax_dt, '%Y-%m-%d')
     
     ocr["vax_type"] = 1 if certRequest.vax_type.lower() in vax_ocr_string else 0
-    ocr["first_vax_dt"] = 1 if (first_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or first_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or 
+    ocr["first_vax_dt"] = 1 if (first_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or first_vax_dt.strftime('%m/%d/%y') in vax_ocr_string or 
+        first_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or first_vax_dt.strftime('%m/%d/%Y') in vax_ocr_string or 
         first_vax_dt.strftime('%-m,%-d,%y') in vax_ocr_string or first_vax_dt.strftime('%b/%-d/%Y') in vax_ocr_string) else 0
     ocr["vax_1_lot_number"] = 1 if certRequest.vax_1_lot_number.strip("0").lower() in vax_ocr_string else 0
     if certRequest.vax_2_lot_number!= "" and certRequest.vax_2_lot_number != None:
-        ocr["second_vax_dt"] = 1 if (second_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or second_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or 
-        second_vax_dt.strftime('%-m,%-d,%Y') in vax_ocr_string or second_vax_dt.strftime('%b/%-d/%Y') in vax_ocr_string) else 0
+        ocr["second_vax_dt"] = 1 if (second_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or second_vax_dt.strftime('%m/%d/%y') in vax_ocr_string or
+        second_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or second_vax_dt.strftime('%m/%d/%Y') in vax_ocr_string 
+        or second_vax_dt.strftime('%-m,%-d,%Y') in vax_ocr_string or second_vax_dt.strftime('%b/%-d/%Y') in vax_ocr_string) else 0
         ocr["vax_2_lot_number"] = 1 if certRequest.vax_2_lot_number.strip("0").lower() in vax_ocr_string else 0
     if(certRequest.vax_2_lot_number != "" and certRequest.vax_2_lot_number != None and 
         certRequest.vax_type.lower() in vax_ocr_string and 
-        (first_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or first_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or 
+        (first_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or first_vax_dt.strftime('%m/%d/%y') in vax_ocr_string or 
+        first_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or first_vax_dt.strftime('%m/%d/%Y') in vax_ocr_string or 
         first_vax_dt.strftime('%-m,%-d,%y') in vax_ocr_string or first_vax_dt.strftime('%b/%-d/%Y') in vax_ocr_string) and 
         certRequest.vax_1_lot_number.strip("0").lower() in vax_ocr_string and 
-        (second_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or second_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or 
-        second_vax_dt.strftime('%-m,%-d,%Y') in vax_ocr_string or second_vax_dt.strftime('%b/%-d/%Y') in vax_ocr_string) and 
+        (second_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or second_vax_dt.strftime('%m/%d/%y') in vax_ocr_string or
+        second_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or second_vax_dt.strftime('%m/%d/%Y') in vax_ocr_string 
+        or second_vax_dt.strftime('%-m,%-d,%Y') in vax_ocr_string or second_vax_dt.strftime('%b/%-d/%Y') in vax_ocr_string) and 
         certRequest.vax_2_lot_number.strip("0").lower() in vax_ocr_string and 
         certRequest.first_name.lower() in vax_ocr_string and 
         certRequest.last_name.lower() in vax_ocr_string):
         return True
     elif((certRequest.vax_2_lot_number== "" or certRequest.vax_2_lot_number == None) and 
             certRequest.vax_type.lower() in vax_ocr_string and 
-            (first_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or first_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or 
+            (first_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or first_vax_dt.strftime('%m/%d/%y') in vax_ocr_string or 
+            first_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or first_vax_dt.strftime('%m/%d/%Y') in vax_ocr_string or 
             first_vax_dt.strftime('%-m,%-d,%y') in vax_ocr_string or first_vax_dt.strftime('%b/%-d/%Y') in vax_ocr_string) and 
             certRequest.vax_1_lot_number.strip("0").lower() in vax_ocr_string and 
             certRequest.first_name.lower() in vax_ocr_string and 
@@ -2018,6 +2024,7 @@ def __send_ggv_certificate_level_1_email(first_name, email, level):
         )
 
         template_name = "GGV-2-COMPLETED-LEVEL-{}.html".format(level)
+        print(template_name)
         html_content = render_template(
             template_name,
             **template_vars
