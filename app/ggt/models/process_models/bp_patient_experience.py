@@ -104,6 +104,8 @@ from ggt.lib.adapters.twilio_adapter import place_twilio_otp
 from ggt.models.data_models.schedules import verify_certificate, get_patient_from_crt_number
 import boto3
 from datetime import datetime
+from google.cloud import vision
+service_account_file = cfg('gcp.service_account_file')
 # ios pkpass constants
 pass_type_identifier = "pass.com.goget.vaccine"
 organization_name = "GoGet, Inc."
@@ -808,8 +810,8 @@ def bp_add_vax_certificate(req):
                 print("verification done")
                 patient = get_patient_from_crt_number(certDetails["cert1_id"])
                 print("patient", patient)
-                __send_ggv_certificate_level_1_sms(patient["first_name"].title(), patient["phone_number"], "2")
-                __send_ggv_certificate_level_1_email(patient["first_name"].title(), patient["email"], "2")
+                # __send_ggv_certificate_level_1_sms(patient["first_name"].title(), patient["phone_number"], "2")
+                # __send_ggv_certificate_level_1_email(patient["first_name"].title(), patient["email"], "2")
                 return {
                     "level": 2
                 }
@@ -846,6 +848,7 @@ def __get_vax_card_ocr(patient_id, cert_id):
         aws_secret_access_key=cfg('aws.secret_access_key'),
         region_name='us-east-2'
     )
+    print('{}/{}.jpg'.format(patient_id, cert_id))
     response = boto_client.analyze_document(
         Document={
             'S3Object': {
@@ -864,7 +867,20 @@ def __get_vax_card_ocr(patient_id, cert_id):
             card_string = card_string + " "+ item["Text"].replace(" ", "")
     return card_string.lstrip().strip("0").lower()
 
-def __photo_id_pristine(patient_id, cert_id, certRequest, ocr):
+def __get_vax_card_ocr_gcp(content):
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = './ggt/configs/gpay/ggt-pfe-prod-e3201b1cc798.json'
+    client = vision.ImageAnnotatorClient()
+    # import binascii
+    # content1 = binascii.a2b_base64(content)
+    base64string = content.split(",")[1]
+    import base64
+    image = vision.Image(content=base64.b64decode(base64string))
+    # print(image)
+    response = client.text_detection(image=image)
+    print(response.full_text_annotation.text)
+    return response.full_text_annotation.text
+from ggt.models.data_models.data_types import LookupGGVAddVaxCertRequest
+def __photo_id_pristine(patient_id, cert_id, certRequest: LookupGGVAddVaxCertRequest, ocr):
     id_ocr_string = __get_vax_card_ocr(patient_id, str(cert_id) + '_id_image')
     print(id_ocr_string)
     date_of_birth = datetime.strptime(certRequest.dob, '%Y-%m-%d').strftime('%m/%d/%Y')
@@ -883,8 +899,9 @@ def __photo_id_pristine(patient_id, cert_id, certRequest, ocr):
     print("first_name, last_name or dob did not match in photo id ocr")
     return False
 
-def __vax_card_pristine(patient_id, cert_id, certRequest, ocr):
+def __vax_card_pristine(patient_id, cert_id, certRequest: LookupGGVAddVaxCertRequest, ocr):
     vax_ocr_string = __get_vax_card_ocr(patient_id, cert_id)
+    # vax_ocr_string = vax_ocr_string + __get_vax_card_ocr_gcp(certRequest.vax_image)
     print(vax_ocr_string)
     first_vax_dt = datetime.strptime(certRequest.first_vax_dt, '%Y-%m-%d')
     if(certRequest.vax_2_lot_number!= "" and certRequest.vax_2_lot_number != None):
