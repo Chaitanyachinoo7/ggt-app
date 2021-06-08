@@ -2068,7 +2068,7 @@ def __send_ggv_certificate_level_1_email(first_name, email, level):
             error=err
         )
 
-    return False
+    return True
 
 
 def __send_ggv_pre_registration_email(first_name, email):
