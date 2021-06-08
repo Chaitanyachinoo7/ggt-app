@@ -2043,7 +2043,7 @@ def __send_ggv_certificate_level_1_email(first_name, email, level):
     except Exception as err:
         log_generic(
             type=c.ERROR,
-            appointment=appointment,
+            email=email,
             function=whoami(),
             error=err
         )
