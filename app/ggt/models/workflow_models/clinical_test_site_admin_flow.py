@@ -222,10 +222,10 @@ def lookup_certificate(first_name, last_name, dob, phone_number, user):
     )
 
 
-def lookup_unverified_certificate(first_name, last_name, dob, phone_number, limit, offset, user):
+def lookup_unverified_certificate(first_name, last_name, dob, phone_number, limit, offset, user, version):
     return y_response(
         bp_lookup_unverified_certificate(
-            first_name, last_name, dob, phone_number, limit, offset, user
+            first_name, last_name, dob, phone_number, limit, offset, user, version
         )
     )
 

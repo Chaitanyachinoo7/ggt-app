@@ -312,9 +312,22 @@ async def api_lookup_unverified_certificate(req: LookupUnverifiedCertificateRequ
         req.phone_number,
         req.limit,
         req.offset,
-        user['sub']
+        user['sub'],
+        1
     )
-    
+
+@router.post("/site-admin/lookup_unverified_certificate_v2")
+async def api_lookup_unverified_certificate_v2(req: LookupUnverifiedCertificateRequest, user=Security(authorize_user, scopes=[p.PATIENT_LOOKUP])):
+    return lookup_unverified_certificate(
+        req.first_name,
+        req.last_name,
+        req.dob,
+        req.phone_number,
+        req.limit,
+        req.offset,
+        user['sub'],
+        2
+    )
 
 @router.post("/site-admin/update_patient_info_cert", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
 async def api_update_patient_ifo_cert(req: UpdatePatientInfoCert):
