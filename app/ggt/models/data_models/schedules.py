@@ -510,7 +510,6 @@ def lookup_certificate(phone_number, dob, first_name, last_name, version, token=
                         LEFT JOIN
                     ggv_certificates_ocr ggv_ocr ON p.id = ggv_ocr.patient_id
                     WHERE {}""".format(where_statement)
-        print(where_statement)
         rows = replica_read_rows(sql)
         return __format_vax_certificate_portal(rows, version), "No certificate found."
 

@@ -3,7 +3,7 @@ app_version: 1.1
 log_level: DEBUG
 base_url: https://start.GoGetTested.com
 portal_url: https://portal.gogettested.com
-env: LOCAL-PROD
+env: DEV
 default_timezone: CST
 
 server:
@@ -70,8 +70,8 @@ aws:
   sqs_print_queue_base_url: https://sqs.us-east-1.amazonaws.com/135292740376/ggt-print-queue
   lab_reports_bucket_name: ggt-labreports
   default_link_expiration_time_limit: 300
-  ggt_ops_images: ggt-ops-images
-  vax_certificate_bucket: ggt-vax-certificates
+  ggt_ops_images: ggt-ops-images-dev
+  vax_certificate_bucket: ggt-vax-certificates-dev
   
 gcp:
   project_id: ggt-pfe-prod
@@ -88,8 +88,8 @@ gcp:
 
 databases:
   mysql:
-    host: prod-ggt-aurora.cluster-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
-    read_replica_host: prod-ggt-aurora.cluster-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+    host: ggt-dev-db.cluster-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
+    read_replica_host: ggt-dev-db.cluster-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
     username: admin
     password: hWMgl5Tfkqn30saQNp9M
     db: ggt_prod
