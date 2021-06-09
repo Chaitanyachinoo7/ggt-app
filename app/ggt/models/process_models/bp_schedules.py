@@ -32,7 +32,8 @@ from ggt.models.data_models.schedules import (
     delete_ggv_schedules_metrics_cache, delete_schedules_metrics_cache, get_second_slot_reschedule_dates,
     get_ggv_available_dates, get_group_by_group_code, get_available_ggv_locations_near_lat_lng,
     get_first_available_times, lookup_certificate, update_patient_ifo_cert, update_cert_info, delete_certificate,
-    verify_certificate, get_patient_from_crt_number, get_certificate_stats, get_phone_number_by_certificate_id
+    verify_certificate, get_patient_from_crt_number, get_certificate_stats, get_phone_number_by_certificate_id,
+    reject_certificate
 )
 
 from ggt.models.data_models.locations import (
@@ -543,39 +544,70 @@ def bp_delete_schedule(location_id):
     return False
 
 
-def bp_lookup_certificate(first_name, last_name, dob, phone_number):
+def bp_lookup_certificate(first_name, last_name, dob, phone_number, user):
     try:
-        print("inside" + whoami())
-        print(first_name, last_name, dob, phone_number)
-        return lookup_certificate(phone_number, dob, first_name, last_name)[0]
-
-    except Exception as err:
-        print(err)
+        res = lookup_certificate(phone_number, dob, first_name, last_name, user=user)[0]
         log_generic(
             type=c.ERROR,
+            msg='LOOKUP-CERTIFICATE-RESPONSE',
             first_name=first_name,
             last_name=last_name,
             dob=dob,
             phone_number=phone_number,
-            function=whoami(),
+            admin=user,
+            whoami=whoami(),
+            res=res
+        )
+        return res
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            msg='LOOKUP-CERTIFICATE-REQUEST-ERROR',
+            first_name=first_name,
+            last_name=last_name,
+            dob=dob,
+            phone_number=phone_number,
+            admin=user,
+            whoami=whoami(),
             error=err
         )
-
     return False
 
 
-def bp_lookup_unverified_certificate(first_name, last_name, dob, phone_number, limit, offset):
+def bp_lookup_unverified_certificate(first_name, last_name, dob, phone_number, limit, offset, user):
     try:
-        return lookup_certificate(phone_number, dob, first_name, last_name, None, 1, limit, offset)[0]
-
-    except Exception as err:
         log_generic(
-            type=c.ERROR,
+            type=c.INFO,
+            msg='LOOKUP-UNVERIFIED-CERTIFICATES-REQUEST',
             first_name=first_name,
             last_name=last_name,
             dob=dob,
             phone_number=phone_number,
+            admin=user,
+            function=whoami()
+        )
+        res = lookup_certificate(phone_number, dob, first_name, last_name, None, 1, limit, offset, user=user)[0]
+        log_generic(
+            type=c.INFO,
+            msg='LOOKUP-UNVERIFIED-CERTIFICATES-RESPONSE',
+            first_name=first_name,
+            last_name=last_name,
+            dob=dob,
+            phone_number=phone_number,
+            admin=user,
             function=whoami(),
+            res=res
+        )
+        return res
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            msg='LOOKUP-UNVERIFIED-CERTIFICATES-REQUEST-ERROR',
+            first_name=first_name,
+            last_name=last_name,
+            dob=dob,
+            phone_number=phone_number,
+            admin=user,
             error=err
         )
 
@@ -635,6 +667,79 @@ def bp_delete_certificate(cert_id):
         log_generic(
             type=c.ERROR,
             cert_id=cert_id,
+            function=whoami(),
+            error=err
+        )
+
+    return False
+
+
+def bp_reject_certificate(cert_id, user):
+    try:
+        res = get_phone_number_by_certificate_id(cert_id)
+        phone_number = res['phone_number']
+        log_generic(
+            type=c.INFO,
+            msg="CERTIFICATE-REJECTION-REQUEST",
+            cert_id=cert_id,
+            phone_number=phone_number,
+            admin=user['sub'],
+            whoami=whoami(),
+        )
+
+        international = is_international(phone_number)
+        message = "We were unable to validate your submission. " \
+                  "You can resubmit your request by going to  " \
+                  "http://vaxyes.com  and entering in your phone number.  " \
+                  "Please make sure you take clear photos of your ID and " \
+                  "Vaccine card in order to process"
+
+        if reject_certificate(cert_id):
+            log_generic(
+                type=c.INFO,
+                msg="CERTIFICATE-REJECTED",
+                cert_id=cert_id,
+                phone_number=phone_number,
+                admin=user['sub'],
+                whoami=whoami(),
+            )
+
+            if send_sms(phone_number, message.replace('\t', ''), international=international):
+                log_generic(
+                    type=c.INFO,
+                    msg="CERTIFICATE-REJECTION-SMS-SENT",
+                    cert_id=cert_id,
+                    message=message,
+                    phone_number=phone_number,
+                    admin=user['sub'],
+                    whoami=whoami(),
+                )
+            else:
+                log_generic(
+                    type=c.INFO,
+                    msg="CERTIFICATE-REJECTION-SMS-FAILED",
+                    cert_id=cert_id,
+                    phone_number=phone_number,
+                    admin=user['sub'],
+                    whoami=whoami(),
+                )
+        else:
+            log_generic(
+                type=c.INFO,
+                msg="CERTIFICATE-REJECTION-FAILED",
+                cert_id=cert_id,
+                phone_number=phone_number,
+                admin=user['sub'],
+                whoami=whoami(),
+            )
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            msg="CERTIFICATE-REJECTION-FAILED-ERROR",
+            cert_id=cert_id,
+            phone_number=phone_number,
+            admin=user['sub'],
             function=whoami(),
             error=err
         )
