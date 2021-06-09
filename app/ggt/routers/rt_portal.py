@@ -387,11 +387,12 @@ def api_get_vax_certificate(patient_id: str, certificate_id: str):
     return get_vax_certificate(patient_id, certificate_id, pass_through=True)
 
 
-@router.post("/site-admin/verify_certificate", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
-async def api_verify_certificate(req: VerifyCertificateRequest):
+@router.post("/site-admin/verify_certificate")
+async def api_verify_certificate(req: VerifyCertificateRequest, user=Security(authorize_user, scopes=[p.PATIENT_LOOKUP])):
     return verify_certificate(
         req.cert_id,
-        req.verification_level
+        req.verification_level,
+        user
     )
 
 

@@ -319,10 +319,10 @@ def add_vax_certificate(request):
     )
 
 
-def verify_certificate(cert_id, verification_level):
+def verify_certificate(cert_id, verification_level, user):
     return x_response(
         bp_verify_certificate(
-            cert_id, verification_level
+            cert_id, verification_level, user
         )
     )
 

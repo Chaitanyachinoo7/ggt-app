@@ -949,20 +949,59 @@ def bp_get_schedule_generation_rules(location_id):
     return False
 
 
-def bp_verify_certificate(cert_id, verification_level):
+def bp_verify_certificate(cert_id, verification_level, user):
     try:
-        verify_certificate(cert_id, verification_level)
+        log_generic(
+            type=c.INFO,
+            msg='VERIFY-CERTIFICATE-REQUEST-RECEIVED',
+            cert_id=cert_id,
+            verification_level=verification_level,
+            admin=user['sub'],
+            whoami=whoami()
+        )
+        if verify_certificate(cert_id, verification_level):
+            log_generic(
+                type=c.INFO,
+                msg='VERIFY-CERTIFICATE-SUCCESS',
+                cert_id=cert_id,
+                verification_level=verification_level,
+                admin=user['sub'],
+                whoami=whoami()
+            )
+        else:
+            log_generic(
+                type=c.ERROR,
+                msg='VERIFY-CERTIFICATE-FAILED',
+                cert_id=cert_id,
+                verification_level=verification_level,
+                admin=user['sub'],
+                whoami=whoami()
+            )
         patient = get_patient_from_crt_number(cert_id)
-        send_ggv_certificate_level_1_sms(patient["first_name"].title(), patient["phone_number"], str(verification_level))
-        send_ggv_certificate_level_1_email(patient["first_name"].title(), patient["email"], str(verification_level), phone_number=patient["phone_number"])
+
+        if patient:
+            send_ggv_certificate_level_1_sms(patient["first_name"].title(), patient["phone_number"], str(verification_level))
+            send_ggv_certificate_level_1_email(patient["first_name"].title(), patient["email"], str(verification_level), phone_number=patient["phone_number"])
+        else:
+            log_generic(
+                type=c.INFO,
+                msg='VERIFY-CERTIFICATE-PATIENT_NOT_FOUND',
+                cert_id=cert_id,
+                verification_level=verification_level,
+                admin=user['sub'],
+                whoami=whoami(),
+                patient=patient
+            )
         return True
 
     except Exception as err:
         log_generic(
             type=c.ERROR,
+            msg='VERIFY-CERTIFICATE-PATIENT_NOT_FOUND',
             cert_id=cert_id,
             verification_level=verification_level,
-            function=whoami(),
+            admin=user['sub'],
+            whoami=whoami(),
             error=err
         )
 
