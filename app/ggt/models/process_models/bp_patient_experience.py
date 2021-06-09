@@ -2523,8 +2523,16 @@ def __upload_test_result_image(result_image: str, appointment_id: int) -> bool:
     return False
 
 
-def upload_vax_card_image(result_image: str, patient_id: int, cert_id: str) -> bool:
+def upload_vax_card_image(result_image: str, patient_id: int, cert_id: str, user=None) -> bool:
     try:
+        log_generic(
+            type=c.INFO,
+            msg="UPLOAD-VAX-CERTIFICATE-REQUEST",
+            patient_id=patient_id,
+            cert_id=cert_id,
+            admin=user,
+            function=whoami()
+        )
         if result_image.find("api.twilio.com") != -1:
             return upload_vax_card_image_from_twilio(
                 result_image, '{}/{}.jpg'.format(patient_id, cert_id), cfg('aws.vax_certificate_bucket'))
@@ -2533,15 +2541,33 @@ def upload_vax_card_image(result_image: str, patient_id: int, cert_id: str) -> b
                 base64string = result_image.split(",")[1]
             dest_file_name = '{}/{}.jpg'.format(patient_id, cert_id)
             if upload_vax_card_image_from_base64_string(base64string, dest_file_name):
+                log_generic(
+                    type=c.INFO,
+                    msg="UPLOAD-VAX-CERTIFICATE-UPLOADED",
+                    patient_id=patient_id,
+                    cert_id=cert_id,
+                    admin=user,
+                    function=whoami()
+                )
                 return True
     except Exception as err:
         log_generic(
             type=c.ERROR,
+            msg="UPLOAD-VAX-CERTIFICATE-UPLOAD-ERROR",
             patient_id=patient_id,
-            result_image=result_image,
+            cert_id=cert_id,
+            admin=user,
             function=whoami(),
             error=err
         )
+    log_generic(
+        type=c.INFO,
+        msg="UPLOAD-VAX-CERTIFICATE-UPLOAD-FAILED",
+        patient_id=patient_id,
+        cert_id=cert_id,
+        admin=user,
+        function=whoami()
+    )
     return False
 
 

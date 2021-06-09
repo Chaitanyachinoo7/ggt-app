@@ -269,9 +269,9 @@ def get_certificate_stats():
     )
 
 
-def update_cert_image(patient_id, cert_id, image):
+def update_cert_image(patient_id, cert_id, image, user):
     return x_response(
-        upload_vax_card_image(image, patient_id, cert_id)
+        upload_vax_card_image(image, patient_id, cert_id, user)
     )
 
 

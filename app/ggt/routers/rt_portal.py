@@ -346,12 +346,13 @@ async def api_update_cert_info(req: UpdateCertInfo):
     )
 
 
-@router.post("/site-admin/update_cert_image", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
-async def api_update_cert_image(req: UpdateCertImage):
+@router.post("/site-admin/update_cert_image")
+async def api_update_cert_image(req: UpdateCertImage, user=Security(authorize_user, scopes=[p.PATIENT_LOOKUP])):
     return update_cert_image(
         req.patient_id,
         req.cert_id,
-        req.image
+        req.image,
+        user['sub']
     )
 
 
