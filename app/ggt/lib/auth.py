@@ -28,11 +28,13 @@ from ggt.models.data_models.data_types import (
 # TODO: [GGT-81] read from config/DB
 CLIENT_ID = "269165607649-ejpvn7ar1llub2e8tr6ur4ad2p1srucf.apps.googleusercontent.com"
 # TODO: [GGT-82] read from config/DB as a single value of "tokenUrl" e.g. GgtOAuth2PasswordBearer(tokenUrl=get_config_val('vendors.auth0.auth0_domain'))
-oauth2_scheme = GgtOAuth2PasswordBearer(tokenUrl="https://" + get_config_val('vendors.auth0.auth0_domain') + "/oauth/token")
+oauth2_scheme = GgtOAuth2PasswordBearer(
+    tokenUrl="https://" + get_config_val('vendors.auth0.auth0_domain') + "/oauth/token")
 api_key_header = APIKeyHeader(
-    name='x-api-key', 
+    name='x-api-key',
     auto_error=False
 )
+
 
 # TODO: [GGT-84] read from config/DB
 def verify_google_idtoken(token):
@@ -40,10 +42,10 @@ def verify_google_idtoken(token):
         decoded_token = id_token.verify_oauth2_token(
             token, requests.Request(), CLIENT_ID)
 
-        if(decoded_token['email'].split('@')[1] == "wellpay.com" or
-           decoded_token['email'].split('@')[1] == "wellhealth.studio" or
-           decoded_token['email'].split('@')[1] == "hrmdmanagement.com" or
-           decoded_token['email'].split('@')[1] == "flowermoundpain.co"):
+        if (decoded_token['email'].split('@')[1] == "wellpay.com" or
+                decoded_token['email'].split('@')[1] == "wellhealth.studio" or
+                decoded_token['email'].split('@')[1] == "hrmdmanagement.com" or
+                decoded_token['email'].split('@')[1] == "flowermoundpain.co"):
             return True
         else:
             return False
@@ -72,6 +74,7 @@ def get_rsa_key(token):
     else:
         rsa_key = get_rsa_key_auth0(token)
         return rsa_key
+
 
 # TODO: [GGT-83] read from config/DB as already concatinated value of tokenUrl or use a function that generates these auth0 urls
 
@@ -120,8 +123,8 @@ def authorize_user(security_scopes: SecurityScopes, token: str = Depends(oauth2_
     """
     NOTE - Uncommenting this will affect the Organization flow
     """
-    if (get_config_val('env') == 'LOCAL-PROD' or get_config_val('env') == 'DEV'):  # Allow auth override for local-prod
-        return True
+    # if (get_config_val('env') == 'LOCAL-PROD' or get_config_val('env') == 'DEV'):  # Allow auth override for local-prod
+    #     return True
     try:
         scopes = security_scopes.scopes
         if p.ANONYMOUS in scopes:
@@ -181,8 +184,8 @@ async def get_vendor_api_key(api_key_header: str = Security(api_key_header), vco
             function=whoami(),
             error=err
         )
-        
+
     raise HTTPException(
-        status_code=HTTP_403_FORBIDDEN, 
+        status_code=HTTP_403_FORBIDDEN,
         detail=c.AUTH_FAILED_MESSAGE
     )

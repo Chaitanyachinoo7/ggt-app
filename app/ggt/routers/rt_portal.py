@@ -69,7 +69,7 @@ from ggt.models.workflow_models.clinical_test_site_admin_flow import (
     site_admin_vax_waitlist_search,
     site_admin_vax_registered_waitlist_around_location, add_vax_certificate, lookup_certificate,
     update_patient_ifo_cert, update_cert_info, update_cert_image, delete_certificate,
-    verify_certificate, lookup_unverified_certificate, get_certificate_stats
+    verify_certificate, lookup_unverified_certificate, get_certificate_stats, get_ocr, reject_certificate
 )
 
 router = APIRouter()
@@ -292,25 +292,27 @@ async def api_cc_patient_lookup(portal_cc_patient_lookup_request: PortalCcPatien
     )
 
 
-@router.post("/site-admin/lookup_certificate", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
-async def api_lookup_certificate(req: LookupCertificateRequest):
+@router.post("/site-admin/lookup_certificate")
+async def api_lookup_certificate(req: LookupCertificateRequest, user=Security(authorize_user, scopes=[p.PATIENT_LOOKUP])):
     return lookup_certificate(
         req.first_name,
         req.last_name,
         req.dob,
-        req.phone_number
+        req.phone_number,
+        user['sub']
     )
 
 
-@router.post("/site-admin/lookup_unverified_certificate", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
-async def api_lookup_unverified_certificate(req: LookupUnverifiedCertificateRequest):
+@router.post("/site-admin/lookup_unverified_certificate")
+async def api_lookup_unverified_certificate(req: LookupUnverifiedCertificateRequest, user=Security(authorize_user, scopes=[p.PATIENT_LOOKUP])):
     return lookup_unverified_certificate(
         req.first_name,
         req.last_name,
         req.dob,
         req.phone_number,
         req.limit,
-        req.offset
+        req.offset,
+        user['sub']
     )
     
 
@@ -328,6 +330,11 @@ async def api_update_patient_ifo_cert(req: UpdatePatientInfoCert):
 @router.post("/site-admin/delete_certificate", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
 async def api_delete_certificate(req: DeleteCertificateRequest):
     return delete_certificate(req.cert_id, req.notify_customer)
+
+
+@router.post("/site-admin/reject_certificate/{cert_id}")
+async def api_reject_certificate(cert_id: str, user=Security(authorize_user, scopes=[p.PATIENT_LOOKUP])):
+    return reject_certificate(cert_id, user)
 
 
 @router.post("/site-admin/update_cert_info", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
@@ -392,3 +399,7 @@ async def api_verify_certificate(req: VerifyCertificateRequest):
 async def api_get_certificate_stats():
     return get_certificate_stats()
 
+
+@router.get("/site-admin/ocr", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
+async def api_get_ocr(patient_id, cert_id):
+    return get_ocr(patient_id, cert_id)

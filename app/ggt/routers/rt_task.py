@@ -48,7 +48,7 @@ from ggt.tasks.report_notifications import task_schedule_result_notifications_an
 from ggt.tasks.sms_queue_processor import task_process_sms_queue
 from ggt.tasks.update_stripe_payments_processor import update_stripe_payments
 from ggt.tasks.appsheet_thirdparty_group_codes_processor import add_new_groups
-
+from ggt.tasks.vaxyes_ocr import run_ocr_on_vax_yes_cards
 router = APIRouter()
 
 
@@ -276,3 +276,11 @@ async def api_generate_antigen_results_pdf(background_tasks: BackgroundTasks):
 # async def api_delete_ftp_files():
 #     x = delete_ftp_files()
 #     return {"response": x}
+
+@router.post("/run_ocr_on_vax_yes_cards", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_run_ocr_on_vax_yes_cards():
+    run_ocr_on_vax_yes_cards()
+    return {
+        STATUS: SUCCESS,
+        DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
+    }

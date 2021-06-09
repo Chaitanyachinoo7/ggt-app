@@ -31,6 +31,7 @@ from ggt.models.data_models.data_types import (
 
 from ggt.lib.adapters.s3_adapter import get_temp_vax_cert_url
 
+
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
@@ -159,6 +160,41 @@ def update_patient_ifo_cert(id, phone_number, dob, first_name, last_name):
         return None
 
 
+def update_ocr(patient_id, first_name, last_name, vax_type, dob, cert1_id, first_vax_dt, vax_1_lot_number, cert2_id,
+               second_vax_dt, vax_2_lot_number):
+    try:
+        sql = """INSERT INTO ggv_certificates_ocr (patient_id, first_name, last_name, vax_type, 
+        dob, cert1_id, first_vax_dt, vax_1_lot_number, cert2_id, second_vax_dt, vax_2_lot_number) 
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+        patient_id = VALUES(patient_id),
+        first_name = VALUES(first_name),
+        last_name = VALUES(last_name),
+        vax_type = VALUES(vax_type),
+        dob = VALUES(dob),
+        cert1_id = VALUES(cert1_id),
+        first_vax_dt = VALUES(first_vax_dt),
+        vax_1_lot_number = VALUES(vax_1_lot_number),
+        cert2_id = VALUES(cert2_id),
+        second_vax_dt = VALUES(second_vax_dt),
+        vax_2_lot_number = VALUES(vax_2_lot_number)"""
+        vals = (patient_id, first_name, last_name, vax_type, dob, cert1_id, first_vax_dt, vax_1_lot_number, cert2_id,
+                second_vax_dt, vax_2_lot_number)
+        return exec_insert(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            patient_id=id,
+            dob=dob,
+            first_name=first_name,
+            last_name=last_name,
+            error=err
+        )
+        return None
+
+
 def update_cert_info(id, service_code, lot_no, vax_date):
     try:
         sql = """UPDATE ggv_certificates SET 
@@ -194,6 +230,23 @@ def delete_certificate(cert_id):
         return None
 
 
+def reject_certificate(cert_id):
+    try:
+        sql = """UPDATE ggv_certificates
+            SET rejected = 1
+        WHERE id = %s"""
+        vals = (cert_id,)
+        return exec_update(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 def get_phone_number_by_certificate_id(cert_id):
     try:
         sql = """SELECT 
@@ -214,6 +267,7 @@ def get_phone_number_by_certificate_id(cert_id):
         )
         return None
 
+
 def get_certificate_stats():
     try:
         sql = """SELECT 
@@ -226,11 +280,11 @@ def get_certificate_stats():
         ggv_certificates
         group by v_level"""
         result = replica_read_rows(sql)
-        
+
         verified = 0
         unverified = 0
 
-        if(result[0]['v_level'] == 1):
+        if (result[0]['v_level'] == 1):
             verified = result[0]['counts']
             unverified = result[1]['counts']
         else:
@@ -407,9 +461,10 @@ def update_schedule_generation_rule(data):
         return None
 
 
-def lookup_certificate(phone_number, dob, first_name, last_name, token=None, verification_level=None, limit=None, offset=None):
+def lookup_certificate(phone_number, dob, first_name, last_name, token=None, verification_level=None, limit=None,
+                       offset=None, user=None):
     try:
-        where_statement = "1=1"
+        where_statement = "gc.rejected = 0 AND p.create_dt > '2021-05-20'"
         if phone_number or phone_number != "":
             where_statement = "{} AND p.phone_number LIKE '%{}%'".format(where_statement, phone_number)
         if dob or dob != "":
@@ -429,26 +484,45 @@ def lookup_certificate(phone_number, dob, first_name, last_name, token=None, ver
                 where_statement, verification_level)
         if limit and offset is not None:
             where_statement = "{} ORDER BY p.id ASC LIMIT {} OFFSET {}".format(where_statement, limit, offset)
-
         sql = """SELECT 
                     gc.*,
                     p.first_name,
                     p.last_name,
                     p.dob,
                     p.phone_number,
-                   date(gc.check_in_dt) AS appointment_date
+                   date(gc.check_in_dt) AS appointment_date,
+                   ggv_ocr.patient_id as ocr_patient_id,
+                   ggv_ocr.first_name as ocr_first_name,
+                   ggv_ocr.last_name as ocr_last_name,
+                   ggv_ocr.vax_type as ocr_vax_type,
+                   ggv_ocr.dob as ocr_dob,
+                   ggv_ocr.cert1_id as ocr_cert1_id,
+                   ggv_ocr.first_vax_dt as ocr_first_vax_dt,
+                   ggv_ocr.vax_1_lot_number as ocr_vax_1_lot_number,
+                   ggv_ocr.cert2_id as ocr_cert2_id,
+                   ggv_ocr.second_vax_dt as ocr_second_vax_dt,
+                   ggv_ocr.vax_2_lot_number as ocr_vax_2_lot_number
                 FROM
                     patients p
                         JOIN
                     ggv_certificates gc ON p.id = gc.patient_id
+                        LEFT JOIN
+                    ggv_certificates_ocr ggv_ocr ON p.id = ggv_ocr.patient_id
                     WHERE {}""".format(where_statement)
         rows = replica_read_rows(sql)
         return __format_vax_certificate_portal(rows), "No certificate found."
 
     except Exception as err:
+        print(err)
         log_generic(
             type=c.ERROR,
-            function=whoami(),
+            msg='LOOKUP-CERTIFICATE-REQUEST-ERROR-DB',
+            first_name=first_name,
+            last_name=last_name,
+            dob=dob,
+            phone_number=phone_number,
+            admin=user,
+            whoami=whoami(),
             error=err
         )
     return None, None
@@ -1118,13 +1192,14 @@ def verify_certificate(cert_id, verification_level):
         )
         return None
 
+
 def get_patient_from_crt_number(cert_id):
     try:
         sql = """select first_name, email, phone_number from patients p
                 JOIN ggv_certificates certs ON p.id = certs.patient_id
                 where certs.id = %s"""
         vals = (cert_id,)
-        return replica_read_row(sql, vals)
+        return read_row(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -1133,6 +1208,8 @@ def get_patient_from_crt_number(cert_id):
             error=err
         )
         return None
+
+
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
@@ -1581,6 +1658,7 @@ def __map_row_to_dtl(row):
 
 
 def __format_vax_certificate_portal(rows):
+    print("inside" + whoami())
     try:
         if len(rows) > 0:
             map = {}
@@ -1592,35 +1670,52 @@ def __format_vax_certificate_portal(rows):
                         "last_name": r['last_name'],
                         "dob": r['dob'],
                         "phone_number": r['phone_number'],
-                        'certificates': []
+                        'certificates': [],
+                        'ocr': {}
                     }
 
             for row in rows:
                 image = get_temp_vax_cert_url("{}/{}.jpg".format(
-                        row['patient_id'], row['id']), get_config_val('aws.vax_certificate_bucket'))
+                    row['patient_id'], row['id']), get_config_val('aws.vax_certificate_bucket'))
                 id_image = get_temp_vax_cert_url("{}/{}.jpg".format(
-                        row['patient_id'], str(row['id'])+'_id_image'), get_config_val('aws.vax_certificate_bucket'))
+                    row['patient_id'], str(row['id']) + '_id_image'), get_config_val('aws.vax_certificate_bucket'))
                 # image = "/api/vax_certificate/{}/{}.jpg".format(
                 #         row['patient_id'], row['id'])
                 service = {
-                        "cert_id": row['id'],
-                        "verification_level": row['verification_level'],
-                        "appointment_id": row['appointment_id'],
-                        "appointment_date": row['appointment_date'],
-                        "patient_questionnaire_id": row['patient_questionnaire_id'],
-                        "brand": __get_brand(row['service_code']),
-                        "service_code": row['service_code'],
-                        "lot_no": row['lot_no'],
-                        "appointment_time": None,
-                        "org_name": None,
-                        "images": [image, id_image]
+                    "cert_id": row['id'],
+                    "verification_level": row['verification_level'],
+                    "appointment_id": row['appointment_id'],
+                    "appointment_date": row['appointment_date'],
+                    "patient_questionnaire_id": row['patient_questionnaire_id'],
+                    "brand": __get_brand(row['service_code']),
+                    "service_code": row['service_code'],
+                    "lot_no": row['lot_no'],
+                    "appointment_time": None,
+                    "org_name": None,
+                    "images": [image, id_image]
+                }
+                if row['ocr_patient_id']:
+                    ocr = {
+                        "patient_id": row['ocr_patient_id'],
+                        "first_name": row['ocr_first_name'],
+                        "last_name": row['ocr_last_name'],
+                        "vax_type": row['ocr_vax_type'],
+                        "dob": row['ocr_dob'],
+                        "cert1_id": row['ocr_cert1_id'],
+                        "first_vax_dt": row['ocr_first_vax_dt'],
+                        "vax_1_lot_number": row['ocr_vax_1_lot_number'],
+                        "cert2_id": row['ocr_cert2_id'],
+                        "second_vax_dt": row['ocr_second_vax_dt'],
+                        "vax_2_lot_number": row['ocr_vax_2_lot_number']
                     }
+                    map[row['patient_id']]['ocr'] = ocr
                 map[row['patient_id']]['certificates'].append(service)
             return list(map.values())
         else:
             return {}
 
     except Exception as err:
+        print(err)
         log_generic(
             type=c.ERROR,
             function=whoami(),

@@ -8,7 +8,7 @@ from ggt.lib.utils import (
     whoami
 )
 from ggt.models.data_models.schedules import get_location_id_by_rule_id
-from ggt.models.process_models.bp_patient_experience import __upload_vax_card_image
+from ggt.models.process_models.bp_patient_experience import upload_vax_card_image
 
 from ggt.models.process_models.bp_portal_experience import (
     bp_get_general_search_results,
@@ -30,7 +30,8 @@ from ggt.models.process_models.bp_schedules import (
     bp_get_schedule_generation_rules,
     bp_delete_schedule, bp_lookup_certificate, bp_update_patient_ifo_cert, bp_update_cert_info, bp_delete_certificate,
     bp_verify_certificate,
-    bp_lookup_unverified_certificate, bp_get_certificate_stats
+    bp_lookup_unverified_certificate, bp_get_certificate_stats,
+    bp_ocr, bp_reject_certificate
 )
 
 import ggt.lib.constants as c
@@ -203,18 +204,28 @@ def delete_schedule(location_id):
 
 
 @cached(cache=TTLCache(maxsize=1024, ttl=60))
-def lookup_certificate(first_name, last_name, dob, phone_number):
+def lookup_certificate(first_name, last_name, dob, phone_number, user):
+    log_generic(
+        type=c.INFO,
+        msg='LOOKUP-CERTIFICATE-REQUEST',
+        first_name=first_name,
+        last_name=last_name,
+        dob=dob,
+        phone_number=phone_number,
+        admin=user,
+        whoami=whoami()
+    )
     return y_response(
         bp_lookup_certificate(
-            first_name, last_name, dob, phone_number
+            first_name, last_name, dob, phone_number, user
         )
     )
 
 
-def lookup_unverified_certificate(first_name, last_name, dob, phone_number, limit, offset):
+def lookup_unverified_certificate(first_name, last_name, dob, phone_number, limit, offset, user):
     return y_response(
         bp_lookup_unverified_certificate(
-            first_name, last_name, dob, phone_number, limit, offset
+            first_name, last_name, dob, phone_number, limit, offset, user
         )
     )
 
@@ -243,6 +254,15 @@ def delete_certificate(cert_id, notify_customer):
     )
 
 
+def reject_certificate(cert_id, user):
+    return x_response(
+        bp_reject_certificate(
+            cert_id,
+            user
+        )
+    )
+
+
 def get_certificate_stats():
     return y_response(
         bp_get_certificate_stats()
@@ -251,7 +271,7 @@ def get_certificate_stats():
 
 def update_cert_image(patient_id, cert_id, image):
     return x_response(
-        __upload_vax_card_image(image, patient_id, cert_id)
+        upload_vax_card_image(image, patient_id, cert_id)
     )
 
 
@@ -306,7 +326,12 @@ def verify_certificate(cert_id, verification_level):
         )
     )
 
-
+def get_ocr(patient_id, cert_id):
+    return x_response(
+        bp_ocr(
+            patient_id, cert_id
+        )
+    )
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
