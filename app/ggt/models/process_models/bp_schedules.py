@@ -649,8 +649,16 @@ def bp_update_cert_info(id, service_code, lot_no, vax_date):
     return False
 
 
-def bp_delete_certificate(cert_id, notify_customer):
+def bp_delete_certificate(cert_id, notify_customer, user):
     try:
+        log_generic(
+            type=c.INFO,
+            msg="DELETE-CERTIFICATE-REQUEST-RECEIVED",
+            cert_id=cert_id,
+            notify_customer=notify_customer,
+            function=whoami(),
+            admin=user['sub']
+        )
         if notify_customer:
             res = get_phone_number_by_certificate_id(cert_id)
             phone_number = res['phone_number']
@@ -660,14 +668,58 @@ def bp_delete_certificate(cert_id, notify_customer):
                     "http://vaxyes.com  and entering in your phone number.  " \
                     "Please make sure you take clear photos of your ID and " \
                     "Vaccine card in order to process"
-            send_sms(phone_number,
-                    message.replace('\t', ''), international=international)
-        return delete_certificate(cert_id)
+
+            if send_sms(phone_number, message.replace('\t', ''), international=international):
+                log_generic(
+                    type=c.INFO,
+                    msg="DELETE-CERTIFICATE-REQUEST-SMS-SENT",
+                    cert_id=cert_id,
+                    notify_customer=notify_customer,
+                    message=message,
+                    phone_number=phone_number,
+                    admin=user['sub'],
+                    whoami=whoami()
+                )
+            else:
+                log_generic(
+                    type=c.INFO,
+                    msg="DELETE-CERTIFICATE-REQUEST-SMS-FAILED",
+                    cert_id=cert_id,
+                    notify_customer=notify_customer,
+                    message=message,
+                    phone_number=phone_number,
+                    admin=user['sub'],
+                    whoami=whoami()
+                )
+        deleted = delete_certificate(cert_id)
+        if deleted:
+            log_generic(
+                type=c.ERROR,
+                msg="DELETE-CERTIFICATE-REQUEST-SUCCESS",
+                cert_id=cert_id,
+                notify_customer=notify_customer,
+                admin=user['sub'],
+                whoami=whoami(),
+                deleted=deleted
+            )
+        else:
+            log_generic(
+                type=c.ERROR,
+                msg="DELETE-CERTIFICATE-REQUEST-FAILED",
+                cert_id=cert_id,
+                notify_customer=notify_customer,
+                admin=user['sub'],
+                whoami=whoami(),
+                deleted=deleted
+            )
 
     except Exception as err:
         log_generic(
             type=c.ERROR,
+            msg="DELETE-CERTIFICATE-REQUEST-ERROR",
             cert_id=cert_id,
+            notify_customer=notify_customer,
+            admin=user['sub'],
             function=whoami(),
             error=err
         )

@@ -246,10 +246,10 @@ def update_cert_info(id, service_code, lot_no, vax_date):
     )
 
 
-def delete_certificate(cert_id, notify_customer):
+def delete_certificate(cert_id, notify_customer, user):
     return x_response(
         bp_delete_certificate(
-            cert_id, notify_customer
+            cert_id, notify_customer, user
         )
     )
 

@@ -327,9 +327,9 @@ async def api_update_patient_ifo_cert(req: UpdatePatientInfoCert):
     )
 
 
-@router.post("/site-admin/delete_certificate", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
-async def api_delete_certificate(req: DeleteCertificateRequest):
-    return delete_certificate(req.cert_id, req.notify_customer)
+@router.post("/site-admin/delete_certificate")
+async def api_delete_certificate(req: DeleteCertificateRequest, user=Security(authorize_user, scopes=[p.PATIENT_LOOKUP])):
+    return delete_certificate(req.cert_id, req.notify_customer, user)
 
 
 @router.post("/site-admin/reject_certificate/{cert_id}")
