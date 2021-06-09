@@ -462,7 +462,7 @@ def update_schedule_generation_rule(data):
 
 
 def lookup_certificate(phone_number, dob, first_name, last_name, token=None, verification_level=None, limit=None,
-                       offset=None, user= None):
+                       offset=None, user=None):
     try:
         where_statement = "gc.rejected = 0 AND p.create_dt > '2021-05-20'"
         if phone_number or phone_number != "":

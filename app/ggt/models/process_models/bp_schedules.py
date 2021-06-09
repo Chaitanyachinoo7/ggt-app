@@ -558,6 +558,7 @@ def bp_lookup_certificate(first_name, last_name, dob, phone_number, user):
             whoami=whoami(),
             res=res
         )
+        return res
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -573,18 +574,40 @@ def bp_lookup_certificate(first_name, last_name, dob, phone_number, user):
     return False
 
 
-def bp_lookup_unverified_certificate(first_name, last_name, dob, phone_number, limit, offset):
+def bp_lookup_unverified_certificate(first_name, last_name, dob, phone_number, limit, offset, user):
     try:
-        return lookup_certificate(phone_number, dob, first_name, last_name, None, 1, limit, offset)[0]
-
-    except Exception as err:
         log_generic(
-            type=c.ERROR,
+            type=c.INFO,
+            msg='LOOKUP-UNVERIFIED-CERTIFICATES-REQUEST',
             first_name=first_name,
             last_name=last_name,
             dob=dob,
             phone_number=phone_number,
+            admin=user,
+            function=whoami()
+        )
+        res = lookup_certificate(phone_number, dob, first_name, last_name, None, 1, limit, offset, user=user)[0]
+        log_generic(
+            type=c.INFO,
+            msg='LOOKUP-UNVERIFIED-CERTIFICATES-RESPONSE',
+            first_name=first_name,
+            last_name=last_name,
+            dob=dob,
+            phone_number=phone_number,
+            admin=user,
             function=whoami(),
+            res=res
+        )
+        return res
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            msg='LOOKUP-UNVERIFIED-CERTIFICATES-REQUEST-ERROR',
+            first_name=first_name,
+            last_name=last_name,
+            dob=dob,
+            phone_number=phone_number,
+            admin=user,
             error=err
         )
 

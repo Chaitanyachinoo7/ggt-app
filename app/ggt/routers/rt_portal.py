@@ -302,15 +302,16 @@ async def api_lookup_certificate(req: LookupCertificateRequest, user=Security(au
     )
 
 
-@router.post("/site-admin/lookup_unverified_certificate", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
-async def api_lookup_unverified_certificate(req: LookupUnverifiedCertificateRequest):
+@router.post("/site-admin/lookup_unverified_certificate")
+async def api_lookup_unverified_certificate(req: LookupUnverifiedCertificateRequest, user=Security(authorize_user, scopes=[p.PATIENT_LOOKUP])):
     return lookup_unverified_certificate(
         req.first_name,
         req.last_name,
         req.dob,
         req.phone_number,
         req.limit,
-        req.offset
+        req.offset,
+        user['sub']
     )
     
 
