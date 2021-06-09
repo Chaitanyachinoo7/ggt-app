@@ -316,8 +316,9 @@ async def api_lookup_unverified_certificate(req: LookupUnverifiedCertificateRequ
         1
     )
 
+
 @router.post("/site-admin/lookup_unverified_certificate_v2")
-async def api_lookup_unverified_certificate_v2(req: LookupUnverifiedCertificateRequest, user=Security(authorize_user, scopes=[p.PATIENT_LOOKUP])):
+async def api_lookup_unverified_certificate_v2(req: LookupUnverifiedCertificateRequest, user=Security(authorize_user, scopes=[p.PATIENT_LOOKUP, 'external_verify'])):
     return lookup_unverified_certificate(
         req.first_name,
         req.last_name,
@@ -329,7 +330,8 @@ async def api_lookup_unverified_certificate_v2(req: LookupUnverifiedCertificateR
         2
     )
 
-@router.post("/site-admin/update_patient_info_cert", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
+
+@router.post("/site-admin/update_patient_info_cert", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP, 'external_verify'])])
 async def api_update_patient_ifo_cert(req: UpdatePatientInfoCert):
     return update_patient_ifo_cert(
         req.id,
@@ -346,12 +348,12 @@ async def api_delete_certificate(req: DeleteCertificateRequest):
 
 
 @router.post("/site-admin/reject_certificate/{cert_id}")
-async def api_reject_certificate(cert_id: str, user=Security(authorize_user, scopes=[p.PATIENT_LOOKUP])):
+async def api_reject_certificate(cert_id: str, user=Security(authorize_user, scopes=[p.PATIENT_LOOKUP, 'external_verify'])):
     return reject_certificate(cert_id, user)
 
 
 @router.post("/site-admin/update_cert_info")
-async def api_update_cert_info(req: UpdateCertInfo, user=Security(authorize_user, scopes=[p.PATIENT_LOOKUP])):
+async def api_update_cert_info(req: UpdateCertInfo, user=Security(authorize_user, scopes=[p.PATIENT_LOOKUP, 'external_verify'])):
     return update_cert_info(
         req.id,
         req.service_code,
@@ -402,7 +404,7 @@ def api_get_vax_certificate(patient_id: str, certificate_id: str):
     return get_vax_certificate(patient_id, certificate_id, pass_through=True)
 
 
-@router.post("/site-admin/verify_certificate", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
+@router.post("/site-admin/verify_certificate", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP, 'external_verify'])])
 async def api_verify_certificate(req: VerifyCertificateRequest):
     return verify_certificate(
         req.cert_id,
@@ -410,7 +412,7 @@ async def api_verify_certificate(req: VerifyCertificateRequest):
     )
 
 
-@router.get("/site-admin/get_certificate_stats", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
+@router.get("/site-admin/get_certificate_stats", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP, 'external_verify'])])
 async def api_get_certificate_stats():
     return get_certificate_stats()
 
