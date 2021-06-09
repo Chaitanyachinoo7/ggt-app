@@ -296,9 +296,12 @@ def api_get_vax_certificate(patient_id: str, certificate_id: str):
 def api_wallet_pass(req: LookupGGVWalletPassRequest):
     return get_wallet_pass(req)
 
+
 @router.post("/call_non_sms_phone")
 def api_call_non_sms_phone(phone_number):
     return call_non_sms_phone(phone_number)
+
+
 @router.post("/add_vax_certificate")
 def api_add_vax_certificate(req: LookupGGVAddVaxCertRequest):
     return get_add_vax_certificate(req)

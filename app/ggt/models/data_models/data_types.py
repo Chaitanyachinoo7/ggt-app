@@ -486,6 +486,7 @@ class FinalizeGGVPreRegistrationRequest(BaseModel):
     forceFinish: Optional[bool] = None
     covid19vaxScreening: Optional[Covid19vaxScreening] = None
 
+
 class PhoneData(BaseModel):
     cellphone: str = None
 
@@ -768,10 +769,12 @@ class LookupGGVWalletPassRequest(BaseModel):
     token: str
     type: str = 'i'
 
+
 class pristineObject(BaseModel):
     dob: str = None
     first_name: str = None
     last_name: str = None
+
 
 class LookupGGVAddVaxCertRequest(BaseModel):
     first_name: str
@@ -787,6 +790,7 @@ class LookupGGVAddVaxCertRequest(BaseModel):
     pristine: pristineObject = None
     vax_image: str
     id_image: str
+
 
 class NotificationEnum(str, Enum):
     relocate = 'relocate'
@@ -1265,7 +1269,7 @@ class GgtTestSample(BaseModel):
     test_type: str = None
     appointment: GgtAppointment = GgtAppointment()
     patient: GgtPatient = GgtPatient()
-    #patient_questionnaire = GgtPa
+    # patient_questionnaire = GgtPa
 
 
 class AuthError(Exception):
@@ -1307,7 +1311,7 @@ class VerifyExistingPatientRequest(BaseModel):
     phone_number: str = None
     dob: str = None
     # optional_screens: List[str] = None  # Redundant, remove
-    #screen_seq: List[str] = None
+    # screen_seq: List[str] = None
 
 
 class GgtThirdPartyDbGroup(BaseModel):
@@ -1543,11 +1547,13 @@ class InsurancePayersListRequest(BaseModel):
     page: int = 1
     limit: int = 10
 
+
 class PKPassRequest(BaseModel):
-    type: str = 'i' # i = ios, a = android
+    type: str = 'i'  # i = ios, a = android
     patient_id: str
     phone_number: str
     otp: int
+
 
 class VerificationToken(BaseModel):
     verification_token: str
@@ -1644,4 +1650,3 @@ class VaxCertificate(BaseModel):
 class VerifyCertificateRequest(BaseModel):
     cert_id: str
     verification_level: int
-

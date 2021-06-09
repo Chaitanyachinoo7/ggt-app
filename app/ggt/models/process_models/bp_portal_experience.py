@@ -43,13 +43,11 @@ import os
 import shutil
 from ggt.lib.adapters.s3_adapter import uploadDirectory, create_folder, get_temp_vaccine_consent_url
 
-
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
-from ggt.models.process_models.bp_patient_experience import __upload_vax_card_image, __send_ggv_certificate_level_1_sms, \
-    __send_ggv_certificate_level_1_email
-
+from ggt.models.process_models.bp_patient_experience import upload_vax_card_image, send_ggv_certificate_level_1_sms, \
+    send_ggv_certificate_level_1_email
 
 def bp_cc_search_details_by_name_and_dob(last_name, dob):
     return search_details_by_name_and_dob(last_name, dob)
@@ -675,13 +673,13 @@ def __process_services(services):
             }
         else:
             structured_service[service_code]["price"][service['currency']
-                ] = service['price']
+            ] = service['price']
             structured_service[service_code]["self_pay_amount"][service['currency']
-                ] = service['selfpay_amount']
+            ] = service['selfpay_amount']
             structured_service[service_code]["copay_amount"][service['currency']
-                ] = service['copay_amount']
+            ] = service['copay_amount']
             structured_service[service_code]["insurance_amount"][service['currency']
-                ] = service['insurance_amount']
+            ] = service['insurance_amount']
 
     response = {
         "result": list(structured_service.values())
@@ -702,28 +700,20 @@ def bp_get_vax_registered_waitlist_around_location(request):
 
 
 def bp_add_vax_certificate(request: VaxCertificate):
-    try:
-        return __process_vax_yes(
-            request.first_name,
-            request.last_name,
-            request.phone_number,
-            request.email,
-            request.dob,
-            request.vax_type,
-            request.first_vax_dt,
-            request.second_vax_dt,
-            request.vax_1_lot_number,
-            request.vax_2_lot_number,
-            request.vax_image,
-            request.id_image
-        )
-
-    except Exception as err:
-        log_generic(
-            type=c.ERROR,
-            function=whoami(),
-            error=err
-        )
+    return __process_vax_yes(
+        request.first_name,
+        request.last_name,
+        request.phone_number,
+        request.email,
+        request.dob,
+        request.vax_type,
+        request.first_vax_dt,
+        request.second_vax_dt,
+        request.vax_1_lot_number,
+        request.vax_2_lot_number,
+        request.vax_image,
+        request.id_image
+    )
 
 
 def __process_vax_yes(first_name, last_name, phone_number, email, dob,
@@ -737,9 +727,34 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
         phone_number, first_name, last_name, dob)
     if patient_row:
         patient_id = patient_row['id']
+        log_generic(
+            type=c.INFO,
+            msg="PATIENT-CERTIFICATE-ADD-REQUEST-PATIENT-EXISTS",
+            patient_id=patient_id,
+            phone_number=phone_number,
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            dob=dob,
+            vax_type=vax_type,
+            whoami=whoami(),
+        )
+
     else:
         patient_id = patients.create_vax_yes_patient(
             first_name, last_name, phone_number, email, dob)
+        log_generic(
+            type=c.INFO,
+            msg="PATIENT-CERTIFICATE-ADD-REQUEST-NEW-PATIENT-CREATED",
+            patient_id=patient_id,
+            phone_number=phone_number,
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            dob=dob,
+            vax_type=vax_type,
+            whoami=whoami(),
+        )
 
     if vax_type.lower() == 'pfizer':
         vax_code_1 = c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_1
@@ -751,36 +766,121 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
 
     if vax_type.lower() == 'janssen':
         vax_code_1 = c.SERVICE_CODE_COVID_19_VACCINE_JNJ
+
     patients.delete_cert(patient_id)
+
     try:
         vax_1_date = "{} 00:00:00".format(vax_1_date)
         if vax_1_date and lot_1:
             cert1_id = patients.create_cert(
                 patient_id, vax_1_date, vax_code_1, lot_1)
+            log_generic(
+                type=c.INFO,
+                msg="PATIENT-CERTIFICATE-ADD-REQUEST-CREATED-SHOT-1-CERTIFICATE",
+                patient_id=patient_id,
+                cert_id=cert1_id,
+                phone_number=phone_number,
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                dob=dob,
+                vax_type=vax_type,
+                whoami=whoami(),
+            )
     except Exception as err1:
-        print("Error processing caert1", err1)
-        return None
+        raise Exception('Create cert-1 failed - {}'.format(str(err1)))
 
     try:
         vax_2_date = "{} 00:00:00".format(vax_2_date)
 
         if vax_2_date and lot_2:
-            cert2_id=patients.create_cert(
+            cert2_id = patients.create_cert(
                 patient_id, vax_2_date, vax_code_2, lot_2)
+            log_generic(
+                type=c.INFO,
+                msg="PATIENT-CERTIFICATE-ADD-REQUEST-CREATED-SHOT-2-CERTIFICATE",
+                patient_id=patient_id,
+                cert_id=cert2_id,
+                phone_number=phone_number,
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                dob=dob,
+                vax_type=vax_type,
+                whoami=whoami(),
+            )
     except Exception as err1:
-        print("Error processing cert2", err1)
-        return None
+        raise Exception('Create cert-2 failed - {}'.format(str(err1)))
 
-    cert_id=cert1_id
+    cert_id = cert1_id
     if cert_id is None:
-        cert_id=cert2_id
+        cert_id = cert2_id
 
     if cert_id and patient_id:
-        __upload_vax_card_image(image, patient_id, cert_id)
-        __upload_vax_card_image(id_image, patient_id, str(cert_id) + '_id_image')
+        vax_card = upload_vax_card_image(image, patient_id, cert_id)
+        if vax_card:
+            log_generic(
+                type=c.INFO,
+                msg="PATIENT-CERTIFICATE-IMAGE-UPLOADED",
+                patient_id=patient_id,
+                cert_id=cert2_id,
+                phone_number=phone_number,
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                dob=dob,
+                vax_type=vax_type,
+                whoami=whoami(),
+            )
+        else:
+            log_generic(
+                type=c.ERROR,
+                msg="PATIENT-CERTIFICATE-IMAGE-UPLOAD-FAILED",
+                patient_id=patient_id,
+                cert_id=cert2_id,
+                phone_number=phone_number,
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                dob=dob,
+                vax_type=vax_type,
+                whoami=whoami(),
+            )
+        id_card = upload_vax_card_image(id_image, patient_id, str(cert_id) + '_id_image')
 
-    __send_ggv_certificate_level_1_sms(first_name.title(), phone_number, "1")
-    __send_ggv_certificate_level_1_email(first_name.title(), email, "1")
+        if id_card:
+            log_generic(
+                type=c.INFO,
+                msg="PATIENT-ID-IMAGE-UPLOADED",
+                patient_id=patient_id,
+                cert_id=cert2_id,
+                phone_number=phone_number,
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                dob=dob,
+                vax_type=vax_type,
+                whoami=whoami(),
+            )
+        else:
+            log_generic(
+                type=c.INFO,
+                msg="PATIENT-ID-IMAGE-UPLOAD-FAILED",
+                patient_id=patient_id,
+                cert_id=cert2_id,
+                phone_number=phone_number,
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                dob=dob,
+                vax_type=vax_type,
+                whoami=whoami(),
+            )
+    else:
+        raise Exception('Patient ID OR Cert ID not found')
+
+    send_ggv_certificate_level_1_sms(first_name.title(), phone_number, "1")
+    send_ggv_certificate_level_1_email(first_name.title(), email, "1", phone_number=phone_number)
 
     return {
         "patient_id": patient_id,

@@ -29,6 +29,8 @@ from ggt.models.data_models.data_types import (
     PatientUpfrontPayment,
     ServicePayment,
 )
+
+
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
@@ -156,14 +158,16 @@ def create_cert(patient_id, vax_date, vax_type, lot):
     vals = (patient_id, vax_date, vax_type, lot, 1)
     return exec_insert(sql, vals)
 
+
 def delete_cert(patient_id):
     print(patient_id)
     sqld = """DELETE FROM ggv_certificates where patient_id = %s and id <> 0"""
-    deleted  = exec_delete(sqld, (patient_id,))
+    deleted = exec_delete(sqld, (patient_id,))
     print(deleted)
     return deleted
-def get_existing_patients(phone_number="", first_name="", last_name="", dob="", token=""):
 
+
+def get_existing_patients(phone_number="", first_name="", last_name="", dob="", token=""):
     where_statement = "phone_number_verified = 1 AND token not like 'NOVERIFY%'"
     if phone_number != "":
         where_statement = "{} AND phone_number = '{}'".format(
@@ -217,6 +221,8 @@ def get_existing_patient_questionnaire(patient_id):
             error=err
         )
         return None
+
+
 #
 #
 # def is_available_slot(email, dob):
@@ -267,6 +273,7 @@ def is_un_available_slot(token):
             error=err
         )
         return {"status": "Invalid token"}
+
 
 #
 # def lock_slot(id):
@@ -342,7 +349,7 @@ def get_insurance_record_by_id(patient_id):
                        patient_insurance_details 
                    WHERE patient_id = %s
                """
-        vals = (patient_id, )
+        vals = (patient_id,)
         return replica_read_row(sql, vals)
     except Exception as err:
         log_generic(
@@ -526,7 +533,6 @@ def get_patient_upfront_payment(service_codes: List[str], currency: str):
             error=err
         )
         return None
-
 
 ########################################################################################################
 # [Protected] functions

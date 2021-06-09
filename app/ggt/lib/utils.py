@@ -21,6 +21,8 @@ from ggt.configs.lang_loader import  load_languages
 # TODO: Enahance logging context with user session and client device/ip info etc.
 from ggt.models.data_models.data_types import User
 
+logging.basicConfig(level=logging.INFO)
+
 
 def get_config_val(key):
     key_list = key.split('.')
@@ -85,34 +87,29 @@ def log_generic(**kwargs):
     if kwargs is not None and 'type' in kwargs:
         kwargs['timestamp'] = datetime.now().strftime(
             "%Y-%m-%d %H:%M:%S.%f")[:-3]
-
-        if kwargs['type'] == c.ERROR in kwargs:
+        if kwargs['type'] == c.ERROR:
             kwargs['.'] = '⛔️⛔️⛔️'
-            # logging.error(pformat(kwargs))
-            print(format_log_message(kwargs))
-        elif kwargs['type'] == c.WARNING in kwargs:
+            logging.error(format_log_message(kwargs))
+        elif kwargs['type'] == c.WARNING:
             kwargs['.'] = '⚠️'
-            # logging.warning(pformat(kwargs))
-            print(format_log_message(kwargs))
-        elif kwargs['type'] == c.INFO in kwargs:
+            logging.warning(format_log_message(kwargs))
+        elif kwargs['type'] == c.INFO:
             kwargs['.'] = 'ℹ️'
-            # logging.info(format_log_message(kwargs))
-            print(format_log_message(kwargs))
+            logging.info(format_log_message(kwargs))
         else:
-            # logging.debug(format_log_message(kwargs))
-            print(format_log_message(kwargs))
-
+            logging.debug(format_log_message(kwargs))
     else:
-        # logging.warning('Empty log value')
-        print('Empty log value')
+        logging.warning('Empty log value')
 
 
 def format_log_message(kwargs):
-    return pformat(kwargs)
-    # if get_config_val('env').startswith("LOCAL"):
-    #     return pformat(kwargs)
-    # else:
-    #     return ujson.dumps(kwargs)
+    if get_config_val('env').startswith("LOCAL"):
+        return pformat(kwargs)
+    else:
+        try:
+            return ujson.dumps(kwargs)
+        except Exception:
+            return kwargs
 
 #
 # def app_init():

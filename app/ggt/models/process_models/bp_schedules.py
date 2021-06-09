@@ -45,8 +45,8 @@ from ggt.lib.maps import (
 )
 
 from cachetools import cached, LRUCache, TTLCache
-from ggt.models.process_models.bp_patient_experience import __upload_vax_card_image, __send_ggv_certificate_level_1_sms, \
-    __send_ggv_certificate_level_1_email
+from ggt.models.process_models.bp_patient_experience import upload_vax_card_image, send_ggv_certificate_level_1_sms, \
+    send_ggv_certificate_level_1_email
 import boto3
 ########################################################################################################
 # [Public] functions
@@ -792,8 +792,8 @@ def bp_verify_certificate(cert_id, verification_level):
     try:
         verify_certificate(cert_id, verification_level)
         patient = get_patient_from_crt_number(cert_id)
-        __send_ggv_certificate_level_1_sms(patient["first_name"].title(), patient["phone_number"], str(verification_level))
-        __send_ggv_certificate_level_1_email(patient["first_name"].title(), patient["email"], str(verification_level))
+        send_ggv_certificate_level_1_sms(patient["first_name"].title(), patient["phone_number"], str(verification_level))
+        send_ggv_certificate_level_1_email(patient["first_name"].title(), patient["email"], str(verification_level), phone_number=patient["phone_number"])
         return True
 
     except Exception as err:

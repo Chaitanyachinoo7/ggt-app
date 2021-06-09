@@ -591,9 +591,11 @@ def get_wallet_pass(pkpass_request):
          bp_get_wallet_pass(pkpass_request)
     )
 
+
 def call_non_sms_phone(phone_number):
     return x_response(
          bp_call_non_sms_phone(phone_number))
+
 
 def get_add_vax_certificate(req):
     return x_response(

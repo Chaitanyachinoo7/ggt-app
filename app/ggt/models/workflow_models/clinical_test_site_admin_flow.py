@@ -8,7 +8,7 @@ from ggt.lib.utils import (
     whoami
 )
 from ggt.models.data_models.schedules import get_location_id_by_rule_id
-from ggt.models.process_models.bp_patient_experience import __upload_vax_card_image
+from ggt.models.process_models.bp_patient_experience import upload_vax_card_image
 
 from ggt.models.process_models.bp_portal_experience import (
     bp_get_general_search_results,
@@ -254,7 +254,7 @@ def get_certificate_stats():
 
 def update_cert_image(patient_id, cert_id, image):
     return x_response(
-        __upload_vax_card_image(image, patient_id, cert_id)
+        upload_vax_card_image(image, patient_id, cert_id)
     )
 
 
