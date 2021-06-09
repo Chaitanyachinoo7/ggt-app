@@ -643,17 +643,20 @@ def bp_delete_certificate(cert_id):
 
 
 def bp_get_certificate_stats():
-    try:
-        return get_certificate_stats()
-
-    except Exception as err:
+    log_generic(
+        type=c.INFO,
+        function=whoami(),
+        msg="GET-CERTIFICATE-STAT-REQUEST-RECEIVED"
+    )
+    stats = get_certificate_stats()
+    if stats:
         log_generic(
-            type=c.ERROR,
+            type=c.INFO,
             function=whoami(),
-            error=err
+            msg="GET-CERTIFICATE-STAT-SUCCESS",
+            stats=stats
         )
-
-    return False
+    return stats
 
 
 def bp_delete_schedule_for_date(location_id, date_str, category):

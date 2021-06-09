@@ -275,6 +275,7 @@ def get_certificate_stats():
         log_generic(
             type=c.ERROR,
             function=whoami(),
+            msg="GET-CERTIFICATE-STAT-DB-ERROR",
             error=err
         )
         return None
