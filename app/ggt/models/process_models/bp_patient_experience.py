@@ -717,19 +717,52 @@ def bp_get_vax_certificate(patient_id, cert_id, pass_through=False):
 
 def bp_get_wallet_pass(pkpass_req):
     try:
+        log_generic(
+            type=c.INFO,
+            function=whoami(),
+            msg="PATIENT-GET-WALLET-PASS-REQUEST-RECEIVED",
+            phone_number=pkpass_req.phone_number,
+            dob=pkpass_req.dob,
+            first_name=pkpass_req.first_name,
+            last_name=pkpass_req.last_name,
+            token=pkpass_req.token,
+            req_type=pkpass_req.type
+        )
         patient = lookup_pkpass(pkpass_req.phone_number, pkpass_req.dob,
                                 pkpass_req.first_name, pkpass_req.last_name, pkpass_req.token)
-        print(patient)
         if patient:
+            log_generic(
+                type=c.INFO,
+                function=whoami(),
+                msg="PATIENT-GET-WALLET-PASS-PATIENT_FOUND",
+                patient_id=patient.patient_id,
+                first_name=patient.first_name,
+                last_name=patient.last_name,
+                dob=patient.dob,
+                level=patient.level,
+                verfiedDate=patient.verfiedDate,
+                certificates=patient.certificates,
+                certNo=patient.certNo
+            )
             return __generate_wallet_pass(pkpass_req, patient, verification=None)
         else:
-            print("GGV-Wallet could not find a patient")
+            log_generic(
+                type=c.ERROR,
+                function=whoami(),
+                msg="PATIENT-GET-WALLET-PASS-PATIENT_NOT_FOUND"
+            )
     except Exception as err:
         log_generic(
             type=c.ERROR,
-            pkpass_req=pkpass_req,
             function=whoami(),
-            error=err
+            msg="PATIENT-GET-WALLET-PASS-REQUEST-FAILED",
+            phone_number=pkpass_req.phone_number,
+            dob=pkpass_req.dob,
+            first_name=pkpass_req.first_name,
+            last_name=pkpass_req.last_name,
+            token=pkpass_req.token,
+            req_type=pkpass_req.type,
+            err=err
         )
     return False
 
