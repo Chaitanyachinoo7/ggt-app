@@ -316,14 +316,15 @@ async def api_lookup_unverified_certificate(req: LookupUnverifiedCertificateRequ
     )
     
 
-@router.post("/site-admin/update_patient_info_cert", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
-async def api_update_patient_ifo_cert(req: UpdatePatientInfoCert):
+@router.post("/site-admin/update_patient_info_cert")
+async def api_update_patient_ifo_cert(req: UpdatePatientInfoCert, user=Security(authorize_user, scopes=[p.PATIENT_LOOKUP])):
     return update_patient_ifo_cert(
         req.id,
         req.first_name,
         req.last_name,
         req.dob,
-        req.phone_number
+        req.phone_number,
+        user
     )
 
 

@@ -614,18 +614,60 @@ def bp_lookup_unverified_certificate(first_name, last_name, dob, phone_number, l
     return False
 
 
-def bp_update_patient_ifo_cert(id, first_name, last_name, dob, phone_number):
+def bp_update_patient_ifo_cert(id, first_name, last_name, dob, phone_number, user):
     try:
-        return update_patient_ifo_cert(id, phone_number, dob, first_name, last_name)
+        log_generic(
+            type=c.INFO,
+            msg="UPDATE-PATIENT-INFO-CERT-REQUEST-RECEIVED",
+            id=id,
+            first_name=first_name,
+            last_name=last_name,
+            dob=dob,
+            phone_number=phone_number,
+            admin=user['sub'],
+            whoami=whoami(),
+        )
+
+        updated_info = update_patient_ifo_cert(id, phone_number, dob, first_name, last_name)
+
+        if updated_info:
+            log_generic(
+                type=c.INFO,
+                msg="UPDATE-PATIENT-INFO-CERT-SUCCESS",
+                id=id,
+                first_name=first_name,
+                last_name=last_name,
+                dob=dob,
+                phone_number=phone_number,
+                admin=user['sub'],
+                whoami=whoami(),
+            )
+        else:
+            log_generic(
+                type=c.ERROR,
+                msg="UPDATE-PATIENT-INFO-CERT-REQUEST-FAILED",
+                id=id,
+                first_name=first_name,
+                last_name=last_name,
+                dob=dob,
+                phone_number=phone_number,
+                admin=user['sub'],
+                whoami=whoami(),
+            )
+
+        return updated_info
 
     except Exception as err:
         log_generic(
             type=c.ERROR,
+            msg="UPDATE-PATIENT-INFO-CERT-REQUEST-ERROR",
+            id=id,
             first_name=first_name,
             last_name=last_name,
             dob=dob,
             phone_number=phone_number,
             function=whoami(),
+            admin=user['sub'],
             error=err
         )
 

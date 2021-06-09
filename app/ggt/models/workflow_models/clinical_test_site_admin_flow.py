@@ -230,10 +230,10 @@ def lookup_unverified_certificate(first_name, last_name, dob, phone_number, limi
     )
 
 
-def update_patient_ifo_cert(id, first_name, last_name, dob, phone_number):
+def update_patient_ifo_cert(id, first_name, last_name, dob, phone_number, user):
     return x_response(
         bp_update_patient_ifo_cert(
-            id, first_name, last_name, dob, phone_number
+            id, first_name, last_name, dob, phone_number, user
         )
     )
 

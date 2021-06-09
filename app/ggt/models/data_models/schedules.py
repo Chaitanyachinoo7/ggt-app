@@ -141,7 +141,8 @@ def update_patient_ifo_cert(id, phone_number, dob, first_name, last_name):
         first_name = %s, 
         last_name = %s, 
         dob = %s, 
-        phone_number = %s
+        phone_number = %s,
+        update_dt = NOW(),
         WHERE id = %s"""
         vals = (first_name, last_name, dob, phone_number, id)
         return exec_update(sql, vals)
