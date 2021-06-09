@@ -632,20 +632,55 @@ def bp_update_patient_ifo_cert(id, first_name, last_name, dob, phone_number):
     return False
 
 
-def bp_update_cert_info(id, service_code, lot_no, vax_date):
+def bp_update_cert_info(id, service_code, lot_no, vax_date, user):
     try:
+        log_generic(
+            type=c.INFO,
+            msg="CERTIFICATE-UPDATE-REQUEST",
+            cert_id=id,
+            service_code=service_code,
+            lot_no=lot_no,
+            vax_date=vax_date,
+            admin=user['sub'],
+            whoami=whoami(),
+        )
         vax_date = "{} 00:00:00".format(vax_date)
-        return update_cert_info(id, service_code, lot_no, vax_date)
+        res = update_cert_info(id, service_code, lot_no, vax_date)
+        if res:
+            log_generic(
+                type=c.INFO,
+                msg="CERTIFICATE-UPDATED-SUCCESSFULLY",
+                cert_id=id,
+                service_code=service_code,
+                lot_no=lot_no,
+                vax_date=vax_date,
+                res=res,
+                admin=user['sub'],
+                whoami=whoami(),
+            )
+        return res
 
     except Exception as err:
         log_generic(
             type=c.ERROR,
+            msg="CERTIFICATE-UPDATE-ERROR",
+            cert_id=id,
             service_code=service_code,
             lot_no=lot_no,
-            function=whoami(),
+            vax_date=vax_date,
+            admin=user['sub'],
             error=err
         )
-
+    log_generic(
+        type=c.INFO,
+        msg="CERTIFICATE-UPDATE-FAILED",
+        cert_id=id,
+        service_code=service_code,
+        lot_no=lot_no,
+        vax_date=vax_date,
+        admin=user['sub'],
+        whoami=whoami(),
+    )
     return False
 
 

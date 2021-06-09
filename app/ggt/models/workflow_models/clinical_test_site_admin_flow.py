@@ -238,10 +238,10 @@ def update_patient_ifo_cert(id, first_name, last_name, dob, phone_number):
     )
 
 
-def update_cert_info(id, service_code, lot_no, vax_date):
+def update_cert_info(id, service_code, lot_no, vax_date, user):
     return x_response(
         bp_update_cert_info(
-            id, service_code, lot_no, vax_date
+            id, service_code, lot_no, vax_date, user
         )
     )
 

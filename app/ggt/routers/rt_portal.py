@@ -337,13 +337,14 @@ async def api_reject_certificate(cert_id: str, user=Security(authorize_user, sco
     return reject_certificate(cert_id, user)
 
 
-@router.post("/site-admin/update_cert_info", dependencies=[Security(authorize_user, scopes=[p.PATIENT_LOOKUP])])
-async def api_update_cert_info(req: UpdateCertInfo):
+@router.post("/site-admin/update_cert_info")
+async def api_update_cert_info(req: UpdateCertInfo, user=Security(authorize_user, scopes=[p.PATIENT_LOOKUP])):
     return update_cert_info(
         req.id,
         req.service_code,
         req.lot_no,
-        req.vax_date
+        req.vax_date,
+        user['sub']
     )
 
 

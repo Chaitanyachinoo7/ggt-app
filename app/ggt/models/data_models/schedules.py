@@ -200,7 +200,8 @@ def update_cert_info(id, service_code, lot_no, vax_date):
         sql = """UPDATE ggv_certificates SET 
         service_code = %s, 
         lot_no = %s,
-        check_in_dt = %s
+        check_in_dt = %s,
+        update_dt = NOW()
         WHERE id = %s"""
         vals = (service_code, lot_no, vax_date, id)
         return exec_update(sql, vals)
