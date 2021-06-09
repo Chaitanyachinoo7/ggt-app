@@ -809,8 +809,7 @@ def bp_add_vax_certificate(req):
             pristine_first_name=pristine.first_name,
             pristine_last_name=pristine.last_name,
             vax_image=1 if req.vax_image else 0,
-            id_image=1 if req.id_image else 0,
-            whoami=whoami()
+            id_image=1 if req.id_image else 0
         )
         from ggt.models.process_models.bp_portal_experience import bp_add_vax_certificate as add_vax_certificate
         ocr = {
@@ -861,8 +860,7 @@ def bp_add_vax_certificate(req):
                         pristine_first_name=pristine.first_name,
                         pristine_last_name=pristine.last_name,
                         vax_image=1 if req.vax_image else 0,
-                        id_image=1 if req.id_image else 0,
-                        whoami=whoami()
+                        id_image=1 if req.id_image else 0
                     )
                 else:
                     log_generic(
@@ -883,8 +881,7 @@ def bp_add_vax_certificate(req):
                         pristine_first_name=pristine.first_name,
                         pristine_last_name=pristine.last_name,
                         vax_image=1 if req.vax_image else 0,
-                        id_image=1 if req.id_image else 0,
-                        whoami=whoami()
+                        id_image=1 if req.id_image else 0
                     )
                 if cert_details["cert2_id"]:
                     if verify_certificate(cert_details["cert2_id"], "2"):
@@ -906,8 +903,7 @@ def bp_add_vax_certificate(req):
                             pristine_first_name=pristine.first_name,
                             pristine_last_name=pristine.last_name,
                             vax_image=1 if req.vax_image else 0,
-                            id_image=1 if req.id_image else 0,
-                            whoami=whoami()
+                            id_image=1 if req.id_image else 0
                         )
                     else:
                         log_generic(
@@ -928,8 +924,7 @@ def bp_add_vax_certificate(req):
                             pristine_first_name=pristine.first_name,
                             pristine_last_name=pristine.last_name,
                             vax_image=1 if req.vax_image else 0,
-                            id_image=1 if req.id_image else 0,
-                            whoami=whoami()
+                            id_image=1 if req.id_image else 0
                         )
                 # __send_ggv_certificate_level_1_sms(patient["first_name"].title(), patient["phone_number"], "2")
                 # __send_ggv_certificate_level_1_email(patient["first_name"].title(), patient["email"], "2")
@@ -955,8 +950,7 @@ def bp_add_vax_certificate(req):
                     pristine_first_name=pristine.first_name,
                     pristine_last_name=pristine.last_name,
                     vax_image=1 if req.vax_image else 0,
-                    id_image=1 if req.id_image else 0,
-                    whoami=whoami()
+                    id_image=1 if req.id_image else 0
                 )
                 return {
                     "level": 1
@@ -980,8 +974,7 @@ def bp_add_vax_certificate(req):
                 pristine_first_name=pristine.first_name,
                 pristine_last_name=pristine.last_name,
                 vax_image=1 if req.vax_image else 0,
-                id_image=1 if req.id_image else 0,
-                whoami=whoami()
+                id_image=1 if req.id_image else 0
             )
             cert_details = add_vax_certificate(req)
             if cert_details:
@@ -1083,8 +1076,7 @@ def __photo_id_pristine(patient_id, cert_id, cert_request: LookupGGVAddVaxCertRe
         pristine_first_name=cert_request.pristine.first_name,
         pristine_last_name=cert_request.pristine.last_name,
         vax_image=1 if cert_request.vax_image else 0,
-        id_image=1 if cert_request.id_image else 0,
-        whoami=whoami()
+        id_image=1 if cert_request.id_image else 0
     )
     date_of_birth = datetime.strptime(cert_request.dob, '%Y-%m-%d')
     ocr["first_name"] = 1 if cert_request.first_name.lower() in id_ocr_string else 0
@@ -1135,8 +1127,7 @@ def __vax_card_pristine(patient_id, cert_id, cert_request: LookupGGVAddVaxCertRe
         pristine_first_name=cert_request.pristine.first_name,
         pristine_last_name=cert_request.pristine.last_name,
         vax_image=1 if cert_request.vax_image else 0,
-        id_image=1 if cert_request.id_image else 0,
-        whoami=whoami()
+        id_image=1 if cert_request.id_image else 0
     )
     first_vax_dt = datetime.strptime(cert_request.first_vax_dt, '%Y-%m-%d')
     if cert_request.vax_2_lot_number != "" and cert_request.vax_2_lot_number is not None:

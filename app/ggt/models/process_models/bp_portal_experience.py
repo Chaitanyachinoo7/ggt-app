@@ -737,7 +737,7 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
             email=email,
             dob=dob,
             vax_type=vax_type,
-            whoami=whoami(),
+            function=whoami(),
         )
 
     else:
@@ -753,7 +753,7 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
             email=email,
             dob=dob,
             vax_type=vax_type,
-            whoami=whoami(),
+            function=whoami(),
         )
 
     if vax_type.lower() == 'pfizer':
@@ -785,7 +785,7 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
                 email=email,
                 dob=dob,
                 vax_type=vax_type,
-                whoami=whoami(),
+                function=whoami(),
             )
     except Exception as err1:
         raise Exception('Create cert-1 failed - {}'.format(str(err1)))
@@ -807,7 +807,7 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
                 email=email,
                 dob=dob,
                 vax_type=vax_type,
-                whoami=whoami(),
+                function=whoami(),
             )
     except Exception as err1:
         raise Exception('Create cert-2 failed - {}'.format(str(err1)))
@@ -830,7 +830,7 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
                 email=email,
                 dob=dob,
                 vax_type=vax_type,
-                whoami=whoami(),
+                function=whoami(),
             )
         else:
             log_generic(
@@ -844,7 +844,7 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
                 email=email,
                 dob=dob,
                 vax_type=vax_type,
-                whoami=whoami(),
+                function=whoami(),
             )
         id_card = upload_vax_card_image(id_image, patient_id, str(cert_id) + '_id_image')
 
@@ -860,7 +860,7 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
                 email=email,
                 dob=dob,
                 vax_type=vax_type,
-                whoami=whoami(),
+                function=whoami(),
             )
         else:
             log_generic(
@@ -874,7 +874,7 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
                 email=email,
                 dob=dob,
                 vax_type=vax_type,
-                whoami=whoami(),
+                function=whoami(),
             )
     else:
         raise Exception('Patient ID OR Cert ID not found')
