@@ -524,7 +524,7 @@ def lookup_certificate(phone_number, dob, first_name, last_name, token=None, ver
             dob=dob,
             phone_number=phone_number,
             admin=user,
-            whoami=whoami(),
+            function=whoami(),
             error=err
         )
     return None, None

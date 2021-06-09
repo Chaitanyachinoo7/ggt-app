@@ -213,7 +213,7 @@ def lookup_certificate(first_name, last_name, dob, phone_number, user):
         dob=dob,
         phone_number=phone_number,
         admin=user,
-        whoami=whoami()
+        function=whoami()
     )
     return y_response(
         bp_lookup_certificate(

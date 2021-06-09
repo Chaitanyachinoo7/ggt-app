@@ -749,7 +749,13 @@ def bp_get_wallet_pass(pkpass_req):
             log_generic(
                 type=c.ERROR,
                 function=whoami(),
-                msg="PATIENT-GET-WALLET-PASS-PATIENT_NOT_FOUND"
+                msg="PATIENT-GET-WALLET-PASS-PATIENT_NOT_FOUND",
+                phone_number=pkpass_req.phone_number,
+                dob=pkpass_req.dob,
+                first_name=pkpass_req.first_name,
+                last_name=pkpass_req.last_name,
+                token=pkpass_req.token,
+                req_type=pkpass_req.type,
             )
     except Exception as err:
         log_generic(

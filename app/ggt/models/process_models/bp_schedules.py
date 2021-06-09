@@ -555,7 +555,7 @@ def bp_lookup_certificate(first_name, last_name, dob, phone_number, user):
             dob=dob,
             phone_number=phone_number,
             admin=user,
-            whoami=whoami(),
+            function=whoami(),
             res=res
         )
         return res
@@ -568,7 +568,7 @@ def bp_lookup_certificate(first_name, last_name, dob, phone_number, user):
             dob=dob,
             phone_number=phone_number,
             admin=user,
-            whoami=whoami(),
+            function=whoami(),
             error=err
         )
     return False
@@ -625,7 +625,7 @@ def bp_update_patient_ifo_cert(id, first_name, last_name, dob, phone_number, use
             dob=dob,
             phone_number=phone_number,
             admin=user['sub'],
-            whoami=whoami(),
+            function=whoami(),
         )
 
         updated_info = update_patient_ifo_cert(id, phone_number, dob, first_name, last_name)
@@ -640,7 +640,7 @@ def bp_update_patient_ifo_cert(id, first_name, last_name, dob, phone_number, use
                 dob=dob,
                 phone_number=phone_number,
                 admin=user['sub'],
-                whoami=whoami(),
+                function=whoami(),
             )
         else:
             log_generic(
@@ -652,7 +652,7 @@ def bp_update_patient_ifo_cert(id, first_name, last_name, dob, phone_number, use
                 dob=dob,
                 phone_number=phone_number,
                 admin=user['sub'],
-                whoami=whoami(),
+                function=whoami(),
             )
 
         return updated_info
@@ -720,7 +720,7 @@ def bp_delete_certificate(cert_id, notify_customer, user):
                     message=message,
                     phone_number=phone_number,
                     admin=user['sub'],
-                    whoami=whoami()
+                    function=whoami()
                 )
             else:
                 log_generic(
@@ -731,7 +731,7 @@ def bp_delete_certificate(cert_id, notify_customer, user):
                     message=message,
                     phone_number=phone_number,
                     admin=user['sub'],
-                    whoami=whoami()
+                    function=whoami()
                 )
         deleted = delete_certificate(cert_id)
         if deleted:
@@ -741,7 +741,7 @@ def bp_delete_certificate(cert_id, notify_customer, user):
                 cert_id=cert_id,
                 notify_customer=notify_customer,
                 admin=user['sub'],
-                whoami=whoami(),
+                function=whoami(),
                 deleted=deleted
             )
         else:
@@ -751,7 +751,7 @@ def bp_delete_certificate(cert_id, notify_customer, user):
                 cert_id=cert_id,
                 notify_customer=notify_customer,
                 admin=user['sub'],
-                whoami=whoami(),
+                function=whoami(),
                 deleted=deleted
             )
 
@@ -779,7 +779,7 @@ def bp_reject_certificate(cert_id, user):
             cert_id=cert_id,
             phone_number=phone_number,
             admin=user['sub'],
-            whoami=whoami(),
+            function=whoami(),
         )
 
         international = is_international(phone_number)
@@ -796,7 +796,7 @@ def bp_reject_certificate(cert_id, user):
                 cert_id=cert_id,
                 phone_number=phone_number,
                 admin=user['sub'],
-                whoami=whoami(),
+                function=whoami(),
             )
 
             if send_sms(phone_number, message.replace('\t', ''), international=international):
@@ -807,7 +807,7 @@ def bp_reject_certificate(cert_id, user):
                     message=message,
                     phone_number=phone_number,
                     admin=user['sub'],
-                    whoami=whoami(),
+                    function=whoami(),
                 )
             else:
                 log_generic(
@@ -816,7 +816,7 @@ def bp_reject_certificate(cert_id, user):
                     cert_id=cert_id,
                     phone_number=phone_number,
                     admin=user['sub'],
-                    whoami=whoami(),
+                    function=whoami(),
                 )
         else:
             log_generic(
@@ -825,7 +825,7 @@ def bp_reject_certificate(cert_id, user):
                 cert_id=cert_id,
                 phone_number=phone_number,
                 admin=user['sub'],
-                whoami=whoami(),
+                function=whoami(),
             )
 
     except Exception as err:
@@ -999,7 +999,7 @@ def bp_verify_certificate(cert_id, verification_level, user):
             cert_id=cert_id,
             verification_level=verification_level,
             admin=user['sub'],
-            whoami=whoami()
+            function=whoami()
         )
         if verify_certificate(cert_id, verification_level):
             log_generic(
@@ -1008,7 +1008,7 @@ def bp_verify_certificate(cert_id, verification_level, user):
                 cert_id=cert_id,
                 verification_level=verification_level,
                 admin=user['sub'],
-                whoami=whoami()
+                function=whoami()
             )
         else:
             log_generic(
@@ -1017,7 +1017,7 @@ def bp_verify_certificate(cert_id, verification_level, user):
                 cert_id=cert_id,
                 verification_level=verification_level,
                 admin=user['sub'],
-                whoami=whoami()
+                function=whoami()
             )
         patient = get_patient_from_crt_number(cert_id)
 
@@ -1031,7 +1031,7 @@ def bp_verify_certificate(cert_id, verification_level, user):
                 cert_id=cert_id,
                 verification_level=verification_level,
                 admin=user['sub'],
-                whoami=whoami(),
+                function=whoami(),
                 patient=patient
             )
         return True
@@ -1043,7 +1043,7 @@ def bp_verify_certificate(cert_id, verification_level, user):
             cert_id=cert_id,
             verification_level=verification_level,
             admin=user['sub'],
-            whoami=whoami(),
+            function=whoami(),
             error=err
         )
 
