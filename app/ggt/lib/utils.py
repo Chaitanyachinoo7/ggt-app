@@ -89,17 +89,22 @@ def log_generic(**kwargs):
             "%Y-%m-%d %H:%M:%S.%f")[:-3]
         if kwargs['type'] == c.ERROR:
             kwargs['.'] = '⛔️⛔️⛔️'
-            logging.error(format_log_message(kwargs))
+            # logging.error(format_log_message(kwargs))
+            print(format_log_message(kwargs))
         elif kwargs['type'] == c.WARNING:
             kwargs['.'] = '⚠️'
-            logging.warning(format_log_message(kwargs))
+            # logging.warning(format_log_message(kwargs))
+            print(format_log_message(kwargs))
         elif kwargs['type'] == c.INFO:
             kwargs['.'] = 'ℹ️'
-            logging.info(format_log_message(kwargs))
+            # logging.info(format_log_message(kwargs))
+            print(format_log_message(kwargs))
         else:
-            logging.debug(format_log_message(kwargs))
+            # logging.debug(format_log_message(kwargs))
+            print(format_log_message(kwargs))
     else:
-        logging.warning('Empty log value')
+        # logging.warning('Empty log value')
+        print('Empty log value')
 
 
 def format_log_message(kwargs):
