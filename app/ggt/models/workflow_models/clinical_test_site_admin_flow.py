@@ -31,7 +31,7 @@ from ggt.models.process_models.bp_schedules import (
     bp_delete_schedule, bp_lookup_certificate, bp_update_patient_ifo_cert, bp_update_cert_info, bp_delete_certificate,
     bp_verify_certificate,
     bp_lookup_unverified_certificate, bp_get_certificate_stats,
-    bp_ocr
+    bp_ocr, bp_reject_certificate
 )
 
 import ggt.lib.constants as c
@@ -204,12 +204,20 @@ def delete_schedule(location_id):
 
 
 @cached(cache=TTLCache(maxsize=1024, ttl=60))
-def lookup_certificate(first_name, last_name, dob, phone_number):
-    print("inside" + whoami())
-    print(first_name, last_name, dob, phone_number)
+def lookup_certificate(first_name, last_name, dob, phone_number, user):
+    log_generic(
+        type=c.INFO,
+        msg='LOOKUP-CERTIFICATE-REQUEST',
+        first_name=first_name,
+        last_name=last_name,
+        dob=dob,
+        phone_number=phone_number,
+        admin=user,
+        whoami=whoami()
+    )
     return y_response(
         bp_lookup_certificate(
-            first_name, last_name, dob, phone_number
+            first_name, last_name, dob, phone_number, user
         )
     )
 
@@ -242,6 +250,15 @@ def delete_certificate(cert_id):
     return x_response(
         bp_delete_certificate(
             cert_id
+        )
+    )
+
+
+def reject_certificate(cert_id, user):
+    return x_response(
+        bp_reject_certificate(
+            cert_id,
+            user
         )
     )
 
