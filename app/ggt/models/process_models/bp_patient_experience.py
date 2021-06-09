@@ -85,7 +85,7 @@ from ggt.models.data_models.wellpay import (
 )
 from ggt.models.process_models.bp_payment import bp_create_checkout_session
 
-from google.cloud import vision
+# from google.cloud import vision
 service_account_file = cfg('gcp.service_account_file')
 # ios pkpass constants
 pass_type_identifier = "pass.com.goget.vaccine"
