@@ -440,7 +440,7 @@ def update_schedule_generation_rule(data):
 def lookup_certificate(phone_number, dob, first_name, last_name, token=None, verification_level=None, limit=None, offset=None):
     try:
         print("inside" + whoami())
-        where_statement = "1=1"
+        where_statement = "1=1 AND p.create_dt > '2021-05-20'"
         if phone_number or phone_number != "":
             where_statement = "{} AND p.phone_number LIKE '%{}%'".format(where_statement, phone_number)
         if dob or dob != "":
