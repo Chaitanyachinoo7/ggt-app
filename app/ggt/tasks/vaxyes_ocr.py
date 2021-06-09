@@ -99,7 +99,7 @@ def get_pristine_req(certs, patient_id):
 def get_distinct_unverified_certs_patient_ids():
     print("inside get_distinct_unverified_certs_patient_ids")
     sql = """
-        SELECT distinct patient_id FROM ggv_certificates where verification_level < 2 order by id desc LIMIT 10
+        SELECT distinct patient_id FROM ggv_certificates where create_dt > '2021-05-20' and verification_level < 2 order by id asc LIMIT 500
     """
     rows = read_rows(sql,)
     print(len(rows))
