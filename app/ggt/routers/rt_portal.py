@@ -349,7 +349,7 @@ async def api_delete_certificate(req: DeleteCertificateRequest, user=Security(au
     return delete_certificate(req.cert_id, req.notify_customer, user)
 
 
-@router.post("/site-admin/reject_certificate}")
+@router.post("/site-admin/reject_certificate")
 async def api_reject_certificate(req: DeleteCertificateRequest, user=Security(authorize_user, scopes=[p.PATIENT_LOOKUP, 'external_verify'])):
     return reject_certificate(req.cert_id, req.notify_customer, user)
 
