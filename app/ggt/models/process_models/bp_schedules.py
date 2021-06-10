@@ -826,60 +826,70 @@ def bp_reject_certificate(cert_id, notify_customer, user):
                                                                                                     "notify_customer": notify_customer,
                                                                                                     "user": user['sub']}))
         res = get_phone_number_by_certificate_id(cert_id)
-        phone_number = res['phone_number']
-        log_generic(
-            type=c.INFO,
-            msg="CERTIFICATE-REJECTION-REQUEST",
-            cert_id=cert_id,
-            phone_number=phone_number,
-            admin=user['sub'],
-            function=whoami(),
-        )
 
-        international = is_international(phone_number)
-        message = "We were unable to validate your submission. " \
-                  "You can resubmit your request by going to  " \
-                  "http://vaxyes.com  and entering in your phone number.  " \
-                  "Please make sure you take clear photos of your ID and " \
-                  "Vaccine card in order to process"
-
-        if reject_certificate(cert_id):
+        if res:
+            phone_number = res['phone_number']
             log_generic(
                 type=c.INFO,
-                msg="CERTIFICATE-REJECTED",
+                msg="CERTIFICATE-REJECTION-REQUEST",
                 cert_id=cert_id,
                 phone_number=phone_number,
                 admin=user['sub'],
                 function=whoami(),
             )
-            if notify_customer:
-                if send_sms(phone_number, message.replace('\t', ''), international=international):
-                    log_generic(
-                        type=c.INFO,
-                        msg="CERTIFICATE-REJECTION-SMS-SENT",
-                        cert_id=cert_id,
-                        message=message,
-                        phone_number=phone_number,
-                        admin=user['sub'],
-                        function=whoami(),
-                    )
-                else:
-                    log_generic(
-                        type=c.INFO,
-                        msg="CERTIFICATE-REJECTION-SMS-FAILED",
-                        cert_id=cert_id,
-                        phone_number=phone_number,
-                        admin=user['sub'],
-                        function=whoami(),
-                    )
+            international = is_international(phone_number)
+            message = "We were unable to validate your submission. " \
+                      "You can resubmit your request by going to  " \
+                      "http://vaxyes.com  and entering in your phone number.  " \
+                      "Please make sure you take clear photos of your ID and " \
+                      "Vaccine card in order to process"
+
+            if reject_certificate(cert_id):
+                log_generic(
+                    type=c.INFO,
+                    msg="CERTIFICATE-REJECTED",
+                    cert_id=cert_id,
+                    phone_number=phone_number,
+                    admin=user['sub'],
+                    function=whoami(),
+                )
+                if notify_customer:
+                    if send_sms(phone_number, message.replace('\t', ''), international=international):
+                        log_generic(
+                            type=c.INFO,
+                            msg="CERTIFICATE-REJECTION-SMS-SENT",
+                            cert_id=cert_id,
+                            message=message,
+                            phone_number=phone_number,
+                            admin=user['sub'],
+                            function=whoami(),
+                        )
+                        return True
+                    else:
+                        log_generic(
+                            type=c.INFO,
+                            msg="CERTIFICATE-REJECTION-SMS-FAILED",
+                            cert_id=cert_id,
+                            phone_number=phone_number,
+                            admin=user['sub'],
+                            function=whoami(),
+                        )
+            else:
+                log_generic(
+                    type=c.INFO,
+                    msg="CERTIFICATE-REJECTION-FAILED",
+                    cert_id=cert_id,
+                    phone_number=phone_number,
+                    admin=user['sub'],
+                    function=whoami(),
+                )
         else:
             log_generic(
-                type=c.INFO,
-                msg="CERTIFICATE-REJECTION-FAILED",
+                type=c.ERROR,
+                msg="CANNOT-FIND-PHONE-NUMBER-FOR-CERT-ID",
                 cert_id=cert_id,
-                phone_number=phone_number,
                 admin=user['sub'],
-                function=whoami(),
+                function=whoami()
             )
 
     except Exception as err:
@@ -887,12 +897,10 @@ def bp_reject_certificate(cert_id, notify_customer, user):
             type=c.ERROR,
             msg="CERTIFICATE-REJECTION-FAILED-ERROR",
             cert_id=cert_id,
-            phone_number=phone_number,
             admin=user['sub'],
             function=whoami(),
             error=err
         )
-
     return False
 
 
