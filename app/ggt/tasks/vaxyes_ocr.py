@@ -51,7 +51,7 @@ def run_ocr_on_vax_yes_cards():
                 verifyAndNotify(is_vax_card_pristine, is_photo_id_pristine, certs)
                 if is_vax_card_pristine and is_photo_id_pristine:
                     final = final + 1
-                    print("L2 certs= "+ str(final))
+                print("L2 certs= "+ str(final))
             except Exception as err:
                 log_generic(
                     type=c.ERROR,
@@ -115,7 +115,7 @@ def get_pristine_req(certs, patient_id):
 def get_distinct_unverified_certs_patient_ids():
     print("inside get_distinct_unverified_certs_patient_ids")
     sql = """
-        SELECT distinct patient_id FROM ggv_certificates where create_dt > '2021-05-20' and verification_level < 2 order by id asc LIMIT 10
+        SELECT distinct patient_id FROM ggv_certificates where create_dt > '2021-05-20' and verification_level < 2 order by id asc LIMIT 5000
     """
     rows = read_rows(sql,)
     print(len(rows))
