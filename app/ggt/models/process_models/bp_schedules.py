@@ -695,7 +695,7 @@ def bp_update_cert_info(id, service_code, lot_no, vax_date, user):
             service_code=service_code,
             lot_no=lot_no,
             vax_date=vax_date,
-            admin=user['sub'],
+            admin=user,
             whoami=whoami(),
         )
         vax_date = "{} 00:00:00".format(vax_date)
@@ -709,7 +709,7 @@ def bp_update_cert_info(id, service_code, lot_no, vax_date, user):
                 lot_no=lot_no,
                 vax_date=vax_date,
                 res=res,
-                admin=user['sub'],
+                admin=user,
                 whoami=whoami(),
             )
         return res
@@ -722,7 +722,7 @@ def bp_update_cert_info(id, service_code, lot_no, vax_date, user):
             service_code=service_code,
             lot_no=lot_no,
             vax_date=vax_date,
-            admin=user['sub'],
+            admin=user,
             error=err
         )
     log_generic(
@@ -732,7 +732,7 @@ def bp_update_cert_info(id, service_code, lot_no, vax_date, user):
         service_code=service_code,
         lot_no=lot_no,
         vax_date=vax_date,
-        admin=user['sub'],
+        admin=user,
         whoami=whoami(),
     )
     return False
