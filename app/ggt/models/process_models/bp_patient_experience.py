@@ -846,13 +846,55 @@ def bp_add_vax_certificate(req):
             __update_ocr_status(ocr["patient_id"], ocr["first_name"], ocr["last_name"], ocr["vax_type"], ocr["dob"],
                                 ocr["cert1_id"], ocr["first_vax_dt"], ocr["vax_1_lot_number"],
                                 ocr["cert2_id"], ocr["second_vax_dt"], ocr["vax_2_lot_number"])
-            if is_vax_card_pristine and is_photo_id_pristine:
 
+            if is_vax_card_pristine:
+                log_generic(
+                    type=c.INFO,
+                    function=whoami(),
+                    msg="PATIENT-CERTIFICATE-OCR-VERIFIED",
+                    first_name=req.first_name,
+                    last_name=req.last_name,
+                    phone_number=req.phone_number,
+                    email=req.email,
+                    dob=req.dob,
+                    vax_type=req.vax_type,
+                    first_vax_dt=req.first_vax_dt,
+                    vax_1_lot_number=req.vax_1_lot_number,
+                    second_vax_dt=req.second_vax_dt,
+                    vax_2_lot_number=req.vax_2_lot_number,
+                    pristine_dob=pristine.dob if pristine else None,
+                    pristine_first_name=pristine.first_name if pristine else None,
+                    pristine_last_name=pristine.last_name if pristine else None,
+                    vax_image=1 if req.vax_image else 0,
+                    id_image=1 if req.id_image else 0
+                )
+            if is_photo_id_pristine:
+                log_generic(
+                    type=c.INFO,
+                    function=whoami(),
+                    msg="PATIENT-ID-OCR-VERIFIED",
+                    first_name=req.first_name,
+                    last_name=req.last_name,
+                    phone_number=req.phone_number,
+                    email=req.email,
+                    dob=req.dob,
+                    vax_type=req.vax_type,
+                    first_vax_dt=req.first_vax_dt,
+                    vax_1_lot_number=req.vax_1_lot_number,
+                    second_vax_dt=req.second_vax_dt,
+                    vax_2_lot_number=req.vax_2_lot_number,
+                    pristine_dob=pristine.dob if pristine else None,
+                    pristine_first_name=pristine.first_name if pristine else None,
+                    pristine_last_name=pristine.last_name if pristine else None,
+                    vax_image=1 if req.vax_image else 0,
+                    id_image=1 if req.id_image else 0
+                )
+            if is_vax_card_pristine and is_photo_id_pristine:
                 if verify_certificate(cert_details["cert1_id"], "2"):
                     log_generic(
                         type=c.INFO,
                         function=whoami(),
-                        msg="PATIENT-CERTIFICATE-1-OCR-VERIFIED",
+                        msg="PATIENT-CERTIFICATE-1-VERIFIED-LEVEL-2",
                         first_name=req.first_name,
                         last_name=req.last_name,
                         phone_number=req.phone_number,
@@ -873,7 +915,7 @@ def bp_add_vax_certificate(req):
                     log_generic(
                         type=c.ERROR,
                         function=whoami(),
-                        msg="PATIENT-CERTIFICATE-1-OCR-VERIFICATION-DB-UPDATE-FAILED",
+                        msg="PATIENT-CERTIFICATE-1-VERIFICATION-DB-UPDATE-FAILED",
                         first_name=req.first_name,
                         last_name=req.last_name,
                         phone_number=req.phone_number,
@@ -895,7 +937,7 @@ def bp_add_vax_certificate(req):
                         log_generic(
                             type=c.INFO,
                             function=whoami(),
-                            msg="PATIENT-CERTIFICATE-2-OCR-VERIFIED",
+                            msg="PATIENT-CERTIFICATE-2-VERIFIED-LEVEL-2",
                             first_name=req.first_name,
                             last_name=req.last_name,
                             phone_number=req.phone_number,
@@ -916,7 +958,7 @@ def bp_add_vax_certificate(req):
                         log_generic(
                             type=c.ERROR,
                             function=whoami(),
-                            msg="PATIENT-CERTIFICATE-2-OCR-VERIFICATION-DB-UPDATE-FAILED",
+                            msg="PATIENT-CERTIFICATE-2-VERIFICATION-DB-UPDATE-FAILED",
                             first_name=req.first_name,
                             last_name=req.last_name,
                             phone_number=req.phone_number,
