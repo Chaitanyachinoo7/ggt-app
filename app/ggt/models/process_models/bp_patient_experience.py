@@ -975,8 +975,8 @@ def bp_add_vax_certificate(req):
                             vax_image=1 if req.vax_image else 0,
                             id_image=1 if req.id_image else 0
                         )
-                # __send_ggv_certificate_level_1_sms(patient["first_name"].title(), patient["phone_number"], "2")
-                # __send_ggv_certificate_level_1_email(patient["first_name"].title(), patient["email"], "2")
+                send_ggv_certificate_level_1_sms(patient["first_name"].title(), patient["phone_number"], "2")
+                send_ggv_certificate_level_1_email(patient["first_name"].title(), patient["email"], "2")
                 return {
                     "level": 2
                 }
