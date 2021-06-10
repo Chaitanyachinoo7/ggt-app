@@ -1059,7 +1059,7 @@ def bp_get_schedule_generation_rules(location_id):
 
 def bp_verify_certificate(cert_id, verification_level, user):
     try:
-        add_vax_yes_activity(user, 'VERIFY_CERTIFICATE', certificate_id=cert_id, patient_id=patient_id,
+        add_vax_yes_activity(user, 'VERIFY_CERTIFICATE', certificate_id=cert_id,
                              payload=json.dumps({"cert_id": cert_id,
                                                  "verification_level": verification_level,
                                                  "user": user['sub']}))
