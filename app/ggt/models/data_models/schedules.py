@@ -463,11 +463,19 @@ def update_schedule_generation_rule(data):
         )
         return None
 
-
+def get_unverified_patients(version):
+    sql = ("""SELECT distinct patient_id FROM ggv_certificates where create_dt > '2021-05-20' and verification_level < 2 order by id asc""") if(
+        version) != 2 else (
+            """SELECT distinct ggv_certificates.patient_id FROM ggv_certificates LEFT JOIN
+                    ggv_certificates_ocr ggv_ocr ON ggv_certificates.patient_id = ggv_ocr.patient_id where (ggv_ocr.first_name =1 and ggv_ocr.last_name =1) and ggv_certificates.create_dt > '2021-05-20' and verification_level < 2 order by ggv_certificates.id asc""")
+    return read_rows(sql)
+def get_patient_by_id(id):
+    sql = """SELECT phone_number, dob, first_name, last_name FROM patients where id = {}""".format(id)
+    return read_row(sql)
 def lookup_certificate(phone_number, dob, first_name, last_name, version=1, token=None, verification_level=None, limit=None,
                        offset=None, user=None):
     try:
-        where_statement = "gc.rejected = 0 AND p.create_dt > '2021-05-20'"
+        where_statement = "gc.rejected = 0"
         if phone_number or phone_number != "":
             where_statement = "{} AND p.phone_number LIKE '%{}%'".format(where_statement, phone_number)
         if dob or dob != "":
@@ -512,7 +520,9 @@ def lookup_certificate(phone_number, dob, first_name, last_name, version=1, toke
                         LEFT JOIN
                     ggv_certificates_ocr ggv_ocr ON p.id = ggv_ocr.patient_id
                     WHERE {}""".format(where_statement)
+        print(sql)
         rows = replica_read_rows(sql)
+        print(rows)
         return __format_vax_certificate_portal(rows, version), "No certificate found."
 
     except Exception as err:

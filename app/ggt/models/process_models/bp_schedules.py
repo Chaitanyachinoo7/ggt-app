@@ -33,7 +33,7 @@ from ggt.models.data_models.schedules import (
     get_ggv_available_dates, get_group_by_group_code, get_available_ggv_locations_near_lat_lng,
     get_first_available_times, lookup_certificate, update_patient_ifo_cert, update_cert_info, delete_certificate,
     verify_certificate, get_patient_from_crt_number, get_certificate_stats, get_phone_number_by_certificate_id,
-    reject_certificate, add_vax_yes_activity, vax_yes_activity
+    reject_certificate, add_vax_yes_activity, vax_yes_activity, get_unverified_patients, get_patient_by_id
 )
 
 from ggt.models.data_models.locations import (
@@ -587,7 +587,13 @@ def bp_lookup_unverified_certificate(first_name, last_name, dob, phone_number, l
             admin=user,
             function=whoami()
         )
-        res = lookup_certificate(phone_number, dob, first_name, last_name, version, None, 1, 1, randint(1, 99), user=user)[0]
+        patients = get_unverified_patients(version)
+        print(patients)
+        randomInt = 100 if len(patients) > 99 else len(patients)
+        print(randomInt)
+        patient = get_patient_by_id(patients[randint(1, randomInt)]["patient_id"])
+        print(patient)
+        res = lookup_certificate(patient["phone_number"], patient["dob"], patient["first_name"], patient["last_name"], version, None, 1, 2, 0, user=user)[0]
         log_generic(
             type=c.INFO,
             msg='LOOKUP-UNVERIFIED-CERTIFICATES-RESPONSE',
