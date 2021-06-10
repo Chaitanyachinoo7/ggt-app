@@ -1652,6 +1652,11 @@ class VerifyCertificateRequest(BaseModel):
     verification_level: int
 
 
+class VaxYesActivity(BaseModel):
+    phone_number: str = ""
+    certificate_id: str = ""
+
+
 class DeleteCertificateRequest(BaseModel):
     cert_id: str
     notify_customer: bool = True

@@ -120,6 +120,7 @@ def update_ggt_users(ggt_users, x):
     for y in ex_users:
         ext_ids.append(y['external_id'])
 
+    selected_users = []
     for idx, user in enumerate(ggt_users):
         if x == 0:
             COUNT = idx + 1
@@ -127,9 +128,12 @@ def update_ggt_users(ggt_users, x):
             COUNT = x*100 + idx + 1
         if user[6] not in ext_ids:
             print("{}. USER {} ADDED.".format(COUNT, user[0]))
-            exec_insert(sql, user)
+            selected_users.append(user)
+            # exec_insert(sql, user)
         else:
             print("PASS - {}".format(user[0]))
+    print('{} Users will be added to the DB'.format(len(selected_users)))
+    exec_batch_execute(sql, tuple(selected_users))
 
 
 def task_populate_users(existing_users, x):
@@ -178,8 +182,8 @@ def remove_user_after_30_inactive_days(users):
 
 for x in range(0, rounds):
     _existing_users: Response = requests.get(user_url.format(x), headers=headers)
-    # task_populate_users(_existing_users, x)
-    remove_user_after_30_inactive_days(_existing_users)
+    task_populate_users(_existing_users, x)
+    # remove_user_after_30_inactive_days(_existing_users)
     # add_organizations(_existing_users)
 
 

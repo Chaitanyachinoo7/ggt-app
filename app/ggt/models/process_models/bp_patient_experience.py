@@ -1,4 +1,5 @@
 import datetime
+import json
 import os
 import uuid
 from datetime import datetime
@@ -71,7 +72,7 @@ from ggt.models.data_models.questionnaires import (
 )
 from ggt.models.data_models.schedules import (
     get_slot_information,
-    update_slot_information, get_next_available_slot, book_slot, update_appointment, update_ocr
+    update_slot_information, get_next_available_slot, book_slot, update_appointment, update_ocr, add_vax_yes_activity
 )
 from ggt.models.data_models.schedules import verify_certificate, get_patient_from_crt_number
 from ggt.models.data_models.signups import (

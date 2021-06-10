@@ -167,6 +167,7 @@ def format_log_message(kwargs):
 #         logging.error(exc)
 #
 
+
 def x_response(res, allow=True, reason_code=None):
     try:
         if allow and res:

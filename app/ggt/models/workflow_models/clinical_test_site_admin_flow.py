@@ -1,3 +1,5 @@
+import json
+
 from cachetools import cached, LRUCache, TTLCache
 
 from ggt.lib.adapters.auth0_adapter import get_organization_id
@@ -7,7 +9,7 @@ from ggt.lib.utils import (
     y_response,
     whoami
 )
-from ggt.models.data_models.schedules import get_location_id_by_rule_id
+from ggt.models.data_models.schedules import get_location_id_by_rule_id, add_vax_yes_activity
 from ggt.models.process_models.bp_patient_experience import upload_vax_card_image
 
 from ggt.models.process_models.bp_portal_experience import (
@@ -31,7 +33,7 @@ from ggt.models.process_models.bp_schedules import (
     bp_delete_schedule, bp_lookup_certificate, bp_update_patient_ifo_cert, bp_update_cert_info, bp_delete_certificate,
     bp_verify_certificate,
     bp_lookup_unverified_certificate, bp_get_certificate_stats,
-    bp_ocr, bp_reject_certificate
+    bp_ocr, bp_reject_certificate, bp_vax_yes_activity
 )
 
 import ggt.lib.constants as c
@@ -254,10 +256,11 @@ def delete_certificate(cert_id, notify_customer, user):
     )
 
 
-def reject_certificate(cert_id, user):
+def reject_certificate(cert_id, notify_customer, user):
     return x_response(
         bp_reject_certificate(
             cert_id,
+            notify_customer,
             user
         )
     )
@@ -270,6 +273,11 @@ def get_certificate_stats():
 
 
 def update_cert_image(patient_id, cert_id, image, user):
+    add_vax_yes_activity(user, 'UPDATE_CERT_IMAGE', certificate_id=cert_id, patient_id=patient_id,
+                         payload=json.dumps({"certificate_id": id,
+                                             "patient_id": patient_id,
+                                             "user": user}))
+
     return x_response(
         upload_vax_card_image(image, patient_id, cert_id, user)
     )
@@ -325,6 +333,15 @@ def verify_certificate(cert_id, verification_level, user):
             cert_id, verification_level, user
         )
     )
+
+
+def vax_yes_activity(cert_id, phone_number):
+    return y_response(
+        bp_vax_yes_activity(
+            cert_id, phone_number
+        )
+    )
+
 
 def get_ocr(patient_id, cert_id):
     return x_response(

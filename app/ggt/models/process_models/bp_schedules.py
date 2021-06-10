@@ -33,7 +33,7 @@ from ggt.models.data_models.schedules import (
     get_ggv_available_dates, get_group_by_group_code, get_available_ggv_locations_near_lat_lng,
     get_first_available_times, lookup_certificate, update_patient_ifo_cert, update_cert_info, delete_certificate,
     verify_certificate, get_patient_from_crt_number, get_certificate_stats, get_phone_number_by_certificate_id,
-    reject_certificate
+    reject_certificate, add_vax_yes_activity, vax_yes_activity
 )
 
 from ggt.models.data_models.locations import (
@@ -628,7 +628,12 @@ def bp_update_patient_ifo_cert(id, first_name, last_name, dob, phone_number, use
             admin=user['sub'],
             function=whoami(),
         )
-
+        add_vax_yes_activity(user['sub'], 'UPDATE_PATIENT_INFO', patient_id=id, payload=json.dumps({"id": id,
+                                                                                                    "first_name": first_name,
+                                                                                                    "last_name": last_name,
+                                                                                                    "dob": dob,
+                                                                                                    "phone_number": phone_number,
+                                                                                                    "user": user}))
         updated_info = update_patient_ifo_cert(id, phone_number, dob, first_name, last_name)
 
         if updated_info:
@@ -677,6 +682,12 @@ def bp_update_patient_ifo_cert(id, first_name, last_name, dob, phone_number, use
 
 def bp_update_cert_info(id, service_code, lot_no, vax_date, user):
     try:
+        add_vax_yes_activity(user, 'UPDATE_CERT_INFO', certificate_id=id, payload=json.dumps({"certificate_id": id,
+                                                                                                    "service_code": service_code,
+                                                                                                    "lot_no": lot_no,
+                                                                                                    "vax_date": vax_date,
+                                                                                                    "user": user}))
+
         log_generic(
             type=c.INFO,
             msg="CERTIFICATE-UPDATE-REQUEST",
@@ -737,6 +748,10 @@ def bp_delete_certificate(cert_id, notify_customer, user):
             function=whoami(),
             admin=user['sub']
         )
+        add_vax_yes_activity(user['sub'], 'DELETE_CERTIFICATE', certificate_id=cert_id, payload=json.dumps({"cert_id": cert_id,
+                                                                                                    "notify_customer": notify_customer,
+                                                                                                    "user": user['sub']}))
+
         if notify_customer:
             res = get_phone_number_by_certificate_id(cert_id)
             phone_number = res['phone_number']
@@ -805,8 +820,11 @@ def bp_delete_certificate(cert_id, notify_customer, user):
     return False
 
 
-def bp_reject_certificate(cert_id, user):
+def bp_reject_certificate(cert_id, notify_customer, user):
     try:
+        add_vax_yes_activity(user['sub'], 'DELETE_CERTIFICATE', certificate_id=cert_id, payload=json.dumps({"cert_id": cert_id,
+                                                                                                    "notify_customer": notify_customer,
+                                                                                                    "user": user['sub']}))
         res = get_phone_number_by_certificate_id(cert_id)
         phone_number = res['phone_number']
         log_generic(
@@ -834,26 +852,26 @@ def bp_reject_certificate(cert_id, user):
                 admin=user['sub'],
                 function=whoami(),
             )
-
-            if send_sms(phone_number, message.replace('\t', ''), international=international):
-                log_generic(
-                    type=c.INFO,
-                    msg="CERTIFICATE-REJECTION-SMS-SENT",
-                    cert_id=cert_id,
-                    message=message,
-                    phone_number=phone_number,
-                    admin=user['sub'],
-                    function=whoami(),
-                )
-            else:
-                log_generic(
-                    type=c.INFO,
-                    msg="CERTIFICATE-REJECTION-SMS-FAILED",
-                    cert_id=cert_id,
-                    phone_number=phone_number,
-                    admin=user['sub'],
-                    function=whoami(),
-                )
+            if notify_customer:
+                if send_sms(phone_number, message.replace('\t', ''), international=international):
+                    log_generic(
+                        type=c.INFO,
+                        msg="CERTIFICATE-REJECTION-SMS-SENT",
+                        cert_id=cert_id,
+                        message=message,
+                        phone_number=phone_number,
+                        admin=user['sub'],
+                        function=whoami(),
+                    )
+                else:
+                    log_generic(
+                        type=c.INFO,
+                        msg="CERTIFICATE-REJECTION-SMS-FAILED",
+                        cert_id=cert_id,
+                        phone_number=phone_number,
+                        admin=user['sub'],
+                        function=whoami(),
+                    )
         else:
             log_generic(
                 type=c.INFO,
@@ -1000,7 +1018,6 @@ def bp_delete_schedule_generation_rule(id):
             return True
         else:
             return False
-
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -1008,7 +1025,20 @@ def bp_delete_schedule_generation_rule(id):
             function=whoami(),
             error=err
         )
+    return False
 
+
+def bp_vax_yes_activity(certificate_id, phone_number):
+    try:
+        return vax_yes_activity(certificate_id, phone_number)
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            certificate_id=certificate_id,
+            phone_number=phone_number,
+            function=whoami(),
+            error=err
+        )
     return False
 
 
@@ -1029,6 +1059,11 @@ def bp_get_schedule_generation_rules(location_id):
 
 def bp_verify_certificate(cert_id, verification_level, user):
     try:
+        add_vax_yes_activity(user, 'VERIFY_CERTIFICATE', certificate_id=cert_id, patient_id=patient_id,
+                             payload=json.dumps({"cert_id": cert_id,
+                                                 "verification_level": verification_level,
+                                                 "user": user['sub']}))
+
         log_generic(
             type=c.INFO,
             msg='VERIFY-CERTIFICATE-REQUEST-RECEIVED',

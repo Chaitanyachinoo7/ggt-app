@@ -142,7 +142,7 @@ def update_patient_ifo_cert(id, phone_number, dob, first_name, last_name):
         last_name = %s, 
         dob = %s, 
         phone_number = %s,
-        update_dt = NOW(),
+        update_dt = NOW()
         WHERE id = %s"""
         vals = (first_name, last_name, dob, phone_number, id)
         return exec_update(sql, vals)
@@ -569,6 +569,31 @@ def delete_schedule_entries_by_location_id(location_id):
         return None
 
 
+def add_vax_yes_activity(external_user_id, action, certificate_id=None, patient_id=None, payload=None):
+    try:
+        sql = """INSERT INTO vax_yes_activity_log
+                    (external_user_id,
+                    action,
+                    certificate_id,
+                    patient_id,
+                    payload)
+                    VALUES (%s, %s, %s, %s, %s)
+        """
+        vals = (external_user_id, action, certificate_id, patient_id, payload)
+        return exec_insert(sql, vals)
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            external_user_id=external_user_id,
+            action=action,
+            certificate_id=certificate_id,
+            patient_id=patient_id,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 def get_location_id_by_rule_id(rule_id):
     try:
         sql = """SELECT 
@@ -656,6 +681,47 @@ def delete_schedule_generation_rule(id):
         """
         vals = (id,)
         return exec_delete(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def vax_yes_activity(certificate_id, phone_number):
+    where_statement = "1=1"
+    if phone_number or phone_number != "":
+        where_statement = "{} AND p.phone_number LIKE '%{}%'".format(where_statement, phone_number)
+    if certificate_id or certificate_id != "":
+        where_statement = "{} AND gc.id = {}".format(where_statement, certificate_id)
+
+    try:
+        sql = """SELECT 
+                        a.*,
+                        p.id as patient_id,
+                        p.first_name as patient_first_name,
+                        p.last_name as patient_last_name,
+                        p.phone_number as patient_phone_number,
+                        gc.lot_no as vax_lot_number,
+                        gc.service_code as vax_service_code,
+                        u.email as admin_email,
+                        u.given_name as admin_first_name,
+                        u.family_name as edited_by_family_name
+                        
+                    FROM
+                        vax_yes_activity_log a
+                            JOIN
+                        ggv_certificates gc ON a.certificate_id = gc.id
+                            LEFT JOIN
+                        patients p ON gc.patient_id = p.id
+                            LEFT JOIN
+                        ggt_users u ON u.external_id = a.external_user_id
+                    WHERE {} LIMIT 100;""".format(where_statement)
+        res = replica_read_rows(sql)
+        return res
 
     except Exception as err:
         log_generic(
