@@ -1066,18 +1066,24 @@ def __photo_id_pristine(patient_id, cert_id, cert_request: LookupGGVAddVaxCertRe
                 '%m-%d-%y') in id_ocr_string or
                        date_of_birth.strftime('%-m,%-d,%y') in id_ocr_string or date_of_birth.strftime(
                 '%b/%-d/%Y') in id_ocr_string) else 0
-    if (cert_request.first_name.lower() in id_ocr_string and
-            cert_request.last_name.lower() in id_ocr_string and
-            (date_of_birth.strftime('%-m/%-d/%y') in id_ocr_string or date_of_birth.strftime(
+    # if (cert_request.first_name.lower() in id_ocr_string and
+    #         cert_request.last_name.lower() in id_ocr_string and
+    #         (date_of_birth.strftime('%-m/%-d/%y') in id_ocr_string or date_of_birth.strftime(
+    #             '%m/%d/%y') in id_ocr_string or
+    #          date_of_birth.strftime('%-m/%-d/%Y') in id_ocr_string or date_of_birth.strftime(
+    #                     '%m/%d/%Y') in id_ocr_string or
+    #          date_of_birth.strftime('%-m,%-d,%y') in id_ocr_string or date_of_birth.strftime(
+    #                     '%b/%-d/%Y') in id_ocr_string)):
+    #     print("first_name, last_name and dob matched in photo id ocr")
+    #     return True
+    # print("first_name, last_name or dob did not match in photo id ocr")
+    # return False
+    return cert_request.first_name.lower() in id_ocr_string if (cert_request.first_name.lower() in id_ocr_string == cert_request.last_name.lower() in id_ocr_string) else (date_of_birth.strftime('%-m/%-d/%y') in id_ocr_string or date_of_birth.strftime(
                 '%m/%d/%y') in id_ocr_string or
              date_of_birth.strftime('%-m/%-d/%Y') in id_ocr_string or date_of_birth.strftime(
                         '%m/%d/%Y') in id_ocr_string or
              date_of_birth.strftime('%-m,%-d,%y') in id_ocr_string or date_of_birth.strftime(
-                        '%b/%-d/%Y') in id_ocr_string)):
-        print("first_name, last_name and dob matched in photo id ocr")
-        return True
-    print("first_name, last_name or dob did not match in photo id ocr")
-    return False
+                        '%b/%-d/%Y') in id_ocr_string)
 
 
 def __vax_card_pristine(patient_id, cert_id, cert_request: LookupGGVAddVaxCertRequest, ocr):
@@ -1125,38 +1131,32 @@ def __vax_card_pristine(patient_id, cert_id, cert_request: LookupGGVAddVaxCertRe
                                      or second_vax_dt.strftime(
                     '%-m,%-d,%Y') in vax_ocr_string or second_vax_dt.strftime('%b/%-d/%Y') in vax_ocr_string) else 0
         ocr["vax_2_lot_number"] = 1 if cert_request.vax_2_lot_number.strip("0").lower() in vax_ocr_string else 0
-    if (cert_request.vax_2_lot_number != "" and cert_request.vax_2_lot_number is not None and
-            cert_request.vax_type.lower() in vax_ocr_string and
+    if (cert_request.vax_2_lot_number != "" and cert_request.vax_2_lot_number is not None):
+        return True if (cert_request.vax_type.lower() in vax_ocr_string or
             (first_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or first_vax_dt.strftime(
                 '%m/%d/%y') in vax_ocr_string or
              first_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or first_vax_dt.strftime(
                         '%m/%d/%Y') in vax_ocr_string or
              first_vax_dt.strftime('%-m,%-d,%y') in vax_ocr_string or first_vax_dt.strftime(
-                        '%b/%-d/%Y') in vax_ocr_string) and
-            cert_request.vax_1_lot_number.strip("0").lower() in vax_ocr_string and
-            (second_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or second_vax_dt.strftime(
+                        '%b/%-d/%Y') in vax_ocr_string) or
+            cert_request.vax_1_lot_number.strip("0").lower() in vax_ocr_string) and ((second_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or second_vax_dt.strftime(
                 '%m/%d/%y') in vax_ocr_string or
              second_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or second_vax_dt.strftime(
                         '%m/%d/%Y') in vax_ocr_string
              or second_vax_dt.strftime('%-m,%-d,%Y') in vax_ocr_string or second_vax_dt.strftime(
-                        '%b/%-d/%Y') in vax_ocr_string) and
-            cert_request.vax_2_lot_number.strip("0").lower() in vax_ocr_string and
-            cert_request.first_name.lower() in vax_ocr_string and
-            cert_request.last_name.lower() in vax_ocr_string):
-        return True
-    elif ((cert_request.vax_2_lot_number == "" or cert_request.vax_2_lot_number is None) and
-          cert_request.vax_type.lower() in vax_ocr_string and
+                        '%b/%-d/%Y') in vax_ocr_string) or
+            cert_request.vax_2_lot_number.strip("0").lower() in vax_ocr_string) else False
+
+    elif (cert_request.vax_2_lot_number == "" or cert_request.vax_2_lot_number is None):
+        return True if (cert_request.vax_type.lower() in vax_ocr_string or
           (first_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or first_vax_dt.strftime(
               '%m/%d/%y') in vax_ocr_string or
            first_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or first_vax_dt.strftime(
                       '%m/%d/%Y') in vax_ocr_string or
            first_vax_dt.strftime('%-m,%-d,%y') in vax_ocr_string or first_vax_dt.strftime(
-                      '%b/%-d/%Y') in vax_ocr_string) and
-          cert_request.vax_1_lot_number.strip("0").lower() in vax_ocr_string and
-          cert_request.first_name.lower() in vax_ocr_string and
-          cert_request.last_name.lower() in vax_ocr_string):
-        return True
-    return False
+                      '%b/%-d/%Y') in vax_ocr_string) or
+          cert_request.vax_1_lot_number.strip("0").lower() in vax_ocr_string) else False
+    # return False
 
 
 def __update_ocr_status(patient_id, first_name, last_name, vax_type, dob, cert1_id, first_vax_dt, vax_1_lot_number,
@@ -2040,7 +2040,7 @@ def send_ggv_certificate_level_1_sms(first_name, phone_number, level):
         message = """Hi {}, congrats! Your vax card has been updated to level 2 verification. Your updated card is available here:\nhttps://start.gogetvax.com/login""".format(
             first_name,
         )
-        promo_message = "Thanks for choosing the VaxYes service. Share this unique link with family & friends so they can get their digital cards too:\nhttps://www.vaxyes.com/friendsfree21"
+        promo_message = "We’re offering FREE digital vax passports for a limited time until 06/30/2021: tell your friends about VaxYes by sharing this unique link: \nhttps://www.vaxyes.com/friendsfree21"
 
     if send_sms(phone_number, message.replace('\t', '')):
         log_generic(
