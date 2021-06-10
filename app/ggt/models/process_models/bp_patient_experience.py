@@ -852,7 +852,7 @@ def bp_add_vax_certificate(req):
                     log_generic(
                         type=c.INFO,
                         function=whoami(),
-                        msg="PATIENT-CERTIFICATE-ADD-REQUEST-OCR-VERIFIED-1",
+                        msg="PATIENT-CERTIFICATE-1-OCR-VERIFIED",
                         first_name=req.first_name,
                         last_name=req.last_name,
                         phone_number=req.phone_number,
@@ -873,7 +873,7 @@ def bp_add_vax_certificate(req):
                     log_generic(
                         type=c.ERROR,
                         function=whoami(),
-                        msg="PATIENT-CERTIFICATE-ADD-REQUEST-OCR-VERIFICATION-DB-UPDATE-FAILED-1",
+                        msg="PATIENT-CERTIFICATE-1-OCR-VERIFICATION-DB-UPDATE-FAILED",
                         first_name=req.first_name,
                         last_name=req.last_name,
                         phone_number=req.phone_number,
@@ -895,7 +895,7 @@ def bp_add_vax_certificate(req):
                         log_generic(
                             type=c.INFO,
                             function=whoami(),
-                            msg="PATIENT-CERTIFICATE-ADD-REQUEST-OCR-VERIFIED-2",
+                            msg="PATIENT-CERTIFICATE-2-OCR-VERIFIED",
                             first_name=req.first_name,
                             last_name=req.last_name,
                             phone_number=req.phone_number,
@@ -916,7 +916,7 @@ def bp_add_vax_certificate(req):
                         log_generic(
                             type=c.ERROR,
                             function=whoami(),
-                            msg="PATIENT-CERTIFICATE-ADD-REQUEST-OCR-VERIFICATION-DB-UPDATE-FAILED-2",
+                            msg="PATIENT-CERTIFICATE-2-OCR-VERIFICATION-DB-UPDATE-FAILED",
                             first_name=req.first_name,
                             last_name=req.last_name,
                             phone_number=req.phone_number,
@@ -942,7 +942,7 @@ def bp_add_vax_certificate(req):
                 log_generic(
                     type=c.INFO,
                     function=whoami(),
-                    msg="PATIENT-CERTIFICATE-ADD-REQUEST-OCR-VERIFICATION-FAILED",
+                    msg="PATIENT-CERTIFICATE-OCR-VERIFICATION-FAILED",
                     first_name=req.first_name,
                     last_name=req.last_name,
                     phone_number=req.phone_number,
@@ -2558,7 +2558,7 @@ def upload_vax_card_image(result_image: str, patient_id: int, cert_id: str, user
     try:
         log_generic(
             type=c.INFO,
-            msg="UPLOAD-VAX-CERTIFICATE-REQUEST",
+            msg="UPLOAD-IMAGE-REQUEST",
             patient_id=patient_id,
             cert_id=cert_id,
             admin=user,
@@ -2574,7 +2574,7 @@ def upload_vax_card_image(result_image: str, patient_id: int, cert_id: str, user
             if upload_vax_card_image_from_base64_string(base64string, dest_file_name):
                 log_generic(
                     type=c.INFO,
-                    msg="UPLOAD-VAX-CERTIFICATE-UPLOADED",
+                    msg="UPLOAD-IMAGE-UPLOADED",
                     patient_id=patient_id,
                     cert_id=cert_id,
                     admin=user,
@@ -2584,7 +2584,7 @@ def upload_vax_card_image(result_image: str, patient_id: int, cert_id: str, user
     except Exception as err:
         log_generic(
             type=c.ERROR,
-            msg="UPLOAD-VAX-CERTIFICATE-UPLOAD-ERROR",
+            msg="UPLOAD-IMAGE-UPLOAD-ERROR",
             patient_id=patient_id,
             cert_id=cert_id,
             admin=user,
@@ -2593,7 +2593,7 @@ def upload_vax_card_image(result_image: str, patient_id: int, cert_id: str, user
         )
     log_generic(
         type=c.INFO,
-        msg="UPLOAD-VAX-CERTIFICATE-UPLOAD-FAILED",
+        msg="UPLOAD-IMAGE-UPLOAD-FAILED",
         patient_id=patient_id,
         cert_id=cert_id,
         admin=user,
