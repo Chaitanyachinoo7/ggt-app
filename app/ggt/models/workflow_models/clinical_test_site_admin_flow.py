@@ -222,10 +222,10 @@ def lookup_certificate(first_name, last_name, dob, phone_number, user):
     )
 
 
-def lookup_unverified_certificate(first_name, last_name, dob, phone_number, limit, offset, user):
+def lookup_unverified_certificate(first_name, last_name, dob, phone_number, limit, offset, user, version):
     return y_response(
         bp_lookup_unverified_certificate(
-            first_name, last_name, dob, phone_number, limit, offset, user
+            first_name, last_name, dob, phone_number, limit, offset, user, version
         )
     )
 
@@ -238,10 +238,10 @@ def update_patient_ifo_cert(id, first_name, last_name, dob, phone_number, user):
     )
 
 
-def update_cert_info(id, service_code, lot_no, vax_date):
+def update_cert_info(id, service_code, lot_no, vax_date, user):
     return x_response(
         bp_update_cert_info(
-            id, service_code, lot_no, vax_date
+            id, service_code, lot_no, vax_date, user
         )
     )
 
@@ -269,9 +269,9 @@ def get_certificate_stats():
     )
 
 
-def update_cert_image(patient_id, cert_id, image):
+def update_cert_image(patient_id, cert_id, image, user):
     return x_response(
-        upload_vax_card_image(image, patient_id, cert_id)
+        upload_vax_card_image(image, patient_id, cert_id, user)
     )
 
 

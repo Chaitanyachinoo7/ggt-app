@@ -811,9 +811,9 @@ def bp_add_vax_certificate(req):
             vax_1_lot_number=req.vax_1_lot_number,
             second_vax_dt=req.second_vax_dt,
             vax_2_lot_number=req.vax_2_lot_number,
-            pristine_dob=pristine.dob,
-            pristine_first_name=pristine.first_name,
-            pristine_last_name=pristine.last_name,
+            pristine_dob=pristine.dob if pristine else None,
+            pristine_first_name=pristine.first_name if pristine else None,
+            pristine_last_name=pristine.last_name if pristine else None,
             vax_image=1 if req.vax_image else 0,
             id_image=1 if req.id_image else 0
         )
@@ -862,9 +862,9 @@ def bp_add_vax_certificate(req):
                         vax_1_lot_number=req.vax_1_lot_number,
                         second_vax_dt=req.second_vax_dt,
                         vax_2_lot_number=req.vax_2_lot_number,
-                        pristine_dob=pristine.dob,
-                        pristine_first_name=pristine.first_name,
-                        pristine_last_name=pristine.last_name,
+                        pristine_dob=pristine.dob if pristine else None,
+                        pristine_first_name=pristine.first_name if pristine else None,
+                        pristine_last_name=pristine.last_name if pristine else None,
                         vax_image=1 if req.vax_image else 0,
                         id_image=1 if req.id_image else 0
                     )
@@ -883,9 +883,9 @@ def bp_add_vax_certificate(req):
                         vax_1_lot_number=req.vax_1_lot_number,
                         second_vax_dt=req.second_vax_dt,
                         vax_2_lot_number=req.vax_2_lot_number,
-                        pristine_dob=pristine.dob,
-                        pristine_first_name=pristine.first_name,
-                        pristine_last_name=pristine.last_name,
+                        pristine_dob=pristine.dob if pristine else None,
+                        pristine_first_name=pristine.first_name if pristine else None,
+                        pristine_last_name=pristine.last_name if pristine else None,
                         vax_image=1 if req.vax_image else 0,
                         id_image=1 if req.id_image else 0
                     )
@@ -905,9 +905,9 @@ def bp_add_vax_certificate(req):
                             vax_1_lot_number=req.vax_1_lot_number,
                             second_vax_dt=req.second_vax_dt,
                             vax_2_lot_number=req.vax_2_lot_number,
-                            pristine_dob=pristine.dob,
-                            pristine_first_name=pristine.first_name,
-                            pristine_last_name=pristine.last_name,
+                            pristine_dob=pristine.dob if pristine else None,
+                            pristine_first_name=pristine.first_name if pristine else None,
+                            pristine_last_name=pristine.last_name if pristine else None,
                             vax_image=1 if req.vax_image else 0,
                             id_image=1 if req.id_image else 0
                         )
@@ -926,9 +926,9 @@ def bp_add_vax_certificate(req):
                             vax_1_lot_number=req.vax_1_lot_number,
                             second_vax_dt=req.second_vax_dt,
                             vax_2_lot_number=req.vax_2_lot_number,
-                            pristine_dob=pristine.dob,
-                            pristine_first_name=pristine.first_name,
-                            pristine_last_name=pristine.last_name,
+                            pristine_dob=pristine.dob if pristine else None,
+                            pristine_first_name=pristine.first_name if pristine else None,
+                            pristine_last_name=pristine.last_name if pristine else None,
                             vax_image=1 if req.vax_image else 0,
                             id_image=1 if req.id_image else 0
                         )
@@ -952,9 +952,9 @@ def bp_add_vax_certificate(req):
                     vax_1_lot_number=req.vax_1_lot_number,
                     second_vax_dt=req.second_vax_dt,
                     vax_2_lot_number=req.vax_2_lot_number,
-                    pristine_dob=pristine.dob,
-                    pristine_first_name=pristine.first_name,
-                    pristine_last_name=pristine.last_name,
+                    pristine_dob=pristine.dob if pristine else None,
+                    pristine_first_name=pristine.first_name if pristine else None,
+                    pristine_last_name=pristine.last_name if pristine else None,
                     vax_image=1 if req.vax_image else 0,
                     id_image=1 if req.id_image else 0
                 )
@@ -976,9 +976,9 @@ def bp_add_vax_certificate(req):
                 vax_1_lot_number=req.vax_1_lot_number,
                 second_vax_dt=req.second_vax_dt,
                 vax_2_lot_number=req.vax_2_lot_number,
-                pristine_dob=pristine.dob,
-                pristine_first_name=pristine.first_name,
-                pristine_last_name=pristine.last_name,
+                pristine_dob=pristine.dob if pristine else None,
+                pristine_first_name=pristine.first_name if pristine else None,
+                pristine_last_name=pristine.last_name if pristine else None,
                 vax_image=1 if req.vax_image else 0,
                 id_image=1 if req.id_image else 0
             )
@@ -1004,9 +1004,9 @@ def bp_add_vax_certificate(req):
             vax_1_lot_number=req.vax_1_lot_number,
             second_vax_dt=req.second_vax_dt,
             vax_2_lot_number=req.vax_2_lot_number,
-            pristine_dob=pristine.dob,
-            pristine_first_name=pristine.first_name,
-            pristine_last_name=pristine.last_name,
+            pristine_dob=pristine.dob if pristine else None,
+            pristine_first_name=pristine.first_name if pristine else None,
+            pristine_last_name=pristine.last_name if pristine else None,
             vax_image=1 if req.vax_image else 0,
             id_image=1 if req.id_image else 0,
             error=err
@@ -1067,22 +1067,22 @@ def __photo_id_pristine(patient_id, cert_id, cert_request: LookupGGVAddVaxCertRe
         type=c.INFO,
         function=whoami(),
         msg="PATIENT-CERTIFICATE-ADD-REQUEST-ID-OCR-STRING",
-        ocr_string=id_ocr_string,
-        first_name=cert_request.first_name,
-        last_name=cert_request.last_name,
-        phone_number=cert_request.phone_number,
-        email=cert_request.email,
-        dob=cert_request.dob,
-        vax_type=cert_request.vax_type,
-        first_vax_dt=cert_request.first_vax_dt,
-        vax_1_lot_number=cert_request.vax_1_lot_number,
-        second_vax_dt=cert_request.second_vax_dt,
-        vax_2_lot_number=cert_request.vax_2_lot_number,
-        pristine_dob=cert_request.pristine.dob,
-        pristine_first_name=cert_request.pristine.first_name,
-        pristine_last_name=cert_request.pristine.last_name,
-        vax_image=1 if cert_request.vax_image else 0,
-        id_image=1 if cert_request.id_image else 0
+        ocr_string=str(id_ocr_string)
+        # first_name=cert_request.first_name,
+        # last_name=cert_request.last_name,
+        # phone_number=cert_request.phone_number,
+        # email=cert_request.email,
+        # dob=cert_request.dob,
+        # vax_type=cert_request.vax_type,
+        # first_vax_dt=cert_request.first_vax_dt,
+        # vax_1_lot_number=cert_request.vax_1_lot_number,
+        # second_vax_dt=cert_request.second_vax_dt,
+        # vax_2_lot_number=cert_request.vax_2_lot_number,
+        # pristine_dob=cert_request.pristine.dob if cert_request.pristine else None,
+        # pristine_first_name=cert_request.pristine.first_name if cert_request.pristine else None,
+        # pristine_last_name=cert_request.pristine.last_name if cert_request.pristine else None,
+        # vax_image=1 if cert_request.vax_image else 0,
+        # id_image=1 if cert_request.id_image else 0,
     )
     date_of_birth = datetime.strptime(cert_request.dob, '%Y-%m-%d')
     ocr["first_name"] = 1 if cert_request.first_name.lower() in id_ocr_string else 0
@@ -1097,18 +1097,24 @@ def __photo_id_pristine(patient_id, cert_id, cert_request: LookupGGVAddVaxCertRe
                 '%m-%d-%y') in id_ocr_string or
                        date_of_birth.strftime('%-m,%-d,%y') in id_ocr_string or date_of_birth.strftime(
                 '%b/%-d/%Y') in id_ocr_string) else 0
-    if (cert_request.first_name.lower() in id_ocr_string and
-            cert_request.last_name.lower() in id_ocr_string and
-            (date_of_birth.strftime('%-m/%-d/%y') in id_ocr_string or date_of_birth.strftime(
+    # if (cert_request.first_name.lower() in id_ocr_string and
+    #         cert_request.last_name.lower() in id_ocr_string and
+    #         (date_of_birth.strftime('%-m/%-d/%y') in id_ocr_string or date_of_birth.strftime(
+    #             '%m/%d/%y') in id_ocr_string or
+    #          date_of_birth.strftime('%-m/%-d/%Y') in id_ocr_string or date_of_birth.strftime(
+    #                     '%m/%d/%Y') in id_ocr_string or
+    #          date_of_birth.strftime('%-m,%-d,%y') in id_ocr_string or date_of_birth.strftime(
+    #                     '%b/%-d/%Y') in id_ocr_string)):
+    #     print("first_name, last_name and dob matched in photo id ocr")
+    #     return True
+    # print("first_name, last_name or dob did not match in photo id ocr")
+    # return False
+    return cert_request.first_name.lower() in id_ocr_string if (cert_request.first_name.lower() in id_ocr_string == cert_request.last_name.lower() in id_ocr_string) else (date_of_birth.strftime('%-m/%-d/%y') in id_ocr_string or date_of_birth.strftime(
                 '%m/%d/%y') in id_ocr_string or
              date_of_birth.strftime('%-m/%-d/%Y') in id_ocr_string or date_of_birth.strftime(
                         '%m/%d/%Y') in id_ocr_string or
              date_of_birth.strftime('%-m,%-d,%y') in id_ocr_string or date_of_birth.strftime(
-                        '%b/%-d/%Y') in id_ocr_string)):
-        print("first_name, last_name and dob matched in photo id ocr")
-        return True
-    print("first_name, last_name or dob did not match in photo id ocr")
-    return False
+                        '%b/%-d/%Y') in id_ocr_string)
 
 
 def __vax_card_pristine(patient_id, cert_id, cert_request: LookupGGVAddVaxCertRequest, ocr):
@@ -1118,22 +1124,22 @@ def __vax_card_pristine(patient_id, cert_id, cert_request: LookupGGVAddVaxCertRe
         type=c.INFO,
         function=whoami(),
         msg="PATIENT-CERTIFICATE-ADD-REQUEST-CERT-OCR-STRING",
-        ocr_string=vax_ocr_string,
-        first_name=cert_request.first_name,
-        last_name=cert_request.last_name,
-        phone_number=cert_request.phone_number,
-        email=cert_request.email,
-        dob=cert_request.dob,
-        vax_type=cert_request.vax_type,
-        first_vax_dt=cert_request.first_vax_dt,
-        vax_1_lot_number=cert_request.vax_1_lot_number,
-        second_vax_dt=cert_request.second_vax_dt,
-        vax_2_lot_number=cert_request.vax_2_lot_number,
-        pristine_dob=cert_request.pristine.dob,
-        pristine_first_name=cert_request.pristine.first_name,
-        pristine_last_name=cert_request.pristine.last_name,
-        vax_image=1 if cert_request.vax_image else 0,
-        id_image=1 if cert_request.id_image else 0
+        ocr_string=str(vax_ocr_string)
+        # first_name=cert_request.first_name,
+        # last_name=cert_request.last_name,
+        # phone_number=cert_request.phone_number,
+        # email=cert_request.email,
+        # dob=cert_request.dob,
+        # vax_type=cert_request.vax_type,
+        # first_vax_dt=cert_request.first_vax_dt,
+        # vax_1_lot_number=cert_request.vax_1_lot_number,
+        # second_vax_dt=cert_request.second_vax_dt,
+        # vax_2_lot_number=cert_request.vax_2_lot_number,
+        # pristine_dob=cert_request.pristine.dob if cert_request.pristine else None,
+        # pristine_first_name=cert_request.pristine.first_name if cert_request.pristine else None,
+        # pristine_last_name=cert_request.pristine.last_name if cert_request.pristine else None,
+        # vax_image=1 if cert_request.vax_image else 0,
+        # id_image=1 if cert_request.id_image else 0,
     )
     first_vax_dt = datetime.strptime(cert_request.first_vax_dt, '%Y-%m-%d')
     if cert_request.vax_2_lot_number != "" and cert_request.vax_2_lot_number is not None:
@@ -1155,38 +1161,32 @@ def __vax_card_pristine(patient_id, cert_id, cert_request: LookupGGVAddVaxCertRe
                                      or second_vax_dt.strftime(
                     '%-m,%-d,%Y') in vax_ocr_string or second_vax_dt.strftime('%b/%-d/%Y') in vax_ocr_string) else 0
         ocr["vax_2_lot_number"] = 1 if cert_request.vax_2_lot_number.strip("0").lower() in vax_ocr_string else 0
-    if (cert_request.vax_2_lot_number != "" and cert_request.vax_2_lot_number is not None and
-            cert_request.vax_type.lower() in vax_ocr_string and
+    if (cert_request.vax_2_lot_number != "" and cert_request.vax_2_lot_number is not None):
+        return True if (cert_request.vax_type.lower() in vax_ocr_string or
             (first_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or first_vax_dt.strftime(
                 '%m/%d/%y') in vax_ocr_string or
              first_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or first_vax_dt.strftime(
                         '%m/%d/%Y') in vax_ocr_string or
              first_vax_dt.strftime('%-m,%-d,%y') in vax_ocr_string or first_vax_dt.strftime(
-                        '%b/%-d/%Y') in vax_ocr_string) and
-            cert_request.vax_1_lot_number.strip("0").lower() in vax_ocr_string and
-            (second_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or second_vax_dt.strftime(
+                        '%b/%-d/%Y') in vax_ocr_string) or
+            cert_request.vax_1_lot_number.strip("0").lower() in vax_ocr_string) and ((second_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or second_vax_dt.strftime(
                 '%m/%d/%y') in vax_ocr_string or
              second_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or second_vax_dt.strftime(
                         '%m/%d/%Y') in vax_ocr_string
              or second_vax_dt.strftime('%-m,%-d,%Y') in vax_ocr_string or second_vax_dt.strftime(
-                        '%b/%-d/%Y') in vax_ocr_string) and
-            cert_request.vax_2_lot_number.strip("0").lower() in vax_ocr_string and
-            cert_request.first_name.lower() in vax_ocr_string and
-            cert_request.last_name.lower() in vax_ocr_string):
-        return True
-    elif ((cert_request.vax_2_lot_number == "" or cert_request.vax_2_lot_number is None) and
-          cert_request.vax_type.lower() in vax_ocr_string and
+                        '%b/%-d/%Y') in vax_ocr_string) or
+            cert_request.vax_2_lot_number.strip("0").lower() in vax_ocr_string) else False
+
+    elif (cert_request.vax_2_lot_number == "" or cert_request.vax_2_lot_number is None):
+        return True if (cert_request.vax_type.lower() in vax_ocr_string or
           (first_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or first_vax_dt.strftime(
               '%m/%d/%y') in vax_ocr_string or
            first_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or first_vax_dt.strftime(
                       '%m/%d/%Y') in vax_ocr_string or
            first_vax_dt.strftime('%-m,%-d,%y') in vax_ocr_string or first_vax_dt.strftime(
-                      '%b/%-d/%Y') in vax_ocr_string) and
-          cert_request.vax_1_lot_number.strip("0").lower() in vax_ocr_string and
-          cert_request.first_name.lower() in vax_ocr_string and
-          cert_request.last_name.lower() in vax_ocr_string):
-        return True
-    return False
+                      '%b/%-d/%Y') in vax_ocr_string) or
+          cert_request.vax_1_lot_number.strip("0").lower() in vax_ocr_string) else False
+    # return False
 
 
 def __update_ocr_status(patient_id, first_name, last_name, vax_type, dob, cert1_id, first_vax_dt, vax_1_lot_number,
@@ -2070,7 +2070,7 @@ def send_ggv_certificate_level_1_sms(first_name, phone_number, level):
         message = """Hi {}, congrats! Your vax card has been updated to level 2 verification. Your updated card is available here:\nhttps://start.gogetvax.com/login""".format(
             first_name,
         )
-        promo_message = "Thanks for choosing the VaxYes service. Share this unique link with family & friends so they can get their digital cards too:\nhttps://www.vaxyes.com/friendsfree21"
+        promo_message = "We’re offering FREE digital vax passports for a limited time until 06/30/2021: tell your friends about VaxYes by sharing this unique link: \nhttps://www.vaxyes.com/friendsfree21"
 
     if send_sms(phone_number, message.replace('\t', '')):
         log_generic(
@@ -2553,8 +2553,16 @@ def __upload_test_result_image(result_image: str, appointment_id: int) -> bool:
     return False
 
 
-def upload_vax_card_image(result_image: str, patient_id: int, cert_id: str) -> bool:
+def upload_vax_card_image(result_image: str, patient_id: int, cert_id: str, user=None) -> bool:
     try:
+        log_generic(
+            type=c.INFO,
+            msg="UPLOAD-VAX-CERTIFICATE-REQUEST",
+            patient_id=patient_id,
+            cert_id=cert_id,
+            admin=user,
+            function=whoami()
+        )
         if result_image.find("api.twilio.com") != -1:
             return upload_vax_card_image_from_twilio(
                 result_image, '{}/{}.jpg'.format(patient_id, cert_id), cfg('aws.vax_certificate_bucket'))
@@ -2563,15 +2571,33 @@ def upload_vax_card_image(result_image: str, patient_id: int, cert_id: str) -> b
                 base64string = result_image.split(",")[1]
             dest_file_name = '{}/{}.jpg'.format(patient_id, cert_id)
             if upload_vax_card_image_from_base64_string(base64string, dest_file_name):
+                log_generic(
+                    type=c.INFO,
+                    msg="UPLOAD-VAX-CERTIFICATE-UPLOADED",
+                    patient_id=patient_id,
+                    cert_id=cert_id,
+                    admin=user,
+                    function=whoami()
+                )
                 return True
     except Exception as err:
         log_generic(
             type=c.ERROR,
+            msg="UPLOAD-VAX-CERTIFICATE-UPLOAD-ERROR",
             patient_id=patient_id,
-            result_image=result_image,
+            cert_id=cert_id,
+            admin=user,
             function=whoami(),
             error=err
         )
+    log_generic(
+        type=c.INFO,
+        msg="UPLOAD-VAX-CERTIFICATE-UPLOAD-FAILED",
+        patient_id=patient_id,
+        cert_id=cert_id,
+        admin=user,
+        function=whoami()
+    )
     return False
 
 

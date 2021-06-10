@@ -201,7 +201,8 @@ def update_cert_info(id, service_code, lot_no, vax_date):
         sql = """UPDATE ggv_certificates SET 
         service_code = %s, 
         lot_no = %s,
-        check_in_dt = %s
+        check_in_dt = %s,
+        update_dt = NOW()
         WHERE id = %s"""
         vals = (service_code, lot_no, vax_date, id)
         return exec_update(sql, vals)
@@ -463,7 +464,7 @@ def update_schedule_generation_rule(data):
         return None
 
 
-def lookup_certificate(phone_number, dob, first_name, last_name, token=None, verification_level=None, limit=None,
+def lookup_certificate(phone_number, dob, first_name, last_name, version, token=None, verification_level=None, limit=None,
                        offset=None, user=None):
     try:
         where_statement = "gc.rejected = 0 AND p.create_dt > '2021-05-20'"
@@ -512,7 +513,7 @@ def lookup_certificate(phone_number, dob, first_name, last_name, token=None, ver
                     ggv_certificates_ocr ggv_ocr ON p.id = ggv_ocr.patient_id
                     WHERE {}""".format(where_statement)
         rows = replica_read_rows(sql)
-        return __format_vax_certificate_portal(rows), "No certificate found."
+        return __format_vax_certificate_portal(rows, version), "No certificate found."
 
     except Exception as err:
         print(err)
@@ -1659,7 +1660,7 @@ def __map_row_to_dtl(row):
     return dtl, svc
 
 
-def __format_vax_certificate_portal(rows):
+def __format_vax_certificate_portal(rows, version):
     print("inside" + whoami())
     try:
         if len(rows) > 0:
@@ -1679,8 +1680,10 @@ def __format_vax_certificate_portal(rows):
             for row in rows:
                 image = get_temp_vax_cert_url("{}/{}.jpg".format(
                     row['patient_id'], row['id']), get_config_val('aws.vax_certificate_bucket'))
-                id_image = get_temp_vax_cert_url("{}/{}.jpg".format(
-                    row['patient_id'], str(row['id']) + '_id_image'), get_config_val('aws.vax_certificate_bucket'))
+                id_image = None
+                if version != 2:
+                    id_image = get_temp_vax_cert_url("{}/{}.jpg".format(
+                        row['patient_id'], str(row['id']) + '_id_image'), get_config_val('aws.vax_certificate_bucket'))
                 # image = "/api/vax_certificate/{}/{}.jpg".format(
                 #         row['patient_id'], row['id'])
                 service = {

@@ -24,6 +24,9 @@ from ggt.models.data_models.data_types import LookupGGVAddVaxCertRequest
 from ggt.models.process_models.bp_patient_experience import __vax_card_pristine, __photo_id_pristine, __update_ocr_status
 
 from ggt.lib.adapters.s3_adapter import get_temp_pkpass_url
+from ggt.models.data_models.schedules import verify_certificate
+from ggt.models.process_models.bp_patient_experience import upload_vax_card_image, send_ggv_certificate_level_1_sms, \
+    send_ggv_certificate_level_1_email
 def run_ocr_on_vax_yes_cards():
     print("starting run_ocr_on_vax_yes_cards job")
     unverified_certs = get_distinct_unverified_certs_patient_ids()
@@ -41,18 +44,31 @@ def run_ocr_on_vax_yes_cards():
                 is_vax_card_pristine= __vax_card_pristine(str(item["patient_id"]), str(certs[0]["cert_id"]), req, ocr)
                 is_photo_id_pristine = __photo_id_pristine(str(item["patient_id"]), str(certs[0]["cert_id"]), req, ocr)
                 print(ocr)
+                print(is_vax_card_pristine, is_photo_id_pristine)
                 print("updating ocr db")
                 __update_ocr_status(ocr["patient_id"], ocr["first_name"],ocr["last_name"],ocr["vax_type"],ocr["dob"],ocr["cert1_id"],ocr["first_vax_dt"],ocr["vax_1_lot_number"],
                 ocr["cert2_id"],ocr["second_vax_dt"],ocr["vax_2_lot_number"])
+                verifyAndNotify(is_vax_card_pristine, is_photo_id_pristine, certs)
                 if is_vax_card_pristine and is_photo_id_pristine:
                     final = final + 1
+                print("L2 certs= "+ str(final))
             except Exception as err:
                 log_generic(
                     type=c.ERROR,
                     function=whoami(),
                     error=err
                 )
-    print("L2 certs= "+ str(final))
+
+def verifyAndNotify(is_vax_card_pristine, is_photo_id_pristine, certs):
+    if is_vax_card_pristine and is_photo_id_pristine:
+        verify_certificate(str(certs[0]["cert_id"]), "2")
+        if len(certs)>1:
+            verify_certificate(str(certs[1]["cert_id"]), "2")
+        send_ggv_certificate_level_1_sms(certs[0]["first_name"].title(), certs[0]["phone_number"], "2")
+        print("L2 SMS SENT")
+        send_ggv_certificate_level_1_email(certs[0]["first_name"].title(), certs[0]["email"], "2")
+        print("L2 EMAIL SENT")
+    return True
 
 def create_ocr_obj(item, certs):
     ocr = {
@@ -99,7 +115,7 @@ def get_pristine_req(certs, patient_id):
 def get_distinct_unverified_certs_patient_ids():
     print("inside get_distinct_unverified_certs_patient_ids")
     sql = """
-        SELECT distinct patient_id FROM ggv_certificates where verification_level < 2 order by id desc LIMIT 10
+        SELECT distinct patient_id FROM ggv_certificates where create_dt > '2021-05-20' and verification_level < 2 order by id asc LIMIT 5000
     """
     rows = read_rows(sql,)
     print(len(rows))
