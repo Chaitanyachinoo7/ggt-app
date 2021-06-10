@@ -256,7 +256,7 @@ def get_phone_number_by_certificate_id(cert_id):
                 FROM
                     ggv_certificates gc
                         JOIN
-                    patients p ON p.id = gc.patient_id;
+                    patients p ON p.id = gc.patient_id
         WHERE gc.id = %s"""
         vals = (cert_id,)
         return replica_read_row(sql, vals)

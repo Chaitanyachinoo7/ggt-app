@@ -1098,7 +1098,7 @@ def bp_verify_certificate(cert_id, verification_level, user):
         else:
             log_generic(
                 type=c.INFO,
-                msg='VERIFY-CERTIFICATE-PATIENT_NOT_FOUND',
+                msg='VERIFY-CERTIFICATE-PATIENT-NOT-FOUND',
                 cert_id=cert_id,
                 verification_level=verification_level,
                 admin=user['sub'],
@@ -1110,7 +1110,7 @@ def bp_verify_certificate(cert_id, verification_level, user):
     except Exception as err:
         log_generic(
             type=c.ERROR,
-            msg='VERIFY-CERTIFICATE-PATIENT_NOT_FOUND',
+            msg='VERIFY-CERTIFICATE-PATIENT-NOT-FOUND',
             cert_id=cert_id,
             verification_level=verification_level,
             admin=user['sub'],
