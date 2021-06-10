@@ -975,8 +975,8 @@ def bp_add_vax_certificate(req):
                             vax_image=1 if req.vax_image else 0,
                             id_image=1 if req.id_image else 0
                         )
-                send_ggv_certificate_level_1_sms(patient["first_name"].title(), patient["phone_number"], "2")
-                send_ggv_certificate_level_1_email(patient["first_name"].title(), patient["email"], "2")
+                send_ggv_certificate_level_1_sms(req.first_name.title(), req.phone_number, "2")
+                send_ggv_certificate_level_1_email(req.first_name.title(), req.email, "2")
                 return {
                     "level": 2
                 }
@@ -1001,6 +1001,8 @@ def bp_add_vax_certificate(req):
                     vax_image=1 if req.vax_image else 0,
                     id_image=1 if req.id_image else 0
                 )
+                send_ggv_certificate_level_1_sms(req.first_name.title(), req.phone_number, "1")
+                send_ggv_certificate_level_1_email(req.first_name.title(), req.email, "1")
                 return {
                     "level": 1
                 }
@@ -1027,6 +1029,8 @@ def bp_add_vax_certificate(req):
             )
             cert_details = add_vax_certificate(req)
             if cert_details:
+                send_ggv_certificate_level_1_sms(req.first_name.title(), req.phone_number, "1")
+                send_ggv_certificate_level_1_email(req.first_name.title(), req.email, "1")
                 return {
                     "level": 1
                 }
