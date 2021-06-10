@@ -1391,6 +1391,7 @@ class UserRolesEnum(str, Enum):
     super_admin = 'super_admin'
     org_admin = 'org_admin'
     ggt = 'ggt_admin'
+    external_cert_verify = 'external_cert_verify'
 
     # org_admin
 
