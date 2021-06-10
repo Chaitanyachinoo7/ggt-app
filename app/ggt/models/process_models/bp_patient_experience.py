@@ -1031,28 +1031,28 @@ def __get_vax_card_ocr_gcp(content):
 
 def __photo_id_pristine(patient_id, cert_id, cert_request: LookupGGVAddVaxCertRequest, ocr):
     id_ocr_string = __get_vax_card_ocr(patient_id, str(cert_id) + '_id_image')
-    # log_generic(
-    #     type=c.INFO,
-    #     function=whoami(),
-    #     msg="PATIENT-CERTIFICATE-ADD-REQUEST-ID-OCR-STRING",
-    #     ocr_string=id_ocr_string,
-    #     first_name=cert_request.first_name,
-    #     last_name=cert_request.last_name,
-    #     phone_number=cert_request.phone_number,
-    #     email=cert_request.email,
-    #     dob=cert_request.dob,
-    #     vax_type=cert_request.vax_type,
-    #     first_vax_dt=cert_request.first_vax_dt,
-    #     vax_1_lot_number=cert_request.vax_1_lot_number,
-    #     second_vax_dt=cert_request.second_vax_dt,
-    #     vax_2_lot_number=cert_request.vax_2_lot_number,
-    #     pristine_dob=cert_request.pristine.dob if cert_request.pristine else None,
-    #     pristine_first_name=cert_request.pristine.first_name if cert_request.pristine else None,
-    #     pristine_last_name=cert_request.pristine.last_name if cert_request.pristine else None,
-    #     vax_image=1 if cert_request.vax_image else 0,
-    #     id_image=1 if cert_request.id_image else 0,
-    #     whoami=whoami()
-    # )
+    log_generic(
+        type=c.INFO,
+        function=whoami(),
+        msg="PATIENT-CERTIFICATE-ADD-REQUEST-ID-OCR-STRING",
+        ocr_string=str(id_ocr_string),
+        # first_name=cert_request.first_name,
+        # last_name=cert_request.last_name,
+        # phone_number=cert_request.phone_number,
+        # email=cert_request.email,
+        # dob=cert_request.dob,
+        # vax_type=cert_request.vax_type,
+        # first_vax_dt=cert_request.first_vax_dt,
+        # vax_1_lot_number=cert_request.vax_1_lot_number,
+        # second_vax_dt=cert_request.second_vax_dt,
+        # vax_2_lot_number=cert_request.vax_2_lot_number,
+        # pristine_dob=cert_request.pristine.dob if cert_request.pristine else None,
+        # pristine_first_name=cert_request.pristine.first_name if cert_request.pristine else None,
+        # pristine_last_name=cert_request.pristine.last_name if cert_request.pristine else None,
+        # vax_image=1 if cert_request.vax_image else 0,
+        # id_image=1 if cert_request.id_image else 0,
+        whoami=whoami()
+    )
     date_of_birth = datetime.strptime(cert_request.dob, '%Y-%m-%d')
     ocr["first_name"] = 1 if cert_request.first_name.lower() in id_ocr_string else 0
     ocr["last_name"] = 1 if cert_request.last_name.lower() in id_ocr_string else 0
@@ -1089,28 +1089,28 @@ def __photo_id_pristine(patient_id, cert_id, cert_request: LookupGGVAddVaxCertRe
 def __vax_card_pristine(patient_id, cert_id, cert_request: LookupGGVAddVaxCertRequest, ocr):
     vax_ocr_string = __get_vax_card_ocr(patient_id, cert_id)
     # vax_ocr_string = vax_ocr_string + " " + __get_vax_card_ocr_gcp(cert_request.vax_image_url)
-    # log_generic(
-    #     type=c.INFO,
-    #     function=whoami(),
-    #     msg="PATIENT-CERTIFICATE-ADD-REQUEST-CERT-OCR-STRING",
-    #     ocr_string=vax_ocr_string,
-    #     first_name=cert_request.first_name,
-    #     last_name=cert_request.last_name,
-    #     phone_number=cert_request.phone_number,
-    #     email=cert_request.email,
-    #     dob=cert_request.dob,
-    #     vax_type=cert_request.vax_type,
-    #     first_vax_dt=cert_request.first_vax_dt,
-    #     vax_1_lot_number=cert_request.vax_1_lot_number,
-    #     second_vax_dt=cert_request.second_vax_dt,
-    #     vax_2_lot_number=cert_request.vax_2_lot_number,
-    #     pristine_dob=cert_request.pristine.dob if cert_request.pristine else None,
-    #     pristine_first_name=cert_request.pristine.first_name if cert_request.pristine else None,
-    #     pristine_last_name=cert_request.pristine.last_name if cert_request.pristine else None,
-    #     vax_image=1 if cert_request.vax_image else 0,
-    #     id_image=1 if cert_request.id_image else 0,
-    #     whoami=whoami()
-    # )
+    log_generic(
+        type=c.INFO,
+        function=whoami(),
+        msg="PATIENT-CERTIFICATE-ADD-REQUEST-CERT-OCR-STRING",
+        ocr_string=str(vax_ocr_string),
+        # first_name=cert_request.first_name,
+        # last_name=cert_request.last_name,
+        # phone_number=cert_request.phone_number,
+        # email=cert_request.email,
+        # dob=cert_request.dob,
+        # vax_type=cert_request.vax_type,
+        # first_vax_dt=cert_request.first_vax_dt,
+        # vax_1_lot_number=cert_request.vax_1_lot_number,
+        # second_vax_dt=cert_request.second_vax_dt,
+        # vax_2_lot_number=cert_request.vax_2_lot_number,
+        # pristine_dob=cert_request.pristine.dob if cert_request.pristine else None,
+        # pristine_first_name=cert_request.pristine.first_name if cert_request.pristine else None,
+        # pristine_last_name=cert_request.pristine.last_name if cert_request.pristine else None,
+        # vax_image=1 if cert_request.vax_image else 0,
+        # id_image=1 if cert_request.id_image else 0,
+        whoami=whoami()
+    )
     first_vax_dt = datetime.strptime(cert_request.first_vax_dt, '%Y-%m-%d')
     if cert_request.vax_2_lot_number != "" and cert_request.vax_2_lot_number is not None:
         second_vax_dt = datetime.strptime(cert_request.second_vax_dt, '%Y-%m-%d')
