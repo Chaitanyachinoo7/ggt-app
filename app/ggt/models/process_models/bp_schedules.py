@@ -549,7 +549,7 @@ def bp_lookup_certificate(first_name, last_name, dob, phone_number, user):
     try:
         res = lookup_certificate(phone_number, dob, first_name, last_name, user=user)[0]
         log_generic(
-            type=c.ERROR,
+            type=c.INFO,
             msg='LOOKUP-CERTIFICATE-RESPONSE',
             first_name=first_name,
             last_name=last_name,

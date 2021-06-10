@@ -464,7 +464,7 @@ def update_schedule_generation_rule(data):
         return None
 
 
-def lookup_certificate(phone_number, dob, first_name, last_name, version, token=None, verification_level=None, limit=None,
+def lookup_certificate(phone_number, dob, first_name, last_name, version=1, token=None, verification_level=None, limit=None,
                        offset=None, user=None):
     try:
         where_statement = "gc.rejected = 0 AND p.create_dt > '2021-05-20'"
