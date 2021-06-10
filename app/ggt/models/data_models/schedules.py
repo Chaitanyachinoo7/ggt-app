@@ -709,7 +709,7 @@ def vax_yes_activity(certificate_id, phone_number):
                         gc.service_code as vax_service_code,
                         u.email as admin_email,
                         u.given_name as admin_first_name,
-                        u.family_name as edited_by_family_name
+                        u.family_name as admin_family_name
                         
                     FROM
                         vax_yes_activity_log a
