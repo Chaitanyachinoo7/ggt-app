@@ -274,7 +274,7 @@ def get_certificate_stats():
 
 def update_cert_image(patient_id, cert_id, image, user):
     add_vax_yes_activity(user, 'UPDATE_CERT_IMAGE', certificate_id=cert_id, patient_id=patient_id,
-                         payload=json.dumps({"certificate_id": id,
+                         payload=json.dumps({"certificate_id": cert_id,
                                              "patient_id": patient_id,
                                              "user": user}))
 
