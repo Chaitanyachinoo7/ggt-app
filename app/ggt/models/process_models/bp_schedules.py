@@ -587,6 +587,7 @@ def bp_lookup_unverified_certificate(first_name, last_name, dob, phone_number, l
             admin=user,
             function=whoami()
         )
+        '''
         patients = get_unverified_patients(version)
         print(patients)
         randomInt = 100 if len(patients) > 99 else len(patients)
@@ -594,6 +595,9 @@ def bp_lookup_unverified_certificate(first_name, last_name, dob, phone_number, l
         patient = get_patient_by_id(patients[randint(1, randomInt)]["patient_id"])
         print(patient)
         res = lookup_certificate(patient["phone_number"], patient["dob"], patient["first_name"], patient["last_name"], version, None, 1, 2, 0, user=user)[0]
+        '''
+        res = lookup_certificate(phone_number, dob, first_name, last_name, version=version, verification_level=1, limit=1, offset=0)
+
         log_generic(
             type=c.INFO,
             msg='LOOKUP-UNVERIFIED-CERTIFICATES-RESPONSE',

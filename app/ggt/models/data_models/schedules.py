@@ -463,15 +463,20 @@ def update_schedule_generation_rule(data):
         )
         return None
 
+
 def get_unverified_patients(version):
     sql = ("""SELECT distinct patient_id FROM ggv_certificates where create_dt > '2021-05-20' and verification_level < 2 order by id asc""") if(
         version) != 2 else (
             """SELECT distinct ggv_certificates.patient_id FROM ggv_certificates LEFT JOIN
                     ggv_certificates_ocr ggv_ocr ON ggv_certificates.patient_id = ggv_ocr.patient_id where (ggv_ocr.first_name =1 and ggv_ocr.last_name =1) and ggv_certificates.create_dt > '2021-05-20' and verification_level < 2 order by ggv_certificates.id asc""")
     return read_rows(sql)
+
+
 def get_patient_by_id(id):
     sql = """SELECT phone_number, dob, first_name, last_name FROM patients where id = {}""".format(id)
     return read_row(sql)
+
+
 def lookup_certificate(phone_number, dob, first_name, last_name, version=1, token=None, verification_level=None, limit=None,
                        offset=None, user=None):
     try:
@@ -493,8 +498,14 @@ def lookup_certificate(phone_number, dob, first_name, last_name, version=1, toke
         if verification_level:
             where_statement = "{} AND gc.verification_level = {}".format(
                 where_statement, verification_level)
+
+        if version == 2:
+            where_statement = "{} AND ggv_ocr.first_name =1 AND ggv_ocr.last_name =1".format(
+                where_statement)
+
         if limit and offset is not None:
             where_statement = "{} ORDER BY p.id ASC LIMIT {} OFFSET {}".format(where_statement, limit, offset)
+
         sql = """SELECT 
                     gc.*,
                     p.first_name,
@@ -522,7 +533,7 @@ def lookup_certificate(phone_number, dob, first_name, last_name, version=1, toke
                     WHERE {}""".format(where_statement)
         print(sql)
         rows = replica_read_rows(sql)
-        print(rows)
+
         return __format_vax_certificate_portal(rows, version), "No certificate found."
 
     except Exception as err:
@@ -1626,6 +1637,15 @@ def __get_all_available_dtl(group_code):
         return None
 
 
+def __lock_record(cert_id):
+    sql = """UPDATE ggv_certificates
+                SET
+                lock_time = NOW() + INTERVAL 300 second
+            WHERE id = %s"""
+    vals = (cert_id,)
+    return exec_update(sql, vals)
+    
+
 def __map_rows_to_dtl_list(rows):
     dtl_list: List[GgtDateTimeLocation] = list()
 
@@ -1742,6 +1762,8 @@ def __format_vax_certificate_portal(rows, version):
         if len(rows) > 0:
             map = {}
             for r in rows:
+                if __lock_record(r['id']):
+                    print('CERTIFICATE-LOCKED - {}'.format(r['id']))
                 if r['patient_id'] not in map.keys():
                     map[r['patient_id']] = {
                         'patient_id': r['patient_id'],
