@@ -480,7 +480,7 @@ def get_patient_by_id(id):
 def lookup_certificate(phone_number, dob, first_name, last_name, version=1, token=None, verification_level=None, limit=None,
                        offset=None, user=None):
     try:
-        where_statement = "gc.rejected = 0"
+        where_statement = "gc.rejected = 0 AND gc.lock_time < NOW()"
         if phone_number or phone_number != "":
             where_statement = "{} AND p.phone_number LIKE '%{}%'".format(where_statement, phone_number)
         if dob or dob != "":
@@ -532,8 +532,7 @@ def lookup_certificate(phone_number, dob, first_name, last_name, version=1, toke
                     ggv_certificates_ocr ggv_ocr ON p.id = ggv_ocr.patient_id
                     WHERE {}""".format(where_statement)
         print(sql)
-        rows = replica_read_rows(sql)
-
+        rows = read_rows(sql)
         return __format_vax_certificate_portal(rows, version), "No certificate found."
 
     except Exception as err:
