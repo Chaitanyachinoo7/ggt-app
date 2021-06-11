@@ -596,7 +596,7 @@ def bp_lookup_unverified_certificate(first_name, last_name, dob, phone_number, l
         print(patient)
         res = lookup_certificate(patient["phone_number"], patient["dob"], patient["first_name"], patient["last_name"], version, None, 1, 2, 0, user=user)[0]
         '''
-        res = lookup_certificate(phone_number, dob, first_name, last_name, version=version, verification_level=1, limit=1, offset=0)
+        res = lookup_certificate(phone_number, dob, first_name, last_name, version=version, verification_level=1, limit=20, offset=0)
 
         log_generic(
             type=c.INFO,

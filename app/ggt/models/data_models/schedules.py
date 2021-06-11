@@ -1636,13 +1636,13 @@ def __get_all_available_dtl(group_code):
         return None
 
 
-def __lock_record(cert_id):
+def __lock_record(cert_ids):
+    cert_ids.append(0)
     sql = """UPDATE ggv_certificates
                 SET
                 lock_time = NOW() + INTERVAL 300 second
-            WHERE id = %s"""
-    vals = (cert_id,)
-    return exec_update(sql, vals)
+            WHERE  id in {}""".format(str(tuple(cert_ids)))
+    return exec_update(sql)
     
 
 def __map_rows_to_dtl_list(rows):
@@ -1761,8 +1761,6 @@ def __format_vax_certificate_portal(rows, version):
         if len(rows) > 0:
             map = {}
             for r in rows:
-                if __lock_record(r['id']):
-                    print('CERTIFICATE-LOCKED - {}'.format(r['id']))
                 if r['patient_id'] not in map.keys():
                     map[r['patient_id']] = {
                         'patient_id': r['patient_id'],
@@ -1812,7 +1810,17 @@ def __format_vax_certificate_portal(rows, version):
                     }
                     map[row['patient_id']]['ocr'] = ocr
                 map[row['patient_id']]['certificates'].append(service)
-            return list(map.values())
+            keys = map.keys()
+            if len(keys) < 1:
+                return {}
+            rand = 0
+            selected_patient = map[list(keys)[rand]]
+            selected_certificates = selected_patient['certificates']
+            cert_ids = []
+            for cert in selected_certificates:
+                cert_ids.append(cert['cert_id'])
+            __lock_record(cert_ids)
+            return [selected_patient,]
         else:
             return {}
 
