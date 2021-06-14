@@ -256,10 +256,10 @@ def delete_certificate(cert_id, notify_customer, user):
     )
 
 
-def reject_certificate(cert_id, notify_customer, user):
+def reject_certificate(cert_ids, notify_customer, user):
     return x_response(
         bp_reject_certificate(
-            cert_id,
+            cert_ids,
             notify_customer,
             user
         )

@@ -232,13 +232,13 @@ def delete_certificate(cert_id):
         return None
 
 
-def reject_certificate(cert_id):
+def reject_certificate(cert_ids):
+    cert_ids.append(0)
     try:
         sql = """UPDATE ggv_certificates
             SET rejected = 1
-        WHERE id = %s"""
-        vals = (cert_id,)
-        return exec_update(sql, vals)
+        WHERE id in {}""".format(str(tuple(cert_ids)))
+        return exec_update(sql)
 
     except Exception as err:
         log_generic(

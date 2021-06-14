@@ -1662,3 +1662,8 @@ class DeleteCertificateRequest(BaseModel):
     cert_id: str
     notify_customer: bool = True
 
+
+class RejectCertificateRequest(BaseModel):
+    cert_ids: List[str]
+    notify_customer: bool = True
+

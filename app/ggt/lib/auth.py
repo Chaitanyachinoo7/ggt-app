@@ -123,7 +123,7 @@ def authorize_user(security_scopes: SecurityScopes, token: str = Depends(oauth2_
     """
     NOTE - Uncommenting this will affect the Organization flow
     """
-    # if (get_config_val('env') == 'LOCAL-PROD' or get_config_val('env') == 'DEV'):  # Allow auth override for local-prod
+    # if get_config_val('env') == 'LOCAL-PROD':  # Allow auth override for local-prod
     #     return True
     try:
         scopes = security_scopes.scopes
