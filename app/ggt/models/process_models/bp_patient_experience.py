@@ -890,7 +890,7 @@ def bp_add_vax_certificate(req):
                     id_image=1 if req.id_image else 0
                 )
             if is_vax_card_pristine and is_photo_id_pristine:
-                if verify_certificate(cert_details["cert1_id"], "2"):
+                if verify_certificate([cert_details["cert1_id"]], "2"):
                     log_generic(
                         type=c.INFO,
                         function=whoami(),
@@ -933,7 +933,7 @@ def bp_add_vax_certificate(req):
                         id_image=1 if req.id_image else 0
                     )
                 if cert_details["cert2_id"]:
-                    if verify_certificate(cert_details["cert2_id"], "2"):
+                    if verify_certificate([cert_details["cert2_id"]], "2"):
                         log_generic(
                             type=c.INFO,
                             function=whoami(),

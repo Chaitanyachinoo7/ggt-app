@@ -61,9 +61,9 @@ def run_ocr_on_vax_yes_cards():
 
 def verifyAndNotify(is_vax_card_pristine, is_photo_id_pristine, certs):
     if is_vax_card_pristine and is_photo_id_pristine:
-        verify_certificate(str(certs[0]["cert_id"]), "2")
+        verify_certificate([str(certs[0]["cert_id"])], "2")
         if len(certs)>1:
-            verify_certificate(str(certs[1]["cert_id"]), "2")
+            verify_certificate([str(certs[1]["cert_id"])], "2")
         send_ggv_certificate_level_1_sms(certs[0]["first_name"].title(), certs[0]["phone_number"], "2")
         print("L2 SMS SENT")
         send_ggv_certificate_level_1_email(certs[0]["first_name"].title(), certs[0]["email"], "2")
