@@ -1075,26 +1075,26 @@ def bp_get_schedule_generation_rules(location_id):
     return False
 
 
-def bp_verify_certificate(cert_id, verification_level, user):
+def bp_verify_certificate(cert_ids, verification_level, user):
     try:
-        add_vax_yes_activity(user, 'VERIFY_CERTIFICATE', certificate_id=cert_id,
-                             payload=json.dumps({"cert_id": cert_id,
+        add_vax_yes_activity(user, 'VERIFY_CERTIFICATE', certificate_id=cert_ids,
+                             payload=json.dumps({"cert_id": cert_ids,
                                                  "verification_level": verification_level,
                                                  "user": user['sub']}))
 
         log_generic(
             type=c.INFO,
             msg='VERIFY-CERTIFICATE-REQUEST-RECEIVED',
-            cert_id=cert_id,
+            cert_id=cert_ids,
             verification_level=verification_level,
             admin=user['sub'],
             function=whoami()
         )
-        if verify_certificate(cert_id, verification_level):
+        if verify_certificate(cert_ids, verification_level):
             log_generic(
                 type=c.INFO,
                 msg='VERIFY-CERTIFICATE-SUCCESS',
-                cert_id=cert_id,
+                cert_id=cert_ids,
                 verification_level=verification_level,
                 admin=user['sub'],
                 function=whoami()
@@ -1103,12 +1103,12 @@ def bp_verify_certificate(cert_id, verification_level, user):
             log_generic(
                 type=c.ERROR,
                 msg='VERIFY-CERTIFICATE-FAILED',
-                cert_id=cert_id,
+                cert_id=cert_ids,
                 verification_level=verification_level,
                 admin=user['sub'],
                 function=whoami()
             )
-        patient = get_patient_from_crt_number(cert_id)
+        patient = get_patient_from_crt_number(cert_ids[0])
 
         if patient:
             send_ggv_certificate_level_1_sms(patient["first_name"].title(), patient["phone_number"], str(verification_level))
@@ -1117,7 +1117,7 @@ def bp_verify_certificate(cert_id, verification_level, user):
             log_generic(
                 type=c.INFO,
                 msg='VERIFY-CERTIFICATE-PATIENT-NOT-FOUND',
-                cert_id=cert_id,
+                cert_id=cert_ids,
                 verification_level=verification_level,
                 admin=user['sub'],
                 function=whoami(),
@@ -1129,7 +1129,7 @@ def bp_verify_certificate(cert_id, verification_level, user):
         log_generic(
             type=c.ERROR,
             msg='VERIFY-CERTIFICATE-PATIENT-NOT-FOUND',
-            cert_id=cert_id,
+            cert_id=cert_ids,
             verification_level=verification_level,
             admin=user['sub'],
             function=whoami(),

@@ -409,7 +409,7 @@ def api_get_vax_certificate(patient_id: str, certificate_id: str):
 @router.post("/site-admin/verify_certificate")
 async def api_verify_certificate(req: VerifyCertificateRequest, user=Security(authorize_user, scopes=[p.PATIENT_LOOKUP, 'external_verify'])):
     return verify_certificate(
-        req.cert_id,
+        req.cert_ids,
         req.verification_level,
         user
     )
