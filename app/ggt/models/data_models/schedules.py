@@ -1267,13 +1267,16 @@ def update_appointment(appointment_id, scheduled_dt):
 
 def verify_certificate(cert_ids, verification_level):
     try:
-        where_statement = """id = {}""".format(cert_ids[0])
+        print(cert_ids)
+        where_statement = """ id = {}""".format(cert_ids[0])
         if len(cert_ids) >1:
             where_statement = """{} OR id = {}""".format(where_statement, cert_ids[1])
         sql = """UPDATE ggv_certificates SET
-        verification_level = %s
-        WHERE %s"""
-        vals = (verification_level, where_statement,)
+        verification_level = {}
+        WHERE {}""".format(verification_level, where_statement)
+        vals = ()
+        print(sql)
+        # print(exec_update(sql, vals))
         return exec_update(sql, vals)
 
     except Exception as err:

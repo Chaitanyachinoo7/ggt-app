@@ -1649,7 +1649,7 @@ class VaxCertificate(BaseModel):
 
 
 class VerifyCertificateRequest(BaseModel):
-    cert_ids: [str]
+    cert_ids: List[str]
     verification_level: int
 
 

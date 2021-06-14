@@ -64,9 +64,9 @@ def verifyAndNotify(is_vax_card_pristine, is_photo_id_pristine, certs):
         verify_certificate([str(certs[0]["cert_id"])], "2")
         if len(certs)>1:
             verify_certificate([str(certs[1]["cert_id"])], "2")
-        send_ggv_certificate_level_1_sms(certs[0]["first_name"].title(), certs[0]["phone_number"], "2")
+        # send_ggv_certificate_level_1_sms(certs[0]["first_name"].title(), certs[0]["phone_number"], "2")
         print("L2 SMS SENT")
-        send_ggv_certificate_level_1_email(certs[0]["first_name"].title(), certs[0]["email"], "2")
+        # send_ggv_certificate_level_1_email(certs[0]["first_name"].title(), certs[0]["email"], "2")
         print("L2 EMAIL SENT")
     return True
 
@@ -115,7 +115,7 @@ def get_pristine_req(certs, patient_id):
 def get_distinct_unverified_certs_patient_ids():
     print("inside get_distinct_unverified_certs_patient_ids")
     sql = """
-        SELECT distinct patient_id FROM ggv_certificates where create_dt > '2021-05-20' and verification_level < 2 order by id asc LIMIT 5000
+        SELECT distinct patient_id FROM ggv_certificates where create_dt > '2021-05-20' and verification_level < 2 order by id desc LIMIT 5
     """
     rows = read_rows(sql,)
     print(len(rows))
