@@ -47,7 +47,7 @@ from ggt.lib.maps import (
 
 from cachetools import cached, LRUCache, TTLCache
 from ggt.models.process_models.bp_patient_experience import upload_vax_card_image, send_ggv_certificate_level_1_sms, \
-    send_ggv_certificate_level_1_email
+    send_ggv_certificate_level_1_email, send_ggv_reject_email
 import boto3
 from random import randint
 ########################################################################################################
@@ -832,9 +832,9 @@ def bp_delete_certificate(cert_id, notify_customer, user):
 
 def bp_reject_certificate(cert_ids, notify_customer, user):
     try:
-        add_vax_yes_activity(user['sub'], 'DELETE_CERTIFICATE', certificate_id=json.dumps(cert_ids), payload=json.dumps({"cert_id": json.dumps(cert_ids),
+        add_vax_yes_activity("user['sub']", 'DELETE_CERTIFICATE', certificate_id=json.dumps(cert_ids), payload=json.dumps({"cert_id": json.dumps(cert_ids),
                                                                                                     "notify_customer": notify_customer,
-                                                                                                    "user": user['sub']}))
+                                                                                                    "user": "user['sub']"}))
         res = get_phone_number_by_certificate_id(cert_ids[0])
 
         if res:
@@ -844,13 +844,13 @@ def bp_reject_certificate(cert_ids, notify_customer, user):
                 msg="CERTIFICATE-REJECTION-REQUEST",
                 cert_id=json.dumps(cert_ids),
                 phone_number=phone_number,
-                admin=user['sub'],
+                admin="user['sub']",
                 function=whoami(),
             )
             international = is_international(phone_number)
             message = "We were unable to validate your submission. " \
                       "You can resubmit your request by going to  " \
-                      "http://vaxyes.com  and entering in your phone number.  " \
+                      "https://vaxyes.com  and entering in your phone number.  " \
                       "Please make sure you take clear photos of your ID and " \
                       "Vaccine card in order to process"
 
@@ -860,7 +860,7 @@ def bp_reject_certificate(cert_ids, notify_customer, user):
                     msg="CERTIFICATE-REJECTED",
                     cert_id=json.dumps(cert_ids),
                     phone_number=phone_number,
-                    admin=user['sub'],
+                    admin="user['sub']",
                     function=whoami(),
                 )
                 if notify_customer:
@@ -871,7 +871,7 @@ def bp_reject_certificate(cert_ids, notify_customer, user):
                             cert_id=json.dumps(cert_ids),
                             message=message,
                             phone_number=phone_number,
-                            admin=user['sub'],
+                            admin="user['sub']",
                             function=whoami(),
                         )
                         return True
@@ -881,9 +881,11 @@ def bp_reject_certificate(cert_ids, notify_customer, user):
                             msg="CERTIFICATE-REJECTION-SMS-FAILED",
                             cert_id=json.dumps(cert_ids),
                             phone_number=phone_number,
-                            admin=user['sub'],
+                            admin="user['sub']",
                             function=whoami(),
                         )
+                    send_ggv_reject_email(res['first_name'].title(), res['email'])
+                    return True  
                 else:
                     return True
             else:
@@ -892,7 +894,7 @@ def bp_reject_certificate(cert_ids, notify_customer, user):
                     msg="CERTIFICATE-REJECTION-FAILED",
                     cert_id=json.dumps(cert_ids),
                     phone_number=phone_number,
-                    admin=user['sub'],
+                    admin="user['sub']",
                     function=whoami(),
                 )
         else:
@@ -900,7 +902,7 @@ def bp_reject_certificate(cert_ids, notify_customer, user):
                 type=c.ERROR,
                 msg="CANNOT-FIND-PHONE-NUMBER-FOR-CERT-ID",
                 cert_id=json.dumps(cert_ids),
-                admin=user['sub'],
+                admin="user['sub']",
                 function=whoami()
             )
 

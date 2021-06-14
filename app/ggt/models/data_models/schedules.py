@@ -251,8 +251,10 @@ def reject_certificate(cert_ids):
 
 def get_phone_number_by_certificate_id(cert_id):
     try:
-        sql = """SELECT 
-                    p.phone_number
+        sql = """SELECT
+                    p.first_name, 
+                    p.phone_number,
+                    p.email
                 FROM
                     ggv_certificates gc
                         JOIN

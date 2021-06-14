@@ -2374,7 +2374,55 @@ def send_ggv_certificate_level_1_email(first_name, email, level, phone_number=No
         )
         return False
 
+def send_ggv_reject_email(first_name, email):
+        from_email = cfg('notifications.from_email')
+        from_name = cfg('notifications.from_name')
 
+        template_vars = {
+            "first_name": first_name
+        }
+
+        subject = "{}, Your VaxYes digital pass request was unable to be processed".format(
+            first_name)
+
+        subject = render_from_string(
+            subject,
+            **template_vars
+        )
+
+        template_name = "GGV-2-VAXYES-REJECT.html"
+        html_content = render_template(
+            template_name,
+            **template_vars
+        )
+
+        sent_email = send_email(
+            from_email,
+            from_name,
+            email,
+            subject,
+            html_content
+        )
+
+        if sent_email:
+            log_generic(
+                type=c.INFO,
+                msg="SENT-GGV-REJECT-EMAIL",
+                first_name=first_name,
+                email=email,
+                template_name=template_name,
+                function=whoami()
+            )
+        else:
+            log_generic(
+                type=c.ERROR,
+                msg="SENT-GGV-REJECT-EMAIL-FAILED",
+                first_name=first_name,
+                email=email,
+                template_name=template_name,
+                function=whoami()
+            )
+            
 def __send_ggv_pre_registration_email(first_name, email):
     try:
         from_email = cfg('notifications.from_email')
