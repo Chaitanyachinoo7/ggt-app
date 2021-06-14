@@ -64,9 +64,9 @@ def verifyAndNotify(is_vax_card_pristine, is_photo_id_pristine, certs):
         verify_certificate([str(certs[0]["cert_id"])], "2")
         if len(certs)>1:
             verify_certificate([str(certs[1]["cert_id"])], "2")
-        # send_ggv_certificate_level_1_sms(certs[0]["first_name"].title(), certs[0]["phone_number"], "2")
+        send_ggv_certificate_level_1_sms(certs[0]["first_name"].title(), certs[0]["phone_number"], "2")
         print("L2 SMS SENT")
-        # send_ggv_certificate_level_1_email(certs[0]["first_name"].title(), certs[0]["email"], "2")
+        send_ggv_certificate_level_1_email(certs[0]["first_name"].title(), certs[0]["email"], "2")
         print("L2 EMAIL SENT")
     return True
 
