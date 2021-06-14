@@ -596,7 +596,7 @@ def bp_lookup_unverified_certificate(first_name, last_name, dob, phone_number, l
         print(patient)
         res = lookup_certificate(patient["phone_number"], patient["dob"], patient["first_name"], patient["last_name"], version, None, 1, 2, 0, user=user)[0]
         '''
-        res = lookup_certificate(phone_number, dob, first_name, last_name, version=version, verification_level=1, limit=1, offset=0)
+        res = lookup_certificate(phone_number, dob, first_name, last_name, version=version, verification_level=1, limit=20, offset=0)
 
         log_generic(
             type=c.INFO,
@@ -830,19 +830,19 @@ def bp_delete_certificate(cert_id, notify_customer, user):
     return False
 
 
-def bp_reject_certificate(cert_id, notify_customer, user):
+def bp_reject_certificate(cert_ids, notify_customer, user):
     try:
-        add_vax_yes_activity(user['sub'], 'DELETE_CERTIFICATE', certificate_id=cert_id, payload=json.dumps({"cert_id": cert_id,
+        add_vax_yes_activity(user['sub'], 'DELETE_CERTIFICATE', certificate_id=json.dumps(cert_ids), payload=json.dumps({"cert_id": json.dumps(cert_ids),
                                                                                                     "notify_customer": notify_customer,
                                                                                                     "user": user['sub']}))
-        res = get_phone_number_by_certificate_id(cert_id)
+        res = get_phone_number_by_certificate_id(cert_ids[0])
 
         if res:
             phone_number = res['phone_number']
             log_generic(
                 type=c.INFO,
                 msg="CERTIFICATE-REJECTION-REQUEST",
-                cert_id=cert_id,
+                cert_id=json.dumps(cert_ids),
                 phone_number=phone_number,
                 admin=user['sub'],
                 function=whoami(),
@@ -854,11 +854,11 @@ def bp_reject_certificate(cert_id, notify_customer, user):
                       "Please make sure you take clear photos of your ID and " \
                       "Vaccine card in order to process"
 
-            if reject_certificate(cert_id):
+            if reject_certificate(cert_ids):
                 log_generic(
                     type=c.INFO,
                     msg="CERTIFICATE-REJECTED",
-                    cert_id=cert_id,
+                    cert_id=json.dumps(cert_ids),
                     phone_number=phone_number,
                     admin=user['sub'],
                     function=whoami(),
@@ -868,7 +868,7 @@ def bp_reject_certificate(cert_id, notify_customer, user):
                         log_generic(
                             type=c.INFO,
                             msg="CERTIFICATE-REJECTION-SMS-SENT",
-                            cert_id=cert_id,
+                            cert_id=json.dumps(cert_ids),
                             message=message,
                             phone_number=phone_number,
                             admin=user['sub'],
@@ -879,16 +879,18 @@ def bp_reject_certificate(cert_id, notify_customer, user):
                         log_generic(
                             type=c.INFO,
                             msg="CERTIFICATE-REJECTION-SMS-FAILED",
-                            cert_id=cert_id,
+                            cert_id=json.dumps(cert_ids),
                             phone_number=phone_number,
                             admin=user['sub'],
                             function=whoami(),
                         )
+                else:
+                    return True
             else:
                 log_generic(
                     type=c.INFO,
                     msg="CERTIFICATE-REJECTION-FAILED",
-                    cert_id=cert_id,
+                    cert_id=json.dumps(cert_ids),
                     phone_number=phone_number,
                     admin=user['sub'],
                     function=whoami(),
@@ -897,7 +899,7 @@ def bp_reject_certificate(cert_id, notify_customer, user):
             log_generic(
                 type=c.ERROR,
                 msg="CANNOT-FIND-PHONE-NUMBER-FOR-CERT-ID",
-                cert_id=cert_id,
+                cert_id=json.dumps(cert_ids),
                 admin=user['sub'],
                 function=whoami()
             )
@@ -906,7 +908,7 @@ def bp_reject_certificate(cert_id, notify_customer, user):
         log_generic(
             type=c.ERROR,
             msg="CERTIFICATE-REJECTION-FAILED-ERROR",
-            cert_id=cert_id,
+            cert_id=json.dumps(cert_ids),
             admin=user['sub'],
             function=whoami(),
             error=err
@@ -1077,11 +1079,15 @@ def bp_get_schedule_generation_rules(location_id):
 
 def bp_verify_certificate(cert_ids, verification_level, user):
     try:
-        add_vax_yes_activity(user, 'VERIFY_CERTIFICATE', certificate_id=cert_ids,
-                             payload=json.dumps({"cert_id": cert_ids,
+        add_vax_yes_activity(user['sub'], 'VERIFY_CERTIFICATE', certificate_id=cert_ids[0],
+                             payload=json.dumps({"cert_id": cert_ids[0],
                                                  "verification_level": verification_level,
                                                  "user": user['sub']}))
-
+        if(len(cert_ids)>2):
+            add_vax_yes_activity(user['sub'], 'VERIFY_CERTIFICATE', certificate_id=cert_ids[1],
+                        payload=json.dumps({"cert_id": cert_ids[1],
+                                            "verification_level": verification_level,
+                                            "user": user['sub']}))
         log_generic(
             type=c.INFO,
             msg='VERIFY-CERTIFICATE-REQUEST-RECEIVED',

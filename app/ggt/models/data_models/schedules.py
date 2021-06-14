@@ -232,13 +232,13 @@ def delete_certificate(cert_id):
         return None
 
 
-def reject_certificate(cert_id):
+def reject_certificate(cert_ids):
+    cert_ids.append(0)
     try:
         sql = """UPDATE ggv_certificates
             SET rejected = 1
-        WHERE id = %s"""
-        vals = (cert_id,)
-        return exec_update(sql, vals)
+        WHERE id in {}""".format(str(tuple(cert_ids)))
+        return exec_update(sql)
 
     except Exception as err:
         log_generic(
@@ -480,7 +480,7 @@ def get_patient_by_id(id):
 def lookup_certificate(phone_number, dob, first_name, last_name, version=1, token=None, verification_level=None, limit=None,
                        offset=None, user=None):
     try:
-        where_statement = "gc.rejected = 0"
+        where_statement = "gc.rejected = 0 AND gc.lock_time < NOW()"
         if phone_number or phone_number != "":
             where_statement = "{} AND p.phone_number LIKE '%{}%'".format(where_statement, phone_number)
         if dob or dob != "":
@@ -532,8 +532,7 @@ def lookup_certificate(phone_number, dob, first_name, last_name, version=1, toke
                     ggv_certificates_ocr ggv_ocr ON p.id = ggv_ocr.patient_id
                     WHERE {}""".format(where_statement)
         print(sql)
-        rows = replica_read_rows(sql)
-
+        rows = read_rows(sql)
         return __format_vax_certificate_portal(rows, version), "No certificate found."
 
     except Exception as err:
@@ -1640,13 +1639,13 @@ def __get_all_available_dtl(group_code):
         return None
 
 
-def __lock_record(cert_id):
+def __lock_record(cert_ids):
+    cert_ids.append(0)
     sql = """UPDATE ggv_certificates
                 SET
                 lock_time = NOW() + INTERVAL 300 second
-            WHERE id = %s"""
-    vals = (cert_id,)
-    return exec_update(sql, vals)
+            WHERE  id in {}""".format(str(tuple(cert_ids)))
+    return exec_update(sql)
     
 
 def __map_rows_to_dtl_list(rows):
@@ -1765,8 +1764,6 @@ def __format_vax_certificate_portal(rows, version):
         if len(rows) > 0:
             map = {}
             for r in rows:
-                if __lock_record(r['id']):
-                    print('CERTIFICATE-LOCKED - {}'.format(r['id']))
                 if r['patient_id'] not in map.keys():
                     map[r['patient_id']] = {
                         'patient_id': r['patient_id'],
@@ -1816,7 +1813,17 @@ def __format_vax_certificate_portal(rows, version):
                     }
                     map[row['patient_id']]['ocr'] = ocr
                 map[row['patient_id']]['certificates'].append(service)
-            return list(map.values())
+            keys = map.keys()
+            if len(keys) < 1:
+                return {}
+            rand = 0
+            selected_patient = map[list(keys)[rand]]
+            selected_certificates = selected_patient['certificates']
+            cert_ids = []
+            for cert in selected_certificates:
+                cert_ids.append(cert['cert_id'])
+            __lock_record(cert_ids)
+            return [selected_patient,]
         else:
             return {}
 

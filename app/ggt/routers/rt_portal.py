@@ -31,7 +31,7 @@ from ggt.models.data_models.data_types import (
     PortalVaxWaitlistSearchRequest,
     PortalVaxRegisteredWaitAroundLocationRequest, VaxCertificate, LookupCertificateRequest, UpdatePatientInfoCert,
     UpdateCertInfo, UpdateCertImage, VerifyCertificateRequest, LookupUnverifiedCertificateRequest,
-    DeleteCertificateRequest, VaxYesActivity
+    DeleteCertificateRequest, VaxYesActivity, RejectCertificateRequest
 )
 from ggt.models.workflow_models.admin_flow import (
     admin_get_all_test_results
@@ -350,8 +350,8 @@ async def api_delete_certificate(req: DeleteCertificateRequest, user=Security(au
 
 
 @router.post("/site-admin/reject_certificate")
-async def api_reject_certificate(req: DeleteCertificateRequest, user=Security(authorize_user, scopes=[p.PATIENT_LOOKUP, 'external_verify'])):
-    return reject_certificate(req.cert_id, req.notify_customer, user)
+async def api_reject_certificate(req: RejectCertificateRequest, user=Security(authorize_user, scopes=[p.PATIENT_LOOKUP, 'external_verify'])):
+    return reject_certificate(req.cert_ids, req.notify_customer, user)
 
 
 @router.post("/site-admin/update_cert_info")
