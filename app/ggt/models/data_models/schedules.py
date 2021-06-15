@@ -480,7 +480,7 @@ def get_patient_by_id(id):
 
 
 def lookup_certificate(phone_number, dob, first_name, last_name, version=1, token=None, verification_level=None, limit=None,
-                       offset=None, user=None):
+                       offset=None, user=None, is_unverified=False):
     try:
         where_statement = "gc.rejected = 0 AND gc.lock_time < NOW()"
         if phone_number or phone_number != "":
@@ -535,7 +535,7 @@ def lookup_certificate(phone_number, dob, first_name, last_name, version=1, toke
                     WHERE {}""".format(where_statement)
         print(sql)
         rows = read_rows(sql)
-        return __format_vax_certificate_portal(rows, version), "No certificate found."
+        return __format_vax_certificate_portal(rows, version, is_unverified), "No certificate found."
 
     except Exception as err:
         print(err)
@@ -1763,7 +1763,7 @@ def __map_row_to_dtl(row):
     return dtl, svc
 
 
-def __format_vax_certificate_portal(rows, version):
+def __format_vax_certificate_portal(rows, version, is_unverified):
     print("inside" + whoami())
     try:
         if len(rows) > 0:
@@ -1821,14 +1821,18 @@ def __format_vax_certificate_portal(rows, version):
             keys = map.keys()
             if len(keys) < 1:
                 return {}
-            rand = 0
-            selected_patient = map[list(keys)[rand]]
-            selected_certificates = selected_patient['certificates']
-            cert_ids = []
-            for cert in selected_certificates:
-                cert_ids.append(cert['cert_id'])
-            __lock_record(cert_ids)
-            return [selected_patient,]
+            if is_unverified:
+                rand = 0
+                selected_patient = map[list(keys)[rand]]
+                selected_certificates = selected_patient['certificates']
+                cert_ids = []
+                for cert in selected_certificates:
+                    cert_ids.append(cert['cert_id'])
+                __lock_record(cert_ids)
+                return [selected_patient,]
+            else:
+                return list(map.values())
+
         else:
             return {}
 
