@@ -731,19 +731,20 @@ def bp_get_wallet_pass(pkpass_req):
         )
         patient = lookup_pkpass(pkpass_req.phone_number, pkpass_req.dob,
                                 pkpass_req.first_name, pkpass_req.last_name, pkpass_req.token)
+        print(patient)
         if patient:
             log_generic(
                 type=c.INFO,
                 function=whoami(),
                 msg="PATIENT-GET-WALLET-PASS-PATIENT_FOUND",
-                patient_id=patient.patient_id,
-                first_name=patient.first_name,
-                last_name=patient.last_name,
-                dob=patient.dob,
-                level=patient.level,
-                verfiedDate=patient.verfiedDate,
-                certificates=patient.certificates,
-                certNo=patient.certNo
+                patient_id=patient["patient_id"],
+                first_name=patient["first_name"],
+                last_name=patient["last_name"],
+                dob=patient["dob"],
+                level=patient["level"],
+                verfiedDate=patient["verfiedDate"],
+                certificates=patient["certificates"],
+                certNo=patient["certNo"]
             )
             return __generate_wallet_pass(pkpass_req, patient, verification=None)
         else:
