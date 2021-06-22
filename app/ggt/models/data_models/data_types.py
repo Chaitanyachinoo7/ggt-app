@@ -1480,6 +1480,8 @@ class LabStatusUpdateRequest(BaseModel):
     remarks: str = None
     status_dt: datetime.datetime = None
 
+class VaccineStatusRequest(BaseModel):
+    query: str
 
 class FilterOrg(BaseModel):
     name: str

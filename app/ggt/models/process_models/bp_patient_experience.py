@@ -1245,8 +1245,9 @@ def __update_ocr_status(patient_id, first_name, last_name, vax_type, dob, cert1_
 
 def __generate_wallet_pass(pkpass_req, patient, verification):
     try:
+        url_path = __get_barcode_string(pkpass_req.phone_number, patient)
         if pkpass_req.type == 'i':
-            __generate_pk_pass(pkpass_req, patient, verification)
+            __generate_pk_pass(pkpass_req, patient, verification, url_path)
             print("__generate_pk_pass execution complete")
             print("uploading from: ", "/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"))
             print("uploading as:", str(patient["patient_id"]) + ".pkpass")
@@ -1262,7 +1263,7 @@ def __generate_wallet_pass(pkpass_req, patient, verification):
             else:
                 return None
         elif pkpass_req.type == 'a':
-            return __generate_gpay_pass(pkpass_req, patient, verification)
+            return __generate_gpay_pass(pkpass_req, patient, verification, url_path)
 
     except Exception as err:
         log_generic(
@@ -1272,14 +1273,37 @@ def __generate_wallet_pass(pkpass_req, patient, verification):
             error=err
         )
 
-
-def __generate_gpay_pass(pkpass_req, patient, verification):
+def __get_barcode_string(phone, patient):
+    try:
+        boto_client = boto3.client(
+            'kms',
+            aws_access_key_id=cfg('aws.access_key_id'),
+            aws_secret_access_key=cfg('aws.secret_access_key'),
+            region_name='us-east-2'
+        )
+        patient["first_name"] + " " + patient["last_name"]
+        str(patient["dob"])
+        response = boto_client.encrypt(KeyId="e684baec-2a09-4348-b0bc-7f45dc0b2822", Plaintext=str(patient["patient_id"]))
+        # print(response)
+        from base64 import b64encode, b64decode
+        print(response['CiphertextBlob'])
+        print(b64encode(response['CiphertextBlob']))
+        print(b64encode(response['CiphertextBlob']).decode('utf-8'))
+        return b64encode(response['CiphertextBlob']).decode('utf-8')
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            phone=phone,
+            function=whoami(),
+            error=err
+        )
+def __generate_gpay_pass(pkpass_req, patient, verification, url_path):
     try:
         classUid = 'EVENTTICKET_CLASS_' + str(uuid.uuid4())
         classId = '%s.%s' % ("3388000000009256028", classUid)
         objectUid = 'EVENTTICKET_OBJECT_' + str(uuid.uuid4())
         objectId = '%s.%s' % ("3388000000009256028", objectUid)
-        return __skinnyJwt("EVENTTICKET", classId, objectId, patient)
+        return __skinnyJwt("EVENTTICKET", classId, objectId, patient, url_path)
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -1289,9 +1313,9 @@ def __generate_gpay_pass(pkpass_req, patient, verification):
         )
 
 
-def __skinnyJwt(verticalType, classId, objectId, patient):
+def __skinnyJwt(verticalType, classId, objectId, patient, url_path):
     try:
-        skinnyJwt = __makeSkinnyJwt(verticalType, classId, objectId, patient)
+        skinnyJwt = __makeSkinnyJwt(verticalType, classId, objectId, patient, url_path)
         if skinnyJwt is not None:
             return {"gpayPassURL": "https://pay.google.com/gp/v/save/" + skinnyJwt.decode('UTF-8')}
     except Exception as err:
@@ -1303,7 +1327,7 @@ def __skinnyJwt(verticalType, classId, objectId, patient):
         )
 
 
-def __makeSkinnyJwt(verticalType, classId, objectId, patient):
+def __makeSkinnyJwt(verticalType, classId, objectId, patient, url_path):
     try:
         signedJwt = None
         classResourcePayload = None
@@ -1314,7 +1338,7 @@ def __makeSkinnyJwt(verticalType, classId, objectId, patient):
         try:
             # get class definition and object definition
             classResourcePayload, objectResourcePayload = getClassAndObjectDefinitions(
-                verticalType, classId, objectId, classResourcePayload, objectResourcePayload, patient)
+                verticalType, classId, objectId, classResourcePayload, objectResourcePayload, patient, url_path)
 
             # make authorized REST call to explicitly insert class into Google server.
             # if this is successful, you can check/update class definitions in Merchant Center GUI: https://pay.google.com/gp/m/issuer/list
@@ -1550,11 +1574,11 @@ def __insertObject(verticalType, payload):
         )
 
 
-def getClassAndObjectDefinitions(verticalType, classId, objectId, classResourcePayload, objectResourcePayload, patient):
+def getClassAndObjectDefinitions(verticalType, classId, objectId, classResourcePayload, objectResourcePayload, patient, url_path):
     try:
         classResourcePayload = __makeEventTicketClassResource(classId, patient)
         objectResourcePayload = __makeEventTicketObjectResource(
-            classId, objectId, patient)
+            classId, objectId, patient, url_path)
         return classResourcePayload, objectResourcePayload
     except Exception as err:
         log_generic(
@@ -1713,7 +1737,7 @@ def __makeEventTicketClassResource(classId, patient):
         )
 
 
-def __makeEventTicketObjectResource(classId, objectId, patient):
+def __makeEventTicketObjectResource(classId, objectId, patient, url_path):
     try:
         # Define the resource representation of the Object
         # values should be from your DB/services; here we hardcode information
@@ -1728,7 +1752,7 @@ def __makeEventTicketObjectResource(classId, objectId, patient):
             # required fields
             "id": objectId, "classId": classId, "state": "active"  # optional
             , "barcode": {
-                "kind": "walletobjects#barcode", "type": "DATA_MATRIX", "value": "https://start.gogetvax.com/login",
+                "kind": "walletobjects#barcode", "type": "DATA_MATRIX", "value": "https://start.gogetvax.com/verify/" + url_path,
                 "alternateText": 'Covid 19 | Level ' + patient["level"] + ' Verified '
             },
         }
@@ -1743,11 +1767,12 @@ def __makeEventTicketObjectResource(classId, objectId, patient):
         )
 
 
-def __generate_pk_pass(pkpass_req, patient, verification):
+def __generate_pk_pass(pkpass_req, patient, verification, url_path):
     try:
         cardInfo = Generic()
         certs = patient["certificates"]
-        message = "https://start.gogettested.com/login"
+        message = "https://start.gogetvax.com/verify/" + url_path
+        print("message", message)
         cardInfo.addHeaderField(
             'header', 'Covid 19 | Level ' + patient["level"] + ' Verified ', 'STATUS')
         cardInfo.addPrimaryField(key='Name', value=patient["first_name"] + " " + patient["last_name"]
@@ -1780,13 +1805,13 @@ def __generate_pk_pass(pkpass_req, patient, verification):
         passfile.foregroundColor = "rgb(255, 255, 255)"
         passfile.labelColor = "rgb(238, 191, 217)"
         passfile.barcode = Barcode(message=message, format="PKBarcodeFormatQR")
-        print("LAMBDA_TASK_ROOT", os.environ['LAMBDA_TASK_ROOT'])
-        print("reading file from", os.environ['LAMBDA_TASK_ROOT'] + "/ggt/configs/images/Group 4GGV-4.png")
-        for root, dirs, files in os.walk("."):
-            print(root)
-            print(dirs)
-            for filename in files:
-                print(filename)
+        # print("LAMBDA_TASK_ROOT", os.environ['LAMBDA_TASK_ROOT'])
+        # print("reading file from", os.environ['LAMBDA_TASK_ROOT'] + "/ggt/configs/images/Group 4GGV-4.png")
+        # for root, dirs, files in os.walk("."):
+        #     print(root)
+        #     print(dirs)
+        #     for filename in files:
+        #         print(filename)
         passfile.addFile("icon.png", open(
             "./app/ggt/configs/images/Group 4GGV-4.png", "rb"))
         print("./app/ggt/configs/images/Group 4GGV-4.png was found")

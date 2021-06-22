@@ -516,7 +516,9 @@ def lookup_pkpass(phone_number, dob, first_name, last_name, token):
             where_statement, first_name)
         where_statement = "{} AND p.last_name = '{}'".format(
             where_statement, last_name)
-        where_statement = "{} AND p.result_token = '{}' AND p.token_expire > NOW()".format(where_statement, token)
+        # where_statement = "{} AND p.result_token = '{}' AND p.token_expire > NOW()".format(where_statement, token)
+        where_statement = "{} AND p.result_token = '{}'".format(where_statement, token)
+
         sql = """SELECT 
                     gc.*,
                     p.*
