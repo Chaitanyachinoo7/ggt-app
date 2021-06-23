@@ -534,6 +534,27 @@ def get_patient_upfront_payment(service_codes: List[str], currency: str):
         )
         return None
 
+def get_verification_level_from_patient_id(id, dob):
+    try:
+        sql = """SELECT 
+                        gc.id,
+                        gc.verification_level,
+                        gc.service_code
+                    FROM
+                        ggv_certificates gc
+                        JOIN patients p
+                        ON p.id = gc.patient_id
+                    WHERE 
+                        gc.patient_id = {} AND date(p.dob) =  '{}' AND rejected = 0;""".format(id, dob)
+        return read_rows(sql)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            id=id,
+            function=whoami(),
+            error=err
+        )
+        return None
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################

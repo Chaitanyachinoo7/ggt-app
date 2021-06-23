@@ -65,7 +65,8 @@ from ggt.models.data_models.patients import (
     create_patient_record,
     get_patient_by_token, add_to_ggd_waiting_queue, create_pre_registration,
     get_existing_patients, unlock_patient_info_patients, is_un_available_slot,
-    create_patient_insurance_record, get_insurance_record_by_id, get_patient_upfront_payment
+    create_patient_insurance_record, get_insurance_record_by_id, get_patient_upfront_payment,
+    get_verification_level_from_patient_id
 )
 from ggt.models.data_models.questionnaires import (
     create_patient_questionnaire
@@ -1059,6 +1060,37 @@ def bp_add_vax_certificate(req):
         )
     return False
 
+def bp_pass_verification(req):
+    try:
+        patient_id = __get_patient_id(req.query)
+        certs = get_verification_level_from_patient_id(patient_id, req.dob)
+        if("COVID_19_VACCINE_JNJ" not in certs[0]['service_code'] and certs[0]['verification_level'] > 1 and certs[1]['verification_level'] > 1):
+            return {
+                "fully_vaccinated": True,
+                "image1": get_temp_pkpass_url(str(patient_id) +"/"+str(certs[0]['id']) +".jpg", "ggt-vax-certificates"),
+                "image2": get_temp_pkpass_url(str(patient_id) +"/"+str(certs[1]['id']) +".jpg", "ggt-vax-certificates")
+            }
+        elif("COVID_19_VACCINE_JNJ" in certs[0]['service_code'] and certs[0]['verification_level'] > 1):
+            return {
+                "fully_vaccinated": True,
+                "image1": get_temp_pkpass_url(str(patient_id) +"/"+str(certs[0]['id']) +".jpg", "ggt-vax-certificates"),
+                "image2": get_temp_pkpass_url(str(patient_id) +"/"+str(certs[1]['id']) +".jpg", "ggt-vax-certificates")
+            }
+        return {
+            "fully_vaccinated": False,
+            "image1": get_temp_pkpass_url(str(patient_id) +"/"+str(certs[0]['id']) +".jpg", "ggt-vax-certificates"),
+            "image2": get_temp_pkpass_url(str(patient_id) +"/"+str(certs[1]['id']) +".jpg", "ggt-vax-certificates")
+        }
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            msg="PASS-VERIFICATION",
+            function=whoami(),
+            query=req.query,
+            dob=req.dob,
+            error=err
+        )
+    return False
 
 ########################################################################################################
 # [Protected] functions
@@ -1067,6 +1099,30 @@ def bp_add_vax_certificate(req):
 # TODO: Prevent from looking up slots that are already assigned to an appointment
 # TODO, doesn't check if it's already booked
 # TEMP, not using fixed slots since operational conditions allow oversubscribing
+def __get_patient_id(query):
+    try:
+        boto_client = boto3.client(
+            'kms',
+            aws_access_key_id=cfg('aws.access_key_id'),
+            aws_secret_access_key=cfg('aws.secret_access_key'),
+            region_name='us-east-2'
+        )
+        print(query)
+        query = query.encode('utf-8')
+        from base64 import b64encode, decodebytes
+        print(decodebytes(query))
+        response = boto_client.decrypt(CiphertextBlob=decodebytes(query))
+        print(response)
+        print(response['Plaintext'].decode('utf-8'))
+        return response['Plaintext'].decode('utf-8')
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            query=query,
+            function=whoami(),
+            error=err
+        )
+
 def __get_vax_card_ocr(patient_id, cert_id):
     boto_client = boto3.client(
         'textract',
@@ -1637,7 +1693,6 @@ def __makeEventTicketClassResource(classId, patient):
                 "defaultValue": {
                     "language": "en-US",
                     "value": patient["first_name"] + " " + patient["last_name"]
-                             + " | " + str(patient["dob"])
                 }
             }, "reviewStatus": "underReview",  # optional
             "textModulesData": textModulesData,
@@ -1775,8 +1830,7 @@ def __generate_pk_pass(pkpass_req, patient, verification, url_path):
         print("message", message)
         cardInfo.addHeaderField(
             'header', 'Covid 19 | Level ' + patient["level"] + ' Verified ', 'STATUS')
-        cardInfo.addPrimaryField(key='Name', value=patient["first_name"] + " " + patient["last_name"]
-                                                   + " | " + str(patient["dob"]), label='NAME & DATE OF BIRTH')
+        cardInfo.addPrimaryField(key='Name', value=patient["first_name"] + " " + patient["last_name"], label='NAME')
         if len(certs) > 0:
             cardInfo.addSecondaryField('DOSE1', certs[0]["brand"], 'DOSE 1')
             cardInfo.addSecondaryField(
