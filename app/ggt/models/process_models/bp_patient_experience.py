@@ -1807,7 +1807,7 @@ def __makeEventTicketObjectResource(classId, objectId, patient, url_path):
             # required fields
             "id": objectId, "classId": classId, "state": "active"  # optional
             , "barcode": {
-                "kind": "walletobjects#barcode", "type": "DATA_MATRIX", "value": "https://start.gogetvax.com/verify/" + url_path,
+                "kind": "walletobjects#barcode", "type": "DATA_MATRIX", "value": "https://start.gogetvax.com/vaxyes/verify?brand=vax&query=" + url_path,
                 "alternateText": 'Covid 19 | Level ' + patient["level"] + ' Verified '
             },
         }
@@ -1826,7 +1826,7 @@ def __generate_pk_pass(pkpass_req, patient, verification, url_path):
     try:
         cardInfo = Generic()
         certs = patient["certificates"]
-        message = "https://start.gogetvax.com/verify/" + url_path
+        message = "https://start.gogetvax.com/vaxyes/verify?brand=vax&query=" + url_path
         print("message", message)
         cardInfo.addHeaderField(
             'header', 'Covid 19 | Level ' + patient["level"] + ' Verified ', 'STATUS')
