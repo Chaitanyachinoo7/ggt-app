@@ -117,7 +117,7 @@ def bp_get_ggv_screen_flow_seq(group_code: str):
             req = False
             if group_info.ggv_required_screens:
                 req = True if (
-                        screen in group_info.ggv_required_screens) else False
+                    screen in group_info.ggv_required_screens) else False
 
             validations[screen] = {
                 "required": req
@@ -134,7 +134,7 @@ def bp_get_ggv_screen_flow_seq(group_code: str):
                     "provider_name": "Texas Immtrac2",
                     # "provider_name": group_info.consent_party_name,
                     "consent_url": group_info.consent_url if (
-                            group_info.consent_url and group_info.consent_url != '') else None,
+                        group_info.consent_url and group_info.consent_url != '') else None,
                     "additional_fields": group_info.additional_fields
                 }
             }
@@ -170,7 +170,7 @@ def bp_get_screen_flow_seq(group_code: str, country_code="US"):
             req = False
             if group_info.required_screens:
                 req = True if (
-                        screen in group_info.required_screens) else False
+                    screen in group_info.required_screens) else False
 
             validations[screen] = {
                 "required": req
@@ -184,7 +184,7 @@ def bp_get_screen_flow_seq(group_code: str, country_code="US"):
                     "intro_text": group_info.intro_text,
                     "provider_name": group_info.consent_party_name,
                     "consent_url": group_info.consent_url if (
-                            group_info.consent_url and group_info.consent_url != '') else None,
+                        group_info.consent_url and group_info.consent_url != '') else None,
                     "additional_fields": group_info.additional_fields
                 }
             }
@@ -708,8 +708,8 @@ def bp_get_vax_certificate(patient_id, cert_id, pass_through=False):
                                      media_type="image/jpg",
                                      headers={
                                          'Content-Disposition': 'inline; filename="vaccine_certificate.png"'
-                                     }
-                                     )
+            }
+            )
 
         else:
             raise HTTPException(status_code=404, detail='Image not found')
@@ -842,8 +842,10 @@ def bp_add_vax_certificate(req):
             ocr["cert1_id"] = cert_details["cert1_id"]
             if cert_details["cert2_id"]:
                 ocr["cert2_id"] = cert_details["cert2_id"]
-            is_vax_card_pristine = __vax_card_pristine(cert_details["patient_id"], cert_details["cert1_id"], req, ocr)
-            is_photo_id_pristine = __photo_id_pristine(cert_details["patient_id"], cert_details["cert1_id"], req, ocr)
+            is_vax_card_pristine = __vax_card_pristine(
+                cert_details["patient_id"], cert_details["cert1_id"], req, ocr)
+            is_photo_id_pristine = __photo_id_pristine(
+                cert_details["patient_id"], cert_details["cert1_id"], req, ocr)
 
             __update_ocr_status(ocr["patient_id"], ocr["first_name"], ocr["last_name"], ocr["vax_type"], ocr["dob"],
                                 ocr["cert1_id"], ocr["first_vax_dt"], ocr["vax_1_lot_number"],
@@ -977,8 +979,10 @@ def bp_add_vax_certificate(req):
                             vax_image=1 if req.vax_image else 0,
                             id_image=1 if req.id_image else 0
                         )
-                send_ggv_certificate_level_1_sms(req.first_name.title(), req.phone_number, "2")
-                send_ggv_certificate_level_1_email(req.first_name.title(), req.email, "2")
+                send_ggv_certificate_level_1_sms(
+                    req.first_name.title(), req.phone_number, "2")
+                send_ggv_certificate_level_1_email(
+                    req.first_name.title(), req.email, "2")
                 return {
                     "level": 2
                 }
@@ -1060,6 +1064,7 @@ def bp_add_vax_certificate(req):
         )
     return False
 
+
 def bp_pass_verification(req):
     try:
         patient_id = __get_patient_id(req.query)
@@ -1067,19 +1072,19 @@ def bp_pass_verification(req):
         if("COVID_19_VACCINE_JNJ" not in certs[0]['service_code'] and certs[0]['verification_level'] > 1 and certs[1]['verification_level'] > 1):
             return {
                 "fully_vaccinated": True,
-                "image1": get_temp_pkpass_url(str(patient_id) +"/"+str(certs[0]['id']) +".jpg", "ggt-vax-certificates"),
-                "image2": get_temp_pkpass_url(str(patient_id) +"/"+str(certs[1]['id']) +".jpg", "ggt-vax-certificates")
+                "image1": get_temp_pkpass_url(str(patient_id) + "/"+str(certs[0]['id']) + ".jpg", "ggt-vax-certificates"),
+                "image2": get_temp_pkpass_url(str(patient_id) + "/"+str(certs[1]['id']) + ".jpg", "ggt-vax-certificates")
             }
         elif("COVID_19_VACCINE_JNJ" in certs[0]['service_code'] and certs[0]['verification_level'] > 1):
             return {
                 "fully_vaccinated": True,
-                "image1": get_temp_pkpass_url(str(patient_id) +"/"+str(certs[0]['id']) +".jpg", "ggt-vax-certificates"),
-                "image2": get_temp_pkpass_url(str(patient_id) +"/"+str(certs[1]['id']) +".jpg", "ggt-vax-certificates")
+                "image1": get_temp_pkpass_url(str(patient_id) + "/"+str(certs[0]['id']) + ".jpg", "ggt-vax-certificates"),
+                "image2": get_temp_pkpass_url(str(patient_id) + "/"+str(certs[1]['id']) + ".jpg", "ggt-vax-certificates")
             }
         return {
             "fully_vaccinated": False,
-            "image1": get_temp_pkpass_url(str(patient_id) +"/"+str(certs[0]['id']) +".jpg", "ggt-vax-certificates"),
-            "image2": get_temp_pkpass_url(str(patient_id) +"/"+str(certs[1]['id']) +".jpg", "ggt-vax-certificates")
+            "image1": get_temp_pkpass_url(str(patient_id) + "/"+str(certs[0]['id']) + ".jpg", "ggt-vax-certificates"),
+            "image2": get_temp_pkpass_url(str(patient_id) + "/"+str(certs[1]['id']) + ".jpg", "ggt-vax-certificates")
         }
     except Exception as err:
         log_generic(
@@ -1092,11 +1097,19 @@ def bp_pass_verification(req):
         )
     return False
 
+
 def bp_update_android_pass(req):
     try:
-        payload = json.loads(req.objectResourcePayload)
-        print(payload)
-        __updateObject(payload, payload["id"])
+        payloadObject = json.loads(req.objectResourcePayload)
+        payloadClass = json.loads(req.classResourcePayload)
+        classResponse = __updateClass(payloadClass, payloadClass["id"])
+        objectResponse = __updateObject(payloadObject, payloadObject["id"])
+
+        __handleInsertCallStatusCode(
+             classResponse, "class", payloadClass["id"], None, None)
+
+        __handleInsertCallStatusCode(
+            objectResponse, "object", payloadObject["id"], payloadClass["id"], None)
         return True
     except Exception as err:
         log_generic(
@@ -1114,6 +1127,8 @@ def bp_update_android_pass(req):
 # TODO: Prevent from looking up slots that are already assigned to an appointment
 # TODO, doesn't check if it's already booked
 # TEMP, not using fixed slots since operational conditions allow oversubscribing
+
+
 def __get_patient_id(query):
     try:
         boto_client = boto3.client(
@@ -1137,6 +1152,7 @@ def __get_patient_id(query):
             function=whoami(),
             error=err
         )
+
 
 def __get_vax_card_ocr(patient_id, cert_id):
     boto_client = boto3.client(
@@ -1206,14 +1222,14 @@ def __photo_id_pristine(patient_id, cert_id, cert_request: LookupGGVAddVaxCertRe
     ocr["last_name"] = 1 if cert_request.last_name.lower() in id_ocr_string else 0
     ocr["dob"] = 1 if (date_of_birth.strftime('%-m/%-d/%y') in id_ocr_string or date_of_birth.strftime(
         '%m/%d/%y') in id_ocr_string or
-                       date_of_birth.strftime('%-m/%-d/%Y') in id_ocr_string or date_of_birth.strftime(
-                '%m/%d/%Y') in id_ocr_string or
-                       date_of_birth.strftime('%-m,%-d,%y') in id_ocr_string or date_of_birth.strftime(
-                '%b/%-d/%Y') in id_ocr_string or
-                       date_of_birth.strftime('%-m-%-d-%y') in id_ocr_string or date_of_birth.strftime(
-                '%m-%d-%y') in id_ocr_string or
-                       date_of_birth.strftime('%-m,%-d,%y') in id_ocr_string or date_of_birth.strftime(
-                '%b/%-d/%Y') in id_ocr_string) else 0
+        date_of_birth.strftime('%-m/%-d/%Y') in id_ocr_string or date_of_birth.strftime(
+        '%m/%d/%Y') in id_ocr_string or
+        date_of_birth.strftime('%-m,%-d,%y') in id_ocr_string or date_of_birth.strftime(
+        '%b/%-d/%Y') in id_ocr_string or
+        date_of_birth.strftime('%-m-%-d-%y') in id_ocr_string or date_of_birth.strftime(
+        '%m-%d-%y') in id_ocr_string or
+        date_of_birth.strftime('%-m,%-d,%y') in id_ocr_string or date_of_birth.strftime(
+        '%b/%-d/%Y') in id_ocr_string) else 0
     # if (cert_request.first_name.lower() in id_ocr_string and
     #         cert_request.last_name.lower() in id_ocr_string and
     #         (date_of_birth.strftime('%-m/%-d/%y') in id_ocr_string or date_of_birth.strftime(
@@ -1227,11 +1243,11 @@ def __photo_id_pristine(patient_id, cert_id, cert_request: LookupGGVAddVaxCertRe
     # print("first_name, last_name or dob did not match in photo id ocr")
     # return False
     return cert_request.first_name.lower() in id_ocr_string if (cert_request.first_name.lower() in id_ocr_string == cert_request.last_name.lower() in id_ocr_string) else (date_of_birth.strftime('%-m/%-d/%y') in id_ocr_string or date_of_birth.strftime(
-                '%m/%d/%y') in id_ocr_string or
-             date_of_birth.strftime('%-m/%-d/%Y') in id_ocr_string or date_of_birth.strftime(
-                        '%m/%d/%Y') in id_ocr_string or
-             date_of_birth.strftime('%-m,%-d,%y') in id_ocr_string or date_of_birth.strftime(
-                        '%b/%-d/%Y') in id_ocr_string)
+        '%m/%d/%y') in id_ocr_string or
+        date_of_birth.strftime('%-m/%-d/%Y') in id_ocr_string or date_of_birth.strftime(
+        '%m/%d/%Y') in id_ocr_string or
+        date_of_birth.strftime('%-m,%-d,%y') in id_ocr_string or date_of_birth.strftime(
+        '%b/%-d/%Y') in id_ocr_string)
 
 
 def __vax_card_pristine(patient_id, cert_id, cert_request: LookupGGVAddVaxCertRequest, ocr):
@@ -1260,49 +1276,52 @@ def __vax_card_pristine(patient_id, cert_id, cert_request: LookupGGVAddVaxCertRe
     )
     first_vax_dt = datetime.strptime(cert_request.first_vax_dt, '%Y-%m-%d')
     if cert_request.vax_2_lot_number != "" and cert_request.vax_2_lot_number is not None:
-        second_vax_dt = datetime.strptime(cert_request.second_vax_dt, '%Y-%m-%d')
+        second_vax_dt = datetime.strptime(
+            cert_request.second_vax_dt, '%Y-%m-%d')
 
     ocr["vax_type"] = 1 if cert_request.vax_type.lower() in vax_ocr_string else 0
     ocr["first_vax_dt"] = 1 if (first_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or first_vax_dt.strftime(
         '%m/%d/%y') in vax_ocr_string or
-                                first_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or first_vax_dt.strftime(
-                '%m/%d/%Y') in vax_ocr_string or
-                                first_vax_dt.strftime('%-m,%-d,%y') in vax_ocr_string or first_vax_dt.strftime(
-                '%b/%-d/%Y') in vax_ocr_string) else 0
-    ocr["vax_1_lot_number"] = 1 if cert_request.vax_1_lot_number.strip("0").lower() in vax_ocr_string else 0
+        first_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or first_vax_dt.strftime(
+        '%m/%d/%Y') in vax_ocr_string or
+        first_vax_dt.strftime('%-m,%-d,%y') in vax_ocr_string or first_vax_dt.strftime(
+        '%b/%-d/%Y') in vax_ocr_string) else 0
+    ocr["vax_1_lot_number"] = 1 if cert_request.vax_1_lot_number.strip(
+        "0").lower() in vax_ocr_string else 0
     if cert_request.vax_2_lot_number != "" and cert_request.vax_2_lot_number is not None:
         ocr["second_vax_dt"] = 1 if (second_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or second_vax_dt.strftime(
             '%m/%d/%y') in vax_ocr_string or
-                                     second_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or second_vax_dt.strftime(
-                    '%m/%d/%Y') in vax_ocr_string
-                                     or second_vax_dt.strftime(
-                    '%-m,%-d,%Y') in vax_ocr_string or second_vax_dt.strftime('%b/%-d/%Y') in vax_ocr_string) else 0
-        ocr["vax_2_lot_number"] = 1 if cert_request.vax_2_lot_number.strip("0").lower() in vax_ocr_string else 0
+            second_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or second_vax_dt.strftime(
+            '%m/%d/%Y') in vax_ocr_string
+            or second_vax_dt.strftime(
+            '%-m,%-d,%Y') in vax_ocr_string or second_vax_dt.strftime('%b/%-d/%Y') in vax_ocr_string) else 0
+        ocr["vax_2_lot_number"] = 1 if cert_request.vax_2_lot_number.strip(
+            "0").lower() in vax_ocr_string else 0
     if (cert_request.vax_2_lot_number != "" and cert_request.vax_2_lot_number is not None):
         return True if (cert_request.vax_type.lower() in vax_ocr_string or
-            (first_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or first_vax_dt.strftime(
-                '%m/%d/%y') in vax_ocr_string or
-             first_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or first_vax_dt.strftime(
-                        '%m/%d/%Y') in vax_ocr_string or
-             first_vax_dt.strftime('%-m,%-d,%y') in vax_ocr_string or first_vax_dt.strftime(
-                        '%b/%-d/%Y') in vax_ocr_string) or
-            cert_request.vax_1_lot_number.strip("0").lower() in vax_ocr_string) and ((second_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or second_vax_dt.strftime(
-                '%m/%d/%y') in vax_ocr_string or
-             second_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or second_vax_dt.strftime(
-                        '%m/%d/%Y') in vax_ocr_string
-             or second_vax_dt.strftime('%-m,%-d,%Y') in vax_ocr_string or second_vax_dt.strftime(
-                        '%b/%-d/%Y') in vax_ocr_string) or
+                        (first_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or first_vax_dt.strftime(
+                            '%m/%d/%y') in vax_ocr_string or
+                         first_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or first_vax_dt.strftime(
+                            '%m/%d/%Y') in vax_ocr_string or
+                         first_vax_dt.strftime('%-m,%-d,%y') in vax_ocr_string or first_vax_dt.strftime(
+                            '%b/%-d/%Y') in vax_ocr_string) or
+                        cert_request.vax_1_lot_number.strip("0").lower() in vax_ocr_string) and ((second_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or second_vax_dt.strftime(
+                            '%m/%d/%y') in vax_ocr_string or
+                            second_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or second_vax_dt.strftime(
+                            '%m/%d/%Y') in vax_ocr_string
+                            or second_vax_dt.strftime('%-m,%-d,%Y') in vax_ocr_string or second_vax_dt.strftime(
+                            '%b/%-d/%Y') in vax_ocr_string) or
             cert_request.vax_2_lot_number.strip("0").lower() in vax_ocr_string) else False
 
     elif (cert_request.vax_2_lot_number == "" or cert_request.vax_2_lot_number is None):
         return True if (cert_request.vax_type.lower() in vax_ocr_string or
-          (first_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or first_vax_dt.strftime(
-              '%m/%d/%y') in vax_ocr_string or
-           first_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or first_vax_dt.strftime(
-                      '%m/%d/%Y') in vax_ocr_string or
-           first_vax_dt.strftime('%-m,%-d,%y') in vax_ocr_string or first_vax_dt.strftime(
-                      '%b/%-d/%Y') in vax_ocr_string) or
-          cert_request.vax_1_lot_number.strip("0").lower() in vax_ocr_string) else False
+                        (first_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or first_vax_dt.strftime(
+                            '%m/%d/%y') in vax_ocr_string or
+                         first_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or first_vax_dt.strftime(
+                            '%m/%d/%Y') in vax_ocr_string or
+                         first_vax_dt.strftime('%-m,%-d,%y') in vax_ocr_string or first_vax_dt.strftime(
+                            '%b/%-d/%Y') in vax_ocr_string) or
+                        cert_request.vax_1_lot_number.strip("0").lower() in vax_ocr_string) else False
     # return False
 
 
@@ -1320,7 +1339,8 @@ def __generate_wallet_pass(pkpass_req, patient, verification):
         if pkpass_req.type == 'i':
             __generate_pk_pass(pkpass_req, patient, verification, url_path)
             print("__generate_pk_pass execution complete")
-            print("uploading from: ", "/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"))
+            print("uploading from: ",
+                  "/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"))
             print("uploading as:", str(patient["patient_id"]) + ".pkpass")
             print("uploading to:", "pkpass-prod")
             uploaded = upload_file("/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"),
@@ -1344,6 +1364,7 @@ def __generate_wallet_pass(pkpass_req, patient, verification):
             error=err
         )
 
+
 def __get_barcode_string(phone, patient):
     try:
         boto_client = boto3.client(
@@ -1354,7 +1375,8 @@ def __get_barcode_string(phone, patient):
         )
         patient["first_name"] + " " + patient["last_name"]
         str(patient["dob"])
-        response = boto_client.encrypt(KeyId="e684baec-2a09-4348-b0bc-7f45dc0b2822", Plaintext=str(patient["patient_id"]))
+        response = boto_client.encrypt(
+            KeyId="e684baec-2a09-4348-b0bc-7f45dc0b2822", Plaintext=str(patient["patient_id"]))
         # print(response)
         from base64 import b64encode, b64decode
         print(response['CiphertextBlob'])
@@ -1368,6 +1390,8 @@ def __get_barcode_string(phone, patient):
             function=whoami(),
             error=err
         )
+
+
 def __generate_gpay_pass(pkpass_req, patient, verification, url_path, phone):
     try:
         classUid = 'EVENTTICKET_CLASS_' + str(uuid.uuid4())
@@ -1387,11 +1411,13 @@ def __generate_gpay_pass(pkpass_req, patient, verification, url_path, phone):
 def __skinnyJwt(verticalType, classId, objectId, patient, url_path):
     try:
         print(classId, objectId, url_path, patient["level"])
-        skinnyJwt, objectResourcePayload = __makeSkinnyJwt(verticalType, classId, objectId, patient, url_path)
+        skinnyJwt, objectResourcePayload, classResourcePayload = __makeSkinnyJwt(
+            verticalType, classId, objectId, patient, url_path)
         if skinnyJwt is not None:
             return {
                 "gpayPassURL": "https://pay.google.com/gp/v/save/" + skinnyJwt.decode('UTF-8'),
-                "objectResourcePayload": objectResourcePayload
+                "objectResourcePayload": objectResourcePayload,
+                "classResourcePayload": classResourcePayload
             }
     except Exception as err:
         log_generic(
@@ -1420,7 +1446,8 @@ def __makeSkinnyJwt(verticalType, classId, objectId, patient, url_path):
             classResponse = __insertClass(verticalType, classResourcePayload)
 
             # make authorized REST call to explicitly insert object into Google server.
-            objectResponse = __insertObject(verticalType, objectResourcePayload)
+            objectResponse = __insertObject(
+                verticalType, objectResourcePayload)
 
             # continue based on insert response status. Check https://developers.google.com/pay/passes/reference/v1/statuscodes
             # check class insert response. Will print out if class insert succeeds or not. Throws error if class resource is malformed.
@@ -1446,7 +1473,7 @@ def __makeSkinnyJwt(verticalType, classId, objectId, patient, url_path):
 
         # return "skinny" JWT. Try putting it into save link.
         # See https://developers.google.com/pay/passes/guides/get-started/implementing-the-api/save-to-google-pay#add-link-to-email
-        return signedJwt, objectResourcePayload
+        return signedJwt, objectResourcePayload, classResourcePayload
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -1509,7 +1536,7 @@ def __getObject(verticalType, objectId):
             'Content-Type': 'application/json; charset=UTF-8'
         }
         credentials = __makeOauthCredential()
-        
+
         response = None
 
         # Define get() REST call of target vertical
@@ -1611,6 +1638,45 @@ def __insertClass(verticalType, payload):
         )
 
 
+def __updateClass(payload, id_to_use):
+    try:
+        headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json; charset=UTF-8'
+        }
+        credentials = __makeOauthCredential()
+        response = None
+
+        # Define insert() REST call of target vertical
+        uri = 'https://walletobjects.googleapis.com/walletobjects/v1'
+        postfix = 'Class'
+        path = __createPath(None, postfix, id_to_use=id_to_use)
+
+        # There is no Google API for Passes Client Library for Python.
+        # Authorize a http client with credential generated from Google API client library.
+        # see https://google-auth.readthedocs.io/en/latest/user-guide.html#making-authenticated-requests
+        authed_session = AuthorizedSession(credentials)
+        print(authed_session)
+        # make the POST request to make an insert(); this returns a response object
+        # other methods require different http methods; for example, get() requires authed_Session.get(...)
+        # check the reference API to make the right REST call
+        # https://developers.google.com/pay/passes/reference/v1/
+        # https://google-auth.readthedocs.io/en/latest/user-guide.html#making-authenticated-requests
+        response = authed_session.put(
+            uri + path  # REST API endpoint
+            , headers=headers  # Header; optional
+            # non-form-encoded Payload for POST. Check rest API for format based on method.
+            , json=payload
+        )
+        return response
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            gpaypass_req={},
+            function=whoami(),
+            error=err
+        )
+
 
 def __insertObject(verticalType, payload):
     try:
@@ -1649,6 +1715,7 @@ def __insertObject(verticalType, payload):
             function=whoami(),
             error=err
         )
+
 
 def __updateObject(payload, id_to_use):
     try:
@@ -1689,6 +1756,7 @@ def __updateObject(payload, id_to_use):
             error=err
         )
 
+
 def getClassAndObjectDefinitions(verticalType, classId, objectId, classResourcePayload, objectResourcePayload, patient, url_path):
     try:
         classResourcePayload = __makeEventTicketClassResource(classId, patient)
@@ -1709,35 +1777,35 @@ def __makeEventTicketClassResource(classId, patient):
         # Define the resource representation of the Class
         # values should be from your DB/services; here we hardcode information
         textModulesData = [{
-            "header": "STATUS", "body": '', "id": "status"
+            "header": "STATUS", "body": 'Covid 19 | Level ' + patient["level"] + ' Verified ', "id": "status"
         }]
         certs = patient["certificates"]
 
         if len(certs) > 0:
             textModulesData.append({
-                "header": "DOSE 1", "body": '', "id": "dose1"
+                "header": "DOSE 1", "body": certs[0]["brand"], "id": "dose1"
             })
             textModulesData.append({
-                "header": "LOT", "body": '', "id": "lot1"
+                "header": "LOT", "body": certs[0]["lot_no"], "id": "lot1"
             })
             textModulesData.append({
-                "header": "DATE", "body": '', "id": "date1"
+                "header": "DATE", "body": certs[0]["appointment_date"], "id": "date1"
             })
             textModulesData.append({
-                "header": "CERT.#", "body": '', "id": "cert"
+                "header": "CERT.#", "body": patient["certNo"], "id": "cert"
             })
             textModulesData.append({
-                "header": "DATE VERIFIED", "body": '', "id": "certdate"
+                "header": "DATE VERIFIED", "body": patient["verfiedDate"], "id": "certdate"
             })
             if len(certs) > 1:
                 textModulesData.append({
-                    "header": "DOSE 2", "body": '', "id": "dose2"
+                    "header": "DOSE 2", "body": certs[1]["brand"], "id": "dose2"
                 })
                 textModulesData.append({
-                    "header": "LOT", "body": '', "id": "lot2"
+                    "header": "LOT", "body": certs[1]["lot_no"], "id": "lot2"
                 })
                 textModulesData.append({
-                    "header": "DATE", "body": '', "id": "date2"
+                    "header": "DATE", "body": certs[1]["appointment_date"], "id": "date2"
                 })
 
         payload = {}
@@ -1747,14 +1815,14 @@ def __makeEventTicketClassResource(classId, patient):
         # https://developers.google.com/pay/passes/guides/pass-verticals/event-tickets/design
         payload = {
             # required fields
-            "id": classId, 
-            "issuerName": "Go Get Inc.", 
+            "id": classId,
+            "issuerName": "Go Get Inc.",
             "eventName": {
                 "defaultValue": {
                     "language": "en-US",
                     "value": patient["first_name"] + " " + patient["last_name"]
                 }
-            }, 
+            },
             "reviewStatus": "underReview",  # optional
             "textModulesData": textModulesData,
             "classTemplateInfo": {
@@ -1880,8 +1948,8 @@ def __makeEventTicketObjectResource(classId, objectId, patient, url_path):
         # https://developers.google.com/pay/passes/guides/pass-verticals/event-tickets/design
         payload = {
             # required fields
-            "id": objectId, 
-            "classId": classId, 
+            "id": objectId,
+            "classId": classId,
             "state": "active",
             "barcode": {
                 "kind": "walletobjects#barcode", "type": "DATA_MATRIX", "value": "https://start.gogetvax.com/vaxyes/verify?brand=vax&query=" + url_path,
@@ -1923,7 +1991,8 @@ def __generate_pk_pass(pkpass_req, patient, verification, url_path):
         print("message", message)
         cardInfo.addHeaderField(
             'header', 'Covid 19 | Level ' + patient["level"] + ' Verified ', 'STATUS')
-        cardInfo.addPrimaryField(key='Name', value=patient["first_name"] + " " + patient["last_name"], label='NAME')
+        cardInfo.addPrimaryField(
+            key='Name', value=patient["first_name"] + " " + patient["last_name"], label='NAME')
         if len(certs) > 0:
             cardInfo.addSecondaryField('DOSE1', certs[0]["brand"], 'DOSE 1')
             cardInfo.addSecondaryField(
@@ -1947,7 +2016,8 @@ def __generate_pk_pass(pkpass_req, patient, verification, url_path):
                         teamIdentifier=team_identifier)
         passfile.serialNumber = str(patient["patient_id"])
         passfile.description = "COVID 19 Vaccination card for " + \
-                               patient["first_name"] + " " + patient["last_name"]
+                               patient["first_name"] + \
+            " " + patient["last_name"]
         passfile.backgroundColor = "rgb(44, 27, 75)"
         passfile.foregroundColor = "rgb(255, 255, 255)"
         passfile.labelColor = "rgb(238, 191, 217)"
@@ -1965,13 +2035,15 @@ def __generate_pk_pass(pkpass_req, patient, verification, url_path):
         passfile.addFile("logo.png", open(
             "./app/ggt/configs/images/Group 4GGV-4.png", "rb"))
         print("./app/ggt/configs/images/Group 4GGV-4.png was found")
-        print("pkpass temp path:", "/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"))
+        print("pkpass temp path:",
+              "/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"))
         _ = passfile.create(cert_pem,
                             key_pem,
                             wwdr_pem,
                             key_pem_password,
                             "/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"))
-        print("file was created at:", "/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"))
+        print("file was created at:",
+              "/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"))
         return _
     except Exception as err:
         log_generic(
@@ -2243,15 +2315,15 @@ def __send_ggv_qrcode_sms(appointment: GgtAppointment, dose, out_of):
                   "DO NOT ARRIVE EARLY OR LATE. You will not be allowed in the building or in the line more than 5 minutes early. If you are over 30 minutes late your appointment may be given to someone else to ensure vaccine is not wasted. Also make sure to bring an Acceptable ID, " \
                   "and QR code. Though not required, please bring your health insurance card as well." \
                   "\nReply Stop to cxl msgs".format(
-            appointment.patient.first_name,
-            dose,
-            out_of,
-            appointment.date_text,
-            appointment.location_text,
-            "https://start.gogetvax.com",
-            appointment.id,
-            appointment.patient.dob.strftime('%Y%m%d')
-        )
+                      appointment.patient.first_name,
+                      dose,
+                      out_of,
+                      appointment.date_text,
+                      appointment.location_text,
+                      "https://start.gogetvax.com",
+                      appointment.id,
+                      appointment.patient.dob.strftime('%Y%m%d')
+                  )
         international = is_international(appointment.patient.phone_number)
         send_sms(appointment.patient.phone_number,
                  message.replace('\t', ''), international=international)
@@ -2547,55 +2619,57 @@ def send_ggv_certificate_level_1_email(first_name, email, level, phone_number=No
         )
         return False
 
+
 def send_ggv_reject_email(first_name, email):
-        from_email = cfg('notifications.from_email')
-        from_name = cfg('notifications.from_name')
+    from_email = cfg('notifications.from_email')
+    from_name = cfg('notifications.from_name')
 
-        template_vars = {
-            "first_name": first_name
-        }
+    template_vars = {
+        "first_name": first_name
+    }
 
-        subject = "{}, Your VaxYes digital pass request was unable to be processed".format(
-            first_name)
+    subject = "{}, Your VaxYes digital pass request was unable to be processed".format(
+        first_name)
 
-        subject = render_from_string(
-            subject,
-            **template_vars
+    subject = render_from_string(
+        subject,
+        **template_vars
+    )
+
+    template_name = "GGV-2-VAXYES-REJECT.html"
+    html_content = render_template(
+        template_name,
+        **template_vars
+    )
+
+    sent_email = send_email(
+        from_email,
+        from_name,
+        email,
+        subject,
+        html_content
+    )
+
+    if sent_email:
+        log_generic(
+            type=c.INFO,
+            msg="SENT-GGV-REJECT-EMAIL",
+            first_name=first_name,
+            email=email,
+            template_name=template_name,
+            function=whoami()
+        )
+    else:
+        log_generic(
+            type=c.ERROR,
+            msg="SENT-GGV-REJECT-EMAIL-FAILED",
+            first_name=first_name,
+            email=email,
+            template_name=template_name,
+            function=whoami()
         )
 
-        template_name = "GGV-2-VAXYES-REJECT.html"
-        html_content = render_template(
-            template_name,
-            **template_vars
-        )
 
-        sent_email = send_email(
-            from_email,
-            from_name,
-            email,
-            subject,
-            html_content
-        )
-
-        if sent_email:
-            log_generic(
-                type=c.INFO,
-                msg="SENT-GGV-REJECT-EMAIL",
-                first_name=first_name,
-                email=email,
-                template_name=template_name,
-                function=whoami()
-            )
-        else:
-            log_generic(
-                type=c.ERROR,
-                msg="SENT-GGV-REJECT-EMAIL-FAILED",
-                first_name=first_name,
-                email=email,
-                template_name=template_name,
-                function=whoami()
-            )
-            
 def __send_ggv_pre_registration_email(first_name, email):
     try:
         from_email = cfg('notifications.from_email')
