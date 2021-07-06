@@ -1708,6 +1708,37 @@ def __makeEventTicketClassResource(classId, patient):
     try:
         # Define the resource representation of the Class
         # values should be from your DB/services; here we hardcode information
+        textModulesData = [{
+            "header": "STATUS", "body": '', "id": "status"
+        }]
+        certs = patient["certificates"]
+
+        if len(certs) > 0:
+            textModulesData.append({
+                "header": "DOSE 1", "body": '', "id": "dose1"
+            })
+            textModulesData.append({
+                "header": "LOT", "body": '', "id": "lot1"
+            })
+            textModulesData.append({
+                "header": "DATE", "body": '', "id": "date1"
+            })
+            textModulesData.append({
+                "header": "CERT.#", "body": '', "id": "cert"
+            })
+            textModulesData.append({
+                "header": "DATE VERIFIED", "body": '', "id": "certdate"
+            })
+            if len(certs) > 1:
+                textModulesData.append({
+                    "header": "DOSE 2", "body": '', "id": "dose2"
+                })
+                textModulesData.append({
+                    "header": "LOT", "body": '', "id": "lot2"
+                })
+                textModulesData.append({
+                    "header": "DATE", "body": '', "id": "date2"
+                })
 
         payload = {}
 
@@ -1725,6 +1756,7 @@ def __makeEventTicketClassResource(classId, patient):
                 }
             }, 
             "reviewStatus": "underReview",  # optional
+            "textModulesData": textModulesData,
             "classTemplateInfo": {
                 "cardTemplateOverride": {
                     "cardRowTemplateInfos": [{
