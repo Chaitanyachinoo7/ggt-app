@@ -22,7 +22,7 @@ from ggt.models.process_models.bp_patient_experience import (
     bp_create_pre_registration, bp_verify_verification_token, bp_reschedule_first_appointment,
     bp_reschedule_second_appointment, bp_lookup_certificate, bp_get_vax_certificate,
     bp_get_wallet_pass, bp_call_non_sms_phone, bp_add_vax_certificate,
-    bp_pass_verification
+    bp_pass_verification, bp_update_android_pass
 )
 
 from ggt.models.process_models.bp_schedules import (
@@ -606,4 +606,8 @@ def get_add_vax_certificate(req):
 def pass_verification(req):
     return x_response(
          bp_pass_verification(req)
+    )
+def update_android_pass(req):
+    return x_response(
+         bp_update_android_pass(req)
     )

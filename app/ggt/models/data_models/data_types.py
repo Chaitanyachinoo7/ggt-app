@@ -1484,6 +1484,9 @@ class PassVerificationRequest(BaseModel):
     query: str
     dob: str
 
+class UpdateAndroidPassRequest(BaseModel):
+    objectResourcePayload: str
+
 class FilterOrg(BaseModel):
     name: str
 

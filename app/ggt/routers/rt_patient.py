@@ -14,7 +14,8 @@ from ggt.models.data_models.data_types import (
     InsuranceEligibilityRequest,
     InsurancePayersListRequest, SecondAvailableDate, FinalizeGGVRegistrationRequest, FinalizeGGVPreRegistrationRequest,
     PatientAppointmentLookup, VerificationToken, UpdateFirstAppointment, SecondSlotReschedule, UpdateSecondAppointment,
-    LookupGGVCertificateRequest, LookupGGVWalletPassRequest, LookupGGVAddVaxCertRequest, PassVerificationRequest
+    LookupGGVCertificateRequest, LookupGGVWalletPassRequest, LookupGGVAddVaxCertRequest, PassVerificationRequest,
+    UpdateAndroidPassRequest
 )
 
 from ggt.models.workflow_models.patient_portal_flow import (
@@ -39,7 +40,7 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
     get_ggv_schedule_times_available, ggv_finalize_pre_registration, cache_test, verify_verification_token,
     reschedule_first_appointment, get_second_slot_reschedule_dates, reschedule_second_appointment,
     get_ggv_schedule_dates_available, lookup_certificate, get_vax_certificate, get_wallet_pass, call_non_sms_phone, get_add_vax_certificate,
-    pass_verification
+    pass_verification, update_android_pass
 )
 
 # TODO: [GGT-193] Move this to a dedicated API
@@ -310,3 +311,7 @@ def api_add_vax_certificate(req: LookupGGVAddVaxCertRequest):
 @router.post("/pass_verification/")
 def api_pass_verification(pass_verification_request: PassVerificationRequest):
     return pass_verification(pass_verification_request)
+
+@router.post("/update_android_pass/")
+def api_update_android_pass(update_android_pass_request: UpdateAndroidPassRequest):
+    return update_android_pass(update_android_pass_request)
