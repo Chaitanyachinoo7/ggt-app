@@ -1319,7 +1319,7 @@ def __generate_wallet_pass(pkpass_req, patient, verification):
             else:
                 return None
         elif pkpass_req.type == 'a':
-            return __generate_gpay_pass(pkpass_req, patient, verification, url_path)
+            return __generate_gpay_pass(pkpass_req, patient, verification, url_path, pkpass_req.phone_number)
 
     except Exception as err:
         log_generic(
@@ -1353,11 +1353,11 @@ def __get_barcode_string(phone, patient):
             function=whoami(),
             error=err
         )
-def __generate_gpay_pass(pkpass_req, patient, verification, url_path):
+def __generate_gpay_pass(pkpass_req, patient, verification, url_path, phone):
     try:
         classUid = 'EVENTTICKET_CLASS_' + str(uuid.uuid4())
         classId = '%s.%s' % ("3388000000009256028", classUid)
-        objectUid = 'EVENTTICKET_OBJECT_' + str(uuid.uuid4())
+        objectUid = 'EVENTTICKET_OBJECT_' + str(patient["first_name"] + patient["last_name"] + phone[2:])
         objectId = '%s.%s' % ("3388000000009256028", objectUid)
         return __skinnyJwt("EVENTTICKET", classId, objectId, patient, url_path)
     except Exception as err:
