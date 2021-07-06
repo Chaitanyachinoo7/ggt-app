@@ -1558,7 +1558,7 @@ def __makeOauthCredential():
     try:
         # the variables are in config file
         credentials = service_account.Credentials.from_service_account_file(
-            './ggt/configs/gpay/ggt-pfe-prod-e3201b1cc798.json',
+            './app/ggt/configs/gpay/ggt-pfe-prod-e3201b1cc798.json',
             scopes=['https://www.googleapis.com/auth/wallet_object.issuer'])
 
         return credentials
