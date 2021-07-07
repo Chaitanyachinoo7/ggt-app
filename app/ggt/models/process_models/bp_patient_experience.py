@@ -45,7 +45,7 @@ from ggt.models.data_models.appointments import (
     create_appointment,
     update_appointment_with_confirmed_scheduled,
     update_appointment_with_receipt_token, release_ggv_slot, lock_ggv_slot, re_schedule_appointment, lookup_certificate,
-    lookup_pkpass, is_open_patient, update_appointment_with_payment_session
+    lookup_pkpass, is_open_patient, update_appointment_with_payment_session, save_android_pass_details
 )
 from ggt.models.data_models.clinical_test_results import (
     get_test_result_by_token
@@ -1106,7 +1106,7 @@ def bp_update_android_pass(req):
         objectResponse = __updateObject(payloadObject, payloadObject["id"])
 
         __handleInsertCallStatusCode(
-             classResponse, "class", payloadClass["id"], None, None)
+            classResponse, "class", payloadClass["id"], None, None)
 
         __handleInsertCallStatusCode(
             objectResponse, "object", payloadObject["id"], payloadClass["id"], None)
@@ -1398,7 +1398,10 @@ def __generate_gpay_pass(pkpass_req, patient, verification, url_path, phone):
         classId = '%s.%s' % ("3388000000009256028", classUid)
         objectUid = 'EVENTTICKET_OBJECT_' + str(uuid.uuid4())
         objectId = '%s.%s' % ("3388000000009256028", objectUid)
-        return __skinnyJwt("EVENTTICKET", classId, objectId, patient, url_path)
+        saved = save_android_pass_details(
+            str(patient["patient_id"]), classId, objectId)
+        if(saved):
+            return __skinnyJwt("EVENTTICKET", classId, objectId, patient, url_path)
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -1406,6 +1409,7 @@ def __generate_gpay_pass(pkpass_req, patient, verification, url_path, phone):
             function=whoami(),
             error=err
         )
+    return None
 
 
 def __skinnyJwt(verticalType, classId, objectId, patient, url_path):

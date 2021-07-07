@@ -312,6 +312,6 @@ def api_add_vax_certificate(req: LookupGGVAddVaxCertRequest):
 def api_pass_verification(pass_verification_request: PassVerificationRequest):
     return pass_verification(pass_verification_request)
 
-@router.post("/update_android_pass/")
-def api_update_android_pass(update_android_pass_request: UpdateAndroidPassRequest):
-    return update_android_pass(update_android_pass_request)
+# @router.post("/update_android_pass/")
+# def api_update_android_pass(update_android_pass_request: UpdateAndroidPassRequest):
+#     return update_android_pass(update_android_pass_request)

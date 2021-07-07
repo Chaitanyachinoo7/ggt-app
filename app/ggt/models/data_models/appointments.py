@@ -540,7 +540,24 @@ def lookup_pkpass(phone_number, dob, first_name, last_name, token):
         )
     return None
 
-
+def save_android_pass_details(id, classId, objectId):
+    try:
+        sql = """INSERT INTO android_passes (patient_id, class_id, objectId, update_dt)
+                    VALUES(%s, %s, %s, NOW()) ON DUPLICATE KEY UPDATE 
+                    patient_id = VALUES(patient_id),
+                    class_id = VALUES(class_id),
+                    objectId = VALUES(objectId),
+                    update_dt = VALUES(update_dt)
+                    """
+        vals = (id, classId, objectId)
+        return exec_insert(sql, vals)
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+    return None
 def get_appointment_count_by_phone_dob(phone_number, dob):
     try:
         if dob:
