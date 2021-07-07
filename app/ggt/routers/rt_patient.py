@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Security
+from fastapi import APIRouter, Security, Request
 
 from cachetools import cached, LRUCache, TTLCache
 
@@ -315,3 +315,8 @@ def api_pass_verification(pass_verification_request: PassVerificationRequest):
 # @router.post("/update_android_pass/")
 # def api_update_android_pass(update_android_pass_request: UpdateAndroidPassRequest):
 #     return update_android_pass(update_android_pass_request)
+
+@router.post("/vax_wallet_pass_apple_upadte/")
+def api_vax_wallet_pass_apple_upadte(req: Request):
+    print(req)
+    return True

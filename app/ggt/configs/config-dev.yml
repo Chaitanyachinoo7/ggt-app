@@ -223,6 +223,9 @@ image_urls:
   payment:
     - 'https://goget-static-content.s3.us-east-2.amazonaws.com/ggtlogo.png' # Add a URL of a stock photo or S3 bucket
 
+applewallet:
+  host: dev.api.gogettested.com
+  path: /api/vax_wallet_pass_apple_upadte
 
 lab_integrations:
   s3_bucket: ggt-sftp-dev

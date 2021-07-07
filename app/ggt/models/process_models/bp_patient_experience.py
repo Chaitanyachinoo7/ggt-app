@@ -2026,6 +2026,8 @@ def __generate_pk_pass(pkpass_req, patient, verification, url_path):
         passfile.foregroundColor = "rgb(255, 255, 255)"
         passfile.labelColor = "rgb(238, 191, 217)"
         passfile.barcode = Barcode(message=message, format="PKBarcodeFormatQR")
+        passfile.webServiceURL = 'https://{}{}'.format(cfg('applewallet.host'), cfg('applewallet.path'))
+        passfile.authenticationToken = url_path
         # print("LAMBDA_TASK_ROOT", os.environ['LAMBDA_TASK_ROOT'])
         # print("reading file from", os.environ['LAMBDA_TASK_ROOT'] + "/ggt/configs/images/Group 4GGV-4.png")
         # for root, dirs, files in os.walk("."):
