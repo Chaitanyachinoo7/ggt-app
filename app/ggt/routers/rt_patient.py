@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Security, Request
+from fastapi import APIRouter, Security, Request, Header
 
 from cachetools import cached, LRUCache, TTLCache
 
@@ -40,7 +40,7 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
     get_ggv_schedule_times_available, ggv_finalize_pre_registration, cache_test, verify_verification_token,
     reschedule_first_appointment, get_second_slot_reschedule_dates, reschedule_second_appointment,
     get_ggv_schedule_dates_available, lookup_certificate, get_vax_certificate, get_wallet_pass, call_non_sms_phone, get_add_vax_certificate,
-    pass_verification, update_android_pass
+    pass_verification, update_android_pass, vax_wallet_pass_apple_upadte
 )
 
 # TODO: [GGT-193] Move this to a dedicated API
@@ -228,12 +228,12 @@ async def api_verify_existing_patient(phone_number: str):
         None
     )
 
-#TODO: Calling this API is dangerous, create dedicated much more restricted API that is geared towards a single user.
-#Validate user token and restrict access to a single patient by comparing other elements in the result
+# TODO: Calling this API is dangerous, create dedicated much more restricted API that is geared towards a single user.
+# Validate user token and restrict access to a single patient by comparing other elements in the result
 @router.get("/lookup_appointments_by_phone/{phone_number}/{dob}")
 async def api_lookup_appointments_by_phone(phone_number: str, dob: str):
     return {
-       'status': 'failed'
+        'status': 'failed'
     }
     # return site_admin_general_search(
     #     '',
@@ -308,6 +308,7 @@ def api_call_non_sms_phone(phone_number):
 def api_add_vax_certificate(req: LookupGGVAddVaxCertRequest):
     return get_add_vax_certificate(req)
 
+
 @router.post("/pass_verification/")
 def api_pass_verification(pass_verification_request: PassVerificationRequest):
     return pass_verification(pass_verification_request)
@@ -316,7 +317,9 @@ def api_pass_verification(pass_verification_request: PassVerificationRequest):
 # def api_update_android_pass(update_android_pass_request: UpdateAndroidPassRequest):
 #     return update_android_pass(update_android_pass_request)
 
+
 @router.post("/vax_wallet_pass_apple_upadte/v1/devices/{device_id}/registrations/{pass_type}/{serial_no}")
-def api_vax_wallet_pass_apple_upadte(device_id: str, pass_type: str, serial_no: str, apple_pass_update_request: ApplePassUpdateRequest):
-    print(device_id, pass_type, serial_no, apple_pass_update_request.pushToken)
-    return True
+def api_vax_wallet_pass_apple_upadte(device_id: str = None, pass_type: str = None, serial_no: str = None, 
+        apple_pass_update_request: ApplePassUpdateRequest = None, Authorization: str = Header(None)):
+    print(device_id, pass_type, serial_no, apple_pass_update_request.pushToken, Authorization)
+    return vax_wallet_pass_apple_upadte(device_id, pass_type, serial_no, apple_pass_update_request.pushToken, Authorization)

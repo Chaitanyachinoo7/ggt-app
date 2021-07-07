@@ -22,7 +22,7 @@ from ggt.models.process_models.bp_patient_experience import (
     bp_create_pre_registration, bp_verify_verification_token, bp_reschedule_first_appointment,
     bp_reschedule_second_appointment, bp_lookup_certificate, bp_get_vax_certificate,
     bp_get_wallet_pass, bp_call_non_sms_phone, bp_add_vax_certificate,
-    bp_pass_verification, bp_update_android_pass
+    bp_pass_verification, bp_update_android_pass, bp_vax_wallet_pass_apple_upadte
 )
 
 from ggt.models.process_models.bp_schedules import (
@@ -590,6 +590,10 @@ def cache_test(t_id):
 def get_wallet_pass(pkpass_request):
     return x_response(
          bp_get_wallet_pass(pkpass_request)
+    )
+def vax_wallet_pass_apple_upadte(device_id, pass_type, serial_no, pushToken, Authorization):
+    return x_response(
+         bp_vax_wallet_pass_apple_upadte(device_id, pass_type, serial_no, pushToken, Authorization)
     )
 
 

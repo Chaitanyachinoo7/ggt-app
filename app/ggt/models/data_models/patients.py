@@ -534,6 +534,7 @@ def get_patient_upfront_payment(service_codes: List[str], currency: str):
         )
         return None
 
+
 def get_verification_level_from_patient_id(id, dob):
     try:
         sql = """SELECT 
@@ -555,6 +556,30 @@ def get_verification_level_from_patient_id(id, dob):
             error=err
         )
         return None
+
+
+def save_apple_wallet_updates(patient_id, device_id, pass_type, serial_no, pushToken):
+    try:
+        sql = """INSERT INTO apple_passes (patient_id, device_id, pass_type, serial_no, push_token, update_dt)
+                    VALUES(%s, %s, %s, %s, %s, NOW()) ON DUPLICATE KEY UPDATE 
+                    patient_id = VALUES(patient_id),
+                    device_id = VALUES(device_id),
+                    pass_type = VALUES(pass_type),
+                    serial_no = VALUES(serial_no),
+                    push_token = VALUES(push_token),
+                    update_dt = VALUES(update_dt)
+                    """
+        vals = (patient_id, device_id, pass_type, serial_no, pushToken)
+        return exec_insert(sql, vals)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            id=id,
+            function=whoami(),
+            error=err
+        )
+        return None
+
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################

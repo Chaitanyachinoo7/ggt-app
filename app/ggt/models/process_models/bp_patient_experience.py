@@ -66,7 +66,7 @@ from ggt.models.data_models.patients import (
     get_patient_by_token, add_to_ggd_waiting_queue, create_pre_registration,
     get_existing_patients, unlock_patient_info_patients, is_un_available_slot,
     create_patient_insurance_record, get_insurance_record_by_id, get_patient_upfront_payment,
-    get_verification_level_from_patient_id
+    get_verification_level_from_patient_id, save_apple_wallet_updates
 )
 from ggt.models.data_models.questionnaires import (
     create_patient_questionnaire
@@ -775,7 +775,22 @@ def bp_get_wallet_pass(pkpass_req):
         )
     return False
 
+def bp_vax_wallet_pass_apple_upadte(device_id, pass_type, serial_no, pushToken, auth):
+    try:
+        patient_id = __get_patient_id(auth)
+        print("patient_id", patient_id)
+        save_apple_wallet_updates(patient_id, device_id, pass_type, serial_no, pushToken)
+        return True
 
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            device_id=device_id,
+            serial_no=serial_no,
+            function=whoami(),
+            error=err
+        )
+    return False
 def bp_call_non_sms_phone(phone_number):
     try:
         phone_number = validate_phone_number_format(phone_number)
