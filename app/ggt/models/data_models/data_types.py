@@ -1488,6 +1488,9 @@ class UpdateAndroidPassRequest(BaseModel):
     objectResourcePayload: str
     classResourcePayload: str
 
+class ApplePassUpdateRequest(BaseModel):
+    pushToken: str
+
 class FilterOrg(BaseModel):
     name: str
 

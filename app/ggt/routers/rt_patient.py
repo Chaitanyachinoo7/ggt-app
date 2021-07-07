@@ -15,7 +15,7 @@ from ggt.models.data_models.data_types import (
     InsurancePayersListRequest, SecondAvailableDate, FinalizeGGVRegistrationRequest, FinalizeGGVPreRegistrationRequest,
     PatientAppointmentLookup, VerificationToken, UpdateFirstAppointment, SecondSlotReschedule, UpdateSecondAppointment,
     LookupGGVCertificateRequest, LookupGGVWalletPassRequest, LookupGGVAddVaxCertRequest, PassVerificationRequest,
-    UpdateAndroidPassRequest
+    UpdateAndroidPassRequest, ApplePassUpdateRequest
 )
 
 from ggt.models.workflow_models.patient_portal_flow import (
@@ -316,7 +316,7 @@ def api_pass_verification(pass_verification_request: PassVerificationRequest):
 # def api_update_android_pass(update_android_pass_request: UpdateAndroidPassRequest):
 #     return update_android_pass(update_android_pass_request)
 
-@router.post("/vax_wallet_pass_apple_upadte/")
-def api_vax_wallet_pass_apple_upadte(req: Request):
-    print(req)
+@router.post("/vax_wallet_pass_apple_upadte/v1/devices/{device_id}/registrations/{pass_type}/{serial_no}")
+def api_vax_wallet_pass_apple_upadte(device_id: str, pass_type: str, serial_no: str, apple_pass_update_request: ApplePassUpdateRequest):
+    print(device_id, pass_type, serial_no, apple_pass_update_request.pushToken)
     return True
