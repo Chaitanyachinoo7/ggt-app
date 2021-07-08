@@ -777,11 +777,11 @@ def bp_get_wallet_pass(pkpass_req):
 
 def bp_vax_wallet_pass_apple_upadte(device_id, pass_type, serial_no, pushToken, auth):
     try:
-        patient_id = __get_patient_id(auth)
+        patient_id = __get_patient_id(auth.replace('ApplePass ', ''))
         print("patient_id", patient_id)
-        save_apple_wallet_updates(patient_id, device_id, pass_type, serial_no, pushToken)
-        return True
-
+        if(patient_id):
+            save_apple_wallet_updates(patient_id, device_id, pass_type, serial_no, pushToken)
+            return True
     except Exception as err:
         log_generic(
             type=c.ERROR,
