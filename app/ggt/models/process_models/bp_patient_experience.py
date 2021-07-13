@@ -775,12 +775,14 @@ def bp_get_wallet_pass(pkpass_req):
         )
     return False
 
+
 def bp_vax_wallet_pass_apple_upadte(device_id, pass_type, serial_no, pushToken, auth):
     try:
         patient_id = __get_patient_id(auth.replace('ApplePass ', ''))
         print("patient_id", patient_id)
         if(patient_id):
-            save_apple_wallet_updates(patient_id, device_id, pass_type, serial_no, pushToken)
+            save_apple_wallet_updates(
+                patient_id, device_id, pass_type, serial_no, pushToken)
             return True
     except Exception as err:
         log_generic(
@@ -791,6 +793,8 @@ def bp_vax_wallet_pass_apple_upadte(device_id, pass_type, serial_no, pushToken, 
             error=err
         )
     return False
+
+
 def bp_call_non_sms_phone(phone_number):
     try:
         phone_number = validate_phone_number_format(phone_number)
@@ -1435,9 +1439,7 @@ def __skinnyJwt(verticalType, classId, objectId, patient, url_path):
             verticalType, classId, objectId, patient, url_path)
         if skinnyJwt is not None:
             return {
-                "gpayPassURL": "https://pay.google.com/gp/v/save/" + skinnyJwt.decode('UTF-8'),
-                "objectResourcePayload": objectResourcePayload,
-                "classResourcePayload": classResourcePayload
+                "gpayPassURL": "https://pay.google.com/gp/v/save/" + skinnyJwt.decode('UTF-8')
             }
     except Exception as err:
         log_generic(
@@ -2042,7 +2044,8 @@ def __generate_pk_pass(pkpass_req, patient, verification, url_path):
         passfile.foregroundColor = "rgb(255, 255, 255)"
         passfile.labelColor = "rgb(238, 191, 217)"
         passfile.barcode = Barcode(message=message, format="PKBarcodeFormatQR")
-        passfile.webServiceURL = 'https://{}{}'.format(cfg('applewallet.host'), cfg('applewallet.path'))
+        passfile.webServiceURL = 'https://{}{}'.format(
+            cfg('applewallet.host'), cfg('applewallet.path'))
         passfile.authenticationToken = url_path
         # print("LAMBDA_TASK_ROOT", os.environ['LAMBDA_TASK_ROOT'])
         # print("reading file from", os.environ['LAMBDA_TASK_ROOT'] + "/ggt/configs/images/Group 4GGV-4.png")
