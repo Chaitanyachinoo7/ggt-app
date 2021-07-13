@@ -1972,7 +1972,7 @@ def __makeEventTicketObjectResource(classId, objectId, patient, url_path):
             "classId": classId,
             "state": "active",
             "barcode": {
-                "kind": "walletobjects#barcode", "type": "DATA_MATRIX", "value": "https://start.gogetvax.com/vaxyes/verify?brand=vax&query=" + url_path,
+                "kind": "walletobjects#barcode", "type": "QR_CODE", "value": "https://start.gogetvax.com/vaxyes/verify?brand=vax&query=" + url_path,
                 "alternateText": 'Covid 19 | Level ' + patient["level"] + ' Verified '
             },
             "textModulesData": textModulesData,
