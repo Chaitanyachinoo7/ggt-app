@@ -215,6 +215,8 @@ payment:
   navigation:
     success_url: "https://start.gogettested.com/appointment/{}/pay/success?token={}"
     cancel_url: "https://start.gogettested.com"
+    vax_success_url: "https://start.gogetvax.com/login/2FA"
+    vax_cancel_url: "https://start.gogetvax.com"
 
 image_urls:
   flu_shot:

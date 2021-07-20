@@ -245,6 +245,108 @@ def bp_initiate_verification_flow(phone_number: str, with_otp: bool = True):
         )
     return False
 
+def bp_initiate_vax_verification_flow(req):
+    # Extract fields
+    phone_number = req.phone_number
+    with_otp = req.with_otp
+    price = req.price
+    currency = req.currency
+
+    # Call the OTP flow
+    bp_initiate_verification_flow(phone_number, with_otp)
+
+    # Generate stripe session
+    stripe_id = __generate_vax_payment_checkout_session(price, currency)
+
+    return {
+        "payment_checkout_session": stripe_id
+    } 
+
+def __generate_vax_payment_checkout_session(price, currency):
+
+    payment_request = PaymentRequestBody()
+    payment_request.line_items = __generate_vax_payment_checkout_session_items(price)
+    payment_request.navigation = __generate_vax_payment_checkout_session_navigations()
+
+    locale = "es" if currency == "mxn" else "en"
+
+    payment_request.locale = __inject_locale(locale)
+
+    return bp_create_checkout_session(payment_request)
+
+
+def __generate_vax_payment_checkout_session_items(price):
+
+    line_items = []
+    line_item = PaymentRequestLineItem()
+    line_item.product_name = "VaxYes"
+    line_item.unit_price = price
+    line_item.quantity = 1
+    line_item.product_images = cfg('image_urls.payment')
+    line_items.append(line_item)
+
+
+def __generate_vax_payment_checkout_session_navigations():
+
+    navigation = PaymentRequestNavigation()
+    navigation.success_url = cfg('payment.navigation.vax_success_url')
+    navigation.cancel_url = cfg('payment.navigation.vax_cancel_url')
+
+    return navigation
+
+
+# This function will inject the checkout session in to the payment object
+def __inject_payment_checkout_session(appointment: GgtAppointment, upfront_payment_info: PatientUpfrontPayment,
+                                      booking_req: GgtBooking, selected_services):
+    if not __should_charge_upfront_payment(upfront_payment_info):
+        raise ValueError(
+            'Checkout session is only be generated to upfront payments')
+
+    payment_request = PaymentRequestBody()
+    payment_request.line_items = __generate_payment_checkout_session_items(upfront_payment_info, booking_req,
+                                                                           selected_services)
+    payment_request.navigation = __generate_payment_checkout_session_navigation(
+        appointment)
+    payment_request.locale = __inject_locale(booking_req.language)
+    payment_request.currency = upfront_payment_info.currency
+    # Set the appointment id as the payment request id
+    payment_request.id = appointment.id
+
+    # Return the session object which contains session id
+    return bp_create_checkout_session(payment_request)
+
+
+def __generate_payment_checkout_session_items(upfront_payment_info: PatientUpfrontPayment, booking_req: GgtBooking,
+                                              selected_services):
+    line_items = []
+
+    for service in selected_services:
+        line_item = PaymentRequestLineItem()
+        line_item.product_name = c.SERVICE_TO_NAME_MAP[
+            service]  # get_translated_message('registration_charges')(booking_req.language)
+        line_item.unit_price = upfront_payment_info.total_cost
+        line_item.quantity = 1
+        line_item.product_images = cfg('image_urls.payment')
+        line_items.append(line_item)
+
+    return line_items
+
+
+def __generate_payment_checkout_session_navigation(appointment: GgtAppointment):
+    navigation = PaymentRequestNavigation()
+    navigation.success_url = cfg('payment.navigation.success_url').format(
+        appointment.id, appointment.wp_receipt_token)
+    navigation.cancel_url = cfg('payment.navigation.cancel_url')
+
+    return navigation
+
+
+# Stripe requires 'es-419' as the locale for Latin American countries
+# Since in the context of GGT, es implies Latin America do the conversion here
+def __inject_locale(language):
+    return 'es-419' if language == 'es' else language
+
+
 
 def bp_validate_phone_number(phone_number: str, otp: str):
     try:
