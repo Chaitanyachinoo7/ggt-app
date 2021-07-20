@@ -248,12 +248,12 @@ def bp_initiate_verification_flow(phone_number: str, with_otp: bool = True):
 def bp_initiate_vax_verification_flow(req):
     # Extract fields
     phone_number = req.phone_number
-    with_otp = req.with_otp
+    has_sms = req.has_sms
     price = req.price
     currency = req.currency
 
     # Call the OTP flow
-    bp_initiate_verification_flow(phone_number, with_otp)
+    bp_initiate_verification_flow(phone_number, has_sms)
 
     # Generate stripe session
     stripe_id = __generate_vax_payment_checkout_session(price, currency)
