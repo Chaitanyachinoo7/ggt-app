@@ -818,8 +818,8 @@ def bp_call_non_sms_phone(phone_number):
 
 def bp_add_vax_certificate(req):
     try:
+        pristine = req.pristine
         if('+52' not in req.phone_number):
-            pristine = req.pristine
             log_generic(
                 type=c.INFO,
                 function=whoami(),
@@ -1061,7 +1061,7 @@ def bp_add_vax_certificate(req):
                 else:
                     raise Exception('Add vax certificate failed')
         else:
-            raise Exception('Add vax certificate failed')
+            raise Exception('Mexico phone not allowed')
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -2388,7 +2388,7 @@ def send_ggv_certificate_level_1_sms(first_name, phone_number, level):
         message = """Hi {}, congrats! Your vax card has been updated to level 2 verification. Your updated card is available here:\nhttps://start.gogetvax.com/login""".format(
             first_name,
         )
-        promo_message = "We’re offering FREE digital vax passports for a limited time until 06/30/2021: tell your friends about VaxYes by sharing this unique link: \nhttps://www.vaxyes.com/friendsfree21"
+        promo_message = "We’re offering FREE digital vax passports for a limited time until 07/31/2021: tell your friends about VaxYes by sharing this unique link: \nhttps://www.vaxyes.com/friendsfree21"
 
     if send_sms(phone_number, message.replace('\t', '')):
         log_generic(
