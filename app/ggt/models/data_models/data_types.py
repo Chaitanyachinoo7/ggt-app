@@ -189,6 +189,8 @@ class VerifyPhoneRequest(BaseModel):
 class VaxPhoneRequst(BaseModel):
     phone_number: str = None
     has_sms: bool = True
+    price: int
+    currency: str = "usd" 
 
 class UpdateFirstAppointment(BaseModel):
     otp: int
