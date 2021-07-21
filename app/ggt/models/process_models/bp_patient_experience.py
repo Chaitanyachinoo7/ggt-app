@@ -247,6 +247,19 @@ def bp_initiate_verification_flow(phone_number: str, with_otp: bool = True):
     return False
 
 
+def bp_has_vax_certificates(phone_number):
+    phone_number = validate_phone_number_format(phone_number)
+    # If the phone number is invalid return an error
+    if phone_number == "":
+        raise ValueError("Invalid phone number")
+    # See if there are any certificates
+    certificates = get_existing_vax_certificates(phone_number)
+    has_certificates = len(certificates) > 0
+    return {
+        "has_certificates": has_certificates
+    }
+
+
 def bp_initiate_vax_verification_flow(req):
     # Extract fields
     phone_number = req.phone_number
