@@ -66,7 +66,8 @@ from ggt.models.data_models.patients import (
     get_patient_by_token, add_to_ggd_waiting_queue, create_pre_registration,
     get_existing_patients, unlock_patient_info_patients, is_un_available_slot,
     create_patient_insurance_record, get_insurance_record_by_id, get_patient_upfront_payment,
-    get_verification_level_from_patient_id, save_apple_wallet_updates
+    get_verification_level_from_patient_id, save_apple_wallet_updates,
+    get_existing_vax_certificates
 )
 from ggt.models.data_models.questionnaires import (
     create_patient_questionnaire
@@ -256,8 +257,14 @@ def bp_initiate_vax_verification_flow(req):
     # Call the OTP flow
     bp_initiate_verification_flow(phone_number, has_sms)
 
-    # Generate stripe session
-    stripe_id = __generate_vax_payment_checkout_session(price, currency, phone_number)
+    stripe_id = None
+
+    certificates = get_existing_vax_certificates(phone_number)
+
+    # If no certificates only we show the payment screen
+    if len(certificates) == 0:
+        # Generate stripe session
+        stripe_id = __generate_vax_payment_checkout_session(price, currency, phone_number)
 
     return {
         "payment_checkout_session": stripe_id
