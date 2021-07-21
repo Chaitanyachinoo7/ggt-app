@@ -263,7 +263,8 @@ def replica_read_row(sql, val):
 
         return __cursor_ro.fetchone()
 
-    except mysql.connector.Error as err:
+    except Exception as err:
+        print(err)
         __append_to_sql_log(
             c.ERROR,
             'SELECT',

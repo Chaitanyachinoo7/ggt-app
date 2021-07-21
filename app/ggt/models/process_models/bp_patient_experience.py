@@ -272,6 +272,9 @@ def __generate_vax_payment_checkout_session(price, currency):
 
     payment_request.locale = __inject_locale(locale)
 
+    payment_request.id = str(uuid.uuid4())
+    payment_request.currency = currency
+
     return bp_create_checkout_session(payment_request)
 
 
@@ -284,6 +287,8 @@ def __generate_vax_payment_checkout_session_items(price):
     line_item.quantity = 1
     line_item.product_images = cfg('image_urls.payment')
     line_items.append(line_item)
+
+    return line_items
 
 
 def __generate_vax_payment_checkout_session_navigations():
