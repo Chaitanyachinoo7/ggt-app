@@ -186,11 +186,14 @@ class VerifyPhoneRequest(BaseModel):
     phone_number: str = None
     has_sms: bool = True
 
-class VaxPhoneRequst(BaseModel):
+
+class VaxPhoneRequest(BaseModel):
     phone_number: str = None
     has_sms: bool = True
     price: int
-    currency: str = "usd" 
+    currency: str = "usd"
+    skip: bool = False
+
 
 class UpdateFirstAppointment(BaseModel):
     otp: int

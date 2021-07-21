@@ -15,7 +15,7 @@ from ggt.models.data_models.data_types import (
     InsurancePayersListRequest, SecondAvailableDate, FinalizeGGVRegistrationRequest, FinalizeGGVPreRegistrationRequest,
     PatientAppointmentLookup, VerificationToken, UpdateFirstAppointment, SecondSlotReschedule, UpdateSecondAppointment,
     LookupGGVCertificateRequest, LookupGGVWalletPassRequest, LookupGGVAddVaxCertRequest, PassVerificationRequest,
-    UpdateAndroidPassRequest, ApplePassUpdateRequest, VaxPhoneRequst
+    UpdateAndroidPassRequest, ApplePassUpdateRequest, VaxPhoneRequest
 )
 
 from ggt.models.workflow_models.patient_portal_flow import (
@@ -109,7 +109,7 @@ async def api_verify_phone(req: VerifyPhoneRequest):
 
 
 @router.post("/vaxyes/verify_phone", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
-async def api_verify_phone(req: VaxPhoneRequst):
+async def api_verify_phone(req: VaxPhoneRequest):
     return initiate_vax_verification_flow(req)
 
 

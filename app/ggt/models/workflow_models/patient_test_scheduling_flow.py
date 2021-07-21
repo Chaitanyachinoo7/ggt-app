@@ -73,6 +73,7 @@ def initiate_verification_flow(phone_number, with_otp=True):
         )
     )
 
+
 def initiate_vax_verification_flow(req):
     return x_response(
         bp_initiate_vax_verification_flow(req)

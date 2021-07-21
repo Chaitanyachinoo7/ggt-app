@@ -253,6 +253,7 @@ def bp_initiate_vax_verification_flow(req):
     has_sms = req.has_sms
     price = req.price
     currency = req.currency
+    skip = req.skip  # Should the stripe flow needs to be skipped
 
     # Call the OTP flow
     bp_initiate_verification_flow(phone_number, has_sms)
@@ -260,12 +261,12 @@ def bp_initiate_vax_verification_flow(req):
     stripe_id = None
     session_id = str(uuid.uuid4())
 
-    certificates = get_existing_vax_certificates(phone_number)
-
-    # If no certificates only we show the payment screen
-    if len(certificates) == 0:
-        # Generate stripe session
-        stripe_id = __generate_vax_payment_checkout_session(price, currency, phone_number, session_id)
+    if not skip:
+        certificates = get_existing_vax_certificates(phone_number)
+        # If no certificates only we show the payment screen
+        if len(certificates) == 0:
+            # Generate stripe session
+            stripe_id = __generate_vax_payment_checkout_session(price, currency, phone_number, session_id)
 
     return {
         "payment_checkout_session": stripe_id,
