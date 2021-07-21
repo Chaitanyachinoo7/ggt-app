@@ -216,8 +216,8 @@ payment:
   navigation:
     success_url: "https://start-qa.gogettested.com/appointment/{}/pay/success?token={}"
     cancel_url: "https://start-qa.gogettested.com"
-    vax_success_url: "https://start.gogetvax.com/login/paywall/callback?{}"
-    vax_cancel_url: "https://start.gogetvax.com"
+    vax_success_url: "https://start-qa.gogettested.com/login/paywall/callback?{}"
+    vax_cancel_url: "https://start-qa.gogettested.com"
 
 
 image_urls:
