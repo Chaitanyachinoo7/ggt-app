@@ -258,30 +258,32 @@ def bp_initiate_vax_verification_flow(req):
     bp_initiate_verification_flow(phone_number, has_sms)
 
     stripe_id = None
+    session_id = str(uuid.uuid4())
 
     certificates = get_existing_vax_certificates(phone_number)
 
     # If no certificates only we show the payment screen
     if len(certificates) == 0:
         # Generate stripe session
-        stripe_id = __generate_vax_payment_checkout_session(price, currency, phone_number)
+        stripe_id = __generate_vax_payment_checkout_session(price, currency, phone_number, session_id)
 
     return {
-        "payment_checkout_session": stripe_id
+        "payment_checkout_session": stripe_id,
+        "session_id": session_id
     } 
 
 
-def __generate_vax_payment_checkout_session(price, currency, phone_number):
+def __generate_vax_payment_checkout_session(price, currency, phone_number, session_id):
 
     payment_request = PaymentRequestBody()
     payment_request.line_items = __generate_vax_payment_checkout_session_items(price)
-    payment_request.navigation = __generate_vax_payment_checkout_session_navigations(phone_number)
+    payment_request.navigation = __generate_vax_payment_checkout_session_navigations(phone_number, session_id)
 
     locale = "es" if currency == "mxn" else "en"
 
     payment_request.locale = __inject_locale(locale)
 
-    payment_request.id = str(uuid.uuid4())
+    payment_request.id = session_id
     payment_request.currency = currency
 
     return bp_create_checkout_session(payment_request)
@@ -294,16 +296,17 @@ def __generate_vax_payment_checkout_session_items(price):
     line_item.product_name = "VaxYes"
     line_item.unit_price = price
     line_item.quantity = 1
-    line_item.product_images = cfg('image_urls.payment')
+    line_item.product_images = cfg('image_urls.vax')
     line_items.append(line_item)
 
     return line_items
 
 
-def __generate_vax_payment_checkout_session_navigations(phone_number):
+def __generate_vax_payment_checkout_session_navigations(phone_number, session_id):
 
     navigation = PaymentRequestNavigation()
-    navigation.success_url = cfg('payment.navigation.vax_success_url').format(phone_number)
+    query_params = 'phone_number={}&session_id={}'.format(phone_number, session_id)
+    navigation.success_url = cfg('payment.navigation.vax_success_url').format(query_params)
     navigation.cancel_url = cfg('payment.navigation.vax_cancel_url')
 
     return navigation
