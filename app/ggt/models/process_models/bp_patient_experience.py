@@ -247,16 +247,24 @@ def bp_initiate_verification_flow(phone_number: str, with_otp: bool = True):
     return False
 
 
-def bp_has_vax_certificates(phone_number):
+def bp_vax_check_payment(phone_number):
+    # Check feature flag
+    vax_yes_payment_feature_enabled = cfg('features.vax_yes_payment')
+    if not vax_yes_payment_feature_enabled:
+        return {
+            "payment_required": False
+        }
+
     phone_number = validate_phone_number_format(phone_number)
     # If the phone number is invalid return an error
     if phone_number == "":
         raise ValueError("Invalid phone number")
     # See if there are any certificates
     certificates = get_existing_vax_certificates(phone_number)
-    has_certificates = len(certificates) > 0
+    # Payment is required if there are no certificates
+    payment_required = len(certificates) == 0
     return {
-        "has_certificates": has_certificates
+        "payment_required": payment_required
     }
 
 

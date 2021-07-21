@@ -264,3 +264,7 @@ lab_integrations:
     outbound_path: lab3a/prod/orders/
     inbound_path: lab3a/prod/results
     inbound_data_table_name: lab3a_inbound_data
+
+# Define feature flags here
+features:
+  vax_yes_payment: true
