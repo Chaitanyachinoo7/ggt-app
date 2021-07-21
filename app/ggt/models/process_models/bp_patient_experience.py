@@ -245,6 +245,7 @@ def bp_initiate_verification_flow(phone_number: str, with_otp: bool = True):
         )
     return False
 
+
 def bp_initiate_vax_verification_flow(req):
     # Extract fields
     phone_number = req.phone_number
@@ -256,17 +257,18 @@ def bp_initiate_vax_verification_flow(req):
     bp_initiate_verification_flow(phone_number, has_sms)
 
     # Generate stripe session
-    stripe_id = __generate_vax_payment_checkout_session(price, currency)
+    stripe_id = __generate_vax_payment_checkout_session(price, currency, phone_number)
 
     return {
         "payment_checkout_session": stripe_id
     } 
 
-def __generate_vax_payment_checkout_session(price, currency):
+
+def __generate_vax_payment_checkout_session(price, currency, phone_number):
 
     payment_request = PaymentRequestBody()
     payment_request.line_items = __generate_vax_payment_checkout_session_items(price)
-    payment_request.navigation = __generate_vax_payment_checkout_session_navigations()
+    payment_request.navigation = __generate_vax_payment_checkout_session_navigations(phone_number)
 
     locale = "es" if currency == "mxn" else "en"
 
@@ -291,13 +293,14 @@ def __generate_vax_payment_checkout_session_items(price):
     return line_items
 
 
-def __generate_vax_payment_checkout_session_navigations():
+def __generate_vax_payment_checkout_session_navigations(phone_number):
 
     navigation = PaymentRequestNavigation()
-    navigation.success_url = cfg('payment.navigation.vax_success_url')
+    navigation.success_url = cfg('payment.navigation.vax_success_url').format(phone_number)
     navigation.cancel_url = cfg('payment.navigation.vax_cancel_url')
 
     return navigation
+
 
 def bp_validate_phone_number(phone_number: str, otp: str):
     try:
