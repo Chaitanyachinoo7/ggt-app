@@ -483,7 +483,7 @@ def lookup_certificate(phone_number, dob, first_name, last_name, version=1, toke
                        offset=None, user=None, is_unverified=False):
     try:
         where_statement = "gc.rejected = 0 AND gc.lock_time < NOW() AND p.phone_number LIKE '+1%'"
-        if is_unverified:
+        if is_unverified and version == 1:
             where_statement = "{} AND date(p.create_dt) > '2021-05-25'".format(where_statement)
         if phone_number or phone_number != "":
             where_statement = "{} AND p.phone_number LIKE '%{}%'".format(where_statement, phone_number)
