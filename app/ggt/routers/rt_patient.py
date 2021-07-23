@@ -15,7 +15,7 @@ from ggt.models.data_models.data_types import (
     InsurancePayersListRequest, SecondAvailableDate, FinalizeGGVRegistrationRequest, FinalizeGGVPreRegistrationRequest,
     PatientAppointmentLookup, VerificationToken, UpdateFirstAppointment, SecondSlotReschedule, UpdateSecondAppointment,
     LookupGGVCertificateRequest, LookupGGVWalletPassRequest, LookupGGVAddVaxCertRequest, PassVerificationRequest,
-    UpdateAndroidPassRequest, ApplePassUpdateRequest
+    UpdateAndroidPassRequest, ApplePassUpdateRequest, VaxPhoneRequest
 )
 
 from ggt.models.workflow_models.patient_portal_flow import (
@@ -40,7 +40,7 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
     get_ggv_schedule_times_available, ggv_finalize_pre_registration, cache_test, verify_verification_token,
     reschedule_first_appointment, get_second_slot_reschedule_dates, reschedule_second_appointment,
     get_ggv_schedule_dates_available, lookup_certificate, get_vax_certificate, get_wallet_pass, call_non_sms_phone, get_add_vax_certificate,
-    pass_verification, update_android_pass, vax_wallet_pass_apple_upadte
+    pass_verification, update_android_pass, vax_wallet_pass_apple_upadte, initiate_vax_verification_flow, vax_check_payment
 )
 
 # TODO: [GGT-193] Move this to a dedicated API
@@ -106,6 +106,11 @@ async def api_get_screen_flow_seq_with_country_code(group_code: str, country_cod
 @router.post("/verify_phone", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_verify_phone(req: VerifyPhoneRequest):
     return initiate_verification_flow(req.phone_number, req.has_sms)
+
+
+@router.post("/vaxyes/verify_phone", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_verify_phone(req: VaxPhoneRequest):
+    return initiate_vax_verification_flow(req)
 
 
 @router.post("/ggv/reschedule_first_appointment", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
@@ -323,3 +328,8 @@ def api_vax_wallet_pass_apple_upadte(device_id: str = None, pass_type: str = Non
         apple_pass_update_request: ApplePassUpdateRequest = None, Authorization: str = Header(None)):
     print(device_id, pass_type, serial_no, apple_pass_update_request.pushToken, Authorization)
     return vax_wallet_pass_apple_upadte(device_id, pass_type, serial_no, apple_pass_update_request.pushToken, Authorization)
+
+
+@router.post("/vaxyes/check_payment/{phone_number}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_vax_check_payment(phone_number: str = None):
+    return vax_check_payment(phone_number)
