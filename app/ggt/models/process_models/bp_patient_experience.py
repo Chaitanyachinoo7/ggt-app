@@ -327,7 +327,7 @@ def __generate_vax_payment_checkout_session_items(price):
 def __generate_vax_payment_checkout_session_navigations(phone_number, session_id):
 
     navigation = PaymentRequestNavigation()
-    query_params = 'phone_number={}&session_id={}'.format(phone_number, session_id)
+    query_params = 'phone_number={}&session_id={}&brand=vax'.format(phone_number, session_id)
     navigation.success_url = cfg('payment.navigation.vax_success_url').format(query_params)
     navigation.cancel_url = cfg('payment.navigation.vax_cancel_url')
 
