@@ -67,7 +67,8 @@ from ggt.models.data_models.patients import (
     get_existing_patients, unlock_patient_info_patients, is_un_available_slot,
     create_patient_insurance_record, get_insurance_record_by_id, get_patient_upfront_payment,
     get_verification_level_from_patient_id, save_apple_wallet_updates,
-    get_existing_vax_certificates
+    get_existing_vax_certificates, get_active_certificates, save_vax_yes_payment_info,
+    update_certificates_to_active, update_vax_yes_payment_status
 )
 from ggt.models.data_models.questionnaires import (
     create_patient_questionnaire
@@ -86,7 +87,7 @@ from ggt.models.data_models.signups import (
 from ggt.models.data_models.wellpay import (
     WellpayCreateBillResponse
 )
-from ggt.models.process_models.bp_payment import bp_create_checkout_session
+from ggt.models.process_models.bp_payment import bp_create_checkout_session, bp_get_checkout_session
 
 # from google.cloud import vision
 service_account_file = cfg('gcp.service_account_file')
@@ -265,6 +266,63 @@ def bp_vax_check_payment(phone_number):
     payment_required = len(certificates) == 0
     return {
         "payment_required": payment_required
+    }
+
+
+def bp_vax_yes_payment(req):
+    phone_number = req.phone_number
+    first_name = req.first_name
+    last_name = req.last_name
+    dob = req.dob
+    amount = req.amount
+    currency = req.currency
+
+    patient = get_existing_patients(phone_number, first_name, last_name, dob)
+
+    if not patient:
+        return {
+            "reason_code": "Patient is not available. Cannot proceed with the payment."
+        }
+
+    patient_id = patient['id']
+    session_id = str(uuid.uuid4())
+
+    active_certificates = get_active_certificates(patient_id)
+
+    if len(active_certificates) > 0:
+        return {
+            "payment_checkout_session": None,
+            "session_id": session_id
+        }
+
+    stripe_id = __generate_vax_payment_checkout_session(amount, currency, phone_number, session_id)
+
+    save_payment_id = save_vax_yes_payment_info(patient_id, stripe_id, 'pending')
+
+    # Saved in DB
+    if save_payment_id:
+        return {
+            "payment_checkout_session": stripe_id,
+            "session_id": session_id
+        }
+
+    return {
+        "reason_code": "Error in saving in the database."
+    }
+
+
+def bp_vax_yes_verify_payment(session_id):
+    session_info = bp_get_checkout_session(session_id)
+    # Check if the payment is done
+    if session_info['payment_status'] == 'paid':
+        update_vax_yes_payment_status('complete', session_id)
+        certificates_updated = update_certificates_to_active(session_id)
+        return {
+            "payment_status": "complete",
+            "certificates_updated": certificates_updated
+        }
+    return {
+        "reason_code": 'Payment is not complete.'
     }
 
 

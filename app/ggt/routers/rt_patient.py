@@ -15,7 +15,7 @@ from ggt.models.data_models.data_types import (
     InsurancePayersListRequest, SecondAvailableDate, FinalizeGGVRegistrationRequest, FinalizeGGVPreRegistrationRequest,
     PatientAppointmentLookup, VerificationToken, UpdateFirstAppointment, SecondSlotReschedule, UpdateSecondAppointment,
     LookupGGVCertificateRequest, LookupGGVWalletPassRequest, LookupGGVAddVaxCertRequest, PassVerificationRequest,
-    UpdateAndroidPassRequest, ApplePassUpdateRequest, VaxPhoneRequest
+    UpdateAndroidPassRequest, ApplePassUpdateRequest, VaxPhoneRequest, VaxYesPayRequest
 )
 
 from ggt.models.workflow_models.patient_portal_flow import (
@@ -40,7 +40,8 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
     get_ggv_schedule_times_available, ggv_finalize_pre_registration, cache_test, verify_verification_token,
     reschedule_first_appointment, get_second_slot_reschedule_dates, reschedule_second_appointment,
     get_ggv_schedule_dates_available, lookup_certificate, get_vax_certificate, get_wallet_pass, call_non_sms_phone, get_add_vax_certificate,
-    pass_verification, update_android_pass, vax_wallet_pass_apple_upadte, initiate_vax_verification_flow, vax_check_payment
+    pass_verification, update_android_pass, vax_wallet_pass_apple_upadte, initiate_vax_verification_flow, vax_check_payment, vax_yes_payment,
+    vax_yes_verify_payment
 )
 
 # TODO: [GGT-193] Move this to a dedicated API
@@ -333,3 +334,13 @@ def api_vax_wallet_pass_apple_upadte(device_id: str = None, pass_type: str = Non
 @router.post("/vaxyes/check_payment/{phone_number}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_vax_check_payment(phone_number: str = None):
     return vax_check_payment(phone_number)
+
+
+@router.post("/vax_pay", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+def api_vax_yes_pay(req: VaxYesPayRequest):
+    return vax_yes_payment(req)
+
+
+@router.get("/vax_verify_pay/{session_id}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+def api_vax_yes_verify_pay(session_id: str):
+    return vax_yes_verify_payment(session_id)

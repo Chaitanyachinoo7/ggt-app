@@ -49,6 +49,7 @@ from ggt.lib.adapters.s3_adapter import uploadDirectory, create_folder, get_temp
 from ggt.models.process_models.bp_patient_experience import upload_vax_card_image, send_ggv_certificate_level_1_sms, \
     send_ggv_certificate_level_1_email
 
+
 def bp_cc_search_details_by_name_and_dob(last_name, dob):
     return search_details_by_name_and_dob(last_name, dob)
 
@@ -723,6 +724,8 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
     cert2_id = None
     cert1_id = None
 
+    active_certificates_available = False
+
     patient_row = patients.get_existing_patients(
         phone_number, first_name, last_name, dob)
     if patient_row:
@@ -739,6 +742,10 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
             vax_type=vax_type,
             function=whoami(),
         )
+        # Get the active certificate count for the user
+        active_certificates = patients.get_active_certificates(patient_id)
+        # See if the count > 0
+        active_certificates_available = len(active_certificates) > 0
 
     else:
         patient_id = patients.create_vax_yes_patient(
@@ -769,11 +776,13 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
 
     patients.delete_cert(patient_id)
 
+    is_certificate_active = __is_certificate_active(active_certificates_available, phone_number)
+
     try:
         vax_1_date = "{} 00:00:00".format(vax_1_date)
         if vax_1_date and lot_1:
             cert1_id = patients.create_cert(
-                patient_id, vax_1_date, vax_code_1, lot_1)
+                patient_id, vax_1_date, vax_code_1, lot_1, is_certificate_active)
             log_generic(
                 type=c.INFO,
                 msg="PATIENT-CERTIFICATE-ADD-REQUEST-CREATED-SHOT-1-CERTIFICATE",
@@ -795,7 +804,7 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
 
         if vax_2_date and lot_2:
             cert2_id = patients.create_cert(
-                patient_id, vax_2_date, vax_code_2, lot_2)
+                patient_id, vax_2_date, vax_code_2, lot_2, is_certificate_active)
             log_generic(
                 type=c.INFO,
                 msg="PATIENT-CERTIFICATE-ADD-REQUEST-CREATED-SHOT-2-CERTIFICATE",
@@ -885,5 +894,12 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
     return {
         "patient_id": patient_id,
         "cert1_id": cert1_id,
-        "cert2_id": cert2_id
+        "cert2_id": cert2_id,
+        "active_certificates_available": active_certificates_available
     }
+
+
+# Active certificates available, certificates should be saved as active
+# Mexican users without active certificates, should be saved as inactive
+def __is_certificate_active(active_certificates_available, phone_number):
+    return 1 if active_certificates_available or '+52' not in phone_number else 0

@@ -195,6 +195,15 @@ class VaxPhoneRequest(BaseModel):
     skip: bool = False
 
 
+class VaxYesPayRequest(BaseModel):
+    first_name: str = None
+    last_name: str = None
+    dob: str = None
+    phone_number: str = None
+    amount: int = 0
+    currency: str = "usd"
+
+
 class UpdateFirstAppointment(BaseModel):
     otp: int
     appointment_id_1: int

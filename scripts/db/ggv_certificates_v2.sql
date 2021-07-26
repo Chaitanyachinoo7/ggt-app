@@ -1,0 +1,1 @@
+ALTER TABLE ggv_certificates ADD active TINYINT(4) DEFAULT 1
