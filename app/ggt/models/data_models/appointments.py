@@ -494,7 +494,7 @@ def lookup_certificate(phone_number, dob, first_name, last_name, token=None):
                     patients p
                         JOIN
                     ggv_certificates gc ON p.id = gc.patient_id
-                    WHERE {}""".format(where_statement)
+                    WHERE {} AND gc.active=1""".format(where_statement)
         rows = replica_read_rows(sql)
         return __format_vax_certificate(rows), "No certificate found."
 
