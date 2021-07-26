@@ -287,14 +287,6 @@ def bp_vax_yes_payment(req):
     patient_id = patient['id']
     session_id = str(uuid.uuid4())
 
-    active_certificates = get_active_certificates(patient_id)
-
-    if len(active_certificates) > 0:
-        return {
-            "payment_checkout_session": None,
-            "session_id": session_id
-        }
-
     stripe_id = __generate_vax_payment_checkout_session(amount, currency, phone_number, session_id)
 
     save_payment_id = save_vax_yes_payment_info(patient_id, stripe_id, 'pending')
