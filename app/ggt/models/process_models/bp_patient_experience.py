@@ -1004,6 +1004,8 @@ def bp_add_vax_certificate(req):
                     pristine.last_name == req.last_name:
                 cert_details = add_vax_certificate(req)
 
+                show_payment_view = not cert_details['active_certificates_available']
+
                 ocr["patient_id"] = cert_details["patient_id"]
                 ocr["cert1_id"] = cert_details["cert1_id"]
                 if cert_details["cert2_id"]:
@@ -1150,7 +1152,8 @@ def bp_add_vax_certificate(req):
                     send_ggv_certificate_level_1_email(
                         req.first_name.title(), req.email, "2")
                     return {
-                        "level": 2
+                        "level": 2,
+                        "show_payment_view": show_payment_view
                     }
                 else:
                     log_generic(
@@ -1174,7 +1177,8 @@ def bp_add_vax_certificate(req):
                         id_image=1 if req.id_image else 0
                     )
                     return {
-                        "level": 1
+                        "level": 1,
+                        "show_payment_view": show_payment_view
                     }
             else:
                 log_generic(
@@ -1198,11 +1202,15 @@ def bp_add_vax_certificate(req):
                     id_image=1 if req.id_image else 0
                 )
                 cert_details = add_vax_certificate(req)
+
+                show_payment_view = not cert_details['active_certificates_available']
+
                 if cert_details:
                     # send_ggv_certificate_level_1_sms(req.first_name.title(), req.phone_number, "1")
                     # send_ggv_certificate_level_1_email(req.first_name.title(), req.email, "1")
                     return {
-                        "level": 1
+                        "level": 1,
+                        "show_payment_view": show_payment_view
                     }
                 else:
                     raise Exception('Add vax certificate failed')
