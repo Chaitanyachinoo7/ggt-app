@@ -1094,6 +1094,7 @@ def bp_pass_verification(req):
         if("COVID_19_VACCINE_JNJ" not in certs[0]['service_code'] and certs[0]['verification_level'] > 1 and certs[1]['verification_level'] > 1):
             return {
                 "fully_vaccinated": True,
+                "level": certs[0]['verification_level'],
                 "image1": get_temp_pkpass_url(str(patient_id) + "/"+str(certs[0]['id']) + ".jpg", "ggt-vax-certificates"),
                 "image2": get_temp_pkpass_url(str(patient_id) + "/"+str(certs[1]['id']) + ".jpg", "ggt-vax-certificates")
             }
@@ -1101,11 +1102,13 @@ def bp_pass_verification(req):
             print("I am here")
             return {
                 "fully_vaccinated": True,
+                "level": certs[0]['verification_level'],
                 "image1": get_temp_pkpass_url(str(patient_id) + "/"+str(certs[0]['id']) + ".jpg", "ggt-vax-certificates"),
                 "image2": None
             }
         return {
             "fully_vaccinated": False,
+            "level": certs[0]['verification_level'],
             "image1": get_temp_pkpass_url(str(patient_id) + "/"+str(certs[0]['id']) + ".jpg", "ggt-vax-certificates"),
             "image2": get_temp_pkpass_url(str(patient_id) + "/"+str(certs[1]['id']) + ".jpg", "ggt-vax-certificates")
         }
