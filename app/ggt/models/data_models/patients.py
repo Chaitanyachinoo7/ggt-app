@@ -580,6 +580,31 @@ def save_apple_wallet_updates(patient_id, device_id, pass_type, serial_no, pushT
         )
         return None
 
+
+def get_existing_vax_certificates(phone_number):
+    try:
+        sql = """ SELECT  
+                    p.id,
+                    c.id
+                   FROM
+                        patients p 
+                    INNER JOIN 
+                        ggv_certificates c 
+                    ON p.id = c.patient_id
+                    WHERE
+                        p.phone_number = %s
+                    """
+        vals = (phone_number,)
+        return replica_read_rows(sql, vals)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            id=id,
+            function=whoami(),
+            error=err
+        )
+        return []
+
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
