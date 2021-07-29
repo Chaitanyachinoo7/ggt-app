@@ -474,15 +474,15 @@ def lookup_certificate(phone_number, dob, first_name, last_name, token=None):
     try:
         where_statement = "1=1"
         if phone_number or phone_number != "":
-            where_statement = "{} AND p.phone_number LIKE '%{}%'".format(where_statement, phone_number)
+            where_statement = "{} AND p.phone_number = '{}'".format(where_statement, phone_number)
         if dob or dob != "":
             where_statement = "{} AND date(p.dob) = '{}'".format(
                 where_statement, dob)
         if first_name or first_name != "":
-            where_statement = "{} AND p.first_name LIKE '%{}%'".format(
+            where_statement = "{} AND p.first_name = '{}'".format(
                 where_statement, first_name)
         if last_name or last_name != "":
-            where_statement = "{} AND p.last_name LIKE '%{}%'".format(
+            where_statement = "{} AND p.last_name = '{}'".format(
                 where_statement, last_name)
         if token:
             where_statement = "{} AND p.result_token = '{}' AND p.token_expire > NOW()".format(
