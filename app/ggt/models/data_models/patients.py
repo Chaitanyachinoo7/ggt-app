@@ -633,11 +633,19 @@ def update_certificates_to_active(payment_id):
     try:
         # Get the patient Id from session id
         sql_payment_table = """
-            SELECT patient_id from ggv_payments WHERE payment_id=%s
+            SELECT gp.patient_id
+            FROM ggv_payments gp 
+            JOIN ggv_certificates gc 
+            ON gp.patient_id = gc.patient_id 
+            WHERE gp.payment_id=%s AND gc.active=0
         """
         values_payment_table = (payment_id,)
 
         payment_info = read_row(sql_payment_table, values_payment_table)
+
+        # No certificates are available to update
+        if not payment_info:
+            return None
 
         patient_id = payment_info['patient_id']
 
@@ -647,11 +655,11 @@ def update_certificates_to_active(payment_id):
                       update_dt=now()
                   WHERE
                     patient_id = %s
-                        AND
-                     active = 0
-                    """
+            """
         vals = (patient_id,)
-        return exec_update(sql, vals)
+        exec_update(sql, vals)
+        # Return the patient id
+        return patient_id
     except Exception as err:
         log_generic(
             type=ERROR,
@@ -694,6 +702,39 @@ def update_vax_yes_payment_status(status, payment_id):
         log_generic(
             type=ERROR,
             vals=vals,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def get_patient_by_id(patient_id):
+    try:
+        sql = """
+            SELECT 
+               *
+            FROM 
+                patients 
+            WHERE 
+                id=%s 
+            LIMIT 1
+        """
+        vals = (patient_id,)
+        row = read_row(sql, vals)
+
+        log_generic(
+            type=INFO,
+            patient_id=patient_id,
+            row=row,
+            function=whoami()
+        )
+
+        # Return whole patient object
+        return row
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            id=id,
             function=whoami(),
             error=err
         )

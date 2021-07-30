@@ -68,7 +68,7 @@ from ggt.models.data_models.patients import (
     create_patient_insurance_record, get_insurance_record_by_id, get_patient_upfront_payment,
     get_verification_level_from_patient_id, save_apple_wallet_updates,
     get_existing_vax_certificates, get_active_certificates, save_vax_yes_payment_info,
-    update_certificates_to_active, update_vax_yes_payment_status
+    update_certificates_to_active, update_vax_yes_payment_status, get_patient_by_id
 )
 from ggt.models.data_models.questionnaires import (
     create_patient_questionnaire
@@ -308,10 +308,29 @@ def bp_vax_yes_verify_payment(session_id):
     # Check if the payment is done
     if session_info['payment_status'] == 'paid':
         update_vax_yes_payment_status('complete', session_id)
-        certificates_updated = update_certificates_to_active(session_id)
+        # Get the updated patients id
+        patient_id = update_certificates_to_active(session_id)
+        if patient_id:
+            patient = get_patient_by_id(patient_id)
+            if not patient:
+                return {
+                    'error_code': 'Patient not available'
+                }
+            # If the patient is available send the email and phone
+            first_name = patient['first_name']
+            phone_number = patient['phone_number']
+            email = patient['email']
+            send_ggv_certificate_level_1_sms(first_name.title(), phone_number, "1")
+            send_ggv_certificate_level_1_email(first_name.title(), email, "1", phone_number=phone_number)
+
+            return {
+                "payment_status": "complete",
+                "certificates_updated": True
+            }
+
         return {
             "payment_status": "complete",
-            "certificates_updated": certificates_updated
+            "certificates_updated": False
         }
     return {
         "reason_code": 'Payment is not complete.'

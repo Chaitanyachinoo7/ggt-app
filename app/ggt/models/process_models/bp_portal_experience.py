@@ -888,8 +888,10 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
     else:
         raise Exception('Patient ID OR Cert ID not found')
 
-    send_ggv_certificate_level_1_sms(first_name.title(), phone_number, "1")
-    send_ggv_certificate_level_1_email(first_name.title(), email, "1", phone_number=phone_number)
+    # If certificates are active only we send the sms and email
+    if is_certificate_active:
+        send_ggv_certificate_level_1_sms(first_name.title(), phone_number, "1")
+        send_ggv_certificate_level_1_email(first_name.title(), email, "1", phone_number=phone_number)
 
     return {
         "patient_id": patient_id,
