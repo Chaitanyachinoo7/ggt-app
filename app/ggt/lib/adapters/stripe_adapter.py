@@ -25,10 +25,13 @@ def generate_stripe_checkout_request_body(payment_details):
                 'product_data': {
                     'name': item.product_name,
                     'images': item.product_images
-                }
+                },
             },
-            'quantity': item.quantity
+            'quantity': item.quantity,
         }
+        # Conditionally set the description
+        if item.product_description:
+            line_item['description'] = item.product_description
         stripe_checkout_request['line_items'].append(line_item)
     return stripe_checkout_request
 
