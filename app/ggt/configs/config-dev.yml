@@ -212,7 +212,7 @@ security:
 
 payment:
   stripe:
-    secret_key: "sk_test_51IRhpxAf0ltvHUzx80AaXczh8OjQWDEhRJmqdugww38vmUPBmDeOlRRWlU0QMgxB5bSy3X6vCAOfEuXRntZIbckl00XKX9qAIN"
+    secret_key: "sk_test_51JILgzB0yB1FgxWKYdtkodRgnL8V7pXSaAX9AsGpBi38B3I0WSVzD2eMlANJ8wHY7KwaDVWVNFSoFGSVoW03bgHH00h2XyfjAz"
   navigation:
     success_url: "https://start-dev.gogettested.com/appointment/{}/pay/success?token={}"
     cancel_url: "https://start-dev.gogettested.com"
@@ -225,7 +225,7 @@ image_urls:
   payment:
     - 'https://goget-static-content.s3.us-east-2.amazonaws.com/ggtlogo.png' # Add a URL of a stock photo or S3 bucket
   vax:
-    - 'https://goget-static-content.s3.us-east-2.amazonaws.com/ggv_icon.png'
+    - 'https://goget-static-content.s3.us-east-2.amazonaws.com/vaxyes_card.png'
 
 applewallet:
   host: dev.api.gogettested.com

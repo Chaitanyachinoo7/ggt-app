@@ -365,7 +365,8 @@ def __generate_vax_payment_checkout_session_items(price):
 
     line_items = []
     line_item = PaymentRequestLineItem()
-    line_item.product_name = "VaxYes"
+    line_item.product_name = "Thank you for supporting VaxYes"
+    line_item.product_description = "Your support goes to maintenance, improvements, and more from the GoGetDoc team"
     line_item.unit_price = price
     line_item.quantity = 1
     line_item.product_images = cfg('image_urls.vax')

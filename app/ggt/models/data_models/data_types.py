@@ -1593,6 +1593,7 @@ class PaymentRequestLineItem(BaseModel):
     product_images: List[str] = None
     quantity: int = 0
     currency: str = 'usd'
+    product_description: str = ""
 
 
 class PaymentRequestNavigation(BaseModel):
