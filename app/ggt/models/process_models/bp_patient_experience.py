@@ -347,13 +347,11 @@ def bp_vax_yes_verify_payment(session_id):
             send_ggv_certificate_level_1_email(first_name.title(), email, "1", phone_number=phone_number)
 
             return {
-                "payment_status": "complete",
-                "certificates_updated": True
+                "payment_status": "complete"
             }
 
         return {
-            "payment_status": "complete",
-            "certificates_updated": False
+            "payment_status": "complete"
         }
     return {
         "reason_code": 'Payment is not complete.'
