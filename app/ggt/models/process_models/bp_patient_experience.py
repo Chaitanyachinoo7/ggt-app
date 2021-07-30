@@ -287,6 +287,29 @@ def bp_vax_yes_payment(req):
     patient_id = patient['id']
     session_id = str(uuid.uuid4())
 
+    # User has selected 0 as the amount
+    if amount == 0:
+        # Get the active certificate count for the user
+        active_certificates = get_active_certificates(patient_id)
+        # See if the count > 0
+        active_certificates_available = len(active_certificates) > 0
+
+        # If the active certificates are available, that means user can skip the payment
+        # In that case send sms and emails
+        if active_certificates_available:
+            email = patient['email']
+            send_ggv_certificate_level_1_sms(first_name.title(), phone_number, "1")
+            send_ggv_certificate_level_1_email(first_name.title(), email, "1", phone_number=phone_number)
+            return {
+                "payment_checkout_session": None,
+                "session_id": session_id
+             }
+        # If certificates are not available, payment cannot be skipped, therefore throw an error
+        else:
+            return {
+                "reason_code": "Payment is required"
+            }
+
     stripe_id = __generate_vax_payment_checkout_session(amount, currency, phone_number, session_id)
 
     save_payment_id = save_vax_yes_payment_info(patient_id, stripe_id, 'pending')
