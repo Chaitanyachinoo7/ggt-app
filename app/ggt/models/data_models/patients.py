@@ -637,7 +637,7 @@ def update_certificates_to_active(payment_id):
             FROM ggv_payments gp 
             JOIN ggv_certificates gc 
             ON gp.patient_id = gc.patient_id 
-            WHERE gp.payment_id=%s AND gc.active=0
+            WHERE gp.payment_id=%s
         """
         values_payment_table = (payment_id,)
 
@@ -655,6 +655,8 @@ def update_certificates_to_active(payment_id):
                       update_dt=now()
                   WHERE
                     patient_id = %s
+                     AND
+                    active = 0
             """
         vals = (patient_id,)
         exec_update(sql, vals)
