@@ -3,8 +3,22 @@ from ggt.lib.utils import (
     get_config_val,
 )
 
-stripe_secret_key = get_config_val('payment.stripe.secret_key')
-stripe.api_key = stripe_secret_key
+from ggt.lib.constants import GGT_PAYMENT_FLOW, VAX_YES_PAYMENT_FLOW
+
+# stripe_secret_key = get_config_val('payment.stripe.secret_key')
+# stripe.api_key = stripe_secret_key
+
+
+def get_stripe_instance(flow=GGT_PAYMENT_FLOW):
+    if flow == VAX_YES_PAYMENT_FLOW:
+        # For vaxyes flow, get the relevant key
+        stripe_secret_key = get_config_val('payment.stripe.vax_yes_secret_key')
+        stripe.api_key = stripe_secret_key
+        return stripe
+    # If the flow is not defined, take the payment in the ggt flow
+    stripe_secret_key = get_config_val('payment.stripe.secret_key')
+    stripe.api_key = stripe_secret_key
+    return stripe
 
 
 # From the request body generate the stripe request body
@@ -51,8 +65,8 @@ def transform_customer_locale(locale):
 
 
 # This function will create a customer for checkout session
-def create_checkout_customer(payment_details):
-    stripe_customer_response = stripe.Customer.create(
+def create_checkout_customer(payment_details, flow=GGT_PAYMENT_FLOW):
+    stripe_customer_response = get_stripe_instance(flow).Customer.create(
         description=payment_details.id,
         # Send the locale so that emails are sent according to preferred locale
         preferred_locales=[transform_customer_locale(payment_details.locale)]
@@ -61,10 +75,10 @@ def create_checkout_customer(payment_details):
     return stripe_customer_response.id
 
 
-def create_checkout_session(payment_details):
-    customer_id = create_checkout_customer(payment_details)
+def create_checkout_session(payment_details, flow=GGT_PAYMENT_FLOW):
+    customer_id = create_checkout_customer(payment_details, flow)
     stripe_checkout_request = generate_stripe_checkout_request_body(payment_details)
-    stripe_response = stripe.checkout.Session.create(
+    stripe_response = get_stripe_instance(flow).checkout.Session.create(
         payment_method_types=stripe_checkout_request['payment_method_types'],
         line_items=stripe_checkout_request['line_items'],
         mode=stripe_checkout_request['mode'],
@@ -79,5 +93,5 @@ def create_checkout_session(payment_details):
     return stripe_response.id
 
 
-def retrieve_checkout_session(session_id):
-    return minify_stripe_session_response(stripe.checkout.Session.retrieve(session_id))
+def retrieve_checkout_session(session_id, flow=GGT_PAYMENT_FLOW):
+    return minify_stripe_session_response(get_stripe_instance(flow).checkout.Session.retrieve(session_id))

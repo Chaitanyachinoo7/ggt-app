@@ -327,7 +327,7 @@ def bp_vax_yes_payment(req):
 
 
 def bp_vax_yes_verify_payment(session_id):
-    session_info = bp_get_checkout_session(session_id)
+    session_info = bp_get_checkout_session(session_id, c.VAX_YES_PAYMENT_FLOW)
     # Check if the payment is done
     if session_info['payment_status'] == 'paid':
         update_vax_yes_payment_status('complete', session_id)
@@ -398,7 +398,7 @@ def __generate_vax_payment_checkout_session(price, currency, phone_number, sessi
     payment_request.id = session_id
     payment_request.currency = currency
 
-    return bp_create_checkout_session(payment_request)
+    return bp_create_checkout_session(payment_request, c.VAX_YES_PAYMENT_FLOW)
 
 
 def __generate_vax_payment_checkout_session_items(price):
