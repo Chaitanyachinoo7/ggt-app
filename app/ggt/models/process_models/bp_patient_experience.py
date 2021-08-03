@@ -2245,11 +2245,11 @@ def __generate_pk_pass(pkpass_req, patient, verification, url_path):
         #     for filename in files:
         #         print(filename)
         passfile.addFile("icon.png", open(
-            "./app/ggt/configs/images/Group 4GGV-4.png", "rb"))
-        print("./app/ggt/configs/images/Group 4GGV-4.png was found")
+            "./app/ggt/configs/images/Vaxyes-logo-white.png", "rb"))
+        print("./app/ggt/configs/images/Vaxyes-logo-white.png was found")
         passfile.addFile("logo.png", open(
-            "./app/ggt/configs/images/Group 4GGV-4.png", "rb"))
-        print("./app/ggt/configs/images/Group 4GGV-4.png was found")
+            "./app/ggt/configs/images/Vaxyes-logo-white.png", "rb"))
+        print("./app/ggt/configs/images/Vaxyes-logo-white.png was found")
         print("pkpass temp path:",
               "/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"))
         _ = passfile.create(cert_pem,
@@ -2570,12 +2570,12 @@ def send_ggv_certificate_level_1_sms(first_name, phone_number, level):
         message = """Hi {}, your vax card request was successful - your level 1 digital card is available for immediate access through the secure online portal:\nhttps://start.gogetvax.com/login \nYou'll receive an update when our team has verified your submission to level 2. Please allow extra time for processing due to volume.""".format(
             first_name,
         )
-        promo_message = "Share this unique link with family & friends so they can get their digital cards too:\nhttps://www.vaxyes.com/friendsfree21"
+        promo_message = "Share this unique link with family & friends so they can get their digital cards too:\nhttps://www.gogetdoc.com/vaxyes"
     elif level == "2":
         message = """Hi {}, congrats! Your vax card has been updated to level 2 verification. Your updated card is available here:\nhttps://start.gogetvax.com/login""".format(
             first_name,
         )
-        promo_message = "We’re offering FREE digital vax passports for a limited time until 07/31/2021: tell your friends about VaxYes by sharing this unique link: \nhttps://www.vaxyes.com/friendsfree21"
+        promo_message = "We’re offering FREE digital vax passports for a limited time until 07/31/2021: tell your friends about VaxYes by sharing this unique link: \nhttps://www.gogetdoc.com/vaxyes"
 
     if send_sms(phone_number, message.replace('\t', '')):
         log_generic(
