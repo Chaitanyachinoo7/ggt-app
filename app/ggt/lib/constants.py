@@ -113,3 +113,5 @@ APPOINTMENT_ACTION_NONE = ''
 
 # Payment APIs
 STRIPE = 'stripe'
+VAX_YES_PAYMENT_FLOW = 'vax_yes_payment_flow'
+GGT_PAYMENT_FLOW = 'ggt_payment_flow'

@@ -210,7 +210,8 @@ security:
 
 payment:
   stripe:
-    secret_key: "sk_test_51JILgzB0yB1FgxWKYdtkodRgnL8V7pXSaAX9AsGpBi38B3I0WSVzD2eMlANJ8wHY7KwaDVWVNFSoFGSVoW03bgHH00h2XyfjAz"
+    secret_key: "sk_test_51IRhpxAf0ltvHUzx80AaXczh8OjQWDEhRJmqdugww38vmUPBmDeOlRRWlU0QMgxB5bSy3X6vCAOfEuXRntZIbckl00XKX9qAIN"
+    vax_yes_secret_key: "sk_test_51JILgzB0yB1FgxWKYdtkodRgnL8V7pXSaAX9AsGpBi38B3I0WSVzD2eMlANJ8wHY7KwaDVWVNFSoFGSVoW03bgHH00h2XyfjAz"
   navigation:
     success_url: "https://start-dev.gogettested.com/appointment/{}/pay/success?token={}"
     cancel_url: "https://start-dev.gogettested.com"

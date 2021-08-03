@@ -211,7 +211,8 @@ security:
 
 payment:
   stripe:
-    secret_key: "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"
+    secret_key: "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"
+    vax_yes_secret_key: "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"
   navigation:
     success_url: "https://start.gogettested.com/appointment/{}/pay/success?token={}"
     cancel_url: "https://start.gogettested.com"
