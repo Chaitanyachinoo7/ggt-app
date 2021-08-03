@@ -67,7 +67,8 @@ from ggt.models.data_models.patients import (
     get_existing_patients, unlock_patient_info_patients, is_un_available_slot,
     create_patient_insurance_record, get_insurance_record_by_id, get_patient_upfront_payment,
     get_verification_level_from_patient_id, save_apple_wallet_updates,
-    get_existing_vax_certificates
+    get_existing_vax_certificates, get_active_certificates, save_vax_yes_payment_info,
+    update_certificates_to_active, update_vax_yes_payment_status, get_patient_by_id
 )
 from ggt.models.data_models.questionnaires import (
     create_patient_questionnaire
@@ -86,7 +87,7 @@ from ggt.models.data_models.signups import (
 from ggt.models.data_models.wellpay import (
     WellpayCreateBillResponse
 )
-from ggt.models.process_models.bp_payment import bp_create_checkout_session
+from ggt.models.process_models.bp_payment import bp_create_checkout_session, bp_get_checkout_session
 
 # from google.cloud import vision
 service_account_file = cfg('gcp.service_account_file')
@@ -268,6 +269,95 @@ def bp_vax_check_payment(phone_number):
     }
 
 
+def bp_vax_yes_payment(req):
+    phone_number = req.phone_number
+    first_name = req.first_name
+    last_name = req.last_name
+    dob = req.dob
+    amount = req.amount
+    currency = req.currency
+
+    patient = get_existing_patients(phone_number, first_name, last_name, dob)
+
+    if not patient:
+        return {
+            "reason_code": "Patient is not available. Cannot proceed with the payment."
+        }
+
+    patient_id = patient['id']
+    session_id = str(uuid.uuid4())
+
+    # User has selected 0 as the amount
+    if amount == 0:
+        # Get the active certificate count for the user
+        active_certificates = get_active_certificates(patient_id)
+        # See if the count > 0
+        active_certificates_available = len(active_certificates) > 0
+
+        # If the active certificates are available, that means user can skip the payment
+        # In that case send sms and emails
+        if active_certificates_available:
+            email = patient['email']
+            send_ggv_certificate_level_1_sms(first_name.title(), phone_number, "1")
+            send_ggv_certificate_level_1_email(first_name.title(), email, "1", phone_number=phone_number)
+            return {
+                "payment_checkout_session": None,
+                "session_id": session_id
+             }
+        # If certificates are not available, payment cannot be skipped, therefore throw an error
+        else:
+            return {
+                "reason_code": "Payment is required"
+            }
+
+    stripe_id = __generate_vax_payment_checkout_session(amount, currency, phone_number, session_id)
+
+    save_payment_id = save_vax_yes_payment_info(patient_id, stripe_id, 'pending')
+
+    # Saved in DB
+    if save_payment_id:
+        return {
+            "payment_checkout_session": stripe_id,
+            "session_id": session_id
+        }
+
+    return {
+        "reason_code": "Error in saving in the database."
+    }
+
+
+def bp_vax_yes_verify_payment(session_id):
+    session_info = bp_get_checkout_session(session_id, c.VAX_YES_PAYMENT_FLOW)
+    # Check if the payment is done
+    if session_info['payment_status'] == 'paid':
+        update_vax_yes_payment_status('complete', session_id)
+        # Get the updated patients id
+        patient_id = update_certificates_to_active(session_id)
+        if patient_id:
+            patient = get_patient_by_id(patient_id)
+            if not patient:
+                return {
+                    'error_code': 'Patient not available'
+                }
+            # If the patient is available send the email and phone
+            first_name = patient['first_name']
+            phone_number = patient['phone_number']
+            email = patient['email']
+            send_ggv_certificate_level_1_sms(first_name.title(), phone_number, "1")
+            send_ggv_certificate_level_1_email(first_name.title(), email, "1", phone_number=phone_number)
+
+            return {
+                "payment_status": "complete"
+            }
+
+        return {
+            "payment_status": "complete"
+        }
+    return {
+        "reason_code": 'Payment is not complete.'
+    }
+
+
 def bp_initiate_vax_verification_flow(req):
     # Extract fields
     phone_number = req.phone_number
@@ -308,14 +398,15 @@ def __generate_vax_payment_checkout_session(price, currency, phone_number, sessi
     payment_request.id = session_id
     payment_request.currency = currency
 
-    return bp_create_checkout_session(payment_request)
+    return bp_create_checkout_session(payment_request, c.VAX_YES_PAYMENT_FLOW)
 
 
 def __generate_vax_payment_checkout_session_items(price):
 
     line_items = []
     line_item = PaymentRequestLineItem()
-    line_item.product_name = "VaxYes"
+    line_item.product_name = "Thank you for supporting VaxYes"
+    line_item.product_description = "Your support goes to maintenance, improvements, and more from the GoGetDoc team"
     line_item.unit_price = price
     line_item.quantity = 1
     line_item.product_images = cfg('image_urls.vax')
@@ -327,7 +418,7 @@ def __generate_vax_payment_checkout_session_items(price):
 def __generate_vax_payment_checkout_session_navigations(phone_number, session_id):
 
     navigation = PaymentRequestNavigation()
-    query_params = 'phone_number={}&session_id={}&brand=vax'.format(phone_number, session_id)
+    query_params = 'session_id={}&brand=vax'.format(session_id)
     navigation.success_url = cfg('payment.navigation.vax_success_url').format(query_params)
     navigation.cancel_url = cfg('payment.navigation.vax_cancel_url')
 
@@ -907,106 +998,150 @@ def bp_call_non_sms_phone(phone_number):
 def bp_add_vax_certificate(req):
     try:
         pristine = req.pristine
-        if('+52' not in req.phone_number):
-            log_generic(
-                type=c.INFO,
-                function=whoami(),
-                msg="PATIENT-CERTIFICATE-ADD-REQUEST-RECEIVED",
-                first_name=req.first_name,
-                last_name=req.last_name,
-                phone_number=req.phone_number,
-                email=req.email,
-                dob=req.dob,
-                vax_type=req.vax_type,
-                first_vax_dt=req.first_vax_dt,
-                vax_1_lot_number=req.vax_1_lot_number,
-                second_vax_dt=req.second_vax_dt,
-                vax_2_lot_number=req.vax_2_lot_number,
-                pristine_dob=pristine.dob if pristine else None,
-                pristine_first_name=pristine.first_name if pristine else None,
-                pristine_last_name=pristine.last_name if pristine else None,
-                vax_image=1 if req.vax_image else 0,
-                id_image=1 if req.id_image else 0
-            )
-            from ggt.models.process_models.bp_portal_experience import bp_add_vax_certificate as add_vax_certificate
-            ocr = {
-                "patient_id": None,
-                "first_name": 0,
-                "last_name": 0,
-                "vax_type": 0,
-                "dob": 0,
-                "cert1_id": None,
-                "first_vax_dt": 0,
-                "vax_1_lot_number": 0,
-                "cert2_id": None,
-                "second_vax_dt": 0,
-                "vax_2_lot_number": 0
-            }
-            if pristine and pristine.dob == req.dob and pristine.first_name == req.first_name and \
-                    pristine.last_name == req.last_name:
-                cert_details = add_vax_certificate(req)
+        log_generic(
+            type=c.INFO,
+            function=whoami(),
+            msg="PATIENT-CERTIFICATE-ADD-REQUEST-RECEIVED",
+            first_name=req.first_name,
+            last_name=req.last_name,
+            phone_number=req.phone_number,
+            email=req.email,
+            dob=req.dob,
+            vax_type=req.vax_type,
+            first_vax_dt=req.first_vax_dt,
+            vax_1_lot_number=req.vax_1_lot_number,
+            second_vax_dt=req.second_vax_dt,
+            vax_2_lot_number=req.vax_2_lot_number,
+            pristine_dob=pristine.dob if pristine else None,
+            pristine_first_name=pristine.first_name if pristine else None,
+            pristine_last_name=pristine.last_name if pristine else None,
+            vax_image=1 if req.vax_image else 0,
+            id_image=1 if req.id_image else 0
+        )
+        from ggt.models.process_models.bp_portal_experience import bp_add_vax_certificate as add_vax_certificate
+        ocr = {
+            "patient_id": None,
+            "first_name": 0,
+            "last_name": 0,
+            "vax_type": 0,
+            "dob": 0,
+            "cert1_id": None,
+            "first_vax_dt": 0,
+            "vax_1_lot_number": 0,
+            "cert2_id": None,
+            "second_vax_dt": 0,
+            "vax_2_lot_number": 0
+        }
+        if pristine and pristine.dob == req.dob and pristine.first_name == req.first_name and \
+                pristine.last_name == req.last_name:
+            cert_details = add_vax_certificate(req)
 
-                ocr["patient_id"] = cert_details["patient_id"]
-                ocr["cert1_id"] = cert_details["cert1_id"]
+            show_payment_view = not cert_details['active_certificates_available']
+
+            ocr["patient_id"] = cert_details["patient_id"]
+            ocr["cert1_id"] = cert_details["cert1_id"]
+            if cert_details["cert2_id"]:
+                ocr["cert2_id"] = cert_details["cert2_id"]
+            is_vax_card_pristine = __vax_card_pristine(
+                cert_details["patient_id"], cert_details["cert1_id"], req, ocr)
+            is_photo_id_pristine = __photo_id_pristine(
+                cert_details["patient_id"], cert_details["cert1_id"], req, ocr)
+
+            __update_ocr_status(ocr["patient_id"], ocr["first_name"], ocr["last_name"], ocr["vax_type"], ocr["dob"],
+                                ocr["cert1_id"], ocr["first_vax_dt"], ocr["vax_1_lot_number"],
+                                ocr["cert2_id"], ocr["second_vax_dt"], ocr["vax_2_lot_number"])
+
+            if is_vax_card_pristine:
+                log_generic(
+                    type=c.INFO,
+                    function=whoami(),
+                    msg="PATIENT-CERTIFICATE-OCR-VERIFIED",
+                    first_name=req.first_name,
+                    last_name=req.last_name,
+                    phone_number=req.phone_number,
+                    email=req.email,
+                    dob=req.dob,
+                    vax_type=req.vax_type,
+                    first_vax_dt=req.first_vax_dt,
+                    vax_1_lot_number=req.vax_1_lot_number,
+                    second_vax_dt=req.second_vax_dt,
+                    vax_2_lot_number=req.vax_2_lot_number,
+                    pristine_dob=pristine.dob if pristine else None,
+                    pristine_first_name=pristine.first_name if pristine else None,
+                    pristine_last_name=pristine.last_name if pristine else None,
+                    vax_image=1 if req.vax_image else 0,
+                    id_image=1 if req.id_image else 0
+                )
+            if is_photo_id_pristine:
+                log_generic(
+                    type=c.INFO,
+                    function=whoami(),
+                    msg="PATIENT-ID-OCR-VERIFIED",
+                    first_name=req.first_name,
+                    last_name=req.last_name,
+                    phone_number=req.phone_number,
+                    email=req.email,
+                    dob=req.dob,
+                    vax_type=req.vax_type,
+                    first_vax_dt=req.first_vax_dt,
+                    vax_1_lot_number=req.vax_1_lot_number,
+                    second_vax_dt=req.second_vax_dt,
+                    vax_2_lot_number=req.vax_2_lot_number,
+                    pristine_dob=pristine.dob if pristine else None,
+                    pristine_first_name=pristine.first_name if pristine else None,
+                    pristine_last_name=pristine.last_name if pristine else None,
+                    vax_image=1 if req.vax_image else 0,
+                    id_image=1 if req.id_image else 0
+                )
+            if is_vax_card_pristine and is_photo_id_pristine:
+                if verify_certificate([cert_details["cert1_id"]], "2"):
+                    log_generic(
+                        type=c.INFO,
+                        function=whoami(),
+                        msg="PATIENT-CERTIFICATE-1-VERIFIED-LEVEL-2",
+                        first_name=req.first_name,
+                        last_name=req.last_name,
+                        phone_number=req.phone_number,
+                        email=req.email,
+                        dob=req.dob,
+                        vax_type=req.vax_type,
+                        first_vax_dt=req.first_vax_dt,
+                        vax_1_lot_number=req.vax_1_lot_number,
+                        second_vax_dt=req.second_vax_dt,
+                        vax_2_lot_number=req.vax_2_lot_number,
+                        pristine_dob=pristine.dob if pristine else None,
+                        pristine_first_name=pristine.first_name if pristine else None,
+                        pristine_last_name=pristine.last_name if pristine else None,
+                        vax_image=1 if req.vax_image else 0,
+                        id_image=1 if req.id_image else 0
+                    )
+                else:
+                    log_generic(
+                        type=c.ERROR,
+                        function=whoami(),
+                        msg="PATIENT-CERTIFICATE-1-VERIFICATION-DB-UPDATE-FAILED",
+                        first_name=req.first_name,
+                        last_name=req.last_name,
+                        phone_number=req.phone_number,
+                        email=req.email,
+                        dob=req.dob,
+                        vax_type=req.vax_type,
+                        first_vax_dt=req.first_vax_dt,
+                        vax_1_lot_number=req.vax_1_lot_number,
+                        second_vax_dt=req.second_vax_dt,
+                        vax_2_lot_number=req.vax_2_lot_number,
+                        pristine_dob=pristine.dob if pristine else None,
+                        pristine_first_name=pristine.first_name if pristine else None,
+                        pristine_last_name=pristine.last_name if pristine else None,
+                        vax_image=1 if req.vax_image else 0,
+                        id_image=1 if req.id_image else 0
+                    )
                 if cert_details["cert2_id"]:
-                    ocr["cert2_id"] = cert_details["cert2_id"]
-                is_vax_card_pristine = __vax_card_pristine(
-                    cert_details["patient_id"], cert_details["cert1_id"], req, ocr)
-                is_photo_id_pristine = __photo_id_pristine(
-                    cert_details["patient_id"], cert_details["cert1_id"], req, ocr)
-
-                __update_ocr_status(ocr["patient_id"], ocr["first_name"], ocr["last_name"], ocr["vax_type"], ocr["dob"],
-                                    ocr["cert1_id"], ocr["first_vax_dt"], ocr["vax_1_lot_number"],
-                                    ocr["cert2_id"], ocr["second_vax_dt"], ocr["vax_2_lot_number"])
-
-                if is_vax_card_pristine:
-                    log_generic(
-                        type=c.INFO,
-                        function=whoami(),
-                        msg="PATIENT-CERTIFICATE-OCR-VERIFIED",
-                        first_name=req.first_name,
-                        last_name=req.last_name,
-                        phone_number=req.phone_number,
-                        email=req.email,
-                        dob=req.dob,
-                        vax_type=req.vax_type,
-                        first_vax_dt=req.first_vax_dt,
-                        vax_1_lot_number=req.vax_1_lot_number,
-                        second_vax_dt=req.second_vax_dt,
-                        vax_2_lot_number=req.vax_2_lot_number,
-                        pristine_dob=pristine.dob if pristine else None,
-                        pristine_first_name=pristine.first_name if pristine else None,
-                        pristine_last_name=pristine.last_name if pristine else None,
-                        vax_image=1 if req.vax_image else 0,
-                        id_image=1 if req.id_image else 0
-                    )
-                if is_photo_id_pristine:
-                    log_generic(
-                        type=c.INFO,
-                        function=whoami(),
-                        msg="PATIENT-ID-OCR-VERIFIED",
-                        first_name=req.first_name,
-                        last_name=req.last_name,
-                        phone_number=req.phone_number,
-                        email=req.email,
-                        dob=req.dob,
-                        vax_type=req.vax_type,
-                        first_vax_dt=req.first_vax_dt,
-                        vax_1_lot_number=req.vax_1_lot_number,
-                        second_vax_dt=req.second_vax_dt,
-                        vax_2_lot_number=req.vax_2_lot_number,
-                        pristine_dob=pristine.dob if pristine else None,
-                        pristine_first_name=pristine.first_name if pristine else None,
-                        pristine_last_name=pristine.last_name if pristine else None,
-                        vax_image=1 if req.vax_image else 0,
-                        id_image=1 if req.id_image else 0
-                    )
-                if is_vax_card_pristine and is_photo_id_pristine:
-                    if verify_certificate([cert_details["cert1_id"]], "2"):
+                    if verify_certificate([cert_details["cert2_id"]], "2"):
                         log_generic(
                             type=c.INFO,
                             function=whoami(),
-                            msg="PATIENT-CERTIFICATE-1-VERIFIED-LEVEL-2",
+                            msg="PATIENT-CERTIFICATE-2-VERIFIED-LEVEL-2",
                             first_name=req.first_name,
                             last_name=req.last_name,
                             phone_number=req.phone_number,
@@ -1027,7 +1162,7 @@ def bp_add_vax_certificate(req):
                         log_generic(
                             type=c.ERROR,
                             function=whoami(),
-                            msg="PATIENT-CERTIFICATE-1-VERIFICATION-DB-UPDATE-FAILED",
+                            msg="PATIENT-CERTIFICATE-2-VERIFICATION-DB-UPDATE-FAILED",
                             first_name=req.first_name,
                             last_name=req.last_name,
                             phone_number=req.phone_number,
@@ -1044,85 +1179,19 @@ def bp_add_vax_certificate(req):
                             vax_image=1 if req.vax_image else 0,
                             id_image=1 if req.id_image else 0
                         )
-                    if cert_details["cert2_id"]:
-                        if verify_certificate([cert_details["cert2_id"]], "2"):
-                            log_generic(
-                                type=c.INFO,
-                                function=whoami(),
-                                msg="PATIENT-CERTIFICATE-2-VERIFIED-LEVEL-2",
-                                first_name=req.first_name,
-                                last_name=req.last_name,
-                                phone_number=req.phone_number,
-                                email=req.email,
-                                dob=req.dob,
-                                vax_type=req.vax_type,
-                                first_vax_dt=req.first_vax_dt,
-                                vax_1_lot_number=req.vax_1_lot_number,
-                                second_vax_dt=req.second_vax_dt,
-                                vax_2_lot_number=req.vax_2_lot_number,
-                                pristine_dob=pristine.dob if pristine else None,
-                                pristine_first_name=pristine.first_name if pristine else None,
-                                pristine_last_name=pristine.last_name if pristine else None,
-                                vax_image=1 if req.vax_image else 0,
-                                id_image=1 if req.id_image else 0
-                            )
-                        else:
-                            log_generic(
-                                type=c.ERROR,
-                                function=whoami(),
-                                msg="PATIENT-CERTIFICATE-2-VERIFICATION-DB-UPDATE-FAILED",
-                                first_name=req.first_name,
-                                last_name=req.last_name,
-                                phone_number=req.phone_number,
-                                email=req.email,
-                                dob=req.dob,
-                                vax_type=req.vax_type,
-                                first_vax_dt=req.first_vax_dt,
-                                vax_1_lot_number=req.vax_1_lot_number,
-                                second_vax_dt=req.second_vax_dt,
-                                vax_2_lot_number=req.vax_2_lot_number,
-                                pristine_dob=pristine.dob if pristine else None,
-                                pristine_first_name=pristine.first_name if pristine else None,
-                                pristine_last_name=pristine.last_name if pristine else None,
-                                vax_image=1 if req.vax_image else 0,
-                                id_image=1 if req.id_image else 0
-                            )
-                    send_ggv_certificate_level_1_sms(
-                        req.first_name.title(), req.phone_number, "2")
-                    send_ggv_certificate_level_1_email(
-                        req.first_name.title(), req.email, "2")
-                    return {
-                        "level": 2
-                    }
-                else:
-                    log_generic(
-                        type=c.INFO,
-                        function=whoami(),
-                        msg="PATIENT-CERTIFICATE-OCR-VERIFICATION-FAILED",
-                        first_name=req.first_name,
-                        last_name=req.last_name,
-                        phone_number=req.phone_number,
-                        email=req.email,
-                        dob=req.dob,
-                        vax_type=req.vax_type,
-                        first_vax_dt=req.first_vax_dt,
-                        vax_1_lot_number=req.vax_1_lot_number,
-                        second_vax_dt=req.second_vax_dt,
-                        vax_2_lot_number=req.vax_2_lot_number,
-                        pristine_dob=pristine.dob if pristine else None,
-                        pristine_first_name=pristine.first_name if pristine else None,
-                        pristine_last_name=pristine.last_name if pristine else None,
-                        vax_image=1 if req.vax_image else 0,
-                        id_image=1 if req.id_image else 0
-                    )
-                    return {
-                        "level": 1
-                    }
+                send_ggv_certificate_level_1_sms(
+                    req.first_name.title(), req.phone_number, "2")
+                send_ggv_certificate_level_1_email(
+                    req.first_name.title(), req.email, "2")
+                return {
+                    "level": 2,
+                    "show_payment_view": show_payment_view
+                }
             else:
                 log_generic(
                     type=c.INFO,
                     function=whoami(),
-                    msg="PATIENT-CERTIFICATE-ADD-REQUEST-NOT-PRISTINE",
+                    msg="PATIENT-CERTIFICATE-OCR-VERIFICATION-FAILED",
                     first_name=req.first_name,
                     last_name=req.last_name,
                     phone_number=req.phone_number,
@@ -1139,17 +1208,44 @@ def bp_add_vax_certificate(req):
                     vax_image=1 if req.vax_image else 0,
                     id_image=1 if req.id_image else 0
                 )
-                cert_details = add_vax_certificate(req)
-                if cert_details:
-                    # send_ggv_certificate_level_1_sms(req.first_name.title(), req.phone_number, "1")
-                    # send_ggv_certificate_level_1_email(req.first_name.title(), req.email, "1")
-                    return {
-                        "level": 1
-                    }
-                else:
-                    raise Exception('Add vax certificate failed')
+                return {
+                    "level": 1,
+                    "show_payment_view": show_payment_view
+                }
         else:
-            raise Exception('Mexico phone not allowed')
+            log_generic(
+                type=c.INFO,
+                function=whoami(),
+                msg="PATIENT-CERTIFICATE-ADD-REQUEST-NOT-PRISTINE",
+                first_name=req.first_name,
+                last_name=req.last_name,
+                phone_number=req.phone_number,
+                email=req.email,
+                dob=req.dob,
+                vax_type=req.vax_type,
+                first_vax_dt=req.first_vax_dt,
+                vax_1_lot_number=req.vax_1_lot_number,
+                second_vax_dt=req.second_vax_dt,
+                vax_2_lot_number=req.vax_2_lot_number,
+                pristine_dob=pristine.dob if pristine else None,
+                pristine_first_name=pristine.first_name if pristine else None,
+                pristine_last_name=pristine.last_name if pristine else None,
+                vax_image=1 if req.vax_image else 0,
+                id_image=1 if req.id_image else 0
+            )
+            cert_details = add_vax_certificate(req)
+
+            show_payment_view = not cert_details['active_certificates_available']
+
+            if cert_details:
+                # send_ggv_certificate_level_1_sms(req.first_name.title(), req.phone_number, "1")
+                # send_ggv_certificate_level_1_email(req.first_name.title(), req.email, "1")
+                return {
+                    "level": 1,
+                    "show_payment_view": show_payment_view
+                }
+            else:
+                raise Exception('Add vax certificate failed')
     except Exception as err:
         log_generic(
             type=c.ERROR,
@@ -1182,6 +1278,7 @@ def bp_pass_verification(req):
         if("COVID_19_VACCINE_JNJ" not in certs[0]['service_code'] and certs[0]['verification_level'] > 1 and certs[1]['verification_level'] > 1):
             return {
                 "fully_vaccinated": True,
+                "level": certs[0]['verification_level'],
                 "image1": get_temp_pkpass_url(str(patient_id) + "/"+str(certs[0]['id']) + ".jpg", "ggt-vax-certificates"),
                 "image2": get_temp_pkpass_url(str(patient_id) + "/"+str(certs[1]['id']) + ".jpg", "ggt-vax-certificates")
             }
@@ -1189,11 +1286,13 @@ def bp_pass_verification(req):
             print("I am here")
             return {
                 "fully_vaccinated": True,
+                "level": certs[0]['verification_level'],
                 "image1": get_temp_pkpass_url(str(patient_id) + "/"+str(certs[0]['id']) + ".jpg", "ggt-vax-certificates"),
                 "image2": None
             }
         return {
             "fully_vaccinated": False,
+            "level": certs[0]['verification_level'],
             "image1": get_temp_pkpass_url(str(patient_id) + "/"+str(certs[0]['id']) + ".jpg", "ggt-vax-certificates"),
             "image2": get_temp_pkpass_url(str(patient_id) + "/"+str(certs[1]['id']) + ".jpg", "ggt-vax-certificates")
         }

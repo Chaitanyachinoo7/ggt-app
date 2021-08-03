@@ -152,10 +152,10 @@ def create_vax_yes_patient(first_name, last_name, phone, email, dob):
     return exec_insert(sql, vals)
 
 
-def create_cert(patient_id, vax_date, vax_type, lot):
-    sql = """INSERT INTO ggv_certificates (patient_id, check_in_dt, service_code, lot_no, verification_level) 
-       values (%s, %s, %s, %s, %s)"""
-    vals = (patient_id, vax_date, vax_type, lot, 1)
+def create_cert(patient_id, vax_date, vax_type, lot, active=True):
+    sql = """INSERT INTO ggv_certificates (patient_id, check_in_dt, service_code, lot_no, verification_level, active) 
+       values (%s, %s, %s, %s, %s, %s)"""
+    vals = (patient_id, vax_date, vax_type, lot, 1, active)
     return exec_insert(sql, vals)
 
 
@@ -604,6 +604,143 @@ def get_existing_vax_certificates(phone_number):
             error=err
         )
         return []
+
+
+def get_active_certificates(patient_id):
+    try:
+        sql = """ SELECT  
+                    c.id
+                   FROM
+                      ggv_certificates c 
+                    WHERE
+                        c.patient_id = %s
+                        AND
+                        c.active = 1
+                    """
+        vals = (patient_id,)
+        return replica_read_rows(sql, vals)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            id=id,
+            function=whoami(),
+            error=err
+        )
+        return []
+
+
+def update_certificates_to_active(payment_id):
+    try:
+        # Get the patient Id from session id
+        sql_payment_table = """
+            SELECT gp.patient_id
+            FROM ggv_payments gp 
+            JOIN ggv_certificates gc 
+            ON gp.patient_id = gc.patient_id 
+            WHERE gp.payment_id=%s
+        """
+        values_payment_table = (payment_id,)
+
+        payment_info = read_row(sql_payment_table, values_payment_table)
+
+        # No certificates are available to update
+        if not payment_info:
+            return None
+
+        patient_id = payment_info['patient_id']
+
+        sql = """ UPDATE ggv_certificates
+                  SET
+                      active=1,
+                      update_dt=now()
+                  WHERE
+                    patient_id = %s
+                     AND
+                    active = 0
+            """
+        vals = (patient_id,)
+        exec_update(sql, vals)
+        # Return the patient id
+        return patient_id
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            id=id,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def save_vax_yes_payment_info(patient_id, payment_id, status):
+    try:
+        sql = """INSERT INTO ggv_payments (patient_id, payment_id, status)
+                    VALUES(%s, %s, %s)
+                    """
+        vals = (patient_id, payment_id, status)
+        return exec_insert(sql, vals)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            id=id,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def update_vax_yes_payment_status(status, payment_id):
+    try:
+        sql = """UPDATE ggv_payments
+                 SET
+                        status=%s,
+                        update_dt=now()
+                  WHERE
+                     payment_id=%s
+                  """
+        vals = (status, payment_id)
+        return exec_update(sql, vals)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            vals=vals,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def get_patient_by_id(patient_id):
+    try:
+        sql = """
+            SELECT 
+               *
+            FROM 
+                patients 
+            WHERE 
+                id=%s 
+            LIMIT 1
+        """
+        vals = (patient_id,)
+        row = read_row(sql, vals)
+
+        log_generic(
+            type=INFO,
+            patient_id=patient_id,
+            row=row,
+            function=whoami()
+        )
+
+        # Return whole patient object
+        return row
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            id=id,
+            function=whoami(),
+            error=err
+        )
+        return None
 
 ########################################################################################################
 # [Protected] functions
