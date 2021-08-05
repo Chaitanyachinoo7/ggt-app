@@ -118,7 +118,7 @@ async def api_archive_processed_notifications(background_tasks: BackgroundTasks)
     }
 
 
-@router.post("/schedule_result_notifications_and_followups", dependencies=[Security(authorize_user, scopes=[p.SCHEDULE_RESULT_NOTIFICATIONS_AND_FOLLOWUPS])])
+@router.post("/schedule_result_notifications_and_followups", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS, p.SCHEDULE_RESULT_NOTIFICATIONS_AND_FOLLOWUPS])])
 async def api_schedule_result_notifications_and_followups(background_tasks: BackgroundTasks):
     background_tasks.add_task(task_schedule_result_notifications_and_followups)
     return {
