@@ -68,7 +68,8 @@ from ggt.models.data_models.patients import (
     create_patient_insurance_record, get_insurance_record_by_id, get_patient_upfront_payment,
     get_verification_level_from_patient_id, save_apple_wallet_updates,
     get_existing_vax_certificates, get_active_certificates, save_vax_yes_payment_info,
-    update_certificates_to_active, update_vax_yes_payment_status, get_patient_by_id
+    update_certificates_to_active, update_vax_yes_payment_status, get_patient_by_id,
+    get_existing_patient
 )
 from ggt.models.data_models.questionnaires import (
     create_patient_questionnaire
@@ -277,7 +278,7 @@ def bp_vax_yes_payment(req):
     amount = req.amount
     currency = req.currency
 
-    patient = get_existing_patients(phone_number, first_name, last_name, dob)
+    patient = get_existing_patient(phone_number, first_name, last_name, dob)
 
     if not patient:
         return {

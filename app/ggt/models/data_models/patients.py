@@ -30,7 +30,6 @@ from ggt.models.data_models.data_types import (
     ServicePayment,
 )
 
-
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
@@ -167,17 +166,34 @@ def delete_cert(patient_id):
     return deleted
 
 
+# Define the escape character mappings here
+escape_character_map = {
+    "'": "\\'"
+}
+
+
+def remove_escape_sequences(characters):
+    # if string
+    if isinstance(characters, str):
+        return characters.translate(str.maketrans(escape_character_map))
+    return characters
+
+
 def get_existing_patients(phone_number="", first_name="", last_name="", dob="", token=""):
+
+    sanitized_first_name = remove_escape_sequences(first_name)
+    sanitized_last_name = remove_escape_sequences(last_name)
+
     where_statement = "phone_number_verified = 1 AND token not like 'NOVERIFY%'"
     if phone_number != "":
         where_statement = "{} AND phone_number = '{}'".format(
             where_statement, phone_number)
     if first_name != "":
         where_statement = "{} AND first_name = '{}'".format(
-            where_statement, first_name)
+            where_statement, sanitized_first_name)
     if last_name != "":
         where_statement = "{} AND last_name = '{}'".format(
-            where_statement, last_name)
+            where_statement, sanitized_last_name)
     if dob != "":
         where_statement = "{} AND dob = '{}'".format(where_statement, dob)
     if token != "":
@@ -190,6 +206,50 @@ def get_existing_patients(phone_number="", first_name="", last_name="", dob="", 
                     WHERE
                         {};""".format(where_statement)
         return replica_read_row(sql)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            phone_number=phone_number,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def is_empty_field(field):
+    return 0 if field != "" else 1
+
+
+def get_existing_patient(phone_number="", first_name="", last_name="", dob="", token=""):
+
+    query_phone_number = is_empty_field(phone_number)
+    query_first_name = is_empty_field(first_name)
+    query_last_name = is_empty_field(last_name)
+    query_dob = is_empty_field(dob)
+    query_token = is_empty_field(token)
+
+    try:
+        sql = """SELECT 
+                        *
+                    FROM
+                        patients
+                    WHERE
+                        phone_number_verified = 1 AND token not like 'NOVERIFY%'
+                    AND
+                        (phone_number=%s or 1=%s)
+                    AND
+                        (first_name=%s or 1=%s)
+                    AND
+                        (last_name=%s or 1=%s)
+                    AND
+                        (dob=%s or 1=%s)
+                    AND
+                        (token=%s or 1=%s)
+            """
+        vals = (phone_number, query_phone_number, first_name, query_first_name,
+                last_name, query_last_name, dob, query_dob, token, query_token)
+        return replica_read_row(sql, vals)
 
     except Exception as err:
         log_generic(
