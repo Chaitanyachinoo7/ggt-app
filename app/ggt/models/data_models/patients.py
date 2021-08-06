@@ -247,6 +247,7 @@ def get_existing_patient(phone_number="", first_name="", last_name="", dob="", t
                     AND
                         (token=%s or 1=%s)
             """
+
         vals = (phone_number, query_phone_number, first_name, query_first_name,
                 last_name, query_last_name, dob, query_dob, token, query_token)
         return replica_read_row(sql, vals)
