@@ -2577,6 +2577,7 @@ def send_ggv_certificate_level_1_sms(first_name, phone_number, level):
             first_name,
         )
         promo_message = "Share this unique link with family & friends so they can get their digital cards too:\nhttps://www.gogetdoc.com/vaxyes"
+        
 
     if send_sms(phone_number, message.replace('\t', '')):
         log_generic(
