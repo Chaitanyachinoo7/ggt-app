@@ -2576,7 +2576,7 @@ def send_ggv_certificate_level_1_sms(first_name, phone_number, level):
         message = """Hi {}, congrats! Your vax card has been updated to level 2 verification. Your updated card is available here:\nhttps://start.gogetvax.com/login""".format(
             first_name,
         )
-        promo_message = "We’re offering FREE digital vax passports for a limited time until 07/31/2021: tell your friends about VaxYes by sharing this unique link: \nhttps://www.gogetdoc.com/vaxyes"
+        promo_message = "Share this unique link with family & friends so they can get their digital cards too:\nhttps://www.gogetdoc.com/vaxyes"
 
     if send_sms(phone_number, message.replace('\t', '')):
         log_generic(
