@@ -299,21 +299,25 @@ def bp_vax_yes_payment(req):
         # In that case send sms and emails
         if active_certificates_available:
             email = patient['email']
-            send_ggv_certificate_level_1_sms(first_name.title(), phone_number, "1")
-            send_ggv_certificate_level_1_email(first_name.title(), email, "1", phone_number=phone_number)
+            send_ggv_certificate_level_1_sms(
+                first_name.title(), phone_number, "1")
+            send_ggv_certificate_level_1_email(
+                first_name.title(), email, "1", phone_number=phone_number)
             return {
                 "payment_checkout_session": None,
                 "session_id": session_id
-             }
+            }
         # If certificates are not available, payment cannot be skipped, therefore throw an error
         else:
             return {
                 "reason_code": "Payment is required"
             }
 
-    stripe_id = __generate_vax_payment_checkout_session(amount, currency, phone_number, session_id)
+    stripe_id = __generate_vax_payment_checkout_session(
+        amount, currency, phone_number, session_id)
 
-    save_payment_id = save_vax_yes_payment_info(patient_id, stripe_id, 'pending')
+    save_payment_id = save_vax_yes_payment_info(
+        patient_id, stripe_id, 'pending')
 
     # Saved in DB
     if save_payment_id:
@@ -344,8 +348,10 @@ def bp_vax_yes_verify_payment(session_id):
             first_name = patient['first_name']
             phone_number = patient['phone_number']
             email = patient['email']
-            send_ggv_certificate_level_1_sms(first_name.title(), phone_number, "1")
-            send_ggv_certificate_level_1_email(first_name.title(), email, "1", phone_number=phone_number)
+            send_ggv_certificate_level_1_sms(
+                first_name.title(), phone_number, "1")
+            send_ggv_certificate_level_1_email(
+                first_name.title(), email, "1", phone_number=phone_number)
 
             return {
                 "payment_status": "complete"
@@ -378,19 +384,22 @@ def bp_initiate_vax_verification_flow(req):
         # If no certificates only we show the payment screen
         if len(certificates) == 0:
             # Generate stripe session
-            stripe_id = __generate_vax_payment_checkout_session(price, currency, phone_number, session_id)
+            stripe_id = __generate_vax_payment_checkout_session(
+                price, currency, phone_number, session_id)
 
     return {
         "payment_checkout_session": stripe_id,
         "session_id": session_id
-    } 
+    }
 
 
 def __generate_vax_payment_checkout_session(price, currency, phone_number, session_id):
 
     payment_request = PaymentRequestBody()
-    payment_request.line_items = __generate_vax_payment_checkout_session_items(price)
-    payment_request.navigation = __generate_vax_payment_checkout_session_navigations(phone_number, session_id)
+    payment_request.line_items = __generate_vax_payment_checkout_session_items(
+        price)
+    payment_request.navigation = __generate_vax_payment_checkout_session_navigations(
+        phone_number, session_id)
 
     locale = "es" if currency == "mxn" else "en"
 
@@ -420,7 +429,8 @@ def __generate_vax_payment_checkout_session_navigations(phone_number, session_id
 
     navigation = PaymentRequestNavigation()
     query_params = 'session_id={}&brand=vax'.format(session_id)
-    navigation.success_url = cfg('payment.navigation.vax_success_url').format(query_params)
+    navigation.success_url = cfg(
+        'payment.navigation.vax_success_url').format(query_params)
     navigation.cancel_url = cfg('payment.navigation.vax_cancel_url')
 
     return navigation
@@ -1431,16 +1441,7 @@ def __photo_id_pristine(patient_id, cert_id, cert_request: LookupGGVAddVaxCertRe
     date_of_birth = datetime.strptime(cert_request.dob, '%Y-%m-%d')
     ocr["first_name"] = 1 if cert_request.first_name.lower() in id_ocr_string else 0
     ocr["last_name"] = 1 if cert_request.last_name.lower() in id_ocr_string else 0
-    ocr["dob"] = 1 if (date_of_birth.strftime('%-m/%-d/%y') in id_ocr_string or date_of_birth.strftime(
-        '%m/%d/%y') in id_ocr_string or
-        date_of_birth.strftime('%-m/%-d/%Y') in id_ocr_string or date_of_birth.strftime(
-        '%m/%d/%Y') in id_ocr_string or
-        date_of_birth.strftime('%-m,%-d,%y') in id_ocr_string or date_of_birth.strftime(
-        '%b/%-d/%Y') in id_ocr_string or
-        date_of_birth.strftime('%-m-%-d-%y') in id_ocr_string or date_of_birth.strftime(
-        '%m-%d-%y') in id_ocr_string or
-        date_of_birth.strftime('%-m,%-d,%y') in id_ocr_string or date_of_birth.strftime(
-        '%b/%-d/%Y') in id_ocr_string) else 0
+    ocr["dob"] = 1 if match_the_date(date_of_birth, id_ocr_string) else 0
     # if (cert_request.first_name.lower() in id_ocr_string and
     #         cert_request.last_name.lower() in id_ocr_string and
     #         (date_of_birth.strftime('%-m/%-d/%y') in id_ocr_string or date_of_birth.strftime(
@@ -1453,87 +1454,121 @@ def __photo_id_pristine(patient_id, cert_id, cert_request: LookupGGVAddVaxCertRe
     #     return True
     # print("first_name, last_name or dob did not match in photo id ocr")
     # return False
-    return cert_request.first_name.lower() in id_ocr_string if (cert_request.first_name.lower() in id_ocr_string == cert_request.last_name.lower() in id_ocr_string) else (date_of_birth.strftime('%-m/%-d/%y') in id_ocr_string or date_of_birth.strftime(
-        '%m/%d/%y') in id_ocr_string or
-        date_of_birth.strftime('%-m/%-d/%Y') in id_ocr_string or date_of_birth.strftime(
-        '%m/%d/%Y') in id_ocr_string or
-        date_of_birth.strftime('%-m,%-d,%y') in id_ocr_string or date_of_birth.strftime(
-        '%b/%-d/%Y') in id_ocr_string)
+    return (cert_request.first_name.lower() in id_ocr_string) if ((cert_request.first_name.lower() in id_ocr_string) == (cert_request.last_name.lower() in id_ocr_string)) else match_the_date(date_of_birth, id_ocr_string)
 
 
 def __vax_card_pristine(patient_id, cert_id, cert_request: LookupGGVAddVaxCertRequest, ocr):
-    vax_ocr_string = __get_vax_card_ocr(patient_id, cert_id)
-    # vax_ocr_string = vax_ocr_string + " " + __get_vax_card_ocr_gcp(cert_request.vax_image_url)
-    log_generic(
-        type=c.INFO,
-        function=whoami(),
-        msg="PATIENT-CERTIFICATE-ADD-REQUEST-CERT-OCR-STRING",
-        ocr_string=str(vax_ocr_string)
-        # first_name=cert_request.first_name,
-        # last_name=cert_request.last_name,
-        # phone_number=cert_request.phone_number,
-        # email=cert_request.email,
-        # dob=cert_request.dob,
-        # vax_type=cert_request.vax_type,
-        # first_vax_dt=cert_request.first_vax_dt,
-        # vax_1_lot_number=cert_request.vax_1_lot_number,
-        # second_vax_dt=cert_request.second_vax_dt,
-        # vax_2_lot_number=cert_request.vax_2_lot_number,
-        # pristine_dob=cert_request.pristine.dob if cert_request.pristine else None,
-        # pristine_first_name=cert_request.pristine.first_name if cert_request.pristine else None,
-        # pristine_last_name=cert_request.pristine.last_name if cert_request.pristine else None,
-        # vax_image=1 if cert_request.vax_image else 0,
-        # id_image=1 if cert_request.id_image else 0,
-    )
-    first_vax_dt = datetime.strptime(cert_request.first_vax_dt, '%Y-%m-%d')
-    if cert_request.vax_2_lot_number != "" and cert_request.vax_2_lot_number is not None:
-        second_vax_dt = datetime.strptime(
-            cert_request.second_vax_dt, '%Y-%m-%d')
+    try:
+        vax_ocr_string = __get_vax_card_ocr(patient_id, cert_id)
+        # vax_ocr_string = vax_ocr_string + " " + __get_vax_card_ocr_gcp(cert_request.vax_image_url)
+        log_generic(
+            type=c.INFO,
+            function=whoami(),
+            msg="PATIENT-CERTIFICATE-ADD-REQUEST-CERT-OCR-STRING",
+            ocr_string=str(vax_ocr_string)
+            # first_name=cert_request.first_name,
+            # last_name=cert_request.last_name,
+            # phone_number=cert_request.phone_number,
+            # email=cert_request.email,
+            # dob=cert_request.dob,
+            # vax_type=cert_request.vax_type,
+            # first_vax_dt=cert_request.first_vax_dt,
+            # vax_1_lot_number=cert_request.vax_1_lot_number,
+            # second_vax_dt=cert_request.second_vax_dt,
+            # vax_2_lot_number=cert_request.vax_2_lot_number,
+            # pristine_dob=cert_request.pristine.dob if cert_request.pristine else None,
+            # pristine_first_name=cert_request.pristine.first_name if cert_request.pristine else None,
+            # pristine_last_name=cert_request.pristine.last_name if cert_request.pristine else None,
+            # vax_image=1 if cert_request.vax_image else 0,
+            # id_image=1 if cert_request.id_image else 0,
+        )
+        first_vax_dt = datetime.strptime(cert_request.first_vax_dt, '%Y-%m-%d')
+        if cert_request.vax_2_lot_number != "" and cert_request.vax_2_lot_number is not None:
+            second_vax_dt = datetime.strptime(
+                cert_request.second_vax_dt, '%Y-%m-%d')
 
-    ocr["vax_type"] = 1 if cert_request.vax_type.lower() in vax_ocr_string else 0
-    ocr["first_vax_dt"] = 1 if (first_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or first_vax_dt.strftime(
-        '%m/%d/%y') in vax_ocr_string or
-        first_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or first_vax_dt.strftime(
-        '%m/%d/%Y') in vax_ocr_string or
-        first_vax_dt.strftime('%-m,%-d,%y') in vax_ocr_string or first_vax_dt.strftime(
-        '%b/%-d/%Y') in vax_ocr_string) else 0
-    ocr["vax_1_lot_number"] = 1 if cert_request.vax_1_lot_number.strip(
-        "0").lower() in vax_ocr_string else 0
-    if cert_request.vax_2_lot_number != "" and cert_request.vax_2_lot_number is not None:
-        ocr["second_vax_dt"] = 1 if (second_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or second_vax_dt.strftime(
-            '%m/%d/%y') in vax_ocr_string or
-            second_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or second_vax_dt.strftime(
-            '%m/%d/%Y') in vax_ocr_string
-            or second_vax_dt.strftime(
-            '%-m,%-d,%Y') in vax_ocr_string or second_vax_dt.strftime('%b/%-d/%Y') in vax_ocr_string) else 0
-        ocr["vax_2_lot_number"] = 1 if cert_request.vax_2_lot_number.strip(
+        ocr["vax_type"] = 1 if cert_request.vax_type.lower() in vax_ocr_string else 0
+        ocr["first_vax_dt"] = 1 if match_the_date(
+            first_vax_dt, vax_ocr_string) else 0
+        ocr["vax_1_lot_number"] = 1 if cert_request.vax_1_lot_number.strip(
             "0").lower() in vax_ocr_string else 0
-    if (cert_request.vax_2_lot_number != "" and cert_request.vax_2_lot_number is not None):
-        return True if (cert_request.vax_type.lower() in vax_ocr_string or
-                        (first_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or first_vax_dt.strftime(
-                            '%m/%d/%y') in vax_ocr_string or
-                         first_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or first_vax_dt.strftime(
-                            '%m/%d/%Y') in vax_ocr_string or
-                         first_vax_dt.strftime('%-m,%-d,%y') in vax_ocr_string or first_vax_dt.strftime(
-                            '%b/%-d/%Y') in vax_ocr_string) or
-                        cert_request.vax_1_lot_number.strip("0").lower() in vax_ocr_string) and ((second_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or second_vax_dt.strftime(
-                            '%m/%d/%y') in vax_ocr_string or
-                            second_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or second_vax_dt.strftime(
-                            '%m/%d/%Y') in vax_ocr_string
-                            or second_vax_dt.strftime('%-m,%-d,%Y') in vax_ocr_string or second_vax_dt.strftime(
-                            '%b/%-d/%Y') in vax_ocr_string) or
-            cert_request.vax_2_lot_number.strip("0").lower() in vax_ocr_string) else False
+        if cert_request.vax_2_lot_number != "" and cert_request.vax_2_lot_number is not None:
+            ocr["second_vax_dt"] = 1 if match_the_date(
+                second_vax_dt, vax_ocr_string) else 0
+            ocr["vax_2_lot_number"] = 1 if cert_request.vax_2_lot_number.strip(
+                "0").lower() in vax_ocr_string else 0
+        if (cert_request.vax_2_lot_number != "" and cert_request.vax_2_lot_number is not None):
+            return True if (cert_request.vax_type.lower() in vax_ocr_string or
+                            match_the_date(first_vax_dt, vax_ocr_string) or
+                            cert_request.vax_1_lot_number.strip("0").lower() in vax_ocr_string) and (cert_request.vax_type.lower() in vax_ocr_string or
+                                                                                                     match_the_date(second_vax_dt, vax_ocr_string) or
+                                                                                                     cert_request.vax_2_lot_number.strip("0").lower() in vax_ocr_string) else False
 
-    elif (cert_request.vax_2_lot_number == "" or cert_request.vax_2_lot_number is None):
-        return True if (cert_request.vax_type.lower() in vax_ocr_string or
-                        (first_vax_dt.strftime('%-m/%-d/%y') in vax_ocr_string or first_vax_dt.strftime(
-                            '%m/%d/%y') in vax_ocr_string or
-                         first_vax_dt.strftime('%-m/%-d/%Y') in vax_ocr_string or first_vax_dt.strftime(
-                            '%m/%d/%Y') in vax_ocr_string or
-                         first_vax_dt.strftime('%-m,%-d,%y') in vax_ocr_string or first_vax_dt.strftime(
-                            '%b/%-d/%Y') in vax_ocr_string) or
-                        cert_request.vax_1_lot_number.strip("0").lower() in vax_ocr_string) else False
-    # return False
+        elif (cert_request.vax_2_lot_number == "" or cert_request.vax_2_lot_number is None):
+            return True if (cert_request.vax_type.lower() in vax_ocr_string or
+                            match_the_date(first_vax_dt, vax_ocr_string) or
+                            cert_request.vax_1_lot_number.strip("0").lower() in vax_ocr_string) else False
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            patient_id=patient_id,
+            function=whoami(),
+            error=err
+        )
+
+
+def match_the_date(date, ocr_string):
+    id_ocr_string = ocr_string
+    dob_month = int(date.strftime('%-m'))
+    dob_day = int(date.strftime('%-d'))
+    dob_year = int(date.strftime('%Y'))
+    dob_month_str = ""
+    if dob_month < 10:
+        dob_month_str += "(" + str(dob_month) + \
+            "@|0@\s*" + str(dob_month) + "@)"
+    else:
+        dob_month_str = str(int(dob_month / 10)) + \
+            "@\s*" + str(dob_month % 10) + "@"
+    dob_month_str = dob_month_str.replace("0", "[o0]").replace(
+        "1", "[1il\/]").replace("@", "{1}")
+    dob_day_str = ""
+    if dob_day < 10:
+        dob_day_str += "(" + str(dob_day) + "@|0@\s*" + str(dob_day) + "@)"
+    else:
+        dob_day_str = str(int(dob_day / 10)) + "@\s*" + str(dob_day % 10) + "@"
+    dob_day_str = dob_day_str.replace("0", "[o0]").replace(
+        "1", "[1il\/]").replace("@", "{1}")
+    dob_cent = 20
+    if (dob_year > 100):
+        dob_cent = int(dob_year / 100)
+        dob_year = dob_year % 100
+    dob_cent_str = ""
+    if dob_cent < 10:
+        dob_cent_str += "(" + str(dob_cent) + "@|0@\s*" + str(dob_cent) + "@)"
+    else:
+        dob_cent_str = str(int(dob_cent / 10)) + "@\s*" + \
+            str(dob_cent % 10) + "@"
+    dob_cent_str = dob_cent_str.replace("0", "[o0]").replace(
+        "1", "[1il\/]").replace("@", "{1}")
+    dob_year_str = ""
+    if dob_year < 10:
+        dob_year_str += "(" + str(dob_year) + "@|0@\s*" + str(dob_year) + "@)"
+    else:
+        dob_year_str = str(int(dob_year / 10)) + "@\s*" + \
+            str(dob_year % 10) + "@"
+    dob_year_str = dob_year_str.replace("0", "[o0]").replace(
+        "1", "[1il\/]").replace("@", "{1}")
+    regexstr = "\s*" + dob_month_str + "\s*[1il\/\.\-\\\\]{1}\s*" + dob_day_str + \
+        "\s*[1il\/\.\-\\\\]{1}\s*(" + dob_year_str + "|" + \
+        dob_cent_str + "\s*" + dob_year_str + "){1}"
+    print("ocr:" + id_ocr_string)
+    print("Regex:" + regexstr)
+    if re.search(regexstr, id_ocr_string, re.IGNORECASE):
+        print("it is a match")
+        return True
+    else:
+        return False
 
 
 def __update_ocr_status(patient_id, first_name, last_name, vax_type, dob, cert1_id, first_vax_dt, vax_1_lot_number,
@@ -2577,7 +2612,6 @@ def send_ggv_certificate_level_1_sms(first_name, phone_number, level):
             first_name,
         )
         promo_message = "Share this unique link with family & friends so they can get their digital cards too:\nhttps://www.gogetdoc.com/vaxyes"
-        
 
     if send_sms(phone_number, message.replace('\t', '')):
         log_generic(
