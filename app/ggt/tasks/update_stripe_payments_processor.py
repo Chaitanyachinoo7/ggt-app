@@ -13,8 +13,9 @@ from ggt.models.process_models.bp_payment import bp_get_checkout_session
 def update_stripe_payments():
     selected_ids = []
     notification_queue = []
-    print("****************************** START ******************************")
+    print("****************************** START - PAYMENT ******************************")
     appointments = get_scheduled_paid_appointments()
+    print('APPOINTMENTS - {}'.format(appointments))
     for a in appointments:
         try:
             appointment_id = a['id']
@@ -32,6 +33,7 @@ def update_stripe_payments():
                 notification_queue.append(temp)
 
         except Exception as err:
+            print('PAYMENT PROCESS ERROR')
             print(err)
 
     updated = update_appointments_stripe(selected_ids)
