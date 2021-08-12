@@ -25,6 +25,8 @@ def __init_config(path_to_file):
         envs = yaml.safe_load(f.read())
         stage = envs['env']
         secret_name = envs['secret_name']
+        print('*******************ENVIRONMENT***************** - {}'.format(stage))
+        print('*******************SECRET NAME***************** - {}'.format(secret_name))
         return get_secret_value(secret_name, stage)
 
 #__init_logging_config(log_config_file)
