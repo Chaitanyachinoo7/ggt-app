@@ -13,14 +13,13 @@ from ggt.models.process_models.bp_payment import bp_get_checkout_session
 def update_stripe_payments():
     selected_ids = []
     notification_queue = []
-    print("****************************** START ******************************")
+    print("****************************** START - PAYMENT ******************************")
     appointments = get_scheduled_paid_appointments()
     for a in appointments:
         try:
             appointment_id = a['id']
             payment_session = a['payment_session']
             wp_receipt_token = a['wp_receipt_token']
-
             res = bp_get_checkout_session(payment_session)
 
             if (res and 'payment_status' in res.keys()) and res['payment_status'] == 'paid':
@@ -30,14 +29,17 @@ def update_stripe_payments():
                 }
                 selected_ids.append(appointment_id)
                 notification_queue.append(temp)
+            else:
+                update_failed_record(appointment_id, a['retries'] + 1)
 
         except Exception as err:
+            print('PAYMENT PROCESS ERROR')
             print(err)
 
     updated = update_appointments_stripe(selected_ids)
     print("*. IDs updated {}".format(updated))
     notify_patients(notification_queue)
-    print("******************************* END *******************************")
+    print("******************************* END - PAYMENT *******************************")
 
 
 def get_scheduled_paid_appointments():
@@ -45,7 +47,7 @@ def get_scheduled_paid_appointments():
             SELECT * FROM
                     appointments
                     WHERE
-                    status = %s AND payment_session IS NOT NULL"""
+                    status = %s AND payment_session IS NOT NULL AND retries < 2 LIMIT 50"""
 
     values = ('pending', )
     return replica_read_rows(sql, values)
@@ -61,6 +63,16 @@ def update_appointments_stripe(id_list):
                     WHERE id IN {}""".format(str(tuple(id_list)))
     values = ('scheduled',)
     return exec_update(sql, values)
+
+
+def update_failed_record(rec_id, retries):
+    sql = """UPDATE appointments 
+                        SET 
+                            retries = %s
+                        WHERE id = %s"""
+    values = (retries, rec_id)
+    return exec_update(sql, values)
+
 
 
 def notify_patients(notification_queue):
