@@ -78,6 +78,13 @@ pipelines:
             - docker tag ggt-api-lambda:dev 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:dev
             - docker push 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:dev
             - aws lambda update-function-code --region us-east-2 --function-name ggt-dev-api-lambda --image-uri 135292740376.dkr.ecr.us-east-2.amazonaws.com/ggt-api-lambda:dev
+            - >
+              docker run
+              --rm
+              -e SONAR_HOST_URL="${SONARQUBE_URL}"
+              -e SONAR_LOGIN="${SONAR_LOGIN}"
+              -v "${BITBUCKET_CLONE_DIR}:/usr/src"
+              sonarsource/sonar-scanner-cli
 
 
 
