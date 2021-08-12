@@ -20,7 +20,6 @@ def update_stripe_payments():
             appointment_id = a['id']
             payment_session = a['payment_session']
             wp_receipt_token = a['wp_receipt_token']
-
             res = bp_get_checkout_session(payment_session)
 
             if (res and 'payment_status' in res.keys()) and res['payment_status'] == 'paid':
@@ -46,7 +45,7 @@ def get_scheduled_paid_appointments():
             SELECT * FROM
                     appointments
                     WHERE
-                    status = %s AND payment_session IS NOT NULL LIMIT 10"""
+                    status = %s AND payment_session IS NOT NULL LIMIT 100"""
 
     values = ('pending', )
     return replica_read_rows(sql, values)
