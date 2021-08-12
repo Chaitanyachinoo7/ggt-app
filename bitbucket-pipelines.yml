@@ -2,6 +2,20 @@ image: python:3.7.2
 
 pipelines:
   branches:
+    default: # Default will run at each PR
+      - step:
+          name: Test and Sonar Stage
+          deployment: development
+          caches:
+            - docker
+          script:
+            - >
+              docker run
+              --rm
+              -e SONAR_HOST_URL="${SONARQUBE_URL}"
+              -e SONAR_LOGIN="${SONAR_LOGIN}"
+              -v "${BITBUCKET_CLONE_DIR}:/usr/src"
+              sonarsource/sonar-scanner-cli
     dev2:
 #      - step:
 #          name: DEV2 Testing
