@@ -24,7 +24,10 @@ class ServiceCodesEnum(str, Enum):
     covid_19_vax_moderna_1 = 'COVID_19_VACCINE_MODERNA_1'
     covid_19_vax_moderna_2 = 'COVID_19_VACCINE_MODERNA_2'
     covid_19_vax_jnj = 'COVID_19_VACCINE_JNJ'
-
+    covid_19_vax_novavax_1 = 'COVID_19_VACCINE_NOVAVAX_1'
+    covid_19_vax_novavax_2 = 'COVID_19_VACCINE_NOVAVAX_2'
+    covid_19_vax_az_1 = 'COVID_19_VACCINE_AZ_1'
+    covid_19_vax_az_2 = 'COVID_19_VACCINE_AZ_2'
 
 class LocationToServiceMap(BaseModel):
     location_id: str = None
@@ -1070,7 +1073,10 @@ class ServiceCodes(BaseModel):
     covid_19_vax_moderna_1: bool = False
     covid_19_vax_moderna_2: bool = False
     covid_19_vax_jnj: bool = False
-
+    covid_19_vax_novavax_1: bool = False
+    covid_19_vax_novavax_2: bool = False
+    covid_19_vax_az_1: bool = False
+    covid_19_vax_az_2: bool = False
 
 class GgtBooking(BaseModel):
     token: str = None
