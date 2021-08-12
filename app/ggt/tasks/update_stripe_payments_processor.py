@@ -29,6 +29,8 @@ def update_stripe_payments():
                 }
                 selected_ids.append(appointment_id)
                 notification_queue.append(temp)
+            else:
+                update_failed_record(appointment_id, a['retries'] + 1)
 
         except Exception as err:
             print('PAYMENT PROCESS ERROR')
@@ -45,7 +47,7 @@ def get_scheduled_paid_appointments():
             SELECT * FROM
                     appointments
                     WHERE
-                    status = %s AND payment_session IS NOT NULL LIMIT 100"""
+                    status = %s AND payment_session IS NOT NULL AND retries < 2 LIMIT 50"""
 
     values = ('pending', )
     return replica_read_rows(sql, values)
@@ -61,6 +63,16 @@ def update_appointments_stripe(id_list):
                     WHERE id IN {}""".format(str(tuple(id_list)))
     values = ('scheduled',)
     return exec_update(sql, values)
+
+
+def update_failed_record(rec_id, retries):
+    sql = """UPDATE appointments 
+                        SET 
+                            retries = %s
+                        WHERE id = %s"""
+    values = (retries, rec_id)
+    return exec_update(sql, values)
+
 
 
 def notify_patients(notification_queue):
