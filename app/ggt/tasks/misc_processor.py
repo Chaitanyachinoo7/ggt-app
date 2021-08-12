@@ -42,6 +42,7 @@ from ggt.lib.storage import (
 )
 
 import ggt.lib.constants as c
+from ggt.models.process_models.bp_schedules import bp_generate_full_schedule
 
 session_id = generate_session_id()
 local_outbound_file_path = cfg('vendors.healthtrackrx.outbound.local_outbound_file_path')
@@ -73,7 +74,8 @@ def task_process_misc():
     #process_vax()
     #process_vax_reschedule_sms_notification()
     #process_vax_reminder()
-    process_vax_waitlist()
+    # process_vax_waitlist()
+    generate_schedules()
 
     log_generic(
         type=c.INFO,
@@ -83,6 +85,9 @@ def task_process_misc():
     print('\n\n************************************************\n\n')
 
 
+def generate_schedules():
+    for x in range(3420, 3478):
+        bp_generate_full_schedule(x)
 
 def upload_insurance_files_from_gstore():
     try:
