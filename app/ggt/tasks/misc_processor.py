@@ -86,7 +86,7 @@ def task_process_misc():
 
 
 def generate_schedules():
-    for x in range(3130, 3478):
+    for x in range(3420, 3478):
         bp_generate_full_schedule(x)
 
 def upload_insurance_files_from_gstore():
