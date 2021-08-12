@@ -16,7 +16,7 @@ from ggt.lib.constants import (
     SUCCESS,
     DESCRIPTION,
     BACKGROUND_TASK_INITIATE_MESSAGE,
-    AUTH_FAILED_MESSAGE
+    AUTH_FAILED_MESSAGE, FAILED
 )
 from ggt.tasks.archive_notifications import archive_processed_notifications
 from ggt.tasks.generate_antigen_result_pdf import generate_antigen_results_pdf
@@ -257,11 +257,20 @@ async def rebuild_third_party_group_codes_from_appsheet():
 
 @router.post("/process_appointments_against_stripe", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_process_appointments_against_stripe(background_tasks: BackgroundTasks):
-    # background_tasks.add_task(update_stripe_payments)
-    return {
-        STATUS: SUCCESS,
-        DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
-    }
+    try:
+        print('BEFORE STARTING BACKGROUND TASK')
+        background_tasks.add_task(update_stripe_payments)
+        print('AFTER STARTING BACKGROUND TASK')
+        return {
+            STATUS: SUCCESS,
+            DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
+        }
+    except Exception as err:
+        print('ERROR INITIATING BACKGROUND TASK - {}'.format(err))
+        return {
+            STATUS: FAILED,
+            DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
+        }
 
 
 @router.post("/generate_antigen_results_pdf", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
