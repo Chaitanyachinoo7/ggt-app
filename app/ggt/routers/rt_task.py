@@ -257,7 +257,7 @@ async def rebuild_third_party_group_codes_from_appsheet():
 
 @router.post("/process_appointments_against_stripe", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_process_appointments_against_stripe(background_tasks: BackgroundTasks):
-    background_tasks.add_task(update_stripe_payments)
+    # background_tasks.add_task(update_stripe_payments)
     return {
         STATUS: SUCCESS,
         DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE
