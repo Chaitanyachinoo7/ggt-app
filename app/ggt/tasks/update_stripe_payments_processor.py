@@ -14,31 +14,31 @@ def update_stripe_payments():
     selected_ids = []
     notification_queue = []
     print("****************************** START - PAYMENT ******************************")
-    # appointments = get_scheduled_paid_appointments()
-    # for a in appointments:
-    #     try:
-    #         appointment_id = a['id']
-    #         payment_session = a['payment_session']
-    #         wp_receipt_token = a['wp_receipt_token']
-    #
-    #         res = bp_get_checkout_session(payment_session)
-    #
-    #         if (res and 'payment_status' in res.keys()) and res['payment_status'] == 'paid':
-    #             temp = {
-    #                 'appointment_id': appointment_id,
-    #                 'wp_receipt_token': wp_receipt_token
-    #             }
-    #             selected_ids.append(appointment_id)
-    #             notification_queue.append(temp)
-    #
-    #     except Exception as err:
-    #         print('PAYMENT PROCESS ERROR')
-    #         print(err)
-    #
-    # updated = update_appointments_stripe(selected_ids)
-    # print("*. IDs updated {}".format(updated))
-    # notify_patients(notification_queue)
-    print("******************************* END *******************************")
+    appointments = get_scheduled_paid_appointments()
+    for a in appointments:
+        try:
+            appointment_id = a['id']
+            payment_session = a['payment_session']
+            wp_receipt_token = a['wp_receipt_token']
+
+            res = bp_get_checkout_session(payment_session)
+
+            if (res and 'payment_status' in res.keys()) and res['payment_status'] == 'paid':
+                temp = {
+                    'appointment_id': appointment_id,
+                    'wp_receipt_token': wp_receipt_token
+                }
+                selected_ids.append(appointment_id)
+                notification_queue.append(temp)
+
+        except Exception as err:
+            print('PAYMENT PROCESS ERROR')
+            print(err)
+
+    updated = update_appointments_stripe(selected_ids)
+    print("*. IDs updated {}".format(updated))
+    notify_patients(notification_queue)
+    print("******************************* END - PAYMENT *******************************")
 
 
 def get_scheduled_paid_appointments():
@@ -46,7 +46,7 @@ def get_scheduled_paid_appointments():
             SELECT * FROM
                     appointments
                     WHERE
-                    status = %s AND payment_session IS NOT NULL"""
+                    status = %s AND payment_session IS NOT NULL LIMIT 10"""
 
     values = ('pending', )
     return replica_read_rows(sql, values)
