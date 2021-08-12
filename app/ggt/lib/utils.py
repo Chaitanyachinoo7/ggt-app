@@ -17,7 +17,7 @@ import pyotp
 
 import ggt.lib.constants as c
 from ggt.configs.config_loader import cfg
-from ggt.configs.lang_loader import  load_languages
+from ggt.configs.lang_loader import load_languages
 # TODO: Enahance logging context with user session and client device/ip info etc.
 from ggt.models.data_models.data_types import User
 
