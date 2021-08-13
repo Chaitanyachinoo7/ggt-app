@@ -1019,6 +1019,10 @@ def __get_brand(service_code):
         return "Moderna"
     elif service_code == c.SERVICE_CODE_COVID_19_VACCINE_JNJ:
         return "J & J"
+    elif service_code == c.SERVICE_CODE_COVID_19_VACCINE_NOVAVAX_1 or service_code == c.SERVICE_CODE_COVID_19_VACCINE_NOVAVAX_2:
+        return "Novavax"
+    elif service_code == c.SERVICE_CODE_COVID_19_VACCINE_AZ_1 or service_code == c.SERVICE_CODE_COVID_19_VACCINE_AZ_2:
+        return "AstraZeneca"
     else:
         return ""
 
@@ -1358,6 +1362,21 @@ def __add_services_to_appointment(appointment_id: int, appointment_req: GgtBooki
             add_service_to_appointment(
                 appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_2)
 
+        if appointment_req.services.covid_19_vax_novavax_1 and ggv_slot == 1:
+            add_service_to_appointment(
+                appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_NOVAVAX_1)
+
+        if appointment_req.services.covid_19_vax_novavax_2 and ggv_slot == 2:
+            add_service_to_appointment(
+                appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_NOVAVAX_2)
+        if appointment_req.services.covid_19_vax_az_1 and ggv_slot == 1:
+            add_service_to_appointment(
+                appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_AZ_1)
+
+        if appointment_req.services.covid_19_vax_az_2 and ggv_slot == 2:
+            add_service_to_appointment(
+                appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_AZ_2)
+                
         if appointment_req.services.covid_19_test:
             add_service_to_appointment(
                 appointment_id, c.SERVICE_CODE_COVID19_TEST)

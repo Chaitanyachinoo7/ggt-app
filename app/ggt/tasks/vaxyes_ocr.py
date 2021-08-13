@@ -99,6 +99,10 @@ def get_pristine_req(certs, patient_id):
         vax_type = "moderna"
     elif "JNJ" in certs[0]["service_code"]:
         vax_type = "janssen"
+    elif "NOVAVAX" in certs[0]["service_code"]:
+        vax_type = "novavax"
+    elif "AZ" in certs[0]["service_code"]:
+        vax_type = "az"
     req = lambda: None
     req.first_name = certs[0]["first_name"]
     req.last_name = certs[0]["last_name"]

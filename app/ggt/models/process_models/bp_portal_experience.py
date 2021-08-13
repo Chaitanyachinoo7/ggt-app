@@ -625,6 +625,10 @@ def __group_vax_results(results):
                 dict(result, service=result["service_code"]))
         if result["service_code"] in [c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_1,
                                       c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_2,
+                                      c.SERVICE_CODE_COVID_19_VACCINE_NOVAVAX_1,
+                                      c.SERVICE_CODE_COVID_19_VACCINE_NOVAVAX_2,
+                                      c.SERVICE_CODE_COVID_19_VACCINE_AZ_1,
+                                      c.SERVICE_CODE_COVID_19_VACCINE_AZ_2,
                                       c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_1,
                                       c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_2,
                                       c.SERVICE_CODE_COVID_19_VACCINE_JNJ]:
@@ -773,6 +777,14 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
 
     if vax_type.lower() == 'janssen':
         vax_code_1 = c.SERVICE_CODE_COVID_19_VACCINE_JNJ
+
+    if vax_type.lower() == 'novavax':
+        vax_code_1 = c.SERVICE_CODE_COVID_19_VACCINE_NOVAVAX_1
+        vax_code_2 = c.SERVICE_CODE_COVID_19_VACCINE_NOVAVAX_2
+
+    if vax_type.lower() == 'az':
+        vax_code_1 = c.SERVICE_CODE_COVID_19_VACCINE_AZ_1
+        vax_code_2 = c.SERVICE_CODE_COVID_19_VACCINE_AZ_2
 
     patients.delete_cert(patient_id)
 

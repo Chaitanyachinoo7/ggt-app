@@ -2360,6 +2360,10 @@ def __generate_ggv_appointments(booking_req: GgtBooking, selected_services):
 def __is_dual_dose(selected_services):
     if selected_services[0] == c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_1 or \
             selected_services[0] == c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_1 or \
+            selected_services[0] == c.SERVICE_CODE_COVID_19_VACCINE_NOVAVAX_1 or \
+            selected_services[0] == c.SERVICE_CODE_COVID_19_VACCINE_AZ_1 or \
+            selected_services[0] == c.SERVICE_CODE_COVID_19_VACCINE_AZ_2 or \
+            selected_services[0] == c.SERVICE_CODE_COVID_19_VACCINE_NOVAVAX_2 or \
             selected_services[0] == c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_2 or \
             selected_services[0] == c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_2:
         return True
