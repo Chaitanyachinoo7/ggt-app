@@ -249,6 +249,25 @@ def reject_certificate(cert_ids):
         return None
 
 
+def reject_certificate_v2(cert_ids):
+    try:
+        placeholders = ','.join(['%s'] * len(cert_ids))
+
+        sql = """UPDATE ggv_certificates
+            SET rejected = 1
+        WHERE id in ({})""".format(placeholders)
+        vals = (cert_ids)
+        return exec_update(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 def get_phone_number_by_certificate_id(cert_id):
     try:
         sql = """SELECT
@@ -479,6 +498,12 @@ def get_patient_by_id(id):
     return read_row(sql)
 
 
+def get_patient_by_id_v2(id):
+    sql = """SELECT phone_number, dob, first_name, last_name FROM patients where id = %s"""
+    vals = (id,)
+    return read_row(sql, vals)
+
+
 def lookup_certificate(phone_number, dob, first_name, last_name, version=1, token=None, verification_level=None, limit=None,
                        offset=None, user=None, is_unverified=False):
     try:
@@ -537,6 +562,89 @@ def lookup_certificate(phone_number, dob, first_name, last_name, version=1, toke
                     WHERE {}""".format(where_statement)
         print(sql)
         rows = read_rows(sql)
+        return __format_vax_certificate_portal(rows, version, is_unverified), "No certificate found."
+
+    except Exception as err:
+        print(err)
+        log_generic(
+            type=c.ERROR,
+            msg='LOOKUP-CERTIFICATE-REQUEST-ERROR-DB',
+            first_name=first_name,
+            last_name=last_name,
+            dob=dob,
+            phone_number=phone_number,
+            admin=user,
+            function=whoami(),
+            error=err
+        )
+    return None, None
+
+
+def lookup_certificate_v2(phone_number, dob, first_name, last_name, version=1, token=None, verification_level=None, limit=None,
+                       offset=None, user=None, is_unverified=False):
+    try:
+        vals = ()
+        where_statement = "gc.rejected = 0 AND gc.lock_time < NOW()"
+        if is_unverified and version == 1:
+            where_statement = "{} AND date(p.create_dt) > '2021-05-25'".format(where_statement)
+        if phone_number or phone_number != "":
+            where_statement = "{} AND p.phone_number LIKE %s".format(where_statement)
+            vals += ('%{}%'.format(phone_number),)
+        if dob or dob != "":
+            where_statement = "{} AND date(p.dob) = %s".format(
+                where_statement, dob)
+            vals += (dob,)
+        if first_name or first_name != "":
+            where_statement = "{} AND p.first_name LIKE %s".format(
+                where_statement)
+            vals += ('%{}%'.format(first_name.strip()),)
+        if last_name or last_name != "":
+            where_statement = "{} AND p.last_name LIKE %s".format(
+                where_statement)
+            vals += ('%{}%'.format(last_name.strip()),)
+        if token:
+            where_statement = "{} AND p.result_token = %s AND p.token_expire > NOW()".format(
+                where_statement)
+            vals += (token,)
+        if verification_level:
+            where_statement = "{} AND gc.verification_level = %s".format(
+                where_statement, verification_level)
+            vals += (verification_level,)
+
+        if version == 2:
+            where_statement = "{} AND ggv_ocr.first_name =1 AND ggv_ocr.last_name =1".format(
+                where_statement)
+
+        if limit and offset is not None:
+            where_statement = "{} ORDER BY p.id ASC LIMIT {} OFFSET {}".format(where_statement, limit, offset)
+
+        sql = """SELECT 
+                    gc.*,
+                    p.first_name,
+                    p.last_name,
+                    p.dob,
+                    p.phone_number,
+                   date(gc.check_in_dt) AS appointment_date,
+                   ggv_ocr.patient_id as ocr_patient_id,
+                   ggv_ocr.first_name as ocr_first_name,
+                   ggv_ocr.last_name as ocr_last_name,
+                   ggv_ocr.vax_type as ocr_vax_type,
+                   ggv_ocr.dob as ocr_dob,
+                   ggv_ocr.cert1_id as ocr_cert1_id,
+                   ggv_ocr.first_vax_dt as ocr_first_vax_dt,
+                   ggv_ocr.vax_1_lot_number as ocr_vax_1_lot_number,
+                   ggv_ocr.cert2_id as ocr_cert2_id,
+                   ggv_ocr.second_vax_dt as ocr_second_vax_dt,
+                   ggv_ocr.vax_2_lot_number as ocr_vax_2_lot_number
+                FROM
+                    patients p
+                        JOIN
+                    ggv_certificates gc ON p.id = gc.patient_id
+                        LEFT JOIN
+                    ggv_certificates_ocr ggv_ocr ON p.id = ggv_ocr.patient_id
+                    WHERE {}""".format(where_statement)
+        print(sql)
+        rows = read_rows(sql, vals)
         return __format_vax_certificate_portal(rows, version, is_unverified), "No certificate found."
 
     except Exception as err:

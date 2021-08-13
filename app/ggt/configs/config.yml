@@ -4,8 +4,9 @@ log_level: DEBUG
 base_url: https://start-dev.GoGetTested.com
 portal_url: https://portal-dev.gogettested.com
 ops_url: https://ops-dev.gogettested.com
-env: TEST
+env: LOCAL
 default_timezone: CST
+secret_name: 'abc'
 
 server:
   host: 0.0.0.0
@@ -93,7 +94,7 @@ databases:
     read_replica_host: ggt-dev-db.cluster-ro-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
     username: admin
     password: hWMgl5Tfkqn30saQNp9M
-    db: ggt_test
+    db: ggt_prod
 
 
   sqlite:
