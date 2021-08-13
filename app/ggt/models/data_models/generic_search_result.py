@@ -463,54 +463,50 @@ def find_patients_by_patient_ids(patient_ids):
 def find_patients_in_vax_waitlist(data):
     try:
         where_conditions = "1=1"
+        vals = ()
         if data.first_name != '':
-            where_conditions = "{} AND p.first_name LIKE '%{}%'".format(
-                where_conditions, data.first_name)
+            where_conditions += " AND p.first_name LIKE %s"
+            vals += ("%" + data.first_name + "%",)
         if data.middle_name != '':
-            where_conditions = "{} AND p.middle_name LIKE '%{}%'".format(
-                where_conditions, data.middle_name)
+            where_conditions += " AND p.middle_name LIKE %s"
+            vals += ("%" + data.middle_name + "%",)
         if data.last_name != '':
-            where_conditions = "{} AND p.last_name LIKE '%{}%'".format(
-                where_conditions, data.last_name)
+            where_conditions += " AND p.last_name LIKE %s"
+            vals += ("%" + data.last_name + "%",)
         if data.dob != '':
-            where_conditions = "{} AND p.dob = '{}'".format(
-                where_conditions, data.dob)
+            where_conditions += " AND p.dob = %s"
+            vals += (data.dob,)
         if data.phone_number != '':
-            where_conditions = "{} AND p.phone_number LIKE '%{}%'".format(
-                where_conditions, data.phone_number)
+            where_conditions += " AND p.phone_number LIKE %s"
+            vals += ("%" + data.phone_number + "%",)
         if data.email != '':
-            where_conditions = "{} AND p.email LIKE '%{}%'".format(
-                where_conditions, data.email)
+            where_conditions += " AND p.email LIKE %s"
+            vals += ("%" + data.email + "%",)
         if data.heart_disease:
-            where_conditions = "{} AND q.heart_disease=1".format(
-                where_conditions)
+            where_conditions += " AND q.heart_disease=1"
         if data.diabetes:
-            where_conditions = "{} AND q.diabetes=1".format(where_conditions)
+            where_conditions += " AND q.diabetes=1"
         if data.respiratory_diseases:
-            where_conditions = "{} AND q.respiratory_diseases=1".format(
-                where_conditions)
+            where_conditions += " AND q.respiratory_diseases=1"
         if data.autoimmune_disease:
-            where_conditions = "{} AND q.autoimmune_disease=1".format(
-                where_conditions)
+            where_conditions += " AND q.autoimmune_disease=1"
         if data.other_chronic:
-            where_conditions = "{} AND q.other_chronic=1".format(
-                where_conditions)
+            where_conditions += " AND q.other_chronic=1"
         if data.allergies:
-            where_conditions = "{} AND q.allergies=1".format(where_conditions)
+            where_conditions += " AND q.allergies=1"
         if data.prescription_use:
-            where_conditions = "{} AND q.prescription_use=1".format(
-                where_conditions)
+            where_conditions += " AND q.prescription_use=1"
         if data.status != VaxPreRegStatusEnum.any:
-            where_conditions = "{} AND vpr.status='{}'".format(
-                where_conditions, data.status)
+            where_conditions += " AND vpr.status=%s"
+            vals += (data.status,)
 
         having_conditions = "1=1"
         if data.min_age:
-            having_conditions = "{} AND age >= '{}'".format(
-                having_conditions, data.min_age)
+            having_conditions += " AND age >= %s"
+            vals += (data.min_age,)
         if data.max_age:
-            having_conditions = "{} AND age <= '{}'".format(
-                having_conditions, data.max_age)
+            having_conditions += " AND age <= %s"
+            vals += (data.max_age,)
 
         if data.sort_field in ["first_name", "middle_name", "last_name", "age", "signed_up_dt"]:
             sort_field = data.sort_field
@@ -599,7 +595,7 @@ def find_patients_in_vax_waitlist(data):
         LIMIT {} OFFSET {}
         """.format(where_conditions, having_conditions, sort_field, data.sort, data.limit, data.offset)
         
-        return replica_read_rows(sql)
+        return replica_read_rows(sql, vals)
 
     except Exception as err:
         log_generic(
