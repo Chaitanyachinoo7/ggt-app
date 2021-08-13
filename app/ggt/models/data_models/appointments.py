@@ -6,7 +6,9 @@ import ggt.lib.constants as c
 
 from ggt.lib.utils import (
     log_generic,
-    whoami
+    whoami,
+    is_empty_value,
+    is_non_empty_value
 )
 
 from ggt.lib.db import (
@@ -124,6 +126,49 @@ def add_service_to_appointment(appointment_id: int, service_code: str) -> bool:
     return False
 
 
+def add_service_to_appointment_v2(appointment_id: int, service_code: str) -> bool:
+    try:
+        sql = """
+        INSERT INTO appointment_services
+        (
+            appointment_id,
+            service_id,
+            service_description,
+            price,
+            selfpay_amount,
+            copay_amount,
+            insurance_amount
+        )
+        SELECT
+            %s as appointment_id,
+            id as service_id,
+            service_name,
+            price,
+            selfpay_amount,
+            copay_amount,
+            insurance_amount
+        FROM
+            services_catalog
+        WHERE
+            service_code = %s
+
+        """
+        vals = (appointment_id, service_code)
+        if exec_insert(sql, vals):
+            return True
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            appointment_id=appointment_id,
+            service_code=service_code,
+            error=err
+        )
+
+    return False
+
+
 def get_appointment(appointment_id: int, org_id=None) -> GgtAppointment:
     where_statement = "a.id = {}".format(appointment_id)
     if org_id:
@@ -191,6 +236,76 @@ def get_appointment(appointment_id: int, org_id=None) -> GgtAppointment:
     return None
 
 
+def get_appointment_v2(appointment_id: int, org_id=None) -> GgtAppointment:
+
+    where_clause = "a.id = %s"
+    vals = (appointment_id, )
+    if is_non_empty_value(org_id):
+        where_clause += ' AND org.id = %s '
+        vals = vals + (org_id, )
+
+    try:
+        sql = """
+        SELECT
+            a.*,
+            l.addr1 AS location_addr1,
+            l.addr2 AS location_addr2,
+            l.city AS location_city,
+            l.st AS location_st,
+            l.zip AS location_zip,
+            l.lat,
+            l.lng,
+            p.dob AS patient_dob,
+            p.first_name AS patient_first_name,
+            p.middle_name AS patient_middle_name,
+            p.last_name AS patient_last_name,
+            p.addr1 AS patient_addr1,
+            p.addr2 AS patient_addr2,
+            p.city AS patient_city,
+            p.st AS patient_st,
+            p.zip AS patient_zip,
+            p.phone_number AS patient_phone_number,
+            p.email,
+            p.gender,
+            p.dob,
+            p.token,
+            p.result_token,
+            GROUP_CONCAT(c.service_code) as service_codes,
+            GROUP_CONCAT(s.service_description) as service_descriptions,
+            org.name as org_name
+        FROM
+            appointments a
+                JOIN
+            patients p ON a.patient_id = p.id
+                JOIN
+            locations l ON a.location_id = l.id
+                LEFT JOIN
+            appointment_services s ON (s.appointment_id = a.id)
+                LEFT JOIN
+            services_catalog c ON (c.id = s.service_id)
+				LEFT JOIN
+			organizations org ON org.id = l.org_id
+        WHERE {}     
+        """.format(where_clause)
+        row = read_row(sql, vals)
+
+        if not row:
+            raise ValueError('No Appointment info')
+
+        return __map_row_to_appointment(row)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            appointment_id=appointment_id,
+            function=whoami(),
+            error=err
+        )
+
+    return None
+
+
+# Invalid query, not used anywhere
 def get_ggv_patient(patient_id: int):
     try:
         where_statement = "ggv.patient_id = {}".format(patient_id)
@@ -507,6 +622,45 @@ def lookup_certificate(phone_number, dob, first_name, last_name, token=None):
     return None, None
 
 
+def lookup_certificate_v2(phone_number, dob, first_name, last_name, token=None):
+    try:
+        where_statement = "1=1"
+        vals = ()
+        if phone_number or phone_number != "":
+            where_statement += " AND p.phone_number = %s"
+            vals = vals + (phone_number,)
+        if dob or dob != "":
+            where_statement += " AND date(p.dob) = %s"
+            vals = vals + (dob,)
+        if first_name or first_name != "":
+            where_statement += " AND p.first_name = %s"
+            vals = vals + (first_name,)
+        if last_name or last_name != "":
+            where_statement += " AND p.last_name = %s"
+            vals = vals + (last_name,)
+        if token:
+            where_statement += " AND p.result_token = %s AND p.token_expire > NOW()"
+            vals = vals + (token,)
+        sql = """SELECT 
+                    gc.*,
+                   date(gc.check_in_dt) AS appointment_date
+                FROM
+                    patients p
+                        JOIN
+                    ggv_certificates gc ON p.id = gc.patient_id
+                    WHERE {} AND gc.active=1""".format(where_statement)
+        rows = replica_read_rows(sql, vals)
+        return __format_vax_certificate(rows), "No certificate found."
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+    return None, None
+
+
 def lookup_pkpass(phone_number, dob, first_name, last_name, token):
     try:
         where_statement = "p.phone_number = '{}'".format(phone_number)
@@ -539,6 +693,44 @@ def lookup_pkpass(phone_number, dob, first_name, last_name, token):
             error=err
         )
     return None
+
+
+def lookup_pkpass_v2(phone_number, dob, first_name, last_name, token):
+    try:
+
+        sql = """SELECT 
+                    gc.*,
+                    p.*
+                FROM
+                    patients p
+                        JOIN
+                    ggv_certificates gc ON p.id = gc.patient_id
+                WHERE
+                    p.phone_number = %s 
+                        AND
+                    date(p.dob) = %s
+                        AND
+                    p.first_name = %s
+                        AND
+                    p.last_name = %s
+                        AND
+                    p.result_token = %s 
+                        AND
+                    p.token_expire > NOW()
+                """
+        vals = (phone_number, dob, first_name, last_name, token)
+        rows = replica_read_rows(sql, vals)
+        print(rows)
+        return __format_pkpass_records(rows)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+    return None
+
 
 def save_android_pass_details(id, classId, objectId):
     try:

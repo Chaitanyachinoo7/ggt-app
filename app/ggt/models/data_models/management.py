@@ -231,6 +231,43 @@ def list_org_requests(req):
             error=err)
 
 
+def list_org_requests_v2(req):
+    try:
+        where_statement = "1=1"
+        vals = ()
+        if req.status != '':
+            where_statement = "{} AND o.status = %s".format(where_statement)
+            vals += (req.status, )
+        sql = """SELECT 
+                    o.id as org_id,
+                    o.org_name as org_name,
+                    o.email as org_email,
+                    o.given_name as org_given_name,
+                    o.family_name as org_family_name,
+                    o.status as org_status,
+                    o.comments,
+                    o.create_dt as org_create_dt,
+                    o.update_dt as org_update_dt,
+                    u.external_id,
+                    u.email as ggt_user_email,
+                    u.family_name,
+                    u.given_name
+
+                FROM
+                    organization_requests o
+                        LEFT JOIN
+                    ggt_users u ON o.resolved_by = u.external_id
+                    WHERE
+                    {}""".format(where_statement)
+        return read_rows(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err)
+
+
 def get_org_request_user(id):
     try:
         sql = """SELECT * FROM organization_requests
@@ -339,6 +376,35 @@ def list_user(req, user):
             error=err)
 
 
+def list_user_v2(req, user):
+    try:
+        organization_id = get_organization_id(user)
+        if organization_id is None:
+            return None
+
+        where_statement = "org_id = %s"
+        vals = (organization_id, )
+        if req.role != "":
+            where_statement = "{} AND roles LIKE %s".format(where_statement)
+            vals += ('%{}%'.format(req.role),)
+        if req.name != "":
+            where_statement = "{} AND name LIKE %s".format(where_statement)
+            vals += ('%{}%'.format(req.name),)
+        if req.email != "":
+            where_statement = "{} AND email LIKE %s".format(where_statement)
+            vals += ('%{}%'.format(req.email),)
+        sql = """SELECT * FROM ggt_users
+                    WHERE
+                    {} LIMIT {} OFFSET {}""".format(where_statement, req.limit, req.offset)
+        return read_rows(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err)
+
+
 def list_organizations(req, user):
     try:
         where_statement = "1=1"
@@ -363,6 +429,40 @@ def list_organizations(req, user):
                     WHERE
                     {}""".format(where_statement)
         return read_rows(sql)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err)
+
+
+def list_organizations_v2(req, user):
+    try:
+        where_statement = "1=1"
+        vals = ()
+        if req.name != "":
+            where_statement = "{} AND o.name LIKE %s".format(where_statement)
+            vals += ('%{}%'.format(req.name),)
+        sql = """SELECT 
+                    o.id AS org_id,
+                    o.name AS org_name,
+                    o.is_active AS org_active,
+                    u.id AS user_id,
+                    u.external_id,
+                    u.is_active AS user_active,
+                    u.email,
+                    u.given_name,
+                    u.family_name,
+                    u.roles,
+                    u.picture
+                FROM
+                    organizations o
+                        JOIN
+                    ggt_users u ON o.owner_ext_id = u.external_id
+                    WHERE
+                    {}""".format(where_statement)
+        return read_rows(sql, vals)
 
     except Exception as err:
         log_generic(

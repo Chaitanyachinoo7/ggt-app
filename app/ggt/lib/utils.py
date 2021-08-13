@@ -391,3 +391,11 @@ def is_international(phone_number):
     else:
         return True
 
+
+# Return 0 if the value is not empty otherwise 1
+def is_empty_value(value):
+    return False if value else True
+
+
+def is_non_empty_value(value):
+    return True if value else False

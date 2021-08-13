@@ -75,6 +75,28 @@ def get_verification_level_from_patient_id(id):
             error=err
         )
         return None
+
+
+def get_verification_level_from_patient_id_v2(id):
+    try:
+        sql = """SELECT 
+                        verification_level,
+                        service_code,
+                        rejected
+                    FROM
+                        ggv_certificates
+                    WHERE 
+                        patient_id = %s;"""
+        vals = (id,)
+        return read_rows(sql, vals)
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            id=id,
+            function=whoami(),
+            error=err
+        )
+        return None
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
