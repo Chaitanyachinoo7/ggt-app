@@ -1,2 +1,2 @@
 env: PROD_LOCAL
-secret_name: ggt_api_secrets
+secret_name: ggt_api_secrets_prod_local

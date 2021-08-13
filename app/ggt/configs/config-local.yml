@@ -1,2 +1,2 @@
-env: DEV_LOCAL
-secret_name: ggt_api_secrets
+env: LOCAL
+secret_name: ggt_api_secrets_dev_local

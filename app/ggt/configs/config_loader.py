@@ -30,7 +30,7 @@ def __init_config(path_to_file):
         if stage == 'LOCAL':
             return envs
         else:
-            return get_secret_value(secret_name, stage)
+            return get_secret_value(secret_name)
 
 #__init_logging_config(log_config_file)
 cfg = __init_config(config_file)
