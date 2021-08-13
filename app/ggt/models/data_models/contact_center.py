@@ -85,10 +85,12 @@ def add_outbound_call_status(test_id: int,
 # Todo clean up
 def update_outbound_call_status(test_id, call_status, datetime_field, date_time):
     try:
-        sql = "UPDATE outbound_results_logs SET " + datetime_field + " = '" + \
-            str(date_time)+"', call_status = '" + \
-            call_status+"' WHERE test_id = "+test_id
-        return exec_update(sql, )
+        sql = """UPDATE outbound_results_logs SET %s = %s,
+                    call_status = %s
+                    WHERE
+                    test_id = %s"""
+        vals = (datetime_field, str(date_time), call_status, test_id)
+        return exec_update(sql, vals)
 
     except Exception as err:
         log_generic(
