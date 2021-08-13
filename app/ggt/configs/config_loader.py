@@ -27,7 +27,10 @@ def __init_config(path_to_file):
         secret_name = envs['secret_name']
         print('*******************ENVIRONMENT***************** - {}'.format(stage))
         print('*******************SECRET NAME***************** - {}'.format(secret_name))
-        return get_secret_value(secret_name, stage)
+        if stage == 'LOCAL':
+            return envs
+        else:
+            return get_secret_value(secret_name, stage)
 
 #__init_logging_config(log_config_file)
 cfg = __init_config(config_file)
