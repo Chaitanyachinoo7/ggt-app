@@ -385,8 +385,7 @@ def find_patients_for_vaccineation(appointment_ids):
     # empty array is not allowed
     try:
         where_clause = " a.id in (" + (','.join(['%s'] * len(appointment_ids))) + ")"
-        vals = (appointment_ids)
-
+        vals = tuple(appointment_ids)
         sql = """
             SELECT 
             a.id,
@@ -439,10 +438,8 @@ def find_patients_for_vaccineation(appointment_ids):
 
 def find_patients_by_patient_ids(patient_ids):
     try:
-        where_condition = ""
-        for patient_id in patient_ids:
-            where_condition = """ p.id = {} or """.format(patient_id)
-        where_condition = where_condition[:-4]
+        where_clause = " p.id in (" + (','.join(['%s'] * len(patient_ids))) + ")"
+        vals = tuple(patient_ids)
         sql = """
         SELECT 
             p.first_name,
@@ -450,8 +447,9 @@ def find_patients_by_patient_ids(patient_ids):
             p.dob
         FROM patients p
         WHERE {};
-        """.format(where_condition)
-        rows = replica_read_rows(sql)
+        """.format(where_clause)
+        
+        rows = replica_read_rows(sql, vals)
         return rows
     except Exception as err:
         log_generic(
