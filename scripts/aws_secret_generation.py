@@ -74,6 +74,17 @@ def update_secret(name, secret_value):
 
 print(create("ggt_api_secrets_test",  json.dumps(cfg)))
 print(get_secret_value('ggt_api_secrets_test'))
+
+
+
+
+
+
+
+
+
+
+
 # print(json.loads(get_secret_value("ggt_api_secrets", version='QA')['SecretString'])['databases'])
 # print(json.dumps(cfg));
 # update_secret_version("ggt_api_secrets", json.dumps(cfg), versions=['TEST'])
