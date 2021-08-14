@@ -3,7 +3,7 @@ import unittest
 from ggt.models.data_models.schedules import reject_certificate, get_patient_by_id, \
     lookup_certificate, vax_yes_activity, \
     get_slots_matching_dt_list, \
-    get_available_locations_near_lat_lng, get_available_locations_near_lat_lng_v2
+    get_available_locations_near_lat_lng
 
 
 class SchedulesSQLTests(unittest.TestCase):
@@ -76,9 +76,7 @@ class SchedulesSQLTests(unittest.TestCase):
 
         result = get_available_locations_near_lat_lng(32, 96, 10000, '2020-11-12', 'LOWES', False)
 
-        result_2 = get_available_locations_near_lat_lng_v2(32, 96, 10000, '2020-11-12', 'LOWES', False)
         print(result)
-        self.assertEqual(result, result_2)
 
     def test_lock_certificate(self):
         """

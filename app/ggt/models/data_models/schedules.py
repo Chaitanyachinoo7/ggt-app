@@ -896,10 +896,6 @@ def get_available_locations_near_lat_lng(lat, lng, radius, date_str, group_code,
     return __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, group_code, map_thumbnail)
 
 
-def get_available_locations_near_lat_lng_v2(lat, lng, radius, date_str, group_code, map_thumbnail=False):
-    return __get_available_locations_by_date_near_lat_lng_v2(lat, lng, radius, date_str, group_code, map_thumbnail)
-
-
 def get_available_ggv_locations_near_lat_lng(lat, lng, radius, date_str, group_code, map_thumbnail=False):
     return __get_available_ggv_locations_by_date_near_lat_lng(lat, lng, radius, date_str, group_code, map_thumbnail)
 
@@ -1028,27 +1024,6 @@ def get_second_slot_reschedule_dates(location_id, ap1_date):
 
 
 def get_first_available_times(location_id, date):
-    sql = """SELECT 
-                time(start_dt) as start_time, 
-                id, 
-                start_dt, 
-                end_dt, 
-                status
-            FROM 
-                ggv_schedules 
-            WHERE 
-                location_id = {} 
-                AND status = 'available' 
-                AND date(start_dt) = '{}'
-                AND start_dt >= CONVERT_TZ(NOW(), '+00:00', '-06:00')
-                AND lock_time < NOW()
-            ORDER BY id;""".format(location_id, date)
-
-    res = replica_read_rows(sql)
-    return select_random_count(res, 5)
-
-
-def get_first_available_times_v2(location_id, date):
     sql = """SELECT 
                 time(start_dt) as start_time, 
                 id, 
@@ -1459,7 +1434,7 @@ def __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, g
                                     FROM
                                         schedules_metrics_cache
                                     WHERE
-                                        local_scheduled_date = %s)""".format(where_statement, date_str)
+                                        local_scheduled_date = %s)""".format(where_statement)
             vals += (date_str,)
         sql = """
         SELECT DISTINCT
