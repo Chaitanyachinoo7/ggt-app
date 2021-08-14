@@ -204,28 +204,25 @@ def get_provider_processing_list_db(offset, consultation_status, consultation_no
 
 def _get_provider_processing_list_db(offset, consultation_status, consultation_notes, positive_call, limit, start_date, end_date, org_id):
     try:
-        where_conditions = "o.id = {} AND o.is_active = 1 AND t.create_dt >= '{}' AND t.create_dt <= '{}'".format(org_id, start_date, end_date)
+        where_conditions = "o.id = %s AND o.is_active = 1 AND t.create_dt >= %s AND t.create_dt <= %s"
+        vals = (org_id, start_date, end_date,)
         if consultation_status != ConsultationStatusEnum.any:
             if consultation_status == ConsultationStatusEnum.pending:
-                where_conditions = "{} AND ( t.consultation_status = '{}' OR t.consultation_status is null)".format(
-                    where_conditions, consultation_status)
+                where_conditions += " AND ( t.consultation_status = %s OR t.consultation_status is null)"
+                vals += (consultation_status,)
             else:
-                where_conditions = "{} AND t.consultation_status = '{}'".format(
-                    where_conditions, consultation_status)
+                where_conditions += " AND t.consultation_status = %s"
+                vals += (consultation_status,)
         if consultation_notes == ConsultationNotesEnum.with_notes:
-            where_conditions = "{} AND c.notes is not null".format(
-                where_conditions)
+            where_conditions += " AND c.notes is not null"
         if consultation_notes == ConsultationNotesEnum.without_notes:
-            where_conditions = "{} AND c.notes is null".format(
-                where_conditions)
+            where_conditions += " AND c.notes is null"
         if positive_call == PositiveCall.must_call:
-            where_conditions = "{} AND t.test_result = 'pos' AND (t.consultation_status is null OR " \
-                               "t.consultation_status = " \
-                               "'{}')".format(where_conditions,
-                                              ConsultationStatusEnum.pending)
+            where_conditions += " AND t.test_result = 'pos' AND (t.consultation_status is null OR t.consultation_status = %s)"
+            vals += (ConsultationStatusEnum.pending,)
         if positive_call == PositiveCall.already_called:
-            where_conditions = "{} AND t.test_result ='pos' AND t.consultation_status = '{}'".format(
-                where_conditions, ConsultationStatusEnum.completed)
+            where_conditions += " AND t.test_result ='pos' AND t.consultation_status = %s"
+            vals += (ConsultationStatusEnum.completed,)
         sql = """SELECT
     p.id AS patient_id,
     p.first_name AS first_name,
@@ -358,8 +355,9 @@ FROM
     WHERE
         {}
     ORDER BY t.create_dt ASC
-    LIMIT {} OFFSET {}""".format(where_conditions, limit, offset)
-        rows = replica_read_rows(sql)
+    LIMIT %s OFFSET %s""".format(where_conditions)
+        vals += (limit, offset,)
+        rows = replica_read_rows(sql, vals)
         return process_consultations(rows)
 
     except Exception as err:
