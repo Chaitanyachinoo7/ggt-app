@@ -32,31 +32,28 @@ def get_provider_processing_list_db(offset, consultation_status, consultation_no
 
         #TODO For demonstrations we return both test and vax data in the Same API, but we need 2 seperate APIs for Test and Vax
         where_conditions = '1=1'
+        vals = ()
         # where_conditions = '(TO_DAYS(NOW()) - TO_DAYS(t.create_dt)) <= 25'
         if consultation_status != ConsultationStatusEnum.any:
             if consultation_status == ConsultationStatusEnum.pending:
-                where_conditions = "{} AND ( t.consultation_status = '{}' OR t.consultation_status is null)".format(
-                    where_conditions, consultation_status)
+                where_conditions += " AND ( t.consultation_status = %s OR t.consultation_status is null)"
+                vals += (consultation_status,)
             else:
-                where_conditions = "{} AND t.consultation_status = '{}'".format(
-                    where_conditions, consultation_status)
+                where_conditions += " AND t.consultation_status = %s"
+                vals += (consultation_status,)
         if consultation_notes == ConsultationNotesEnum.with_notes:
-            where_conditions = "{} AND c.notes is not null".format(
-                where_conditions)
+            where_conditions += " AND c.notes is not null"
         if consultation_notes == ConsultationNotesEnum.without_notes:
-            where_conditions = "{} AND c.notes is null".format(
-                where_conditions)
+            where_conditions += " AND c.notes is null"
         if positive_call == PositiveCall.must_call:
-            where_conditions = "{} AND t.test_result = 'pos' AND (t.consultation_status is null OR " \
-                               "t.consultation_status = " \
-                               "'{}')".format(where_conditions,
-                                              ConsultationStatusEnum.pending)
+            where_conditions += " AND t.test_result = 'pos' AND (t.consultation_status is null OR t.consultation_status = %s)"
+            vals += (ConsultationStatusEnum.pending,)
         if positive_call == PositiveCall.already_called:
-            where_conditions = "{} AND t.test_result ='pos' AND t.consultation_status = '{}'".format(
-                where_conditions, ConsultationStatusEnum.completed)
+            where_conditions += " AND t.test_result ='pos' AND t.consultation_status = %s"
+            vals += (ConsultationStatusEnum.completed,)
         if test_id is not None:
-            where_conditions = "{} AND a.id = {}".format(
-                where_conditions, test_id)
+            where_conditions += " AND a.id = %s"
+            vals += (test_id,)
 
         sql = """SELECT
             p.id AS patient_id,
@@ -190,9 +187,10 @@ def get_provider_processing_list_db(offset, consultation_status, consultation_no
     WHERE
         {}
     ORDER BY a.create_dt ASC
-    LIMIT {} OFFSET {};
-""".format(where_conditions, limit, offset)
-        rows = replica_read_rows(sql)
+    LIMIT %s OFFSET %s;
+""".format(where_conditions)
+        vals += (limit, offset,)
+        rows = replica_read_rows(sql, vals)
         return process_consultations(rows)
 
     except Exception as err:
