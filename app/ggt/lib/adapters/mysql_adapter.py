@@ -232,8 +232,7 @@ def read_rows(sql, vals=None):
 
         return __cursor.fetchall()
 
-    except Exception as err:
-        print(err)
+    except mysql.connector.Error as err:
         log_generic(
             type=c.ERROR,
             sql=sql,
