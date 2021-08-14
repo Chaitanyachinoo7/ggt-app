@@ -256,7 +256,7 @@ def reject_certificate_v2(cert_ids):
         sql = """UPDATE ggv_certificates
             SET rejected = 1
         WHERE id in ({})""".format(placeholders)
-        vals = (cert_ids)
+        vals = tuple(cert_ids)
         return exec_update(sql, vals)
 
     except Exception as err:
@@ -864,6 +864,50 @@ def vax_yes_activity(certificate_id, phone_number):
         return None
 
 
+def vax_yes_activity_v2(certificate_id, phone_number):
+    where_statement = "1=1"
+    vals = ()
+    if phone_number or phone_number != "":
+        where_statement = "{} AND p.phone_number LIKE %s".format(where_statement)
+        vals += ('%{}%'.format(phone_number),)
+    if certificate_id or certificate_id != "":
+        where_statement = "{} AND gc.id = %s".format(where_statement)
+        vals += (certificate_id,)
+
+    try:
+        sql = """SELECT 
+                        a.*,
+                        p.id as patient_id,
+                        p.first_name as patient_first_name,
+                        p.last_name as patient_last_name,
+                        p.phone_number as patient_phone_number,
+                        gc.lot_no as vax_lot_number,
+                        gc.service_code as vax_service_code,
+                        u.email as admin_email,
+                        u.given_name as admin_first_name,
+                        u.family_name as admin_family_name
+
+                    FROM
+                        vax_yes_activity_log a
+                            JOIN
+                        ggv_certificates gc ON a.certificate_id = gc.id
+                            LEFT JOIN
+                        patients p ON gc.patient_id = p.id
+                            LEFT JOIN
+                        ggt_users u ON u.external_id = a.external_user_id
+                    WHERE {} LIMIT 100;""".format(where_statement)
+        res = replica_read_rows(sql, vals)
+        return res
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
 def delete_ggv_schedules_metrics_cache(rule_id):
     try:
         sql = """
@@ -989,6 +1033,10 @@ def get_available_locations(date_str, group_code):
 
 def get_available_locations_near_lat_lng(lat, lng, radius, date_str, group_code, map_thumbnail=False):
     return __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, group_code, map_thumbnail)
+
+
+def get_available_locations_near_lat_lng_v2(lat, lng, radius, date_str, group_code, map_thumbnail=False):
+    return __get_available_locations_by_date_near_lat_lng_v2(lat, lng, radius, date_str, group_code, map_thumbnail)
 
 
 def get_available_ggv_locations_near_lat_lng(lat, lng, radius, date_str, group_code, map_thumbnail=False):
@@ -1136,6 +1184,28 @@ def get_first_available_times(location_id, date):
             ORDER BY id;""".format(location_id, date)
 
     res = replica_read_rows(sql)
+    return select_random_count(res, 5)
+
+
+def get_first_available_times_v2(location_id, date):
+    sql = """SELECT 
+                time(start_dt) as start_time, 
+                id, 
+                start_dt, 
+                end_dt, 
+                status
+            FROM 
+                ggv_schedules 
+            WHERE 
+                location_id = %s 
+                AND status = 'available' 
+                AND date(start_dt) = %s
+                AND start_dt >= CONVERT_TZ(NOW(), '+00:00', '-06:00')
+                AND lock_time < NOW()
+            ORDER BY id;"""
+
+    vals = (location_id, date,)
+    res = replica_read_rows(sql, vals)
     return select_random_count(res, 5)
 
 
@@ -1310,6 +1380,55 @@ def get_slots_matching_dt_list(dt_list, location_id, category):
         """.format(table, location_id, format_strings)
 
         vals = tuple(dt_list)
+
+        rows = replica_read_rows(sql, vals)
+        if rows:
+            for row in rows:
+                slot = GgtScheduleSlot()
+                slot.id = row['id']
+                slot.location_id = row['location_id']
+                slot.start_dt = row['start_dt']
+                slot.end_dt = row['end_dt']
+                slot.duration = row['duration']
+                slot.status = row['status']
+                slot.appointment_id = row['appointment_id']
+                slot_list.append(slot)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+
+    return slot_list
+
+
+def get_slots_matching_dt_list_v2(dt_list, location_id, category):
+    slot_list = []
+    try:
+        format_strings = ','.join(['%s'] * len(dt_list))
+
+        table = "schedules"
+        if category == "vax":
+            table = "ggv_schedules"
+        sql = """
+            SELECT 
+                id,
+                location_id,
+                start_dt,
+                end_dt,
+                duration,
+                status,
+                appointment_id
+            FROM
+                {}
+            WHERE
+                location_id = %s
+                AND start_dt IN ({})
+        """.format(table, format_strings)
+
+        vals = (location_id,) + tuple(dt_list)
 
         rows = replica_read_rows(sql, vals)
         if rows:
@@ -1597,6 +1716,87 @@ def __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, g
         return None
 
 
+def __get_available_locations_by_date_near_lat_lng_v2(lat, lng, radius, date_str, group_code, map_thumbnail):
+    try:
+        map_thumbnail_field = 'l.image_thumbnail,' if map_thumbnail else "'' as image_thumbnail,"
+        vals = ()
+        where_statement = "1=1"
+        if date_str:
+            where_statement = """{} AND l.location_id IN (SELECT 
+                                        location_id
+                                    FROM
+                                        schedules_metrics_cache
+                                    WHERE
+                                        local_scheduled_date = %s)""".format(where_statement, date_str)
+            vals += (date_str,)
+        sql = """
+        SELECT DISTINCT
+            l.location_id,
+            l.name,
+            l.addr1,
+            l.addr2,
+            l.city,
+            l.st,
+            l.zip,
+            l.lat,
+            l.operator,
+            l.lng,
+            (3963 * ACOS(COS(RADIANS(%s)) * COS(RADIANS(l.lat)) * COS(RADIANS(l.lng) - RADIANS(%s)) + SIN(RADIANS(%s)) * SIN(RADIANS(l.lat)))) AS distance,
+            {}
+            l.billing_type,
+            l.collect_insurance_info,
+            l.allow_insurance_skip,
+            l.collect_upfront_payment,
+            l.accepts_bookings,
+            l.accepts_walkins,
+            l.operator,
+            l.phone_number,
+            l.website,
+            l.open_hours,
+            l.is_external,
+            l.slot_count,
+            l.services,
+            l.next_appointment_available as first_date_time_available,
+            (CASE
+                WHEN (l.average_processing_time IS NULL) THEN 48
+                ELSE l.average_processing_time
+            END) AS average_processing_time
+
+        FROM
+            locations_metrics_cache l
+        WHERE   
+                l.status = 'enabled'
+                AND l.slot_count IS NOT NULL
+                AND (3963 * ACOS(COS(RADIANS(%s)) * COS(RADIANS(l.lat)) * COS(RADIANS(l.lng) - RADIANS(%s)) + SIN(RADIANS(%s)) * SIN(RADIANS(l.lat)))) < %s
+                AND l.location_id IN (SELECT 
+                    glm.location_id
+                FROM
+                    group_codes_to_locations_mapping glm
+                        INNER JOIN
+                    groups g ON (g.id = glm.group_id)
+                WHERE
+                    g.group_code = %s)
+                AND {}
+        ORDER BY distance    
+        """.format(map_thumbnail_field, where_statement)
+
+        vals = (lat, lng, lat, lat, lng, lat, radius, group_code) + vals
+
+        return __map_rows_to_dtl_list(
+            read_rows(sql, vals)
+        )
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            group_code=group_code,
+            date=date_str,
+            error=err
+        )
+        return None
+
+
 def __get_available_ggv_locations_by_date_near_lat_lng(lat, lng, radius, date_str, group_code, map_thumbnail):
     try:
         map_thumbnail_field = 'l.image_thumbnail,' if map_thumbnail else "'' as image_thumbnail,"
@@ -1761,7 +1961,18 @@ def __lock_record(cert_ids):
                 lock_time = NOW() + INTERVAL 300 second
             WHERE  id in {}""".format(str(tuple(cert_ids)))
     return exec_update(sql)
-    
+
+
+def __lock_record_v2(cert_ids):
+    placeholders = ','.join(['%s'] * len(cert_ids))
+
+    sql = """UPDATE ggv_certificates
+                SET
+                lock_time = NOW() + INTERVAL 300 second
+            WHERE  id in ({})""".format(placeholders)
+    vals = tuple(cert_ids)
+    return exec_update(sql, vals)
+
 
 def __map_rows_to_dtl_list(rows):
     dtl_list: List[GgtDateTimeLocation] = list()
