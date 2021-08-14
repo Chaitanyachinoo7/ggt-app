@@ -5,8 +5,8 @@ base_url: https://start-dev.GoGetTested.com
 portal_url: https://portal-dev.gogettested.com
 ops_url: https://ops-dev.gogettested.com
 env: LOCAL
+secret_name: ggt_api_secrets_dev
 default_timezone: CST
-secret_name: 'abc'
 
 server:
   host: 0.0.0.0
