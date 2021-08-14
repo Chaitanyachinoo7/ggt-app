@@ -65,8 +65,10 @@ def get_sms_stats_by_date(date):
 
 def get_email_stats_by_date(date):
     where_statement = "1=1"
+    vals = ()
     if date != 'all':
-        where_statement = "{} and `date(create_dt)` = '{}'".format(where_statement, date)
+        where_statement += " and `date(create_dt)` = %s"
+        vals += (date,)
     try:
         sql = """SELECT 
                         `date(create_dt)` AS date, 
@@ -75,7 +77,7 @@ def get_email_stats_by_date(date):
                         email_notification_counts_by_day
                  WHERE
                         {}""".format(where_statement)
-        return read_rows(sql)
+        return read_rows(sql, vals)
 
     except Exception as err:
         log_generic(
