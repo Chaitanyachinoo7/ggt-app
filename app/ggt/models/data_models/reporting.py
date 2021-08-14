@@ -105,12 +105,16 @@ def get_stats_today():
 def get_user_activity(req):
     try:
         where_statement = "1=1"
+        vals = ()
         if req.from_date != "":
-            where_statement = "{} AND h.create_dt >= '{}".format(where_statement, req.from_date)
+            where_statement += " AND h.create_dt >= %s"
+            vals += (req.from_date,)
         if req.to_date != "":
-            where_statement = "{} AND h.create_dt <= '{}".format(where_statement, req.to_date)
+            where_statement += " AND h.create_dt <= %s"
+            vals += (req.to_date,)
         if req.site_code != "":
-            where_statement = "{} AND l.site_code = '{}".format(where_statement, req.site_code)
+            where_statement += " AND l.site_code = %s"
+            vals += (req.site_code,)
         sql = """SELECT 
                     h.id AS h_id,
                     h.function AS function_name,
@@ -133,7 +137,7 @@ def get_user_activity(req):
                     ggt_users u ON u.external_id = h.provider_ext_id
                 WHERE
                 {}""".format(where_statement)
-        return read_rows(sql)
+        return read_rows(sql, vals)
 
     except Exception as err:
         log_generic(
