@@ -7,7 +7,6 @@ import ggt.lib.constants as c
 from ggt.lib.utils import (
     log_generic,
     whoami,
-    is_empty_value,
     is_non_empty_value
 )
 

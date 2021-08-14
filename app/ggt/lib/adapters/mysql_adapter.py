@@ -223,7 +223,6 @@ def read_rows(sql, vals=None):
     try:
         __cnx = mysql.connector.connect(**writer_connection_config_dict)
         __cursor = __cnx.cursor(dictionary=True, buffered=True)
-        #__cursor = __cnx.cursor(prepared=True)
         if vals is None:
             __cursor.execute(sql)
         else:
