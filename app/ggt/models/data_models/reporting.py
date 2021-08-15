@@ -40,8 +40,10 @@ from ggt.models.data_models.data_types import (
 ########################################################################################################
 def get_sms_stats_by_date(date):
     where_statement = "1=1"
+    vals = ()
     if date != 'all':
-        where_statement = "{} and `date(create_dt)` = '{}'".format(where_statement, date)
+        where_statement += " and `date(create_dt)` = %s"
+        vals += (date,)
     try:
         sql = """SELECT 
                         `date(create_dt)` AS date, 
@@ -50,7 +52,7 @@ def get_sms_stats_by_date(date):
                         sms_notification_counts_by_day
                  WHERE
                         {}""".format(where_statement)
-        return read_rows(sql)
+        return read_rows(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -63,8 +65,10 @@ def get_sms_stats_by_date(date):
 
 def get_email_stats_by_date(date):
     where_statement = "1=1"
+    vals = ()
     if date != 'all':
-        where_statement = "{} and `date(create_dt)` = '{}'".format(where_statement, date)
+        where_statement += " and `date(create_dt)` = %s"
+        vals += (date,)
     try:
         sql = """SELECT 
                         `date(create_dt)` AS date, 
@@ -73,7 +77,7 @@ def get_email_stats_by_date(date):
                         email_notification_counts_by_day
                  WHERE
                         {}""".format(where_statement)
-        return read_rows(sql)
+        return read_rows(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -101,12 +105,16 @@ def get_stats_today():
 def get_user_activity(req):
     try:
         where_statement = "1=1"
+        vals = ()
         if req.from_date != "":
-            where_statement = "{} AND h.create_dt >= '{}".format(where_statement, req.from_date)
+            where_statement += " AND h.create_dt >= %s"
+            vals += (req.from_date,)
         if req.to_date != "":
-            where_statement = "{} AND h.create_dt <= '{}".format(where_statement, req.to_date)
+            where_statement += " AND h.create_dt <= %s"
+            vals += (req.to_date,)
         if req.site_code != "":
-            where_statement = "{} AND l.site_code = '{}".format(where_statement, req.site_code)
+            where_statement += " AND l.site_code = %s"
+            vals += (req.site_code,)
         sql = """SELECT 
                     h.id AS h_id,
                     h.function AS function_name,
@@ -129,7 +137,7 @@ def get_user_activity(req):
                     ggt_users u ON u.external_id = h.provider_ext_id
                 WHERE
                 {}""".format(where_statement)
-        return read_rows(sql)
+        return read_rows(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -350,15 +358,18 @@ def get_stats_by_date(date, organization_id):
 
 
 def get_patient_drill_down_by_date(location_id, date, status, org_id):
-    where_clause = "AND org.id = {} AND org.is_active = 1".format(org_id)
+    where_clause = "AND org.id = %s AND org.is_active = 1"
+    vals = (org_id,)
     if status == PatientStatusEnum.scanned.value:
-        where_clause = "{} AND (t.pre_ship_label_scan_dt IS NOT NULL)".format(where_clause)
+        where_clause += " AND (t.pre_ship_label_scan_dt IS NOT NULL)"
     elif status == PatientStatusEnum.not_scanned.value:
-        where_clause = "{} AND (ISNULL(t.pre_ship_label_scan_dt) AND (t.id IS NOT NULL))".format(where_clause)
+        where_clause += " AND (ISNULL(t.pre_ship_label_scan_dt) AND (t.id IS NOT NULL))"
     elif status == PatientStatusEnum.total_scheduled.value:
-        where_clause = "{}".format(where_clause)
+        # where_clause = "{}".format(where_clause)
+        where_clause += ""
     else:
-        where_clause = "{} AND a.status = '{}'".format(where_clause, status)
+        where_clause += " AND a.status = %s"
+        vals += (status,)
     try:
         sql = """SELECT
                         p.id AS patient_id,
@@ -517,7 +528,7 @@ def get_patient_drill_down_by_date(location_id, date, status, org_id):
                                     {});
                                     """.format(where_clause)
 
-        vals = (location_id, date, date, date)
+        vals += (location_id, date, date, date,)
         return replica_read_rows(sql, vals)
 
     except Exception as err:

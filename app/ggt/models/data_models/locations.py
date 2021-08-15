@@ -211,23 +211,26 @@ def get_all_locations():
 
 def search_locations(account, group_code, site_code, location_name, org_id, id=None, st=""):
     try:
-        where_conditions = 'AND org.id = {} and org.is_active = 1'.format(org_id)
+        where_conditions = 'AND org.id = %s and org.is_active = 1'
+        vals = (org_id,)
         if account != '':
-            where_conditions = "{} AND g.account LIKE '%{}%'".format(
-                where_conditions, account)
+            where_conditions += " AND g.account LIKE %s"
+            vals += ("%" + account + "%",)
         if group_code != '':
-            where_conditions = "{} AND gp.group_codes LIKE '%{}%'".format(
-                where_conditions, group_code)
+            where_conditions += " AND gp.group_codes LIKE %s"
+            vals += ("%" + group_code + "%",)
         if site_code != '':
-            where_conditions = "{} AND l.site_code LIKE '%{}%'".format(
-                where_conditions, site_code)
+            where_conditions += " AND l.site_code LIKE %s"
+            vals += ("%" + site_code + "%",)
         if location_name != '':
-            where_conditions = "{} AND l.name LIKE '%{}%'".format(
-                where_conditions, location_name)
+            where_conditions += " AND l.name LIKE %s"
+            vals += ("%" + location_name + "%",)
         if id:
-            where_conditions = "{} AND l.id = {}".format(where_conditions, id)
+            where_conditions += " AND l.id = %s"
+            vals += (id,)
         if st != "":
-            where_conditions = "{} AND l.st = '{}'".format(where_conditions, st)
+            where_conditions += " AND l.st = %s"
+            vals += (st,)
 
         limit = 500
 
@@ -291,9 +294,10 @@ def search_locations(account, group_code, site_code, location_name, org_id, id=N
                     JOIN organizations org ON l.org_id = org.id
                         WHERE 1=1
                             {}
-                        LIMIT {}
-        """.format(where_conditions, limit)
-        res = replica_read_rows(sql)
+                        LIMIT %s
+        """.format(where_conditions)
+        vals += (limit,)
+        res = replica_read_rows(sql, vals)
         return __process_location_search(res)
 
     except Exception as err:

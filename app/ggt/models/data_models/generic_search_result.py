@@ -160,46 +160,48 @@ def find_patients(org_id, first_name='', middle_name='', last_name='', dob='', p
                   email='', appointment_id='', group_code='', appointment_date='', location_id='', vial_id='', sort_field="register_dt", sort_type="desc",
                   token=None, is_patient=False):
     try:
+        where_clause = "1=1"
+        vals = ()
+
         if not is_patient:
-            where_conditions = 'o.id = {} AND o.is_active = 1'.format(org_id)
-        else:
-            where_conditions = "1=1"
+            where_clause += " AND o.id = %s AND o.is_active = 1"
+            vals = vals + (org_id,)
         if first_name != '':
-            where_conditions = "{} AND p.first_name LIKE '%{}%'".format(
-                where_conditions, first_name)
+            where_clause += " AND p.first_name LIKE %s"
+            vals = vals + ("%" + first_name + "%",)
         if middle_name != '':
-            where_conditions = "{} AND p.middle_name LIKE '%{}%'".format(
-                where_conditions, middle_name)
+            where_clause += " AND p.middle_name LIKE %s"
+            vals = vals + ("%" + middle_name + "%",)
         if last_name != '':
-            where_conditions = "{} AND p.last_name LIKE '%{}%'".format(
-                where_conditions, last_name)
+            where_clause += " AND p.last_name LIKE %s"
+            vals = vals + ("%" + last_name + "%",)
         if dob != '':
-            where_conditions = "{} AND p.dob = '{}'".format(
-                where_conditions, dob)
+            where_clause += " AND p.dob = %s"
+            vals = vals + (dob,)
         if phone_number != '':
-            where_conditions = "{} AND p.phone_number LIKE '%{}%'".format(
-                where_conditions, phone_number)
+            where_clause += " AND p.phone_number LIKE %s"
+            vals = vals + ("%" + phone_number + "%",)
         if email != '':
-            where_conditions = "{} AND p.email LIKE '%{}%'".format(
-                where_conditions, email)
+            where_clause += " AND p.email LIKE %s"
+            vals = vals + ("%" + email + "%",)
         if appointment_id != '':
-            where_conditions = "{} AND a.id = '{}'".format(
-                where_conditions, appointment_id)
+            where_clause += " AND a.id = %s"
+            vals = vals + (appointment_id,)
         if group_code != '':
-            where_conditions = "{} AND a.group_code LIKE '%{}%'".format(
-                where_conditions, group_code)
+            where_clause += " AND a.group_code LIKE %s"
+            vals = vals + ("%" + group_code + "%",)
         if appointment_date != '':
-            where_conditions = "{} AND DATE(a.scheduled_dt) = '{}'".format(
-                where_conditions, appointment_date)
+            where_clause += " AND DATE(a.scheduled_dt) = %s"
+            vals = vals + (appointment_date,)
         if location_id != '':
-            where_conditions = "{} AND a.location_id = '{}'".format(
-                where_conditions, location_id)
+            where_clause += " AND a.location_id = %s"
+            vals = vals + (location_id,)
         if vial_id != '' and vial_id:
-            where_conditions = "{} AND a.vial_id = '{}'".format(
-                where_conditions, vial_id)
+            where_clause += " AND a.vial_id = %s"
+            vals = vals + (vial_id,)
         if token:
-            where_conditions = "{} AND p.result_token = '{}' AND p.token_expire > NOW()".format(
-                where_conditions, token)
+            where_clause += " AND p.result_token = %s AND p.token_expire > NOW()"
+            vals = vals + (token,)
 
         limit = 500
 
@@ -363,9 +365,11 @@ def find_patients(org_id, first_name='', middle_name='', last_name='', dob='', p
         WHERE
             {}
         order by {} {}
-        LIMIT {}
-        """.format(where_conditions, sort_field, sort_type, limit)
-        rows = replica_read_rows(sql)
+        LIMIT %s
+        """.format(where_clause, sort_field, sort_type)
+
+        vals = vals + (limit,)
+        rows = replica_read_rows(sql, vals)
         return process_consultations(rows)
 
     except Exception as err:
@@ -378,11 +382,10 @@ def find_patients(org_id, first_name='', middle_name='', last_name='', dob='', p
 
 
 def find_patients_for_vaccineation(appointment_ids):
+    # empty array is not allowed
     try:
-        where_condition = ""
-        for appointment_id in appointment_ids:
-            where_condition = where_condition + """ a.id = {} or """.format(appointment_id)
-        where_condition = where_condition[:-4]
+        where_clause = " a.id in (" + (','.join(['%s'] * len(appointment_ids))) + ")"
+        vals = tuple(appointment_ids)
         sql = """
             SELECT 
             a.id,
@@ -420,8 +423,9 @@ def find_patients_for_vaccineation(appointment_ids):
                 JOIN
             patients p ON (a.patient_id = p.id)
         Where {}
-        """.format(where_condition)
-        rows = replica_read_rows(sql)
+        """.format(where_clause)
+
+        rows = replica_read_rows(sql, vals)
         return rows
     except Exception as err:
         log_generic(
@@ -434,10 +438,8 @@ def find_patients_for_vaccineation(appointment_ids):
 
 def find_patients_by_patient_ids(patient_ids):
     try:
-        where_condition = ""
-        for patient_id in patient_ids:
-            where_condition = """ p.id = {} or """.format(patient_id)
-        where_condition = where_condition[:-4]
+        where_clause = " p.id in (" + (','.join(['%s'] * len(patient_ids))) + ")"
+        vals = tuple(patient_ids)
         sql = """
         SELECT 
             p.first_name,
@@ -445,8 +447,9 @@ def find_patients_by_patient_ids(patient_ids):
             p.dob
         FROM patients p
         WHERE {};
-        """.format(where_condition)
-        rows = replica_read_rows(sql)
+        """.format(where_clause)
+        
+        rows = replica_read_rows(sql, vals)
         return rows
     except Exception as err:
         log_generic(
@@ -460,54 +463,50 @@ def find_patients_by_patient_ids(patient_ids):
 def find_patients_in_vax_waitlist(data):
     try:
         where_conditions = "1=1"
+        vals = ()
         if data.first_name != '':
-            where_conditions = "{} AND p.first_name LIKE '%{}%'".format(
-                where_conditions, data.first_name)
+            where_conditions += " AND p.first_name LIKE %s"
+            vals += ("%" + data.first_name + "%",)
         if data.middle_name != '':
-            where_conditions = "{} AND p.middle_name LIKE '%{}%'".format(
-                where_conditions, data.middle_name)
+            where_conditions += " AND p.middle_name LIKE %s"
+            vals += ("%" + data.middle_name + "%",)
         if data.last_name != '':
-            where_conditions = "{} AND p.last_name LIKE '%{}%'".format(
-                where_conditions, data.last_name)
+            where_conditions += " AND p.last_name LIKE %s"
+            vals += ("%" + data.last_name + "%",)
         if data.dob != '':
-            where_conditions = "{} AND p.dob = '{}'".format(
-                where_conditions, data.dob)
+            where_conditions += " AND p.dob = %s"
+            vals += (data.dob,)
         if data.phone_number != '':
-            where_conditions = "{} AND p.phone_number LIKE '%{}%'".format(
-                where_conditions, data.phone_number)
+            where_conditions += " AND p.phone_number LIKE %s"
+            vals += ("%" + data.phone_number + "%",)
         if data.email != '':
-            where_conditions = "{} AND p.email LIKE '%{}%'".format(
-                where_conditions, data.email)
+            where_conditions += " AND p.email LIKE %s"
+            vals += ("%" + data.email + "%",)
         if data.heart_disease:
-            where_conditions = "{} AND q.heart_disease=1".format(
-                where_conditions)
+            where_conditions += " AND q.heart_disease=1"
         if data.diabetes:
-            where_conditions = "{} AND q.diabetes=1".format(where_conditions)
+            where_conditions += " AND q.diabetes=1"
         if data.respiratory_diseases:
-            where_conditions = "{} AND q.respiratory_diseases=1".format(
-                where_conditions)
+            where_conditions += " AND q.respiratory_diseases=1"
         if data.autoimmune_disease:
-            where_conditions = "{} AND q.autoimmune_disease=1".format(
-                where_conditions)
+            where_conditions += " AND q.autoimmune_disease=1"
         if data.other_chronic:
-            where_conditions = "{} AND q.other_chronic=1".format(
-                where_conditions)
+            where_conditions += " AND q.other_chronic=1"
         if data.allergies:
-            where_conditions = "{} AND q.allergies=1".format(where_conditions)
+            where_conditions += " AND q.allergies=1"
         if data.prescription_use:
-            where_conditions = "{} AND q.prescription_use=1".format(
-                where_conditions)
+            where_conditions += " AND q.prescription_use=1"
         if data.status != VaxPreRegStatusEnum.any:
-            where_conditions = "{} AND vpr.status='{}'".format(
-                where_conditions, data.status)
+            where_conditions += " AND vpr.status=%s"
+            vals += (data.status,)
 
         having_conditions = "1=1"
         if data.min_age:
-            having_conditions = "{} AND age >= '{}'".format(
-                having_conditions, data.min_age)
+            having_conditions += " AND age >= %s"
+            vals += (data.min_age,)
         if data.max_age:
-            having_conditions = "{} AND age <= '{}'".format(
-                having_conditions, data.max_age)
+            having_conditions += " AND age <= %s"
+            vals += (data.max_age,)
 
         if data.sort_field in ["first_name", "middle_name", "last_name", "age", "signed_up_dt"]:
             sort_field = data.sort_field
@@ -596,7 +595,7 @@ def find_patients_in_vax_waitlist(data):
         LIMIT {} OFFSET {}
         """.format(where_conditions, having_conditions, sort_field, data.sort, data.limit, data.offset)
         
-        return replica_read_rows(sql)
+        return replica_read_rows(sql, vals)
 
     except Exception as err:
         log_generic(
