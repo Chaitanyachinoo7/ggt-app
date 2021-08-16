@@ -4,8 +4,8 @@ from ggt.lib.email import render_template
 
 
 def send_new_account_registration_request_email(first_name, email):
-    from_email = cfg('notifications.from_email')
-    from_name = cfg('notifications.from_name')
+    from_email = cfg('notifications.from_email_ggd')
+    from_name = cfg('notifications.from_name_ggd')
     subject = "GoGetVax provider account creation request received"
     template_vars = {
         "first_name": first_name
@@ -16,8 +16,8 @@ def send_new_account_registration_request_email(first_name, email):
 
 
 def send_new_account_creation_email(first_name, email, password, org=False):
-    from_email = cfg('notifications.from_email')
-    from_name = cfg('notifications.from_name')
+    from_email = cfg('notifications.from_email_ggd')
+    from_name = cfg('notifications.from_name_ggd')
     portal_url = cfg('portal_url')
     ops_url = cfg('ops_url')
     subject = "GoGetTested Account created"

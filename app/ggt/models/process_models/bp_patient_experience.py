@@ -2762,8 +2762,8 @@ def __send_qrcode_email(appointment: GgtAppointment, country: str = "US"):
 
 def __send_ggv_qrcode_email(appointment: GgtAppointment):
     try:
-        from_email = cfg('notifications.from_email')
-        from_name = cfg('notifications.from_name')
+        from_email = cfg('notifications.from_email_ggd')
+        from_name = cfg('notifications.from_name_ggd')
 
         template_vars = {
             "first_name": appointment.patient.first_name,
@@ -2813,8 +2813,8 @@ def __send_ggv_qrcode_email(appointment: GgtAppointment):
 
 def send_ggv_certificate_level_1_email(first_name, email, level, phone_number=None):
     try:
-        from_email = cfg('notifications.from_email')
-        from_name = cfg('notifications.from_name')
+        from_email = cfg('notifications.from_email_ggd')
+        from_name = cfg('notifications.from_name_ggd')
 
         template_vars = {
             "first_name": first_name
@@ -2876,8 +2876,8 @@ def send_ggv_certificate_level_1_email(first_name, email, level, phone_number=No
 
 
 def send_ggv_reject_email(first_name, email):
-    from_email = cfg('notifications.from_email')
-    from_name = cfg('notifications.from_name')
+    from_email = cfg('notifications.from_email_ggd')
+    from_name = cfg('notifications.from_name_ggd')
 
     template_vars = {
         "first_name": first_name
@@ -2927,8 +2927,8 @@ def send_ggv_reject_email(first_name, email):
 
 def __send_ggv_pre_registration_email(first_name, email):
     try:
-        from_email = cfg('notifications.from_email')
-        from_name = cfg('notifications.from_name')
+        from_email = cfg('notifications.from_email_ggd')
+        from_name = cfg('notifications.from_name_ggd')
 
         template_vars = {
             "first_name": first_name,
