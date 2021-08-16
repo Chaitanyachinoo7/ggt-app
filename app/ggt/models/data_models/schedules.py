@@ -488,7 +488,7 @@ def lookup_certificate(phone_number, dob, first_name, last_name, version=1, toke
         vals = ()
         where_statement = "gc.rejected = 0 AND gc.lock_time < NOW()"
         if is_unverified and version == 1:
-            where_statement = "{} AND date(p.create_dt) > '2021-05-25'".format(where_statement)
+            where_statement = "{} AND date(p.create_dt) > '2021-05-25' AND p.phone_number LIKE '+1%'".format(where_statement)
         if phone_number or phone_number != "":
             where_statement = "{} AND p.phone_number LIKE %s".format(where_statement)
             vals += ('%{}%'.format(phone_number),)
