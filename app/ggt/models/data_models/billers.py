@@ -29,12 +29,15 @@ def get_billing_list(offset, status=None, from_dt=None, to_dt=None,
     try:
 
         where_conditions = ''
+        vals = ()
         if from_dt:
-            where_conditions = "{} AND t.create_dt >= '{}'".format(
-                where_conditions, from_dt)
+            where_conditions = "{} AND t.create_dt >= %s".format(
+                where_conditions)
+            vals += (from_dt,)
         if to_dt:
-            where_conditions = "{} AND  t.create_dt <= '{}'".format(
-                where_conditions, to_dt)
+            where_conditions = "{} AND  t.create_dt <= %s".format(
+                where_conditions)
+            vals += (to_dt, )
         if status:
             if status == BillingStatusEnum.pending:
                 where_conditions = "{} AND (t.initial_billed_status = {} OR a.billing_status is NULL)".format(
@@ -47,21 +50,26 @@ def get_billing_list(offset, status=None, from_dt=None, to_dt=None,
                     where_conditions, 1)
         if pre_consulted != PreConsultationEnum.any:
             where_conditions = "{} AND (select (CASE WHEN c.consultation_type_codes LIKE '%pre%' THEN 1 ELSE 0 END) " \
-                               "AS pre_consulted) = {}".format(
-                                   where_conditions, pre_consulted)
+                               "AS pre_consulted) = %s".format(
+                                   where_conditions)
+            vals += (pre_consulted,)
         if provider_reviewed != ProviderReviewedEnum.any:
             if provider_reviewed == ProviderReviewedEnum.provider_reviewed:
-                where_conditions = "{} AND t.consultation_status = '{}'".format(
-                    where_conditions, ProviderReviewedEnum.provider_reviewed)
+                where_conditions = "{} AND t.consultation_status = %s".format(
+                    where_conditions)
+                vals += (ProviderReviewedEnum.provider_reviewed,)
             if provider_reviewed == ProviderReviewedEnum.not_provider_reviewed:
-                where_conditions = "{} AND (t.consultation_status = '{}' OR a.billing_status is NULL)".format(
-                    where_conditions, ProviderReviewedEnum.not_provider_reviewed)
+                where_conditions = "{} AND (t.consultation_status = %s OR a.billing_status is NULL)".format(
+                    where_conditions)
+                vals += (ProviderReviewedEnum.not_provider_reviewed,)
         if test_status != TestStatusEnum.any:
-            where_conditions = "{} AND t.status = '{}'".format(
-                where_conditions, test_status)
+            where_conditions = "{} AND t.status = %s".format(
+                where_conditions)
+            vals += (test_status,)
         if appointment_status != AppointmentStatusEnum.any:
-            where_conditions = "{} AND a.status = '{}'".format(
-                where_conditions, appointment_status)
+            where_conditions = "{} AND a.status = %s".format(
+                where_conditions)
+            vals += (appointment_status,)
 
         sql = """SELECT 
     p.id AS patient_id,
@@ -262,7 +270,7 @@ FROM
         ORDER BY register_dt {}
         LIMIT {}  offset {};
         """.format(where_conditions, sort, limit, offset)
-        rows = replica_read_rows(sql)
+        rows = replica_read_rows(sql, vals)
         return __process_billing_response(rows)
 
     except Exception as err:

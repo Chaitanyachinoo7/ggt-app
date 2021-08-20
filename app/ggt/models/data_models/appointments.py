@@ -6,7 +6,8 @@ import ggt.lib.constants as c
 
 from ggt.lib.utils import (
     log_generic,
-    whoami
+    whoami,
+    is_non_empty_value
 )
 
 from ggt.lib.db import (
@@ -95,7 +96,7 @@ def add_service_to_appointment(appointment_id: int, service_code: str) -> bool:
             insurance_amount
         )
         SELECT
-            '{}' as appointment_id,
+            %s as appointment_id,
             id as service_id,
             service_name,
             price,
@@ -106,9 +107,9 @@ def add_service_to_appointment(appointment_id: int, service_code: str) -> bool:
             services_catalog
         WHERE
             service_code = %s
-            
-        """.format(appointment_id)
-        vals = (service_code,)
+
+        """
+        vals = (appointment_id, service_code)
         if exec_insert(sql, vals):
             return True
 
@@ -125,9 +126,13 @@ def add_service_to_appointment(appointment_id: int, service_code: str) -> bool:
 
 
 def get_appointment(appointment_id: int, org_id=None) -> GgtAppointment:
-    where_statement = "a.id = {}".format(appointment_id)
-    if org_id:
-        where_statement = "{} AND org.id = {}".format(where_statement, org_id)
+
+    where_clause = "a.id = %s"
+    vals = (appointment_id, )
+    if is_non_empty_value(org_id):
+        where_clause += ' AND org.id = %s '
+        vals = vals + (org_id, )
+
     try:
         sql = """
         SELECT
@@ -169,11 +174,9 @@ def get_appointment(appointment_id: int, org_id=None) -> GgtAppointment:
             services_catalog c ON (c.id = s.service_id)
 				LEFT JOIN
 			organizations org ON org.id = l.org_id
-        WHERE
-                {}
-        """.format(where_statement)
-
-        row = read_row(sql)
+        WHERE {}     
+        """.format(where_clause)
+        row = read_row(sql, vals)
 
         if not row:
             raise ValueError('No Appointment info')
@@ -191,6 +194,7 @@ def get_appointment(appointment_id: int, org_id=None) -> GgtAppointment:
     return None
 
 
+# Invalid query, not used anywhere
 def get_ggv_patient(patient_id: int):
     try:
         where_statement = "ggv.patient_id = {}".format(patient_id)
@@ -473,20 +477,22 @@ def re_schedule_appointment(appointment_id, slot):
 def lookup_certificate(phone_number, dob, first_name, last_name, token=None):
     try:
         where_statement = "1=1"
+        vals = ()
         if phone_number or phone_number != "":
-            where_statement = "{} AND p.phone_number = '{}'".format(where_statement, phone_number)
+            where_statement += " AND p.phone_number = %s"
+            vals = vals + (phone_number,)
         if dob or dob != "":
-            where_statement = "{} AND date(p.dob) = '{}'".format(
-                where_statement, dob)
+            where_statement += " AND date(p.dob) = %s"
+            vals = vals + (dob,)
         if first_name or first_name != "":
-            where_statement = "{} AND p.first_name = '{}'".format(
-                where_statement, first_name)
+            where_statement += " AND p.first_name = %s"
+            vals = vals + (first_name,)
         if last_name or last_name != "":
-            where_statement = "{} AND p.last_name = '{}'".format(
-                where_statement, last_name)
+            where_statement += " AND p.last_name = %s"
+            vals = vals + (last_name,)
         if token:
-            where_statement = "{} AND p.result_token = '{}' AND p.token_expire > NOW()".format(
-                where_statement, token)
+            where_statement += " AND p.result_token = %s AND p.token_expire > NOW()"
+            vals = vals + (token,)
         sql = """SELECT 
                     gc.*,
                    date(gc.check_in_dt) AS appointment_date
@@ -495,7 +501,7 @@ def lookup_certificate(phone_number, dob, first_name, last_name, token=None):
                         JOIN
                     ggv_certificates gc ON p.id = gc.patient_id
                     WHERE {} AND gc.active=1""".format(where_statement)
-        rows = replica_read_rows(sql)
+        rows = replica_read_rows(sql, vals)
         return __format_vax_certificate(rows), "No certificate found."
 
     except Exception as err:
@@ -509,15 +515,6 @@ def lookup_certificate(phone_number, dob, first_name, last_name, token=None):
 
 def lookup_pkpass(phone_number, dob, first_name, last_name, token):
     try:
-        where_statement = "p.phone_number = '{}'".format(phone_number)
-        where_statement = "{} AND date(p.dob) = '{}'".format(
-            where_statement, dob)
-        where_statement = "{} AND p.first_name = '{}'".format(
-            where_statement, first_name)
-        where_statement = "{} AND p.last_name = '{}'".format(
-            where_statement, last_name)
-        where_statement = "{} AND p.result_token = '{}' AND p.token_expire > NOW()".format(where_statement, token)
-        # where_statement = "{} AND p.result_token = '{}'".format(where_statement, token)
 
         sql = """SELECT 
                     gc.*,
@@ -526,9 +523,21 @@ def lookup_pkpass(phone_number, dob, first_name, last_name, token):
                     patients p
                         JOIN
                     ggv_certificates gc ON p.id = gc.patient_id
-                    WHERE {}""".format(where_statement)
-        print(sql)
-        rows = replica_read_rows(sql)
+                WHERE
+                    p.phone_number = %s 
+                        AND
+                    date(p.dob) = %s
+                        AND
+                    p.first_name = %s
+                        AND
+                    p.last_name = %s
+                        AND
+                    p.result_token = %s 
+                        AND
+                    p.token_expire > NOW()
+                """
+        vals = (phone_number, dob, first_name, last_name, token)
+        rows = replica_read_rows(sql, vals)
         print(rows)
         return __format_pkpass_records(rows)
 
@@ -539,6 +548,7 @@ def lookup_pkpass(phone_number, dob, first_name, last_name, token):
             error=err
         )
     return None
+
 
 def save_android_pass_details(id, classId, objectId):
     try:

@@ -233,12 +233,14 @@ def delete_certificate(cert_id):
 
 
 def reject_certificate(cert_ids):
-    cert_ids.append(0)
     try:
+        placeholders = ','.join(['%s'] * len(cert_ids))
+
         sql = """UPDATE ggv_certificates
             SET rejected = 1
-        WHERE id in {}""".format(str(tuple(cert_ids)))
-        return exec_update(sql)
+        WHERE id in ({})""".format(placeholders)
+        vals = tuple(cert_ids)
+        return exec_update(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -475,33 +477,41 @@ def get_unverified_patients(version):
 
 
 def get_patient_by_id(id):
-    sql = """SELECT phone_number, dob, first_name, last_name FROM patients where id = {}""".format(id)
-    return read_row(sql)
+    sql = """SELECT phone_number, dob, first_name, last_name FROM patients where id = %s"""
+    vals = (id,)
+    return read_row(sql, vals)
 
 
 def lookup_certificate(phone_number, dob, first_name, last_name, version=1, token=None, verification_level=None, limit=None,
                        offset=None, user=None, is_unverified=False):
     try:
+        vals = ()
         where_statement = "gc.rejected = 0 AND gc.lock_time < NOW()"
         if is_unverified and version == 1:
-            where_statement = "{} AND date(p.create_dt) > '2021-05-25'".format(where_statement)
+            where_statement = "{} AND date(p.create_dt) > '2021-05-25' AND p.phone_number LIKE '+1%'".format(where_statement)
         if phone_number or phone_number != "":
-            where_statement = "{} AND p.phone_number LIKE '%{}%'".format(where_statement, phone_number)
+            where_statement = "{} AND p.phone_number LIKE %s".format(where_statement)
+            vals += ('%{}%'.format(phone_number),)
         if dob or dob != "":
-            where_statement = "{} AND date(p.dob) = '{}'".format(
+            where_statement = "{} AND date(p.dob) = %s".format(
                 where_statement, dob)
+            vals += (dob,)
         if first_name or first_name != "":
-            where_statement = "{} AND p.first_name LIKE '%{}%'".format(
-                where_statement, first_name.strip())
+            where_statement = "{} AND p.first_name LIKE %s".format(
+                where_statement)
+            vals += ('%{}%'.format(first_name.strip()),)
         if last_name or last_name != "":
-            where_statement = "{} AND p.last_name LIKE '%{}%'".format(
-                where_statement, last_name.strip())
+            where_statement = "{} AND p.last_name LIKE %s".format(
+                where_statement)
+            vals += ('%{}%'.format(last_name.strip()),)
         if token:
-            where_statement = "{} AND p.result_token = '{}' AND p.token_expire > NOW()".format(
-                where_statement, token)
+            where_statement = "{} AND p.result_token = %s AND p.token_expire > NOW()".format(
+                where_statement)
+            vals += (token,)
         if verification_level:
-            where_statement = "{} AND gc.verification_level = {}".format(
+            where_statement = "{} AND gc.verification_level = %s".format(
                 where_statement, verification_level)
+            vals += (verification_level,)
 
         if version == 2:
             where_statement = "{} AND ggv_ocr.first_name =1 AND ggv_ocr.last_name =1".format(
@@ -536,7 +546,7 @@ def lookup_certificate(phone_number, dob, first_name, last_name, version=1, toke
                     ggv_certificates_ocr ggv_ocr ON p.id = ggv_ocr.patient_id
                     WHERE {}""".format(where_statement)
         print(sql)
-        rows = read_rows(sql)
+        rows = read_rows(sql, vals)
         return __format_vax_certificate_portal(rows, version, is_unverified), "No certificate found."
 
     except Exception as err:
@@ -717,10 +727,13 @@ def delete_schedule_generation_rule(id):
 
 def vax_yes_activity(certificate_id, phone_number):
     where_statement = "1=1"
+    vals = ()
     if phone_number or phone_number != "":
-        where_statement = "{} AND p.phone_number LIKE '%{}%'".format(where_statement, phone_number)
+        where_statement = "{} AND p.phone_number LIKE %s".format(where_statement)
+        vals += ('%{}%'.format(phone_number),)
     if certificate_id or certificate_id != "":
-        where_statement = "{} AND gc.id = {}".format(where_statement, certificate_id)
+        where_statement = "{} AND gc.id = %s".format(where_statement)
+        vals += (certificate_id,)
 
     try:
         sql = """SELECT 
@@ -734,7 +747,7 @@ def vax_yes_activity(certificate_id, phone_number):
                         u.email as admin_email,
                         u.given_name as admin_first_name,
                         u.family_name as admin_family_name
-                        
+
                     FROM
                         vax_yes_activity_log a
                             JOIN
@@ -744,7 +757,7 @@ def vax_yes_activity(certificate_id, phone_number):
                             LEFT JOIN
                         ggt_users u ON u.external_id = a.external_user_id
                     WHERE {} LIMIT 100;""".format(where_statement)
-        res = replica_read_rows(sql)
+        res = replica_read_rows(sql, vals)
         return res
 
     except Exception as err:
@@ -1020,14 +1033,15 @@ def get_first_available_times(location_id, date):
             FROM 
                 ggv_schedules 
             WHERE 
-                location_id = {} 
+                location_id = %s 
                 AND status = 'available' 
-                AND date(start_dt) = '{}'
+                AND date(start_dt) = %s
                 AND start_dt >= CONVERT_TZ(NOW(), '+00:00', '-06:00')
                 AND lock_time < NOW()
-            ORDER BY id;""".format(location_id, date)
+            ORDER BY id;"""
 
-    res = replica_read_rows(sql)
+    vals = (location_id, date,)
+    res = replica_read_rows(sql, vals)
     return select_random_count(res, 5)
 
 
@@ -1197,11 +1211,11 @@ def get_slots_matching_dt_list(dt_list, location_id, category):
             FROM
                 {}
             WHERE
-                location_id = {}
+                location_id = %s
                 AND start_dt IN ({})
-        """.format(table, location_id, format_strings)
+        """.format(table, format_strings)
 
-        vals = tuple(dt_list)
+        vals = (location_id,) + tuple(dt_list)
 
         rows = replica_read_rows(sql, vals)
         if rows:
@@ -1412,7 +1426,7 @@ def __sort_by_field(task_list):
 def __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, group_code, map_thumbnail):
     try:
         map_thumbnail_field = 'l.image_thumbnail,' if map_thumbnail else "'' as image_thumbnail,"
-
+        vals = ()
         where_statement = "1=1"
         if date_str:
             where_statement = """{} AND l.location_id IN (SELECT 
@@ -1420,7 +1434,8 @@ def __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, g
                                     FROM
                                         schedules_metrics_cache
                                     WHERE
-                                        local_scheduled_date = '{}')""".format(where_statement, date_str)
+                                        local_scheduled_date = %s)""".format(where_statement)
+            vals += (date_str,)
         sql = """
         SELECT DISTINCT
             l.location_id,
@@ -1453,7 +1468,7 @@ def __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, g
                 WHEN (l.average_processing_time IS NULL) THEN 48
                 ELSE l.average_processing_time
             END) AS average_processing_time
-            
+
         FROM
             locations_metrics_cache l
         WHERE   
@@ -1472,7 +1487,7 @@ def __get_available_locations_by_date_near_lat_lng(lat, lng, radius, date_str, g
         ORDER BY distance    
         """.format(map_thumbnail_field, where_statement)
 
-        vals = (lat, lng, lat, lat, lng, lat, radius, group_code)
+        vals = (lat, lng, lat, lat, lng, lat, radius, group_code) + vals
 
         return __map_rows_to_dtl_list(
             read_rows(sql, vals)
@@ -1647,13 +1662,15 @@ def __get_all_available_dtl(group_code):
 
 
 def __lock_record(cert_ids):
-    cert_ids.append(0)
+    placeholders = ','.join(['%s'] * len(cert_ids))
+
     sql = """UPDATE ggv_certificates
                 SET
                 lock_time = NOW() + INTERVAL 300 second
-            WHERE  id in {}""".format(str(tuple(cert_ids)))
-    return exec_update(sql)
-    
+            WHERE  id in ({})""".format(placeholders)
+    vals = tuple(cert_ids)
+    return exec_update(sql, vals)
+
 
 def __map_rows_to_dtl_list(rows):
     dtl_list: List[GgtDateTimeLocation] = list()

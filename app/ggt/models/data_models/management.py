@@ -199,8 +199,10 @@ def update_user_status(req):
 def list_org_requests(req):
     try:
         where_statement = "1=1"
+        vals = ()
         if req.status != '':
-            where_statement = "{} AND o.status = '{}'".format(where_statement, req.status)
+            where_statement = "{} AND o.status = %s".format(where_statement)
+            vals += (req.status, )
         sql = """SELECT 
                     o.id as org_id,
                     o.org_name as org_name,
@@ -215,14 +217,14 @@ def list_org_requests(req):
                     u.email as ggt_user_email,
                     u.family_name,
                     u.given_name
-                    
+
                 FROM
                     organization_requests o
                         LEFT JOIN
                     ggt_users u ON o.resolved_by = u.external_id
                     WHERE
                     {}""".format(where_statement)
-        return read_rows(sql)
+        return read_rows(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -320,17 +322,22 @@ def list_user(req, user):
         organization_id = get_organization_id(user)
         if organization_id is None:
             return None
-        where_statement = "org_id = {}".format(organization_id)
+
+        where_statement = "org_id = %s"
+        vals = (organization_id, )
         if req.role != "":
-            where_statement = "{} AND roles LIKE '%{}%'".format(where_statement, req.role)
+            where_statement = "{} AND roles LIKE %s".format(where_statement)
+            vals += ('%{}%'.format(req.role),)
         if req.name != "":
-            where_statement = "{} AND name LIKE '%{}%'".format(where_statement, req.name)
+            where_statement = "{} AND name LIKE %s".format(where_statement)
+            vals += ('%{}%'.format(req.name),)
         if req.email != "":
-            where_statement = "{} AND email LIKE '%{}%'".format(where_statement, req.email)
+            where_statement = "{} AND email LIKE %s".format(where_statement)
+            vals += ('%{}%'.format(req.email),)
         sql = """SELECT * FROM ggt_users
                     WHERE
                     {} LIMIT {} OFFSET {}""".format(where_statement, req.limit, req.offset)
-        return read_rows(sql)
+        return read_rows(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -342,8 +349,10 @@ def list_user(req, user):
 def list_organizations(req, user):
     try:
         where_statement = "1=1"
+        vals = ()
         if req.name != "":
-            where_statement = "{} AND o.name LIKE '%{}%'".format(where_statement, req.name)
+            where_statement = "{} AND o.name LIKE %s".format(where_statement)
+            vals += ('%{}%'.format(req.name),)
         sql = """SELECT 
                     o.id AS org_id,
                     o.name AS org_name,
@@ -362,7 +371,7 @@ def list_organizations(req, user):
                     ggt_users u ON o.owner_ext_id = u.external_id
                     WHERE
                     {}""".format(where_statement)
-        return read_rows(sql)
+        return read_rows(sql, vals)
 
     except Exception as err:
         log_generic(

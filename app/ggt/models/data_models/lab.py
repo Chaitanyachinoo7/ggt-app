@@ -20,6 +20,7 @@ from ggt.lib.db import (
     read_rows
 )
 
+
 ########################################################################################################
 # [Public] functions
 ########################################################################################################
@@ -56,6 +57,7 @@ def lab_status_update(lab_status_update_request):
         )
         return None
 
+
 def get_verification_level_from_patient_id(id):
     try:
         sql = """SELECT 
@@ -65,8 +67,9 @@ def get_verification_level_from_patient_id(id):
                     FROM
                         ggv_certificates
                     WHERE 
-                        patient_id = {};""".format(id)
-        return read_rows(sql)
+                        patient_id = %s;"""
+        vals = (id,)
+        return read_rows(sql, vals)
     except Exception as err:
         log_generic(
             type=ERROR,

@@ -94,7 +94,7 @@ databases:
     read_replica_host: ggt-dev-db.cluster-ro-csfqhv5lbvg2.us-east-2.rds.amazonaws.com
     username: admin
     password: hWMgl5Tfkqn30saQNp9M
-    db: ggt_test
+    db: ggt_prod
 
 
   sqlite:
