@@ -48,6 +48,8 @@ import ggt.lib.constants as c
 def site_admin_general_search(user, first_name, middle_name, last_name, dob, phone_number, email, appointment_id,
                               group_code, appointment_date, location_id, vial_id="", sort_field="register_dt",
                               sort_type="desc", group_vax_results=False, token=None, is_patient=False):
+    first_name = first_name.strip()
+    last_name = last_name.strip()
     if not is_patient:
         org_id = get_organization_id(user)
     else:
