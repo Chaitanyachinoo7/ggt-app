@@ -94,7 +94,8 @@ def get_signup_record_by_phone_otp(phone_number, otp):
             signups 
         WHERE 
             phone_number = %s 
-            AND otp = %s
+            AND otp = 
+            AND create_dt > DATE_SUB(NOW(), INTERVAL 5 MINUTE)%s
         """
         vals = (phone_number, otp)
         row = replica_read_row(sql, vals)

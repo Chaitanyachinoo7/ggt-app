@@ -11,7 +11,7 @@ from pprint import pformat
 # import google.cloud.logging
 import phonenumbers
 import pyotp
-
+import math, random
 #import google.cloud.logging
 #import googlecloudprofiler
 
@@ -46,8 +46,13 @@ def whoami():
 
 
 def generate_otp():
-    otp = pyotp.TOTP('base32secret3232')
-    return otp.now()
+    # otp = pyotp.TOTP('base32secret3232')
+    # return otp.now()
+    digits = "0123456789"
+    OTP = ""
+    for i in range(6) :
+        OTP += digits[math.floor(random.random() * 10)]
+    return OTP
 
 
 def generate_session_id():
