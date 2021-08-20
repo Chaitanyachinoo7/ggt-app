@@ -413,7 +413,7 @@ def __send_vax_completion_sms(name, to_number):
 def __send_vax_completion_confirmation_in_15_minutes(name, to_number):
     msg = """Hi {} \nYou are free to leave if you feel well. 
     Please alert the staff immediately if you feel unwell or call 911 if you're not near staff. Your vaccine record is 
-    located here https://start.gogetvax.com/provider. \nRemember to still practice social distancing and to continue 
+    located here https://start.gogetdoc.com/provider. \nRemember to still practice social distancing and to continue 
     wearing a mask.""".format(name)
     r = {
         "message": msg,

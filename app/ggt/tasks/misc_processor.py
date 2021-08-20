@@ -793,8 +793,8 @@ def dedupe_tokens():
 
 def process_raw_list_sms_notifications():
     rows = [
-                ['+19999999999','Jo','https://start.gogetvax.com/vax/schedule/startwt/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbiI6IjMyZDI2ZWI2LTk3MGItNGU4YS05YmFmLWZjZmU5NzY0YmViZCIsImV4cCI6MTYxNzEzNDEwN30.gaoE6Q7KcVgEN3t1NMZJKDOkkYl2yh9WNHy3RqSznTA/_ROCKWALL_'],
-                ['+19999999999','Kristi','https://start.gogetvax.com/vax/schedule/startwt/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbiI6ImQ0MzViNzY1LThiY2EtNGE5Ny1iZGYxLTU3YTBiNGE2NjZkYyIsImV4cCI6MTYxNzEzNDEwN30.x-VlYzDhIDCT8M2ZwExtv2mpJgUKvaFILbWPqyLxtfo/_ROCKWALL_']                
+                ['+19999999999','Jo','https://start.gogetdoc.com/vax/schedule/startwt/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbiI6IjMyZDI2ZWI2LTk3MGItNGU4YS05YmFmLWZjZmU5NzY0YmViZCIsImV4cCI6MTYxNzEzNDEwN30.gaoE6Q7KcVgEN3t1NMZJKDOkkYl2yh9WNHy3RqSznTA/_ROCKWALL_'],
+                ['+19999999999','Kristi','https://start.gogetdoc.com/vax/schedule/startwt/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbiI6ImQ0MzViNzY1LThiY2EtNGE5Ny1iZGYxLTU3YTBiNGE2NjZkYyIsImV4cCI6MTYxNzEzNDEwN30.x-VlYzDhIDCT8M2ZwExtv2mpJgUKvaFILbWPqyLxtfo/_ROCKWALL_']                
             ]
     data = []
     for row in rows:
@@ -824,7 +824,7 @@ def process_vax_reschedule_sms_notification():
         appointment_id = row[3]
         scheduled_dt = row[4]
         sched_time = datetime.strptime(scheduled_dt, "%Y-%m-%d %H:%M:%S").strftime("%a, %-d %b %Y @ %-I:%M %p")
-        link = 'https://start.gogetvax.com/appointment/{}/{}'.format(appointment_id, dob)
+        link = 'https://start.gogetdoc.com/appointment/{}/{}'.format(appointment_id, dob)
         message = """Hi {}, Your appointment time for today's vaccine clinic has changed. {} at 1215 T L Townsend Dr, Rockwall, TX 75087. For your convenience, you may arrive anytime before before 4:00 PM {}""".format(first_name, sched_time, link)
 
         data.append(
@@ -847,7 +847,7 @@ def process_vax_reminder():
         appointment_id = row[3]
         scheduled_dt = row[4]
         sched_time = datetime.strptime(scheduled_dt, "%Y-%m-%d %H:%M:%S").strftime("%a, %-d %b %Y @ %-I:%M %p")
-        link = 'https://start.gogetvax.com/appointment/{}/{}'.format(appointment_id, dob)
+        link = 'https://start.gogetdoc.com/appointment/{}/{}'.format(appointment_id, dob)
         message = """Hi {}, this is a reminder that your 2nd dose vaccine appointment is on {}. Please note the address change to 1215 T L Townsend Dr, Rockwall TX 75087. You can acccess your QR code for your 2nd appointment here: {}""".format(first_name, sched_time, link)
 
         data.append(

@@ -2153,7 +2153,7 @@ def __makeEventTicketClassResource(classId, patient):
                 "kind": "walletobjects#image", "sourceUri": {
                     "kind": "walletobjects#uri",
                     "uri": "https://ggv-images.s3.us-east-2.amazonaws.com/GGV+android+wallet.png",
-                    "description": "https://www.gogetvax.com/"
+                    "description": "https://gogetdoc.com/vaxyes/"
                 }
             }
         }
@@ -2213,21 +2213,21 @@ def __makeEventTicketObjectResource(classId, objectId, patient, url_path):
             "classId": classId,
             "state": "active",
             "barcode": {
-                "kind": "walletobjects#barcode", "type": "QR_CODE", "value": "https://start.gogetvax.com/vaxyes/verify?brand=vax&query=" + url_path,
+                "kind": "walletobjects#barcode", "type": "QR_CODE", "value": "https://start.gogetdoc.com/vaxyes/verify?brand=vax&query=" + url_path,
                 "alternateText": 'Covid 19 | Level ' + patient["level"] + ' Verified '
             },
             "textModulesData": textModulesData,
             "linksModuleData": {
                 "uris": [{
-                    "kind": "walletobjects#uri", "uri": "https://start.gogetvax.com/login",
-                    "description": "https://GoGetVax.com"
+                    "kind": "walletobjects#uri", "uri": "https://start.gogetdoc.com/login",
+                    "description": "https://gogetdoc.com/vaxyes"
                 }]
             }, "imageModulesData": [{
                 "mainImage": {
                     "kind": "walletobjects#image", "sourceUri": {
                         "kind": "walletobjects#uri",
                         "uri": "https://ggv-images.s3.us-east-2.amazonaws.com/GGV+android+2.png",
-                        "description": "https://www.gogetvax.com/"
+                        "description": "https://gogetdoc.com/vaxyes/"
                     }
                 }
             }],
@@ -2248,7 +2248,7 @@ def __generate_pk_pass(pkpass_req, patient, verification, url_path):
     try:
         cardInfo = Generic()
         certs = patient["certificates"]
-        message = "https://start.gogetvax.com/vaxyes/verify?brand=vax&query=" + url_path
+        message = "https://start.gogetdoc.com/vaxyes/verify?brand=vax&query=" + url_path
         print("message", message)
         cardInfo.addHeaderField(
             'header', 'Covid 19 | Level ' + patient["level"] + ' Verified ', 'STATUS')
@@ -2588,7 +2588,7 @@ def __send_ggv_qrcode_sms(appointment: GgtAppointment, dose, out_of):
                       out_of,
                       appointment.date_text,
                       appointment.location_text,
-                      "https://start.gogetvax.com",
+                      "https://start.gogetdoc.com",
                       appointment.id,
                       appointment.patient.dob.strftime('%Y%m%d')
                   )
@@ -2620,12 +2620,12 @@ def __send_ggv_qrcode_sms(appointment: GgtAppointment, dose, out_of):
 def send_ggv_certificate_level_1_sms(first_name, phone_number, level):
     message = ''
     if level == "1":
-        message = """Hi {}, your vax card request was successful - your level 1 digital card is available for immediate access through the secure online portal:\nhttps://start.gogetvax.com/login \nYou'll receive an update when our team has verified your submission to level 2. Please allow extra time for processing due to volume.""".format(
+        message = """Hi {}, your vax card request was successful - your level 1 digital card is available for immediate access through the secure online portal:\nhttps://start.gogetdoc.com/login \nYou'll receive an update when our team has verified your submission to level 2. Please allow extra time for processing due to volume.""".format(
             first_name,
         )
         promo_message = "Share this unique link with family & friends so they can get their digital cards too:\nhttps://www.gogetdoc.com/vaxyes"
     elif level == "2":
-        message = """Hi {}, congrats! Your vax card has been updated to level 2 verification. Your updated card is available here:\nhttps://start.gogetvax.com/login""".format(
+        message = """Hi {}, congrats! Your vax card has been updated to level 2 verification. Your updated card is available here:\nhttps://start.gogetdoc.com/login""".format(
             first_name,
         )
         promo_message = "Share this unique link with family & friends so they can get their digital cards too:\nhttps://www.gogetdoc.com/vaxyes"
@@ -2782,11 +2782,11 @@ def __send_ggv_qrcode_email(appointment: GgtAppointment):
             "first_name": appointment.patient.first_name,
             "date_text": appointment.date_text,
             "location_text": appointment.location_text,
-            "base_url": "https://start.gogetvax.com",
+            "base_url": "https://start.gogetdoc.com",
             "appointment_id": appointment.id,
             "dob": appointment.patient.dob.strftime('%Y%m%d'),
             "appointment_url": '{}/appointment/{}/{}'.format(
-                "https://start.gogetvax.com",
+                "https://start.gogetdoc.com",
                 appointment.id,
                 appointment.patient.dob.strftime('%Y%m%d')
             )

@@ -768,7 +768,7 @@ def bp_delete_certificate(cert_id, notify_customer, user):
             international = is_international(phone_number)
             message = "We were unable to validate your submission. " \
                     "You can resubmit your request by going to  " \
-                    "http://vaxyes.com  and entering in your phone number.  " \
+                    "http://gogetdoc.com/vaxyes  and entering in your phone number.  " \
                     "Please make sure you take clear photos of your ID and " \
                     "Vaccine card in order to process"
 
@@ -850,7 +850,7 @@ def bp_reject_certificate(cert_ids, notify_customer, user):
             international = is_international(phone_number)
             message = "We were unable to validate your submission. " \
                       "You can resubmit your request by going to  " \
-                      "https://vaxyes.com  and entering in your phone number.  " \
+                      "https://gogetdoc.com/vaxyes  and entering in your phone number.  " \
                       "Please make sure you take clear photos of your ID and " \
                       "Vaccine card in order to process"
 
