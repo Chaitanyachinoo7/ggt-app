@@ -775,6 +775,8 @@ def bp_has_appointments(phone_number: str, dob: str) -> bool:
 
 def bp_lookup_certificate(phone_number, dob, first_name, last_name, token):
     try:
+        first_name = first_name.strip()
+        last_name = last_name.strip()
         return lookup_certificate(phone_number, dob, first_name, last_name, token)
 
     except Exception as err:
@@ -1006,8 +1008,19 @@ def bp_call_non_sms_phone(phone_number):
     return False
 
 
+def __sanitize_names(req: LookupGGVAddVaxCertRequest):
+    req.first_name = req.first_name.strip()
+    req.last_name = req.last_name.strip()
+
+    if req.pristine:
+        req.pristine.first_name = req.pristine.first_name.strip() if req.pristine.first_name else None
+        req.pristine.last_name = req.pristine.last_name.strip() if req.pristine.last_name else None
+    return req
+
+
 def bp_add_vax_certificate(req):
     try:
+        req = __sanitize_names(req)
         pristine = req.pristine
         log_generic(
             type=c.INFO,
