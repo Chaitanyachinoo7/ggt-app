@@ -1211,6 +1211,8 @@ def bp_add_vax_certificate(req):
                     req.first_name.title(), req.email, "2")
                 return {
                     "level": 2,
+                    "cert_1": cert_details["cert1_id"],
+                    "cert_2": cert_details["cert2_id"] if cert_details["cert2_id"] else None,
                     "show_payment_view": show_payment_view
                 }
             else:
@@ -1236,6 +1238,8 @@ def bp_add_vax_certificate(req):
                 )
                 return {
                     "level": 1,
+                    "cert_1": cert_details["cert1_id"],
+                    "cert_2": cert_details["cert2_id"] if cert_details["cert2_id"] else None,
                     "show_payment_view": show_payment_view
                 }
         else:
@@ -1268,6 +1272,8 @@ def bp_add_vax_certificate(req):
                 # send_ggv_certificate_level_1_email(req.first_name.title(), req.email, "1")
                 return {
                     "level": 1,
+                    "cert_1": cert_details["cert1_id"],
+                    "cert_2": cert_details["cert2_id"] if cert_details["cert2_id"] else None,
                     "show_payment_view": show_payment_view
                 }
             else:
