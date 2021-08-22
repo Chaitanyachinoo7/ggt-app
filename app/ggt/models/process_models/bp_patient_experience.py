@@ -3,7 +3,7 @@ import json
 import os
 import uuid
 from datetime import datetime
-
+import re
 import boto3
 import requests
 from cachetools import cached, TTLCache
@@ -1013,8 +1013,10 @@ def __sanitize_names(req: LookupGGVAddVaxCertRequest):
     req.last_name = req.last_name.strip()
 
     if req.pristine:
-        req.pristine.first_name = req.pristine.first_name.strip() if req.pristine.first_name else None
-        req.pristine.last_name = req.pristine.last_name.strip() if req.pristine.last_name else None
+        req.pristine.first_name = req.pristine.first_name.strip(
+        ) if req.pristine.first_name else None
+        req.pristine.last_name = req.pristine.last_name.strip(
+        ) if req.pristine.last_name else None
     return req
 
 
