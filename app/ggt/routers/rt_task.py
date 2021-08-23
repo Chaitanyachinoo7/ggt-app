@@ -199,7 +199,7 @@ async def api_process_sms_queue(request: Request):
     return {STATUS: SUCCESS}
 
 
-@router.post("/misc_processor", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+@router.post("/misc_processor", dependencies=[Security(authorize_user, scopes=[p.MISC_PROCESSOR])])
 async def api_misc_processor(background_tasks: BackgroundTasks):
     background_tasks.add_task(task_process_misc)
     return {
