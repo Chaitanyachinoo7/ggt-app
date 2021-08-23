@@ -98,7 +98,7 @@ def get_signup_record_by_phone_otp(phone_number, otp):
             AND create_dt > DATE_SUB(NOW(), INTERVAL 5 MINUTE)
         """
         vals = (phone_number, otp)
-        row = replica_read_row(sql, vals)
+        row = read_row(sql, vals)
         if row:
             return row['token']
         return None

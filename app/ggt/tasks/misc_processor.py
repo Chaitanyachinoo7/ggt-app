@@ -67,15 +67,15 @@ def task_process_misc():
     # upload_insurance_images_to_gcp_with_small_table()
     #process_email_notifications()
     #upload_insurance_files_from_gstore()
-    #process_sms_notifications()
+    process_sms_notifications()
     #process_email_notifications()
     #dedupe_tokens()
     #process_raw_list_sms_notifications()
     #process_vax()
-    #process_vax_reschedule_sms_notification()
+    # process_vax_reschedule_sms_notification()
     #process_vax_reminder()
     # process_vax_waitlist()
-    generate_schedules()
+    # generate_schedules()
 
     log_generic(
         type=c.INFO,
@@ -161,7 +161,7 @@ def process_sms_notifications():
         data.append(
             (phone_number, prepare_sms_text(row))
         )
-
+    print(data)
     batch_enqueue_sms_notifications(data)
 
 
@@ -209,7 +209,7 @@ def prepare_sms_text(appointment):
     #return """Hi {}, the location where you have registered for your COVID-19 test will be located at the following address for today.  509 E 11th Street Hutchinson KS 67501. Please arrive at this site for your appointment. We apologize for the inconvenience this might have caused.
     #""".format(appointment["first_name"])
 
-    return """Hi {}, the location where you have registered for your COVID-19 test will be CLOSED TODAY 03/18/2021 due to inclement weather. We apologize for the inconvenience this might have caused. Please visit GoGetTested.com to register for a new appointment.
+    return """Hi {}, due to unforeseen circumstances the location where you have registered for your COVID-19 test will have a delayed start until 12 pm. We apologize for the inconvenience. Please visit GoGetTested.com to register for a new appointment.
     """.format(appointment["first_name"])
 
     #return """Hi {}, due to inclement weather, we’ve had to delay opening the testing location where you have registered to 12 pm. This may change depending on the weather. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to register for a new appointment.
@@ -435,10 +435,10 @@ def get_appointments():
             patients p ON a.patient_id = p.id
         WHERE
             location_id IN (
-                2505,  2498, 2497, 2481, 2409, 310, 288, 286, 284, 282, 280, 234
+                78
                 )
-                AND scheduled_dt > '2021-03-18 00:00:00'
-                AND scheduled_dt < '2021-03-19 00:00:00'
+                AND scheduled_dt > '2021-08-23 00:00:00'
+                AND scheduled_dt < '2021-08-23 12:00:00'
                 AND status = 'scheduled'
         """
 
