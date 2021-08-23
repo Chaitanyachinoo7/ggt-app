@@ -3,7 +3,7 @@ import json
 import os
 import uuid
 from datetime import datetime
-
+import re
 import boto3
 import requests
 from cachetools import cached, TTLCache
@@ -1013,8 +1013,10 @@ def __sanitize_names(req: LookupGGVAddVaxCertRequest):
     req.last_name = req.last_name.strip()
 
     if req.pristine:
-        req.pristine.first_name = req.pristine.first_name.strip() if req.pristine.first_name else None
-        req.pristine.last_name = req.pristine.last_name.strip() if req.pristine.last_name else None
+        req.pristine.first_name = req.pristine.first_name.strip(
+        ) if req.pristine.first_name else None
+        req.pristine.last_name = req.pristine.last_name.strip(
+        ) if req.pristine.last_name else None
     return req
 
 
@@ -1209,6 +1211,8 @@ def bp_add_vax_certificate(req):
                     req.first_name.title(), req.email, "2")
                 return {
                     "level": 2,
+                    "cert_1": cert_details["cert1_id"],
+                    "cert_2": cert_details["cert2_id"] if cert_details["cert2_id"] else None,
                     "show_payment_view": show_payment_view
                 }
             else:
@@ -1234,6 +1238,8 @@ def bp_add_vax_certificate(req):
                 )
                 return {
                     "level": 1,
+                    "cert_1": cert_details["cert1_id"],
+                    "cert_2": cert_details["cert2_id"] if cert_details["cert2_id"] else None,
                     "show_payment_view": show_payment_view
                 }
         else:
@@ -1266,6 +1272,8 @@ def bp_add_vax_certificate(req):
                 # send_ggv_certificate_level_1_email(req.first_name.title(), req.email, "1")
                 return {
                     "level": 1,
+                    "cert_1": cert_details["cert1_id"],
+                    "cert_2": cert_details["cert2_id"] if cert_details["cert2_id"] else None,
                     "show_payment_view": show_payment_view
                 }
             else:
@@ -2624,9 +2632,9 @@ def send_ggv_certificate_level_1_sms(first_name, phone_number, level):
             first_name,
         )
         promo_message = "Share this unique link with family & friends so they can get their digital cards too:\nhttps://www.gogetdoc.com/vaxyes"
-    elif level == "2":
-        message = """Hi {}, congrats! Your vax card has been updated to level 2 verification. Your updated card is available here:\nhttps://start.gogetdoc.com/login""".format(
-            first_name,
+    elif level == "2" or level == "3" or level == "4":
+        message = """Hi {}, congrats! Your vax card has been updated to level {} verification. Your updated card is available here:\nhttps://start.gogetdoc.com/login""".format(
+            first_name, level,
         )
         promo_message = "Share this unique link with family & friends so they can get their digital cards too:\nhttps://www.gogetdoc.com/vaxyes"
 
