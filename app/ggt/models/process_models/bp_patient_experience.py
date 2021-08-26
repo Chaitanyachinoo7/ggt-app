@@ -2,10 +2,11 @@ import datetime
 import json
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 import re
 import boto3
 import requests
+import math
 from cachetools import cached, TTLCache
 from fastapi import HTTPException
 from google.auth.transport.requests import AuthorizedSession
@@ -1306,7 +1307,13 @@ def bp_add_vax_certificate(req):
 def bp_pass_verification(req):
     try:
         patient_id = __get_patient_id(req.query)
+        if (__is_pass_verification_blocked_for(patient_id)):
+            return False
+        
         certs = get_verification_level_from_patient_id(patient_id, req.dob)
+        if (certs == None):
+            __register_pass_verification_fail(patient_id)
+        
         if("COVID_19_VACCINE_JNJ" not in certs[0]['service_code'] and certs[0]['verification_level'] > 1 and certs[1]['verification_level'] > 1):
             return {
                 "fully_vaccinated": True,
@@ -3640,3 +3647,47 @@ def __generate_payment_checkout_session_navigation(appointment: GgtAppointment):
 # Since in the context of GGT, es implies Latin America do the conversion here
 def __inject_locale(language):
     return 'es-419' if language == 'es' else language
+
+__failed_pass_ver_tracker: dict = {}
+__failed_pass_ver_tracker_last_key_ts: int = 0
+
+def __get_key_for_pass_ver_attempt_tracking(patient_id):     
+    cur_time = datetime.now()
+    five_min_rounded_time = cur_time - timedelta(minutes=cur_time.minute % 5,
+        seconds=cur_time.second, microseconds=cur_time.microsecond)
+    ticks = math.floor((five_min_rounded_time - datetime(2021,1,1)).total_seconds() / 60)
+    
+    return { 'ts': ticks, 'val': "{0}-{1}".format(patient_id, ticks)};
+
+def __clear_failed_pass_ver_tracker_if_expired(ts):
+    global __failed_pass_ver_tracker, __failed_pass_ver_tracker_last_key_ts
+    
+    if (ts != __failed_pass_ver_tracker_last_key_ts):
+        __failed_pass_ver_tracker.clear()
+    
+def __register_pass_verification_fail(patient_id):
+    global __failed_pass_ver_tracker, __failed_pass_ver_tracker_last_key_ts
+    
+    key = __get_key_for_pass_ver_attempt_tracking(patient_id)
+    __clear_failed_pass_ver_tracker_if_expired(key['ts'])
+    __failed_pass_ver_tracker_last_key_ts = key['ts']
+    
+    if (len(__failed_pass_ver_tracker.keys()) >= 5000):
+        return
+    
+    if (key['val'] in __failed_pass_ver_tracker):
+        __failed_pass_ver_tracker[key['val']] = __failed_pass_ver_tracker[key['val']] + 1
+    else:
+        __failed_pass_ver_tracker[key['val']] = 1 
+    return
+
+
+def __is_pass_verification_blocked_for(patient_id):
+    global __failed_pass_ver_tracker, __failed_pass_ver_tracker_last_key_ts
+    
+    key = __get_key_for_pass_ver_attempt_tracking(patient_id)
+    __clear_failed_pass_ver_tracker_if_expired(key['ts'])
+    
+    if (key['val'] in __failed_pass_ver_tracker):
+        return __failed_pass_ver_tracker[key['val']] > 5
+    return False
