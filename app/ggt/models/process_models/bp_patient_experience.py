@@ -1311,7 +1311,7 @@ def bp_pass_verification(req):
             return False
         
         certs = get_verification_level_from_patient_id(patient_id, req.dob)
-        if (certs == None):
+        if (certs == None or len(certs) == 0):
             __register_pass_verification_fail(patient_id)
         
         if("COVID_19_VACCINE_JNJ" not in certs[0]['service_code'] and certs[0]['verification_level'] > 1 and certs[1]['verification_level'] > 1):
