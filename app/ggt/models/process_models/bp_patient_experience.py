@@ -1021,7 +1021,7 @@ def __sanitize_names(req: LookupGGVAddVaxCertRequest):
     return req
 
 
-def bp_add_vax_certificate(req):
+def bp_add_vax_certificate(req, booster=False):
     try:
         req = __sanitize_names(req)
         pristine = req.pristine
@@ -1264,9 +1264,9 @@ def bp_add_vax_certificate(req):
                 vax_image=1 if req.vax_image else 0,
                 id_image=1 if req.id_image else 0
             )
-            cert_details = add_vax_certificate(req)
+            cert_details = add_vax_certificate(req, booster)
 
-            show_payment_view = not cert_details['active_certificates_available']
+            show_payment_view = not cert_details['active_certificates_available'] and not booster
 
             if cert_details:
                 # send_ggv_certificate_level_1_sms(req.first_name.title(), req.phone_number, "1")

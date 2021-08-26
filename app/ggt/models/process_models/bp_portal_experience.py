@@ -678,13 +678,13 @@ def __process_services(services):
             }
         else:
             structured_service[service_code]["price"][service['currency']
-            ] = service['price']
+                                                      ] = service['price']
             structured_service[service_code]["self_pay_amount"][service['currency']
-            ] = service['selfpay_amount']
+                                                                ] = service['selfpay_amount']
             structured_service[service_code]["copay_amount"][service['currency']
-            ] = service['copay_amount']
+                                                             ] = service['copay_amount']
             structured_service[service_code]["insurance_amount"][service['currency']
-            ] = service['insurance_amount']
+                                                                 ] = service['insurance_amount']
 
     response = {
         "result": list(structured_service.values())
@@ -704,7 +704,7 @@ def bp_get_vax_registered_waitlist_around_location(request):
         )
 
 
-def bp_add_vax_certificate(request: VaxCertificate):
+def bp_add_vax_certificate(request: VaxCertificate, booster=False):
     return __process_vax_yes(
         request.first_name,
         request.last_name,
@@ -717,12 +717,13 @@ def bp_add_vax_certificate(request: VaxCertificate):
         request.vax_1_lot_number,
         request.vax_2_lot_number,
         request.vax_image,
-        request.id_image
+        request.id_image,
+        booster
     )
 
 
 def __process_vax_yes(first_name, last_name, phone_number, email, dob,
-                      vax_type, vax_1_date, vax_2_date, lot_1, lot_2, image, id_image):
+                      vax_type, vax_1_date, vax_2_date, lot_1, lot_2, image, id_image, booster=False):
     vax_code_1 = ""
     vax_code_2 = ""
     cert2_id = None
@@ -732,6 +733,8 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
 
     patient_row = patients.get_existing_patients(
         phone_number, first_name, last_name, dob)
+    if booster and not patient_row:
+        raise Exception('Booster for new user')
     if patient_row:
         patient_id = patient_row['id']
         log_generic(
@@ -786,9 +789,11 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
         vax_code_1 = c.SERVICE_CODE_COVID_19_VACCINE_AZ_1
         vax_code_2 = c.SERVICE_CODE_COVID_19_VACCINE_AZ_2
 
-    patients.delete_cert(patient_id)
+    if not booster:
+        patients.delete_cert(patient_id)
 
-    is_certificate_active = __is_certificate_active(active_certificates_available, phone_number)
+    is_certificate_active = __is_certificate_active(
+        active_certificates_available, phone_number)
 
     try:
         vax_1_date = "{} 00:00:00".format(vax_1_date)
@@ -867,44 +872,47 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
                 vax_type=vax_type,
                 function=whoami(),
             )
-        id_card = upload_vax_card_image(id_image, patient_id, str(cert_id) + '_id_image')
+        if not booster:
+            id_card = upload_vax_card_image(
+                id_image, patient_id, str(cert_id) + '_id_image')
 
-        if id_card:
-            log_generic(
-                type=c.INFO,
-                msg="PATIENT-ID-IMAGE-UPLOADED",
-                patient_id=patient_id,
-                cert_id=cert2_id,
-                phone_number=phone_number,
-                first_name=first_name,
-                last_name=last_name,
-                email=email,
-                dob=dob,
-                vax_type=vax_type,
-                function=whoami(),
-            )
-        else:
-            log_generic(
-                type=c.INFO,
-                msg="PATIENT-ID-IMAGE-UPLOAD-FAILED",
-                patient_id=patient_id,
-                cert_id=cert2_id,
-                phone_number=phone_number,
-                first_name=first_name,
-                last_name=last_name,
-                email=email,
-                dob=dob,
-                vax_type=vax_type,
-                function=whoami(),
-            )
+            if id_card:
+                log_generic(
+                    type=c.INFO,
+                    msg="PATIENT-ID-IMAGE-UPLOADED",
+                    patient_id=patient_id,
+                    cert_id=cert2_id,
+                    phone_number=phone_number,
+                    first_name=first_name,
+                    last_name=last_name,
+                    email=email,
+                    dob=dob,
+                    vax_type=vax_type,
+                    function=whoami(),
+                )
+            else:
+                log_generic(
+                    type=c.INFO,
+                    msg="PATIENT-ID-IMAGE-UPLOAD-FAILED",
+                    patient_id=patient_id,
+                    cert_id=cert2_id,
+                    phone_number=phone_number,
+                    first_name=first_name,
+                    last_name=last_name,
+                    email=email,
+                    dob=dob,
+                    vax_type=vax_type,
+                    function=whoami(),
+                )
     else:
         raise Exception('Patient ID OR Cert ID not found')
 
     # If certificates are available only we send the email and sms
     # This way we make sure new users do not get the email and sms right away
-    if active_certificates_available:
+    if active_certificates_available and not booster:
         send_ggv_certificate_level_1_sms(first_name.title(), phone_number, "1")
-        send_ggv_certificate_level_1_email(first_name.title(), email, "1", phone_number=phone_number)
+        send_ggv_certificate_level_1_email(
+            first_name.title(), email, "1", phone_number=phone_number)
 
     return {
         "patient_id": patient_id,

@@ -609,9 +609,9 @@ def call_non_sms_phone(phone_number):
          bp_call_non_sms_phone(phone_number))
 
 
-def get_add_vax_certificate(req):
+def get_add_vax_certificate(req, booster=False):
     return x_response(
-         bp_add_vax_certificate(req)
+         bp_add_vax_certificate(req, booster)
     )
 
 def pass_verification(req):

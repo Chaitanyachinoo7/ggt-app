@@ -315,6 +315,10 @@ def api_add_vax_certificate(req: LookupGGVAddVaxCertRequest):
     return get_add_vax_certificate(req)
 
 
+@router.post("/add_booster_vax_certificate")
+def api_add_booster_vax_certificate(req: LookupGGVAddVaxCertRequest):
+    return get_add_vax_certificate(req, booster=True)
+
 @router.post("/pass_verification/")
 def api_pass_verification(pass_verification_request: PassVerificationRequest):
     return pass_verification(pass_verification_request)
@@ -325,9 +329,10 @@ def api_pass_verification(pass_verification_request: PassVerificationRequest):
 
 
 @router.post("/vax_wallet_pass_apple_upadte/v1/devices/{device_id}/registrations/{pass_type}/{serial_no}")
-def api_vax_wallet_pass_apple_upadte(device_id: str = None, pass_type: str = None, serial_no: str = None, 
-        apple_pass_update_request: ApplePassUpdateRequest = None, Authorization: str = Header(None)):
-    print(device_id, pass_type, serial_no, apple_pass_update_request.pushToken, Authorization)
+def api_vax_wallet_pass_apple_upadte(device_id: str = None, pass_type: str = None, serial_no: str = None,
+                                     apple_pass_update_request: ApplePassUpdateRequest = None, Authorization: str = Header(None)):
+    print(device_id, pass_type, serial_no,
+          apple_pass_update_request.pushToken, Authorization)
     return vax_wallet_pass_apple_upadte(device_id, pass_type, serial_no, apple_pass_update_request.pushToken, Authorization)
 
 
