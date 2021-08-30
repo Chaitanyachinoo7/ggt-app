@@ -535,6 +535,7 @@ def lookup_pkpass(phone_number, dob, first_name, last_name, token):
                     p.result_token = %s 
                         AND
                     p.token_expire > NOW()
+                    order by check_in_dt asc
                 """
         vals = (phone_number, dob, first_name, last_name, token)
         rows = replica_read_rows(sql, vals)
@@ -568,6 +569,8 @@ def save_android_pass_details(id, classId, objectId):
             error=err
         )
     return None
+
+
 def get_appointment_count_by_phone_dob(phone_number, dob):
     try:
         if dob:
@@ -751,7 +754,8 @@ def update_appointment_status_to_checked_in(appointment_id):
                         status = %s
                     WHERE
                         status = %s AND id = %s; """
-    vals = (c.APPOINTMENT_STATUS_CHECKED_IN, c.APPOINTMENT_STATUS_INSURANCE_PENDING, appointment_id)
+    vals = (c.APPOINTMENT_STATUS_CHECKED_IN,
+            c.APPOINTMENT_STATUS_INSURANCE_PENDING, appointment_id)
     return exec_update(sql, vals)
 
 
@@ -1194,7 +1198,7 @@ def __add_services_to_appointment(appointment_id: int, appointment_req: GgtBooki
         if appointment_req.services.covid_19_vax_az_2 and ggv_slot == 2:
             add_service_to_appointment(
                 appointment_id, c.SERVICE_CODE_COVID_19_VACCINE_AZ_2)
-                
+
         if appointment_req.services.covid_19_test:
             add_service_to_appointment(
                 appointment_id, c.SERVICE_CODE_COVID19_TEST)

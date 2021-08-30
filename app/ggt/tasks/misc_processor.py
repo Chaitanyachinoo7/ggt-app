@@ -209,7 +209,7 @@ def prepare_sms_text(appointment):
     #return """Hi {}, the location where you have registered for your COVID-19 test will be located at the following address for today.  509 E 11th Street Hutchinson KS 67501. Please arrive at this site for your appointment. We apologize for the inconvenience this might have caused.
     #""".format(appointment["first_name"])
 
-    return """Hi {}, due to unforeseen circumstances the location where you have registered for your COVID-19 test will have a delayed start until 12 pm. We apologize for the inconvenience. Please visit GoGetTested.com to register for a new appointment.
+    return """Hi {}, the location where you have registered for your COVID-19 test will be CLOSED today. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to find the nearest location to complete your appointment.
     """.format(appointment["first_name"])
 
     #return """Hi {}, due to inclement weather, we’ve had to delay opening the testing location where you have registered to 12 pm. This may change depending on the weather. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to register for a new appointment.
@@ -437,8 +437,8 @@ def get_appointments():
             location_id IN (
                 78
                 )
-                AND scheduled_dt > '2021-08-23 00:00:00'
-                AND scheduled_dt < '2021-08-23 12:00:00'
+                AND scheduled_dt > '2021-08-30 00:00:00'
+                AND scheduled_dt < '2021-08-30 23:00:00'
                 AND status = 'scheduled'
         """
 

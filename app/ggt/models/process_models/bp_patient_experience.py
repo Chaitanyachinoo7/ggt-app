@@ -97,9 +97,9 @@ service_account_file = cfg('gcp.service_account_file')
 pass_type_identifier = "pass.com.goget.vaccine"
 organization_name = "GoGet, Inc."
 team_identifier = "36PVVAHZQN"
-cert_pem = "./app/ggt/configs/ios_certs/vaccine_wallet_crt.pem"
-key_pem = "./app/ggt/configs/ios_certs/key.pem"
-wwdr_pem = "./app/ggt/configs/ios_certs/WWDR.pem"
+cert_pem = "./ggt/configs/ios_certs/vaccine_wallet_crt.pem"
+key_pem = "./ggt/configs/ios_certs/key.pem"
+wwdr_pem = "./ggt/configs/ios_certs/WWDR.pem"
 key_pem_password = "ggtvaccine"
 
 
@@ -1309,11 +1309,11 @@ def bp_pass_verification(req):
         patient_id = __get_patient_id(req.query)
         if (__is_pass_verification_blocked_for(patient_id)):
             return False
-        
+
         certs = get_verification_level_from_patient_id(patient_id, req.dob)
         if (certs == None or len(certs) == 0):
             __register_pass_verification_fail(patient_id)
-        
+
         if("COVID_19_VACCINE_JNJ" not in certs[0]['service_code'] and certs[0]['verification_level'] > 1 and certs[1]['verification_level'] > 1):
             return {
                 "fully_vaccinated": True,
@@ -2269,7 +2269,19 @@ def __generate_pk_pass(pkpass_req, patient, verification, url_path):
             'header', 'Covid 19 | Level ' + patient["level"] + ' Verified ', 'STATUS')
         cardInfo.addPrimaryField(
             key='Name', value=patient["first_name"] + " " + patient["last_name"], label='NAME')
-        if len(certs) > 0:
+        if len(certs) > 2:
+            cardInfo.addSecondaryField(
+                'InitialBrand', certs[1]["brand"], 'Initial Brand')
+            cardInfo.addSecondaryField(
+                'InitialDoseComplete', certs[1]["appointment_date"], 'Initial Dose Complete')
+            cardInfo.addSecondaryField('CRT', patient["certNo"], 'CERT.#')
+            cardInfo.addAuxiliaryField(
+                'BoosterBrand', certs[2]["brand"], 'Booster Brand')
+            cardInfo.addAuxiliaryField(
+                'BoosterDate', certs[2]["appointment_date"], 'Booster Date')
+            cardInfo.addAuxiliaryField(
+                'DateVerified', patient["verfiedDate"], 'DATE VERIFIED')
+        elif len(certs) > 0:
             cardInfo.addSecondaryField('DOSE1', certs[0]["brand"], 'DOSE 1')
             cardInfo.addSecondaryField(
                 'LOT1', certs[0]["lot_no"], 'LOT NUMBER')
@@ -2309,11 +2321,11 @@ def __generate_pk_pass(pkpass_req, patient, verification, url_path):
         #     for filename in files:
         #         print(filename)
         passfile.addFile("icon.png", open(
-            "./app/ggt/configs/images/Vaxyes-logo-white.png", "rb"))
-        print("./app/ggt/configs/images/Vaxyes-logo-white.png was found")
+            "./ggt/configs/images/Asset 4x.png", "rb"))
+        print("./ggt/configs/images/Asset 4x.png was found")
         passfile.addFile("logo.png", open(
-            "./app/ggt/configs/images/Vaxyes-logo-white.png", "rb"))
-        print("./app/ggt/configs/images/Vaxyes-logo-white.png was found")
+            "./ggt/configs/images/Asset 4x.png", "rb"))
+        print("./ggt/configs/images/Asset 4x.png was found")
         print("pkpass temp path:",
               "/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"))
         _ = passfile.create(cert_pem,
@@ -3648,46 +3660,52 @@ def __generate_payment_checkout_session_navigation(appointment: GgtAppointment):
 def __inject_locale(language):
     return 'es-419' if language == 'es' else language
 
+
 __failed_pass_ver_tracker: dict = {}
 __failed_pass_ver_tracker_last_key_ts: int = 0
 
-def __get_key_for_pass_ver_attempt_tracking(patient_id):     
+
+def __get_key_for_pass_ver_attempt_tracking(patient_id):
     cur_time = datetime.now()
     five_min_rounded_time = cur_time - timedelta(minutes=cur_time.minute % 5,
-        seconds=cur_time.second, microseconds=cur_time.microsecond)
-    ticks = math.floor((five_min_rounded_time - datetime(2021,1,1)).total_seconds() / 60)
-    
-    return { 'ts': ticks, 'val': "{0}-{1}".format(patient_id, ticks)};
+                                                 seconds=cur_time.second, microseconds=cur_time.microsecond)
+    ticks = math.floor(
+        (five_min_rounded_time - datetime(2021, 1, 1)).total_seconds() / 60)
+
+    return {'ts': ticks, 'val': "{0}-{1}".format(patient_id, ticks)}
+
 
 def __clear_failed_pass_ver_tracker_if_expired(ts):
     global __failed_pass_ver_tracker, __failed_pass_ver_tracker_last_key_ts
-    
+
     if (ts != __failed_pass_ver_tracker_last_key_ts):
         __failed_pass_ver_tracker.clear()
-    
+
+
 def __register_pass_verification_fail(patient_id):
     global __failed_pass_ver_tracker, __failed_pass_ver_tracker_last_key_ts
-    
+
     key = __get_key_for_pass_ver_attempt_tracking(patient_id)
     __clear_failed_pass_ver_tracker_if_expired(key['ts'])
     __failed_pass_ver_tracker_last_key_ts = key['ts']
-    
+
     if (len(__failed_pass_ver_tracker.keys()) >= 5000):
         return
-    
+
     if (key['val'] in __failed_pass_ver_tracker):
-        __failed_pass_ver_tracker[key['val']] = __failed_pass_ver_tracker[key['val']] + 1
+        __failed_pass_ver_tracker[key['val']
+                                  ] = __failed_pass_ver_tracker[key['val']] + 1
     else:
-        __failed_pass_ver_tracker[key['val']] = 1 
+        __failed_pass_ver_tracker[key['val']] = 1
     return
 
 
 def __is_pass_verification_blocked_for(patient_id):
     global __failed_pass_ver_tracker, __failed_pass_ver_tracker_last_key_ts
-    
+
     key = __get_key_for_pass_ver_attempt_tracking(patient_id)
     __clear_failed_pass_ver_tracker_if_expired(key['ts'])
-    
+
     if (key['val'] in __failed_pass_ver_tracker):
         return __failed_pass_ver_tracker[key['val']] > 5
     return False
