@@ -97,7 +97,7 @@ pipelines:
           script:
             - cp app/ggt/configs/config-qa.yml app/ggt/configs/config.yml
             - cp app/ggt/configs/log-config-qa.yml app/ggt/configs/log-config.yml
-            - cp app/ggt/configs/gcp-service-account-prod.json app/ggt/configs/gcp-service-account-prod.json
+            # - cp app/ggt/configs/gcp-service-account-prod.json app/ggt/configs/gcp-service-account-prod.json
             - pip3 install awscli
             - aws configure set aws_access_key_id "${AWS_KEY}"
             - aws configure set aws_secret_access_key "${AWS_SECRET}"
@@ -122,7 +122,7 @@ pipelines:
           script:
             - cp app/ggt/configs/config-prod.yml app/ggt/configs/config.yml
             - cp app/ggt/configs/log-config-prod.yml app/ggt/configs/log-config.yml
-            - cp app/ggt/configs/gcp-service-account-prod.json app/ggt/configs/gcp-service-account-prod.json
+            # - cp app/ggt/configs/gcp-service-account-prod.json app/ggt/configs/gcp-service-account-prod.json
             - pip3 install awscli
             - aws configure set aws_access_key_id "${AWS_KEY}"
             - aws configure set aws_secret_access_key "${AWS_SECRET}"
@@ -146,7 +146,7 @@ pipelines:
           script:
             - cp app/ggt/configs/config-prod.yml app/ggt/configs/config.yml
             - cp app/ggt/configs/log-config-prod.yml app/ggt/configs/log-config.yml
-            - cp app/ggt/configs/gcp-service-account-prod.json app/ggt/configs/gcp-service-account-prod.json
+            # - cp app/ggt/configs/gcp-service-account-prod.json app/ggt/configs/gcp-service-account-prod.json
             - pip3 install awscli
             - aws configure set aws_access_key_id "${AWS_KEY}"
             - aws configure set aws_secret_access_key "${AWS_SECRET}"
