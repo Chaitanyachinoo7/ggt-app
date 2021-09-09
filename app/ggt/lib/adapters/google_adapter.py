@@ -25,9 +25,8 @@ service_account_file = cfg('gcp.service_account_file')
 service_account_file_prod = cfg('gcp.service_account_file_prod')
 service_account_file = curr_file.parent.parent.parent.joinpath(
     'configs/{}'.format(service_account_file))
-service_account_file_prod = curr_file.parent.parent.parent.joinpath(
-    'configs/{}'.format(service_account_file_prod))
-
+service_account_file_prod = './app/ggt/configs/{}'.format(service_account_file_prod)
+print(service_account_file_prod)
 default_link_expiration_time_limit = cfg(
     'gcp.default_link_expiration_time_limit')
 lab_reports_bucket_name = cfg('gcp.lab_reports_bucket_name')
