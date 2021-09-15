@@ -500,7 +500,7 @@ def lookup_certificate(phone_number, dob, first_name, last_name, token=None):
                     patients p
                         JOIN
                     ggv_certificates gc ON p.id = gc.patient_id
-                    WHERE {} AND gc.active=1""".format(where_statement)
+                    WHERE {} AND gc.active=1 AND gc.rejected = 0 """.format(where_statement)
         rows = replica_read_rows(sql, vals)
         return __format_vax_certificate(rows), "No certificate found."
 
@@ -535,6 +535,10 @@ def lookup_pkpass(phone_number, dob, first_name, last_name, token):
                     p.result_token = %s 
                         AND
                     p.token_expire > NOW()
+                        AND 
+                    gc.active=1 
+                        AND 
+                    gc.rejected = 0
                     order by check_in_dt asc
                 """
         vals = (phone_number, dob, first_name, last_name, token)
