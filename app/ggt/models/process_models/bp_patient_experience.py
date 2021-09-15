@@ -97,9 +97,9 @@ service_account_file = cfg('gcp.service_account_file')
 pass_type_identifier = "pass.com.goget.vaccine"
 organization_name = "GoGet, Inc."
 team_identifier = "36PVVAHZQN"
-cert_pem = "./ggt/configs/ios_certs/vaccine_wallet_crt.pem"
-key_pem = "./ggt/configs/ios_certs/key.pem"
-wwdr_pem = "./ggt/configs/ios_certs/WWDR.pem"
+cert_pem = "./app/ggt/configs/ios_certs/vaccine_wallet_crt.pem"
+key_pem = "./app/ggt/configs/ios_certs/key.pem"
+wwdr_pem = "./app/ggt/configs/ios_certs/WWDR.pem"
 key_pem_password = "ggtvaccine"
 
 
@@ -2269,7 +2269,7 @@ def __generate_pk_pass(pkpass_req, patient, verification, url_path):
             'header', 'Covid 19 | Level ' + patient["level"] + ' Verified ', 'STATUS')
         cardInfo.addPrimaryField(
             key='Name', value=patient["first_name"] + " " + patient["last_name"], label='NAME')
-        if len(certs) > 2:
+        if len(certs) > 2 and certs[0]["brand"] != "J & J":
             cardInfo.addSecondaryField(
                 'InitialBrand', certs[1]["brand"], 'Initial Brand')
             cardInfo.addSecondaryField(
@@ -2288,7 +2288,7 @@ def __generate_pk_pass(pkpass_req, patient, verification, url_path):
             cardInfo.addSecondaryField(
                 'DATE1', certs[0]["appointment_date"], 'DATE')
             cardInfo.addSecondaryField('CRT', patient["certNo"], 'CERT.#')
-            if len(certs) > 1:
+            if len(certs) > 1 and certs[0]["brand"] != "J & J":
                 cardInfo.addAuxiliaryField(
                     'DOSE2', certs[1]["brand"], 'DOSE 2')
                 cardInfo.addAuxiliaryField(
