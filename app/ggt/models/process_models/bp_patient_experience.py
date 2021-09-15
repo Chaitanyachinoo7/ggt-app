@@ -97,9 +97,9 @@ service_account_file = cfg('gcp.service_account_file')
 pass_type_identifier = "pass.com.goget.vaccine"
 organization_name = "GoGet, Inc."
 team_identifier = "36PVVAHZQN"
-cert_pem = "./app/ggt/configs/ios_certs/vaccine_wallet_crt.pem"
-key_pem = "./app/ggt/configs/ios_certs/key.pem"
-wwdr_pem = "./app/ggt/configs/ios_certs/WWDR.pem"
+cert_pem = "./ggt/configs/ios_certs/vaccine_wallet_crt.pem"
+key_pem = "./ggt/configs/ios_certs/key.pem"
+wwdr_pem = "./ggt/configs/ios_certs/WWDR.pem"
 key_pem_password = "ggtvaccine"
 
 
