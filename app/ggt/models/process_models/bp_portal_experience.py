@@ -909,7 +909,7 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
 
     # If certificates are available only we send the email and sms
     # This way we make sure new users do not get the email and sms right away
-    if active_certificates_available:
+    if active_certificates_available and not booster:
         send_ggv_certificate_level_1_sms(first_name.title(), phone_number, "1")
         send_ggv_certificate_level_1_email(
             first_name.title(), email, "1", phone_number=phone_number)
