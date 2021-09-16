@@ -2635,12 +2635,17 @@ def __send_ggv_qrcode_sms(appointment: GgtAppointment, dose, out_of):
 def send_ggv_certificate_level_1_sms(first_name, phone_number, level):
     message = ''
     if level == "1":
-        message = """Hi {}, your vax card request was successful - your level 1 digital card is available for immediate access through the secure online portal:\nhttps://start.gogetdoc.com/login \nYou'll receive an update when our team has verified your submission to level 2. Please allow extra time for processing due to volume.""".format(
+        message = """Hi {}, your VaxYes submission was successful - your level 1 digital card is available for immediate access through the secure online portal:\nhttps://start.gogetdoc.com/login \nYou'll receive an update when our team has verified your submission to level 2. Please allow extra time for processing due to volume.""".format(
+            first_name,
+        )
+        promo_message = "Share this unique link with family & friends so they can get their digital cards too:\nhttps://www.gogetdoc.com/vaxyes"
+    elif level == "booster":
+        message = """Hi {}, Your booster submission was successful. Your updated VaxYes card with booster record is now available here:\nhttps://start.gogetdoc.com/login""".format(
             first_name,
         )
         promo_message = "Share this unique link with family & friends so they can get their digital cards too:\nhttps://www.gogetdoc.com/vaxyes"
     elif level == "2" or level == "3" or level == "4":
-        message = """Hi {}, congrats! Your vax card has been updated to level {} verification. Your updated card is available here:\nhttps://start.gogetdoc.com/login""".format(
+        message = """Hi {}, congrats! Your VaxYes submission has been updated to level {} verification. Your updated card is available here:\nhttps://start.gogetdoc.com/login""".format(
             first_name, level,
         )
         promo_message = "Share this unique link with family & friends so they can get their digital cards too:\nhttps://www.gogetdoc.com/vaxyes"
