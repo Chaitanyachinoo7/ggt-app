@@ -1013,7 +1013,6 @@ def bp_vax_wallet_pass_apple_upadte_serial(device_id):
 
 def bp_vax_wallet_get_new_pass(serial_no):
     blob = read_file('pkpass-prod', serial_no+'.pkpass')
-    print(blob)
     def get_pkpass(b):
         yield b
     if blob:
@@ -3632,11 +3631,9 @@ def __create_patient_and_questionnaire(booking_req):
             )
         if existing_patient is None:
             p = get_existing_patients(token=_patient.token)
-            print(p)
             if p:
                 _patient.token = generate_token()
             patient_id = create_patient_record(_patient)
-            print(patient_id)
             if not prev_token.startswith("NOVERIFY"):
                 booking_req.result_token = unlock_patient_info_patients(
                     _patient.phone_number)
