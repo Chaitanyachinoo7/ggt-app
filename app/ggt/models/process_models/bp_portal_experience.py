@@ -916,7 +916,7 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
     elif booster:
         send_ggv_certificate_level_1_sms(first_name.title(), phone_number, "booster")
         send_ggv_certificate_level_1_email(
-            first_name.title(), email, "BOOSTER", phone_number=phone_number)
+            first_name.title(), patient_row['email'], "BOOSTER", phone_number=phone_number)
 
     return {
         "patient_id": patient_id,
