@@ -40,7 +40,7 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
     get_ggv_schedule_times_available, ggv_finalize_pre_registration, cache_test, verify_verification_token,
     reschedule_first_appointment, get_second_slot_reschedule_dates, reschedule_second_appointment,
     get_ggv_schedule_dates_available, lookup_certificate, get_vax_certificate, get_wallet_pass, call_non_sms_phone, get_add_vax_certificate,
-    pass_verification, update_android_pass, vax_wallet_pass_apple_upadte, initiate_vax_verification_flow, vax_check_payment, vax_yes_payment,
+    pass_verification, update_android_pass, vax_wallet_pass_apple_upadte, vax_wallet_pass_apple_upadte_serial, initiate_vax_verification_flow, vax_check_payment, vax_yes_payment,
     vax_yes_verify_payment
 )
 
@@ -319,6 +319,7 @@ def api_add_vax_certificate(req: LookupGGVAddVaxCertRequest):
 def api_add_booster_vax_certificate(req: LookupGGVAddVaxCertRequest):
     return get_add_vax_certificate(req, booster=True)
 
+
 @router.post("/pass_verification/")
 def api_pass_verification(pass_verification_request: PassVerificationRequest):
     return pass_verification(pass_verification_request)
@@ -334,6 +335,11 @@ def api_vax_wallet_pass_apple_upadte(device_id: str = None, pass_type: str = Non
     print(device_id, pass_type, serial_no,
           apple_pass_update_request.pushToken, Authorization)
     return vax_wallet_pass_apple_upadte(device_id, pass_type, serial_no, apple_pass_update_request.pushToken, Authorization)
+
+
+@router.get("/vax_wallet_pass_apple_upadte/v1/devices/{device_id}/registrations/{pass_type}")
+def api_vax_wallet_pass_apple_upadte_serial(device_id: str = None, pass_type: str = None):
+    return vax_wallet_pass_apple_upadte_serial(device_id)
 
 
 @router.post("/vaxyes/check_payment/{phone_number}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])

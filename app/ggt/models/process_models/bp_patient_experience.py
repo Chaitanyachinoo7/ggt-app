@@ -67,7 +67,7 @@ from ggt.models.data_models.patients import (
     get_patient_by_token, add_to_ggd_waiting_queue, create_pre_registration,
     get_existing_patients, unlock_patient_info_patients, is_un_available_slot,
     create_patient_insurance_record, get_insurance_record_by_id, get_patient_upfront_payment,
-    get_verification_level_from_patient_id, save_apple_wallet_updates,
+    get_verification_level_from_patient_id, save_apple_wallet_updates, get_serial_no,
     get_existing_vax_certificates, get_active_certificates, save_vax_yes_payment_info,
     update_certificates_to_active, update_vax_yes_payment_status, get_patient_by_id,
     get_existing_patient
@@ -988,6 +988,28 @@ def bp_vax_wallet_pass_apple_upadte(device_id, pass_type, serial_no, pushToken, 
     return False
 
 
+def vax_wallet_pass_apple_upadte_serial(device_id):
+    try:
+        serial = __get_serial(device_id)
+        print("serial", serial)
+        print({
+            "lastUpdated": datetime.now(),
+            "serialNumbers": [serial['serial_no']]
+        })
+        return {
+            "lastUpdated": datetime.now(),
+            "serialNumbers": [serial['serial_no']]
+        }
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            device_id=device_id,
+            function=whoami(),
+            error=err
+        )
+    return False
+
+
 def bp_call_non_sms_phone(phone_number):
     try:
         phone_number = validate_phone_number_format(phone_number)
@@ -1376,6 +1398,10 @@ def bp_update_android_pass(req):
 # TODO: Prevent from looking up slots that are already assigned to an appointment
 # TODO, doesn't check if it's already booked
 # TEMP, not using fixed slots since operational conditions allow oversubscribing
+
+
+def __get_serial(devide_id):
+    return get_serial_no(devide_id)
 
 
 def __get_patient_id(query):
@@ -2880,7 +2906,7 @@ def send_ggv_certificate_level_1_email(first_name, email, level, phone_number=No
             first_name, level)
         if level == "BOOSTER":
             subject = "{}, Your VaxYes card now includes your booster record.".format(
-            first_name)
+                first_name)
 
         subject = render_from_string(
             subject,
