@@ -22,7 +22,7 @@ from ggt.models.process_models.bp_patient_experience import (
     bp_create_pre_registration, bp_verify_verification_token, bp_reschedule_first_appointment,
     bp_reschedule_second_appointment, bp_lookup_certificate, bp_get_vax_certificate,
     bp_get_wallet_pass, bp_call_non_sms_phone, bp_add_vax_certificate,
-    bp_pass_verification, bp_update_android_pass, bp_vax_wallet_pass_apple_upadte,vax_wallet_pass_apple_upadte_serial, bp_initiate_vax_verification_flow,
+    bp_pass_verification, bp_update_android_pass, bp_vax_wallet_pass_apple_upadte,bp_vax_wallet_pass_apple_upadte_serial, bp_initiate_vax_verification_flow,
     bp_vax_check_payment, bp_vax_yes_payment, bp_vax_yes_verify_payment
 )
 
@@ -605,7 +605,7 @@ def vax_wallet_pass_apple_upadte(device_id, pass_type, serial_no, pushToken, Aut
 
 def vax_wallet_pass_apple_upadte_serial(device_id):
     return x_response(
-         vax_wallet_pass_apple_upadte_serial(device_id)
+         bp_vax_wallet_pass_apple_upadte_serial(device_id)
     )
 
 def call_non_sms_phone(phone_number):

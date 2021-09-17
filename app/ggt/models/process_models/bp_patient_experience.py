@@ -988,7 +988,7 @@ def bp_vax_wallet_pass_apple_upadte(device_id, pass_type, serial_no, pushToken, 
     return False
 
 
-def vax_wallet_pass_apple_upadte_serial(device_id):
+def bp_vax_wallet_pass_apple_upadte_serial(device_id):
     try:
         serial = __get_serial(device_id)
         print("serial", serial)
