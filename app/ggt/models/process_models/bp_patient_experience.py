@@ -1023,7 +1023,8 @@ def bp_vax_wallet_get_new_pass(serial_no):
             get_pkpass(blob),
             media_type="application/vnd.apple.pkpass",
             headers={
-                'LastModified': datetime.now()
+                'LastModified': datetime.now().strftime(
+            "%Y-%m-%d %H:%M:%S.%f")
             }
         )
     else:
