@@ -90,6 +90,7 @@ from ggt.models.data_models.wellpay import (
     WellpayCreateBillResponse
 )
 from ggt.models.process_models.bp_payment import bp_create_checkout_session, bp_get_checkout_session
+from ggt.lib.storage import get_file_blob
 
 # from google.cloud import vision
 service_account_file = cfg('gcp.service_account_file')
@@ -1008,6 +1009,23 @@ def bp_vax_wallet_pass_apple_upadte_serial(device_id):
             error=err
         )
     return False
+
+
+def bp_vax_wallet_get_new_pass(serial_no):
+    blob = get_file_blob('pkpass-prod', serial_no+'.pkpass')
+    print(blob)
+    def get_pkpass(b):
+        yield b.download_as_bytes()
+    if blob:
+        return StreamingResponse(
+            get_pkpass(blob),
+            media_type="application/vnd.apple.pkpass",
+            headers={
+                'LastModified': datetime.now()
+            }
+        )
+    else:
+        raise HTTPException(status_code=404, detail='Report not found')
 
 
 def bp_call_non_sms_phone(phone_number):
