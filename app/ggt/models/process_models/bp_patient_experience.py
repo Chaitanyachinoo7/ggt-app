@@ -528,7 +528,6 @@ def bp_finalize_booking(booking_req: GgtBooking, finalize_registration_request):
     if "selectedServices" in dict(finalize_registration_request).keys():
         selected_services = finalize_registration_request.selectedServices
     try:
-        print("__create_patient_and_questionnaire")
         booking_req, status_message = __create_patient_and_questionnaire(
             booking_req)
         if booking_req is None:
@@ -3631,7 +3630,6 @@ def __create_patient_and_questionnaire(booking_req):
                 last_name=_patient.last_name,
                 dob=_patient.dob
             )
-        print("existing_patient", existing_patient)
         if existing_patient is None:
             p = get_existing_patients(token=_patient.token)
             print(p)

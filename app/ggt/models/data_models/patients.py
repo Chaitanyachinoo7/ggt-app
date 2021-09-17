@@ -87,7 +87,6 @@ def create_patient_record(patient):
             patient.token,
             patient.country
         )
-        print(sql, vals)
         return exec_insert(sql, vals)
 
     except Exception as err:
@@ -134,7 +133,6 @@ def update_patient_record(patient, patient_id):
             patient.country,
             patient_id
         )
-        print(sql, vals)
         return exec_update(sql, vals)
 
     except Exception as err:
