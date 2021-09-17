@@ -63,7 +63,7 @@ from ggt.models.data_models.data_types import (
 )
 from ggt.models.data_models.data_types import LookupGGVAddVaxCertRequest
 from ggt.models.data_models.patients import (
-    create_patient_record,
+    create_patient_record, update_patient_record,
     get_patient_by_token, add_to_ggd_waiting_queue, create_pre_registration,
     get_existing_patients, unlock_patient_info_patients, is_un_available_slot,
     create_patient_insurance_record, get_insurance_record_by_id, get_patient_upfront_payment,
@@ -528,6 +528,7 @@ def bp_finalize_booking(booking_req: GgtBooking, finalize_registration_request):
     if "selectedServices" in dict(finalize_registration_request).keys():
         selected_services = finalize_registration_request.selectedServices
     try:
+        print("__create_patient_and_questionnaire")
         booking_req, status_message = __create_patient_and_questionnaire(
             booking_req)
         if booking_req is None:
@@ -1016,8 +1017,6 @@ def bp_vax_wallet_get_new_pass(serial_no):
     print(blob)
     def get_pkpass(b):
         yield b
-    # def get_image(b):
-    #     yield b
     if blob:
         return StreamingResponse(
             get_pkpass(blob),
@@ -3632,18 +3631,22 @@ def __create_patient_and_questionnaire(booking_req):
                 last_name=_patient.last_name,
                 dob=_patient.dob
             )
-
+        print("existing_patient", existing_patient)
         if existing_patient is None:
             p = get_existing_patients(token=_patient.token)
+            print(p)
             if p:
                 _patient.token = generate_token()
             patient_id = create_patient_record(_patient)
+            print(patient_id)
             if not prev_token.startswith("NOVERIFY"):
                 booking_req.result_token = unlock_patient_info_patients(
                     _patient.phone_number)
             else:
                 booking_req.result_token = _patient.token
         else:
+            if existing_patient['gender'] is None:
+                update_patient_record(_patient, existing_patient['id'])
             patient_id = existing_patient['id']
             booking_req.result_token = unlock_patient_info_patients(
                 existing_patient['phone_number'])

@@ -87,8 +87,55 @@ def create_patient_record(patient):
             patient.token,
             patient.country
         )
-
+        print(sql, vals)
         return exec_insert(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            vals=vals,
+            patient=patient,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def update_patient_record(patient, patient_id):
+    try:
+        sql = """
+            UPDATE patients SET
+                    middle_name = %s, 
+                    addr1 = %s, 
+                    city = %s, 
+                    st = %s, 
+                    zip = %s,
+                    gender = %s, 
+                    height_ft = %s, 
+                    weight_lb = %s, 
+                    ethnicity = %s, 
+                    race = %s,  
+                    country = %s
+            WHERE
+                    id = %s
+        """
+
+        vals = (
+            patient.middle_name,
+            patient.addr1,
+            patient.city,
+            patient.st,
+            patient.zip,
+            patient.gender,
+            patient.height_ft,
+            patient.weight_lb,
+            patient.ethnicity,
+            patient.race,
+            patient.country,
+            patient_id
+        )
+        print(sql, vals)
+        return exec_update(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -642,10 +689,13 @@ def save_apple_wallet_updates(patient_id, device_id, pass_type, serial_no, pushT
         )
         return None
 
+
 def get_serial_no(devide_id):
-        sql = """SELECT serial_no FROM apple_passes where device_id = %s"""
-        vals = (devide_id,)
-        return replica_read_row(sql, vals)
+    sql = """SELECT serial_no FROM apple_passes where device_id = %s"""
+    vals = (devide_id,)
+    return replica_read_row(sql, vals)
+
+
 def get_existing_vax_certificates(phone_number):
     try:
         sql = """ SELECT  
