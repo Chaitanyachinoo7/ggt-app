@@ -338,13 +338,13 @@ def api_vax_wallet_pass_apple_upadte(device_id: str = None, pass_type: str = Non
     return vax_wallet_pass_apple_upadte(device_id, pass_type, serial_no, apple_pass_update_request.pushToken, Authorization)
 
 
-@router.get("/vax_wallet_pass_apple_upadte/v1/devices/{device_id}/registrations/{pass_type}")
-def api_vax_wallet_pass_apple_upadte_serial(device_id: str = None, pass_type: str = None):
-    return vax_wallet_pass_apple_upadte_serial(device_id)
+# @router.get("/vax_wallet_pass_apple_upadte/v1/devices/{device_id}/registrations/{pass_type}")
+# def api_vax_wallet_pass_apple_upadte_serial(device_id: str = None, pass_type: str = None):
+#     return vax_wallet_pass_apple_upadte_serial(device_id)
 
-@router.get("/vax_wallet_pass_apple_upadte/v1/passes/{pass_type}/{serial_no}")
-def api_vax_wallet_get_new_pass(serial_no: str = None, pass_type: str = None):
-    return vax_wallet_get_new_pass(serial_no)
+# @router.get("/vax_wallet_pass_apple_upadte/v1/passes/{pass_type}/{serial_no}")
+# def api_vax_wallet_get_new_pass(serial_no: str = None, pass_type: str = None):
+#     return vax_wallet_get_new_pass(serial_no)
 
 @router.post("/vaxyes/check_payment/{phone_number}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_vax_check_payment(phone_number: str = None):
