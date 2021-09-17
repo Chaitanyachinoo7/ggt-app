@@ -90,7 +90,7 @@ from ggt.models.data_models.wellpay import (
     WellpayCreateBillResponse
 )
 from ggt.models.process_models.bp_payment import bp_create_checkout_session, bp_get_checkout_session
-from ggt.lib.storage import get_file_blob
+from ggt.lib.adapters.s3_adapter import read_file
 
 # from google.cloud import vision
 service_account_file = cfg('gcp.service_account_file')
@@ -1012,10 +1012,12 @@ def bp_vax_wallet_pass_apple_upadte_serial(device_id):
 
 
 def bp_vax_wallet_get_new_pass(serial_no):
-    blob = get_file_blob('pkpass-prod', serial_no+'.pkpass')
+    blob = read_file('pkpass-prod', serial_no+'.pkpass')
     print(blob)
     def get_pkpass(b):
-        yield b.download_as_bytes()
+        yield b
+    # def get_image(b):
+    #     yield b
     if blob:
         return StreamingResponse(
             get_pkpass(blob),
