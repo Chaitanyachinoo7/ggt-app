@@ -188,11 +188,11 @@ def create_pre_registration(patient_id, patient_questionnaire_id, group_code):
         return None
 
 
-def create_vax_yes_patient(first_name, last_name, phone, email, dob):
+def create_vax_yes_patient(first_name, last_name, phone, email, dob, group_code):
     import uuid
-    sql = """INSERT INTO patients (first_name, last_name, phone_number, email, dob, phone_number_verified, token) 
-    values (%s, %s, %s, %s, %s, %s, %s)"""
-    vals = (first_name, last_name, phone, email, dob, 1, str(uuid.uuid4()))
+    sql = """INSERT INTO patients (first_name, last_name, phone_number, email, dob, vax_yes_group_code, phone_number_verified, token) 
+    values (%s, %s, %s, %s, %s, %s, %s, %s)"""
+    vals = (first_name, last_name, phone, email, dob, group_code, 1, str(uuid.uuid4()))
     return exec_insert(sql, vals)
 
 

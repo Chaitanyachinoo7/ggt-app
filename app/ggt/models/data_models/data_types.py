@@ -810,6 +810,7 @@ class LookupGGVAddVaxCertRequest(BaseModel):
     pristine: pristineObject = None
     vax_image: str
     id_image: str
+    group_code: str = None
 
 
 class NotificationEnum(str, Enum):

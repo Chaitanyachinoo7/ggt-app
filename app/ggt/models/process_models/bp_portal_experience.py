@@ -718,12 +718,13 @@ def bp_add_vax_certificate(request: VaxCertificate, booster=False):
         request.vax_2_lot_number,
         request.vax_image,
         request.id_image,
+        request.group_code,
         booster
     )
 
 
 def __process_vax_yes(first_name, last_name, phone_number, email, dob,
-                      vax_type, vax_1_date, vax_2_date, lot_1, lot_2, image, id_image, booster=False):
+                      vax_type, vax_1_date, vax_2_date, lot_1, lot_2, image, id_image, group_code, booster=False):
     vax_code_1 = ""
     vax_code_2 = ""
     cert2_id = None
@@ -756,7 +757,7 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
 
     else:
         patient_id = patients.create_vax_yes_patient(
-            first_name, last_name, phone_number, email, dob)
+            first_name, last_name, phone_number, email, dob, group_code)
         log_generic(
             type=c.INFO,
             msg="PATIENT-CERTIFICATE-ADD-REQUEST-NEW-PATIENT-CREATED",
