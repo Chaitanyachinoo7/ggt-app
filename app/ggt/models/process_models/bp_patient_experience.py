@@ -68,6 +68,7 @@ from ggt.models.data_models.patients import (
     get_existing_patients, unlock_patient_info_patients, is_un_available_slot,
     create_patient_insurance_record, get_insurance_record_by_id, get_patient_upfront_payment,
     get_verification_level_from_patient_id, save_apple_wallet_updates, get_serial_no,
+    update_group_code_for_existing_patient,
     get_existing_vax_certificates, get_active_certificates, save_vax_yes_payment_info,
     update_certificates_to_active, update_vax_yes_payment_status, get_patient_by_id,
     get_existing_patient
@@ -1343,7 +1344,9 @@ def bp_add_vax_certificate(req, booster=False):
         )
     return False
 
-
+def bp_update_group_code(req):
+    update_group_code_for_existing_patient(req)
+    return True
 def bp_pass_verification(req):
     try:
         patient_id = __get_patient_id(req.query)

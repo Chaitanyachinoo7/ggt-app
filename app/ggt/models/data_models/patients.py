@@ -192,7 +192,8 @@ def create_vax_yes_patient(first_name, last_name, phone, email, dob, group_code)
     import uuid
     sql = """INSERT INTO patients (first_name, last_name, phone_number, email, dob, vax_yes_group_code, phone_number_verified, token) 
     values (%s, %s, %s, %s, %s, %s, %s, %s)"""
-    vals = (first_name, last_name, phone, email, dob, group_code, 1, str(uuid.uuid4()))
+    vals = (first_name, last_name, phone, email,
+            dob, group_code, 1, str(uuid.uuid4()))
     return exec_insert(sql, vals)
 
 
@@ -692,6 +693,29 @@ def get_serial_no(devide_id):
     sql = """SELECT serial_no FROM apple_passes where device_id = %s"""
     vals = (devide_id,)
     return replica_read_row(sql, vals)
+
+
+def update_group_code_for_existing_patient(req):
+    sql = """ UPDATE patients
+                  SET
+                      vax_yes_group_code=%s,
+                      update_dt=now()
+                  WHERE
+                    first_name = %s
+                     AND
+                    last_name = %s
+                    AND
+                    dob = %s
+                    AND
+                    phone_number = %s
+                    AND
+                    result_token = %s
+                    AND
+                    token_expire > NOW()
+            """
+    vals = (req.group_code, req.first_name,
+            req.last_name, req.dob, req.phone_number, req.token)
+    exec_update(sql, vals)
 
 
 def get_existing_vax_certificates(phone_number):
