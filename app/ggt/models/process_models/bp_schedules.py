@@ -1135,15 +1135,6 @@ def bp_verify_certificate(cert_ids, verification_level, user):
             wallet_pass = get_wallet_pass_details_from_patient_id(
                 patient["id"])
             if(wallet_pass):
-                print(patient["phone_number"])
-                print(json.dumps({
-                    "phone_number": patient["phone_number"],
-                    "dob": patient["dob"].strftime(
-                        "%Y-%m-%d"),
-                    "first_name": patient["first_name"],
-                    "last_name": patient["last_name"],
-                    "type": "i"
-                }))
                 from collections import namedtuple
                 def customPKPassDecoder(pkpassDict):
                     return namedtuple('X', pkpassDict.keys())(*pkpassDict.values())
