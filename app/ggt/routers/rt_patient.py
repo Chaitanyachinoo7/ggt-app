@@ -350,6 +350,12 @@ def api_vax_wallet_pass_apple_upadte_serial(device_id: str = None, pass_type: st
     return vax_wallet_pass_apple_upadte_serial(device_id, Authorization)
 
 
+@router.delete("/vax_wallet_pass_apple_upadte/v1/devices/{device_id}/registrations/{pass_type}")
+def api_vax_wallet_pass_apple_delete(device_id: str = None, pass_type: str = None, Authorization: str = Header(None)):
+    # return vax_wallet_pass_apple_delete(device_id, Authorization)
+    return True
+
+
 @router.get("/vax_wallet_pass_apple_upadte/v1/passes/{pass_type}/{serial_no}")
 def api_vax_wallet_get_new_pass(serial_no: str = None, pass_type: str = None, Authorization: str = Header(None)):
     return vax_wallet_get_new_pass(serial_no, Authorization)
