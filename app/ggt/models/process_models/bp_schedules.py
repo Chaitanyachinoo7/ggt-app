@@ -729,6 +729,8 @@ def bp_update_cert_info(id, service_code, lot_no, vax_date, user):
                 admin=user,
                 whoami=whoami(),
             )
+            patient = get_patient_from_crt_number(id)
+            update_pkpass_and_notify(patient)
         return res
 
     except Exception as err:
@@ -1132,23 +1134,7 @@ def bp_verify_certificate(cert_ids, verification_level, user):
             ), patient["phone_number"], str(verification_level))
             send_ggv_certificate_level_1_email(patient["first_name"].title(
             ), patient["email"], str(verification_level), phone_number=patient["phone_number"])
-            wallet_pass = get_wallet_pass_details_from_patient_id(
-                patient["id"])
-            if(wallet_pass):
-                from collections import namedtuple
-                def customPKPassDecoder(pkpassDict):
-                    return namedtuple('X', pkpassDict.keys())(*pkpassDict.values())
-                pkpassreq = json.loads(json.dumps({
-                    "phone_number": patient["phone_number"],
-                    "dob": patient["dob"].strftime(
-                        "%Y-%m-%d"),
-                    "first_name": patient["first_name"],
-                    "last_name": patient["last_name"],
-                    "type": "i",
-                    "token": ""
-                }), object_hook=customPKPassDecoder)
-                bp_get_wallet_pass(pkpassreq, portal=True)
-                bp_send_wallet_pass_update_to_apple(wallet_pass['push_token'])
+            update_pkpass_and_notify(patient)
         else:
             log_generic(
                 type=c.INFO,
@@ -1173,6 +1159,25 @@ def bp_verify_certificate(cert_ids, verification_level, user):
         )
 
     return False
+
+def update_pkpass_and_notify(patient):
+    wallet_pass = get_wallet_pass_details_from_patient_id(
+        patient["id"])
+    if(wallet_pass):
+        from collections import namedtuple
+        def customPKPassDecoder(pkpassDict):
+            return namedtuple('X', pkpassDict.keys())(*pkpassDict.values())
+        pkpassreq = json.loads(json.dumps({
+            "phone_number": patient["phone_number"],
+            "dob": patient["dob"].strftime(
+                "%Y-%m-%d"),
+            "first_name": patient["first_name"],
+            "last_name": patient["last_name"],
+            "type": "i",
+            "token": ""
+        }), object_hook=customPKPassDecoder)
+        bp_get_wallet_pass(pkpassreq, portal=True)
+        bp_send_wallet_pass_update_to_apple(wallet_pass['push_token'])
 
 
 def bp_ocr(patient_id, cert_id):
