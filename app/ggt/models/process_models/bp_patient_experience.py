@@ -918,8 +918,7 @@ def bp_send_wallet_pass_update_to_apple(token):
         cert = (cert_pem, ssl_key, key_pem_password)
         client = httpx.Client(http2=True, cert=cert, headers={
                               'apns-push-type': 'alert'}, params={"aps": {"alert": "GoGetDoc Pass Update"}})
-        r = client.post('https://api.push.apple.com/3/device/'+token, headers={
-            'apns-push-type': 'alert'}, params={"aps": {"alert": "GoGetDoc Pass Update"}})
+        r = client.post('https://api.push.apple.com/3/device/'+token)
         print(r.status_code)
         return True
     except Exception as err:
