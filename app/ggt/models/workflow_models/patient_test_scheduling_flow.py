@@ -604,9 +604,9 @@ def vax_wallet_pass_apple_upadte(device_id, pass_type, serial_no, pushToken, Aut
          bp_vax_wallet_pass_apple_upadte(device_id, pass_type, serial_no, pushToken, Authorization)
     )
 
-def vax_wallet_pass_apple_upadte_serial(device_id, Authorization):
+def vax_wallet_pass_apple_upadte_serial(device_id, pass_type):
     return x_response(
-         bp_vax_wallet_pass_apple_upadte_serial(device_id, Authorization)
+         bp_vax_wallet_pass_apple_upadte_serial(device_id, pass_type)
     )
 def vax_wallet_get_new_pass(serial_no, Authorization):
     return bp_vax_wallet_get_new_pass(serial_no, Authorization)

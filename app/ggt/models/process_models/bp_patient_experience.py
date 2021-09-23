@@ -1005,11 +1005,9 @@ def bp_vax_wallet_pass_apple_upadte(device_id, pass_type, serial_no, pushToken, 
     return False
 
 
-def bp_vax_wallet_pass_apple_upadte_serial(device_id, auth):
+def bp_vax_wallet_pass_apple_upadte_serial(device_id, pass_type):
     try:
-        patient_id = __get_patient_id(auth.replace('ApplePass ', ''))
-        print(patient_id)
-        serial = __get_serial(device_id, patient_id)
+        serial = __get_serial(device_id, pass_type)
         print("serial", serial)
         print({
             "lastUpdated": datetime.now(),
@@ -1447,8 +1445,8 @@ def bp_update_android_pass(req):
 # TEMP, not using fixed slots since operational conditions allow oversubscribing
 
 
-def __get_serial(devide_id, patient_id):
-    return get_serial_no(devide_id, patient_id)
+def __get_serial(devide_id, pass_type):
+    return get_serial_no(devide_id, pass_type)
 
 
 def __get_patient_id(query):
