@@ -379,3 +379,13 @@ def api_vax_yes_pay(req: VaxYesPayRequest):
 @router.get("/vax_verify_pay/{session_id}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 def api_vax_yes_verify_pay(session_id: str):
     return vax_yes_verify_payment(session_id)
+
+@router.get("/test_http2")
+async def test_http2():
+    import httpx
+    import json
+    cert = ("./ggt/configs/ios_certs/vaccine_wallet_crt.pem", "./ggt/configs/ios_certs/ssl.key", "ggtvaccine")
+    client = httpx.Client(http2=True, cert=cert, headers={'apns-push-type': 'alert'})
+    r = client.post('https://api.push.apple.com/3/device/9dffbb90a3ae9e5e98d8f7cecd5c2e21eb5ee04734bbcea376a4c8a73a88c95e', headers={'apns-push-type': 'alert'},
+                    data=json.dumps({"aps": {"alert": "test"}}))
+    return r
