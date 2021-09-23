@@ -47,7 +47,7 @@ from ggt.models.data_models.appointments import (
     create_appointment,
     update_appointment_with_confirmed_scheduled,
     update_appointment_with_receipt_token, release_ggv_slot, lock_ggv_slot, re_schedule_appointment, lookup_certificate,
-    lookup_pkpass,lookup_pkpass_for_portal, is_open_patient, update_appointment_with_payment_session, save_android_pass_details
+    lookup_pkpass, lookup_pkpass_for_portal, is_open_patient, update_appointment_with_payment_session, save_android_pass_details
 )
 from ggt.models.data_models.clinical_test_results import (
     get_test_result_by_token
@@ -912,17 +912,21 @@ def bp_get_vax_certificate(patient_id, cert_id, pass_through=False):
     else:
         return None
 
+
 def bp_send_wallet_pass_update_to_apple(token):
     try:
         cert = (cert_pem, ssl_key, key_pem_password)
-        client = httpx.Client(http2=True, cert=cert)
-        r = client.post('https://api.push.apple.com/3/device/'+token, headers={'apns-push-type': 'alert'},
-                        data={"aps": {"alert": "GoGetDoc Pass Update"}})
-        print(r.json())
+        client = httpx.Client(http2=True, cert=cert, headers={
+                              'apns-push-type': 'alert'}, params={"aps": {"alert": "GoGetDoc Pass Update"}})
+        r = client.post('https://api.push.apple.com/3/device/'+token, headers={
+            'apns-push-type': 'alert'}, params={"aps": {"alert": "GoGetDoc Pass Update"}})
+        print(r.status_code)
         return True
     except Exception as err:
         print(err)
     return False
+
+
 def bp_get_wallet_pass(pkpass_req, portal=False):
     try:
         log_generic(
@@ -941,7 +945,7 @@ def bp_get_wallet_pass(pkpass_req, portal=False):
                                     pkpass_req.first_name, pkpass_req.last_name, pkpass_req.token)
         if portal:
             patient = lookup_pkpass_for_portal(pkpass_req.phone_number, pkpass_req.dob,
-                                    pkpass_req.first_name, pkpass_req.last_name)
+                                               pkpass_req.first_name, pkpass_req.last_name)
         print(patient)
         if patient:
             log_generic(
