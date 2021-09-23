@@ -916,9 +916,9 @@ def bp_get_vax_certificate(patient_id, cert_id, pass_through=False):
 def bp_send_wallet_pass_update_to_apple(token):
     try:
         cert = (cert_pem, ssl_key, key_pem_password)
-        client = httpx.Client(http2=True, cert=cert, headers={
-                              'apns-push-type': 'alert'}, params={"aps": {"alert": "GoGetDoc Pass Update"}})
-        r = client.post('https://api.push.apple.com/3/device/'+token)
+        client = httpx.Client(http2=True, cert=cert)
+        r = client.post('https://api.push.apple.com/3/device/'+token, headers={
+            'apns-push-type': 'alert'}, params={"aps": {"alert": "GoGetDoc Pass Update"}})
         print(r.status_code)
         return True
     except Exception as err:
