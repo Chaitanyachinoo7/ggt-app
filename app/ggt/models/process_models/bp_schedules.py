@@ -1,4 +1,5 @@
 import json
+from types import SimpleNamespace
 from datetime import date, datetime, timedelta
 
 from ggt.lib.adapters.dynamo_adapter import read_from_dynamo
@@ -1123,8 +1124,9 @@ def bp_verify_certificate(cert_ids, verification_level, user):
                 admin=user['sub'],
                 function=whoami()
             )
+        print("get_patient_from_crt_number")
         patient = get_patient_from_crt_number(cert_ids[0])
-
+        print(patient)
         if patient:
             send_ggv_certificate_level_1_sms(patient["first_name"].title(
             ), patient["phone_number"], str(verification_level))
@@ -1133,13 +1135,28 @@ def bp_verify_certificate(cert_ids, verification_level, user):
             wallet_pass = get_wallet_pass_details_from_patient_id(
                 patient["id"])
             if(wallet_pass):
-                bp_get_wallet_pass({
+                print(patient["phone_number"])
+                print(json.dumps({
                     "phone_number": patient["phone_number"],
-                    "dob": patient["dob"],
+                    "dob": patient["dob"].strftime(
+                        "%Y-%m-%d"),
                     "first_name": patient["first_name"],
                     "last_name": patient["last_name"],
                     "type": "i"
-                }, portal=True)
+                }))
+                from collections import namedtuple
+                def customPKPassDecoder(pkpassDict):
+                    return namedtuple('X', pkpassDict.keys())(*pkpassDict.values())
+                pkpassreq = json.loads(json.dumps({
+                    "phone_number": patient["phone_number"],
+                    "dob": patient["dob"].strftime(
+                        "%Y-%m-%d"),
+                    "first_name": patient["first_name"],
+                    "last_name": patient["last_name"],
+                    "type": "i",
+                    "token": ""
+                }), object_hook=customPKPassDecoder)
+                bp_get_wallet_pass(pkpassreq, portal=True)
                 bp_send_wallet_pass_update_to_apple(wallet_pass['push_token'])
         else:
             log_generic(

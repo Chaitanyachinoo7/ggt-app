@@ -1322,6 +1322,7 @@ def get_patient_from_crt_number(cert_id):
                 JOIN ggv_certificates certs ON p.id = certs.patient_id
                 where certs.id = %s"""
         vals = (cert_id,)
+        print(sql, vals)
         return read_row(sql, vals)
 
     except Exception as err:
