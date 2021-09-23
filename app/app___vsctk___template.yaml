@@ -1,0 +1,9 @@
+Resources:
+  app:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: ggt/models/process_models/bp_patient_experience.__get_barcode_string
+      CodeUri: /Users/samarswami/ggt/ggt-api/app
+      Runtime: python3.8
+      Environment:
+        Variables: {}

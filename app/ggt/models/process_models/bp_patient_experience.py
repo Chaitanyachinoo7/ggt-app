@@ -14,6 +14,7 @@ from google.oauth2 import service_account
 from requests.auth import HTTPBasicAuth
 from starlette.responses import StreamingResponse
 from wallet.models import Pass, Barcode, Generic
+import httpx
 
 import ggt.lib.constants as c
 import ggt.models.process_models.jwt as jwt
@@ -46,7 +47,7 @@ from ggt.models.data_models.appointments import (
     create_appointment,
     update_appointment_with_confirmed_scheduled,
     update_appointment_with_receipt_token, release_ggv_slot, lock_ggv_slot, re_schedule_appointment, lookup_certificate,
-    lookup_pkpass, is_open_patient, update_appointment_with_payment_session, save_android_pass_details
+    lookup_pkpass,lookup_pkpass_for_portal, is_open_patient, update_appointment_with_payment_session, save_android_pass_details
 )
 from ggt.models.data_models.clinical_test_results import (
     get_test_result_by_token
@@ -103,7 +104,7 @@ cert_pem = "./app/ggt/configs/ios_certs/vaccine_wallet_crt.pem"
 key_pem = "./app/ggt/configs/ios_certs/key.pem"
 wwdr_pem = "./app/ggt/configs/ios_certs/WWDR.pem"
 key_pem_password = "ggtvaccine"
-
+ssl_key = "./app/ggt/configs/ios_certs/ssl.key"
 
 ########################################################################################################
 # [Public] functions
@@ -911,8 +912,18 @@ def bp_get_vax_certificate(patient_id, cert_id, pass_through=False):
     else:
         return None
 
-
-def bp_get_wallet_pass(pkpass_req):
+def bp_send_wallet_pass_update_to_apple(token):
+    try:
+        cert = (cert_pem, ssl_key, key_pem_password)
+        client = httpx.Client(http2=True, cert=cert)
+        r = client.post('https://api.push.apple.com/3/device/'+token, headers={'apns-push-type': 'alert'},
+                        data={"aps": {"alert": "GoGetDoc Pass Update"}})
+        print(r)
+        return True
+    except Exception as err:
+        print(err)
+    return False
+def bp_get_wallet_pass(pkpass_req, portal=False):
     try:
         log_generic(
             type=c.INFO,
@@ -925,8 +936,12 @@ def bp_get_wallet_pass(pkpass_req):
             token=pkpass_req.token,
             req_type=pkpass_req.type
         )
-        patient = lookup_pkpass(pkpass_req.phone_number, pkpass_req.dob,
-                                pkpass_req.first_name, pkpass_req.last_name, pkpass_req.token)
+        if not portal:
+            patient = lookup_pkpass(pkpass_req.phone_number, pkpass_req.dob,
+                                    pkpass_req.first_name, pkpass_req.last_name, pkpass_req.token)
+        if portal:
+            patient = lookup_pkpass_for_portal(pkpass_req.phone_number, pkpass_req.dob,
+                                    pkpass_req.first_name, pkpass_req.last_name)
         print(patient)
         if patient:
             log_generic(
@@ -990,9 +1005,11 @@ def bp_vax_wallet_pass_apple_upadte(device_id, pass_type, serial_no, pushToken, 
     return False
 
 
-def bp_vax_wallet_pass_apple_upadte_serial(device_id):
+def bp_vax_wallet_pass_apple_upadte_serial(device_id, auth):
     try:
-        serial = __get_serial(device_id)
+        patient_id = __get_patient_id(auth.replace('ApplePass ', ''))
+        print(patient_id)
+        serial = __get_serial(device_id, patient_id)
         print("serial", serial)
         print({
             "lastUpdated": datetime.now(),
@@ -1012,21 +1029,27 @@ def bp_vax_wallet_pass_apple_upadte_serial(device_id):
     return False
 
 
-def bp_vax_wallet_get_new_pass(serial_no):
-    blob = read_file('pkpass-prod', serial_no+'.pkpass')
-    def get_pkpass(b):
-        yield b
-    if blob:
-        return StreamingResponse(
-            get_pkpass(blob),
-            media_type="application/vnd.apple.pkpass",
-            headers={
-                'LastModified': datetime.now().strftime(
-            "%Y-%m-%d %H:%M:%S.%f")
-            }
-        )
+def bp_vax_wallet_get_new_pass(serial_no, auth):
+    patient_id = __get_patient_id(auth.replace('ApplePass ', ''))
+    print(patient_id)
+    if(patient_id):
+        blob = read_file('pkpass-prod', patient_id+'.pkpass')
+
+        def get_pkpass(b):
+            yield b
+        if blob:
+            return StreamingResponse(
+                get_pkpass(blob),
+                media_type="application/vnd.apple.pkpass",
+                headers={
+                    'LastModified': datetime.now().strftime(
+                        "%Y-%m-%d %H:%M:%S.%f")
+                }
+            )
+        else:
+            raise HTTPException(status_code=404, detail='Pass not found')
     else:
-        raise HTTPException(status_code=404, detail='Report not found')
+        raise HTTPException(status_code=404, detail='Pass not found')
 
 
 def bp_call_non_sms_phone(phone_number):
@@ -1344,9 +1367,12 @@ def bp_add_vax_certificate(req, booster=False):
         )
     return False
 
+
 def bp_update_group_code(req):
     update_group_code_for_existing_patient(req)
     return True
+
+
 def bp_pass_verification(req):
     try:
         patient_id = __get_patient_id(req.query)
@@ -1421,8 +1447,8 @@ def bp_update_android_pass(req):
 # TEMP, not using fixed slots since operational conditions allow oversubscribing
 
 
-def __get_serial(devide_id):
-    return get_serial_no(devide_id)
+def __get_serial(devide_id, patient_id):
+    return get_serial_no(devide_id, patient_id)
 
 
 def __get_patient_id(query):

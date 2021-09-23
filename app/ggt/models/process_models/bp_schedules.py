@@ -33,7 +33,8 @@ from ggt.models.data_models.schedules import (
     get_ggv_available_dates, get_group_by_group_code, get_available_ggv_locations_near_lat_lng,
     get_first_available_times, lookup_certificate, update_patient_ifo_cert, update_cert_info, delete_certificate,
     verify_certificate, get_patient_from_crt_number, get_certificate_stats, get_phone_number_by_certificate_id,
-    reject_certificate, add_vax_yes_activity, vax_yes_activity, get_unverified_patients, get_patient_by_id
+    reject_certificate, add_vax_yes_activity, vax_yes_activity, get_unverified_patients, get_patient_by_id,
+    get_wallet_pass_details_from_patient_id
 )
 
 from ggt.models.data_models.locations import (
@@ -47,7 +48,7 @@ from ggt.lib.maps import (
 
 from cachetools import cached, LRUCache, TTLCache
 from ggt.models.process_models.bp_patient_experience import upload_vax_card_image, send_ggv_certificate_level_1_sms, \
-    send_ggv_certificate_level_1_email, send_ggv_reject_email
+    send_ggv_certificate_level_1_email, send_ggv_reject_email, bp_get_wallet_pass, bp_send_wallet_pass_update_to_apple
 import boto3
 from random import randint
 ########################################################################################################
@@ -164,7 +165,7 @@ def bp_get_schedule_locations_available_near_lat_lng(lat: float, lng: float, rad
                     'collect_upfront_payment': dtl.location.collect_upfront_payment,
                     'next_test_date': dtl.first_date_time_available.strftime(
                         "%a, %-d %b %Y @ %-I:%M %p") if dtl.first_date_time_available else None,
-                    'wait_time_mins': '< 10m' if dtl.location.st !='KS' else '-',
+                    'wait_time_mins': '< 10m' if dtl.location.st != 'KS' else '-',
                     'result_time_hours': '{}h'.format(dtl.average_processing_time),
                     'slots_available': dtl.slot_count,
                     'type': 'public',
@@ -242,7 +243,7 @@ def bp_get_schedule_locations_available(date, group_code=c.DEFAULT_GROUP_CODE):
                     'allow_insurance_skip': dtl.location.allow_insurance_skip,
                     'collect_upfront_payment': dtl.location.collect_upfront_payment,
                     'next_test_date': dtl.first_date_time_available.strftime("%a, %-d %b %Y @ %-I:%M %p"),
-                    'wait_time_mins': '< 10m' if dtl.location.st !='KS' else '-',
+                    'wait_time_mins': '< 10m' if dtl.location.st != 'KS' else '-',
                     'result_time_hours': '{}h'.format(dtl.average_processing_time),
                     'slots_available': dtl.slot_count * 8,
                     'type': 'public',
@@ -361,7 +362,8 @@ def bp_get_ggv_schedule_times_available(location_id, date):
         rows = get_first_available_times(location_id, date)
         for row in rows:
             d = datetime.strptime(str(row['start_time']), "%H:%M:%S")
-            day = str(datetime.strptime(str(row['start_dt'])[0:10], "%Y-%m-%d"))[0:10]
+            day = str(datetime.strptime(
+                str(row['start_dt'])[0:10], "%Y-%m-%d"))[0:10]
 
             if day in dates.keys():
                 dates[day]['available_times'].append(
@@ -472,7 +474,8 @@ def bp_get_second_shot_available_times(location_id, date):
     try:
         for row in rows:
             d = datetime.strptime(str(row['start_time']), "%H:%M:%S")
-            day = str(datetime.strptime(str(row['start_dt'])[0:10], "%Y-%m-%d"))[0:10]
+            day = str(datetime.strptime(
+                str(row['start_dt'])[0:10], "%Y-%m-%d"))[0:10]
 
             if day in dates.keys():
                 dates[day]['available_times'].append(
@@ -547,7 +550,8 @@ def bp_delete_schedule(location_id):
 
 def bp_lookup_certificate(first_name, last_name, dob, phone_number, user):
     try:
-        res = lookup_certificate(phone_number, dob, first_name, last_name, user=user)[0]
+        res = lookup_certificate(
+            phone_number, dob, first_name, last_name, user=user)[0]
         log_generic(
             type=c.INFO,
             msg='LOOKUP-CERTIFICATE-RESPONSE',
@@ -596,7 +600,8 @@ def bp_lookup_unverified_certificate(first_name, last_name, dob, phone_number, l
         print(patient)
         res = lookup_certificate(patient["phone_number"], patient["dob"], patient["first_name"], patient["last_name"], version, None, 1, 2, 0, user=user)[0]
         '''
-        res = lookup_certificate(phone_number, dob, first_name, last_name, version=version, verification_level=1, limit=20, offset=0, is_unverified=True)
+        res = lookup_certificate(phone_number, dob, first_name, last_name, version=version,
+                                 verification_level=1, limit=20, offset=0, is_unverified=True)
 
         log_generic(
             type=c.INFO,
@@ -644,7 +649,8 @@ def bp_update_patient_ifo_cert(id, first_name, last_name, dob, phone_number, use
                                                                                                     "dob": dob,
                                                                                                     "phone_number": phone_number,
                                                                                                     "user": user}))
-        updated_info = update_patient_ifo_cert(id, phone_number, dob, first_name, last_name)
+        updated_info = update_patient_ifo_cert(
+            id, phone_number, dob, first_name, last_name)
 
         if updated_info:
             log_generic(
@@ -693,10 +699,10 @@ def bp_update_patient_ifo_cert(id, first_name, last_name, dob, phone_number, use
 def bp_update_cert_info(id, service_code, lot_no, vax_date, user):
     try:
         add_vax_yes_activity(user, 'UPDATE_CERT_INFO', certificate_id=id, payload=json.dumps({"certificate_id": id,
-                                                                                                    "service_code": service_code,
-                                                                                                    "lot_no": lot_no,
-                                                                                                    "vax_date": vax_date,
-                                                                                                    "user": user}))
+                                                                                              "service_code": service_code,
+                                                                                              "lot_no": lot_no,
+                                                                                              "vax_date": vax_date,
+                                                                                              "user": user}))
 
         log_generic(
             type=c.INFO,
@@ -759,18 +765,18 @@ def bp_delete_certificate(cert_id, notify_customer, user):
             admin=user['sub']
         )
         add_vax_yes_activity(user['sub'], 'DELETE_CERTIFICATE', certificate_id=cert_id, payload=json.dumps({"cert_id": cert_id,
-                                                                                                    "notify_customer": notify_customer,
-                                                                                                    "user": user['sub']}))
+                                                                                                            "notify_customer": notify_customer,
+                                                                                                            "user": user['sub']}))
 
         if notify_customer:
             res = get_phone_number_by_certificate_id(cert_id)
             phone_number = res['phone_number']
             international = is_international(phone_number)
             message = "We were unable to validate your submission. " \
-                    "You can resubmit your request by going to  " \
-                    "http://gogetdoc.com/vaxyes  and entering in your phone number.  " \
-                    "Please make sure you take clear photos of your ID and " \
-                    "Vaccine card in order to process"
+                "You can resubmit your request by going to  " \
+                "http://gogetdoc.com/vaxyes  and entering in your phone number.  " \
+                "Please make sure you take clear photos of your ID and " \
+                "Vaccine card in order to process"
 
             if send_sms(phone_number, message.replace('\t', ''), international=international):
                 log_generic(
@@ -833,8 +839,8 @@ def bp_delete_certificate(cert_id, notify_customer, user):
 def bp_reject_certificate(cert_ids, notify_customer, user):
     try:
         add_vax_yes_activity(user['sub'], 'DELETE_CERTIFICATE', certificate_id=json.dumps(cert_ids), payload=json.dumps({"cert_id": json.dumps(cert_ids),
-                                                                                                    "notify_customer": notify_customer,
-                                                                                                    "user": user['sub']}))
+                                                                                                                         "notify_customer": notify_customer,
+                                                                                                                         "user": user['sub']}))
         res = get_phone_number_by_certificate_id(cert_ids[0])
 
         if res:
@@ -883,8 +889,9 @@ def bp_reject_certificate(cert_ids, notify_customer, user):
                             admin=user['sub'],
                             function=whoami(),
                         )
-                    send_ggv_reject_email(res['first_name'].title(), res['email'])
-                    return True  
+                    send_ggv_reject_email(
+                        res['first_name'].title(), res['email'])
+                    return True
                 else:
                     return True
             else:
@@ -960,7 +967,8 @@ def bp_generate_full_schedule(location_id):
             hour=0, minute=0, second=0, microsecond=0)
 
         delete_schedule_entries_by_location_id(location_id)
-        trim_schedule_generation_rules_start_dt(location_id, latest_schedule_dt)
+        trim_schedule_generation_rules_start_dt(
+            location_id, latest_schedule_dt)
         rules = get_schedule_generation_rules_by_location_id(location_id)
 
         for rule in rules:
@@ -1084,11 +1092,11 @@ def bp_verify_certificate(cert_ids, verification_level, user):
                              payload=json.dumps({"cert_id": cert_ids[0],
                                                  "verification_level": verification_level,
                                                  "user": user['sub']}))
-        if(len(cert_ids)>2):
+        if(len(cert_ids) > 2):
             add_vax_yes_activity(user['sub'], 'VERIFY_CERTIFICATE', certificate_id=cert_ids[1],
-                        payload=json.dumps({"cert_id": cert_ids[1],
-                                            "verification_level": verification_level,
-                                            "user": user['sub']}))
+                                 payload=json.dumps({"cert_id": cert_ids[1],
+                                                     "verification_level": verification_level,
+                                                     "user": user['sub']}))
         log_generic(
             type=c.INFO,
             msg='VERIFY-CERTIFICATE-REQUEST-RECEIVED',
@@ -1118,8 +1126,21 @@ def bp_verify_certificate(cert_ids, verification_level, user):
         patient = get_patient_from_crt_number(cert_ids[0])
 
         if patient:
-            send_ggv_certificate_level_1_sms(patient["first_name"].title(), patient["phone_number"], str(verification_level))
-            send_ggv_certificate_level_1_email(patient["first_name"].title(), patient["email"], str(verification_level), phone_number=patient["phone_number"])
+            send_ggv_certificate_level_1_sms(patient["first_name"].title(
+            ), patient["phone_number"], str(verification_level))
+            send_ggv_certificate_level_1_email(patient["first_name"].title(
+            ), patient["email"], str(verification_level), phone_number=patient["phone_number"])
+            wallet_pass = get_wallet_pass_details_from_patient_id(
+                patient["id"])
+            if(wallet_pass):
+                bp_get_wallet_pass({
+                    "phone_number": patient["phone_number"],
+                    "dob": patient["dob"],
+                    "first_name": patient["first_name"],
+                    "last_name": patient["last_name"],
+                    "type": "i"
+                }, portal=True)
+                bp_send_wallet_pass_update_to_apple(wallet_pass['push_token'])
         else:
             log_generic(
                 type=c.INFO,
@@ -1145,6 +1166,7 @@ def bp_verify_certificate(cert_ids, verification_level, user):
 
     return False
 
+
 def bp_ocr(patient_id, cert_id):
     try:
         images = __get_images(patient_id, cert_id)
@@ -1164,6 +1186,7 @@ def bp_ocr(patient_id, cert_id):
 ########################################################################################################
 # [Protected] functions
 ########################################################################################################
+
 
 def __get_ocr(images):
     boto_client = boto3.client(
@@ -1186,7 +1209,7 @@ def __get_ocr(images):
     # print(response)
     card = {}
     lastNameIndex = 0
-    for index, item in enumerate(response["Blocks"]):  
+    for index, item in enumerate(response["Blocks"]):
         print(item)
         if "Text" in item and item["Text"] == 'Last' and item["TextType"] == "PRINTED":
             lastNameIndex = index
@@ -1195,55 +1218,70 @@ def __get_ocr(images):
     last_name = response["Blocks"][lastNameIndex-2]["Text"]
     card["first_name"] = first_name
     card["last_name"] = last_name
-    cell1 = [x for x in response["Blocks"] if (x["BlockType"] == "CELL" and x["RowIndex"] == 2 and x["ColumnIndex"] == 2)]
-    cell2 = [x for x in response["Blocks"] if (x["BlockType"] == "CELL" and x["RowIndex"] == 3 and x["ColumnIndex"] == 2)]
-    cell3 = [x for x in response["Blocks"] if (x["BlockType"] == "CELL" and x["RowIndex"] == 4 and x["ColumnIndex"] == 2)]
-    cell4 = [x for x in response["Blocks"] if (x["BlockType"] == "CELL" and x["RowIndex"] == 5 and x["ColumnIndex"] == 2)]
-    cell5 = [x for x in response["Blocks"] if (x["BlockType"] == "CELL" and x["RowIndex"] == 2 and x["ColumnIndex"] == 3)]
-    cell6 = [x for x in response["Blocks"] if (x["BlockType"] == "CELL" and x["RowIndex"] == 4 and x["ColumnIndex"] == 3)]
-    
+    cell1 = [x for x in response["Blocks"] if (
+        x["BlockType"] == "CELL" and x["RowIndex"] == 2 and x["ColumnIndex"] == 2)]
+    cell2 = [x for x in response["Blocks"] if (
+        x["BlockType"] == "CELL" and x["RowIndex"] == 3 and x["ColumnIndex"] == 2)]
+    cell3 = [x for x in response["Blocks"] if (
+        x["BlockType"] == "CELL" and x["RowIndex"] == 4 and x["ColumnIndex"] == 2)]
+    cell4 = [x for x in response["Blocks"] if (
+        x["BlockType"] == "CELL" and x["RowIndex"] == 5 and x["ColumnIndex"] == 2)]
+    cell5 = [x for x in response["Blocks"] if (
+        x["BlockType"] == "CELL" and x["RowIndex"] == 2 and x["ColumnIndex"] == 3)]
+    cell6 = [x for x in response["Blocks"] if (
+        x["BlockType"] == "CELL" and x["RowIndex"] == 4 and x["ColumnIndex"] == 3)]
+
     if("Relationships" in cell1[0]):
         value1 = ""
         for entry in cell1[0]["Relationships"][0]["Ids"]:
-            temp = [x for x in response["Blocks"] if (x["BlockType"] == "WORD" and x["Id"] == entry)]
+            temp = [x for x in response["Blocks"] if (
+                x["BlockType"] == "WORD" and x["Id"] == entry)]
             value1 = value1 + " " + temp[0]["Text"].upper()
         card["dose1"] = value1.lstrip()
     if("Relationships" in cell2[0]):
         value2 = ""
         for entry in cell2[0]["Relationships"][0]["Ids"]:
-            temp = [x for x in response["Blocks"] if (x["BlockType"] == "WORD" and x["Id"] == entry)]
+            temp = [x for x in response["Blocks"] if (
+                x["BlockType"] == "WORD" and x["Id"] == entry)]
             value2 = value2 + " " + temp[0]["Text"].upper()
         card["lot1"] = value2.lstrip()
     if("Relationships" in cell3[0]):
         value3 = ""
         for entry in cell3[0]["Relationships"][0]["Ids"]:
-            temp = [x for x in response["Blocks"] if (x["BlockType"] == "WORD" and x["Id"] == entry)]
+            temp = [x for x in response["Blocks"] if (
+                x["BlockType"] == "WORD" and x["Id"] == entry)]
             value3 = value3 + " " + temp[0]["Text"].upper()
         card["dose2"] = value3.lstrip()
     if("Relationships" in cell4[0]):
         value4 = ""
         for entry in cell4[0]["Relationships"][0]["Ids"]:
-            temp = [x for x in response["Blocks"] if (x["BlockType"] == "WORD" and x["Id"] == entry)]
+            temp = [x for x in response["Blocks"] if (
+                x["BlockType"] == "WORD" and x["Id"] == entry)]
             value4 = value4 + " " + temp[0]["Text"].upper()
         card["lot2"] = value4.lstrip()
     if("Relationships" in cell5[0]):
         value5 = ""
         for entry in cell5[0]["Relationships"][0]["Ids"]:
-            temp = [x for x in response["Blocks"] if (x["BlockType"] == "WORD" and x["Id"] == entry)]
+            temp = [x for x in response["Blocks"] if (
+                x["BlockType"] == "WORD" and x["Id"] == entry)]
             value5 = value5 + " " + temp[0]["Text"].upper()
         card["date1"] = value5.lstrip()
     if("Relationships" in cell6[0]):
         value6 = ""
         for entry in cell6[0]["Relationships"][0]["Ids"]:
-            temp = [x for x in response["Blocks"] if (x["BlockType"] == "WORD" and x["Id"] == entry)]
+            temp = [x for x in response["Blocks"] if (
+                x["BlockType"] == "WORD" and x["Id"] == entry)]
             value6 = value6 + " " + temp[0]["Text"].upper()
         card["date2"] = value6.lstrip()
     return card
+
+
 def __get_images(patient_id, cert_id):
     return {
         "image_1": '{}/{}.jpg'.format(patient_id, cert_id),
         "image_2": '{}/{}_id_image.jpg'.format(patient_id, cert_id)
     }
+
 
 def __process_schedule_rule(rule):
     try:
@@ -1273,7 +1311,7 @@ def __process_schedule_rule(rule):
                     while day_curr_time <= day_end_dt:  # time loop
                         slot_increment = rule['slot_increment'] * 60
                         day_curr_appointment_end_time = day_curr_time + \
-                                                        timedelta(0, slot_increment)
+                            timedelta(0, slot_increment)
 
                         row = (
                             location_id,
@@ -1410,7 +1448,7 @@ def __map_dtl_list_to_available_locations(dtl_list):
                     'collect_upfront_payment': dtl.location.collect_upfront_payment,
                     'next_test_date': dtl.first_date_time_available.strftime(
                         "%a, %-d %b %Y @ %-I:%M %p") if dtl.first_date_time_available else None,
-                    'wait_time_mins': '< 10m' if dtl.location.st !='KS' else '-',
+                    'wait_time_mins': '< 10m' if dtl.location.st != 'KS' else '-',
                     'result_time_hours': '{}h'.format(dtl.average_processing_time),
                     'slots_available': dtl.slot_count * 8,
                     'type': 'public',
@@ -1441,7 +1479,7 @@ def __map_dtl_list_to_available_locations(dtl_list):
 
 
 def normalize_group_code(group_code):
-    whitelist = set('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_')
+    whitelist = set(
+        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_')
     group_code = ''.join(filter(whitelist.__contains__, group_code.upper()))
     return group_code
-

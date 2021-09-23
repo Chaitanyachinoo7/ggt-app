@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Security, Request, Header
-
+import requests
 from cachetools import cached, LRUCache, TTLCache
 
 from ggt.lib.auth import authorize_user
@@ -317,9 +317,11 @@ def api_call_non_sms_phone(phone_number):
 def api_add_vax_certificate(req: LookupGGVAddVaxCertRequest):
     return get_add_vax_certificate(req)
 
+
 @router.post("/update_group_code")
 def api_update_group_code(req: UpdateGroupCodeRequest):
     return update_group_code(req)
+
 
 @router.post("/add_booster_vax_certificate")
 def api_add_booster_vax_certificate(req: LookupGGVAddVaxCertRequest):
@@ -343,13 +345,27 @@ def api_vax_wallet_pass_apple_upadte(device_id: str = None, pass_type: str = Non
     return vax_wallet_pass_apple_upadte(device_id, pass_type, serial_no, apple_pass_update_request.pushToken, Authorization)
 
 
-# @router.get("/vax_wallet_pass_apple_upadte/v1/devices/{device_id}/registrations/{pass_type}")
-# def api_vax_wallet_pass_apple_upadte_serial(device_id: str = None, pass_type: str = None):
-#     return vax_wallet_pass_apple_upadte_serial(device_id)
+@router.get("/vax_wallet_pass_apple_upadte/v1/devices/{device_id}/registrations/{pass_type}")
+def api_vax_wallet_pass_apple_upadte_serial(device_id: str = None, pass_type: str = None, Authorization: str = Header(None)):
+    print(Authorization)
+    return vax_wallet_pass_apple_upadte_serial(device_id, Authorization)
 
-# @router.get("/vax_wallet_pass_apple_upadte/v1/passes/{pass_type}/{serial_no}")
-# def api_vax_wallet_get_new_pass(serial_no: str = None, pass_type: str = None):
-#     return vax_wallet_get_new_pass(serial_no)
+
+@router.get("/vax_wallet_pass_apple_upadte/v1/passes/{pass_type}/{serial_no}")
+def api_vax_wallet_get_new_pass(serial_no: str = None, pass_type: str = None, Authorization: str = Header(None)):
+    print(Authorization)
+    return vax_wallet_get_new_pass(serial_no, Authorization)
+
+
+@router.get("/test_http2")
+async def test_http2():
+    import httpx
+    cert = ("./ggt/configs/ios_certs/vaccine_wallet_crt.pem", "./ggt/configs/ios_certs/ssl.key", "ggtvaccine")
+    client = httpx.Client(http2=True, cert=cert)
+    r = client.post('https://api.push.apple.com/3/device/7512c1178fdf4fc446afa1bf210cfa541b3c6de5691fa37ab1edce1ee6905741', headers={'apns-push-type': 'alert'},
+                    data={"aps": {"alert": "test"}})
+    return r
+
 
 @router.post("/vaxyes/check_payment/{phone_number}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
 async def api_vax_check_payment(phone_number: str = None):

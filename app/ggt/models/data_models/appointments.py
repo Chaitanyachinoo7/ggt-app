@@ -554,6 +554,42 @@ def lookup_pkpass(phone_number, dob, first_name, last_name, token):
         )
     return None
 
+def lookup_pkpass_for_portal(phone_number, dob, first_name, last_name):
+    try:
+
+        sql = """SELECT 
+                    gc.*,
+                    p.*
+                FROM
+                    patients p
+                        JOIN
+                    ggv_certificates gc ON p.id = gc.patient_id
+                WHERE
+                    p.phone_number = %s 
+                        AND
+                    date(p.dob) = %s
+                        AND
+                    p.first_name = %s
+                        AND
+                    p.last_name = %s
+                        AND 
+                    gc.active=1 
+                        AND 
+                    gc.rejected = 0
+                    order by check_in_dt asc
+                """
+        vals = (phone_number, dob, first_name, last_name)
+        rows = replica_read_rows(sql, vals)
+        print(rows)
+        return __format_pkpass_records(rows)
+
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+    return None
 
 def save_android_pass_details(id, classId, objectId):
     try:
