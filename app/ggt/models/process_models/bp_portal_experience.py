@@ -49,6 +49,9 @@ from ggt.lib.adapters.s3_adapter import uploadDirectory, create_folder, get_temp
 from ggt.models.process_models.bp_patient_experience import upload_vax_card_image, send_ggv_certificate_level_1_sms, \
     send_ggv_certificate_level_1_email
 
+from ggt.models.data_models.schedules import get_patient_from_crt_number
+from ggt.models.process_models.bp_schedules import update_pkpass_and_notify
+
 
 def bp_cc_search_details_by_name_and_dob(last_name, dob):
     return search_details_by_name_and_dob(last_name, dob)
@@ -918,6 +921,8 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
         send_ggv_certificate_level_1_sms(first_name.title(), phone_number, "booster")
         send_ggv_certificate_level_1_email(
             first_name.title(), patient_row['email'], "BOOSTER", phone_number=phone_number)
+        patient = get_patient_from_crt_number(cert_id)
+        update_pkpass_and_notify(patient)
 
     return {
         "patient_id": patient_id,
