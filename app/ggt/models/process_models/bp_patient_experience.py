@@ -1370,6 +1370,38 @@ def bp_add_vax_certificate(req, booster=False):
         )
     return False
 
+def bp_add_vax_certificates(req):
+    try:
+        req = __sanitize_names(req)
+        pristine = req.pristine
+        from ggt.models.process_models.bp_portal_experience import bp_add_vax_certificates as add_vax_certificates
+        if pristine and pristine.dob == req.dob and pristine.first_name == req.first_name and \
+        pristine.last_name == req.last_name:
+            cert_details = add_vax_certificates(req)
+            show_payment_view = not cert_details['active_certificates_available']
+            return {
+                "level": 1,
+                "cert_ids": cert_details['cert_ids'],
+                "show_payment_view": show_payment_view
+            }
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            msg="PATIENT-CERTIFICATES-ADD-REQUEST-ERROR",
+            function=whoami(),
+            first_name=req.first_name,
+            last_name=req.last_name,
+            phone_number=req.phone_number,
+            email=req.email,
+            dob=req.dob,
+            pristine_dob=pristine.dob if pristine else None,
+            pristine_first_name=pristine.first_name if pristine else None,
+            pristine_last_name=pristine.last_name if pristine else None,
+            vax_image=1 if req.vax_image else 0,
+            id_image=1 if req.id_image else 0,
+            error=err
+        )
+    return False 
 
 def bp_update_group_code(req):
     update_group_code_for_existing_patient(req)

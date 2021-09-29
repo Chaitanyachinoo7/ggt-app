@@ -813,6 +813,22 @@ class LookupGGVAddVaxCertRequest(BaseModel):
     id_image: str
     group_code: str = None
 
+class VaxCertsRequest(BaseModel):
+    vax_type: str
+    vax_dt: str
+    lot_number: str
+    
+class AddVaxCertsRequest(BaseModel):
+    first_name: str
+    last_name: str
+    phone_number: str
+    email: str
+    dob: str
+    vax_certs: List[VaxCertsRequest]
+    pristine: pristineObject = None
+    vax_image: str
+    id_image: str
+    group_code: str = None
 
 class UpdateGroupCodeRequest(BaseModel):
     group_code: str

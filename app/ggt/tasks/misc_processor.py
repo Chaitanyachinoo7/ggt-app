@@ -162,7 +162,7 @@ def process_sms_notifications():
             (phone_number, prepare_sms_text(row))
         )
     print(data)
-    batch_enqueue_sms_notifications(data)
+    # batch_enqueue_sms_notifications(data)
 
 
 def process_email_notifications():
@@ -209,7 +209,7 @@ def prepare_sms_text(appointment):
     #return """Hi {}, the location where you have registered for your COVID-19 test will be located at the following address for today.  509 E 11th Street Hutchinson KS 67501. Please arrive at this site for your appointment. We apologize for the inconvenience this might have caused.
     #""".format(appointment["first_name"])
 
-    return """Hi {}, the location where you have registered for your COVID-19 test will be CLOSED Friday, September 17th, 2021. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to find the nearest location to complete your appointment.
+    return """Hi {}, the location where you have registered for your COVID-19 test will have testing days moved from Wednesday to Tuesdays. Hours will will remain the same. Please visit GoGetTested.com to register for a new appointment. Thank you.
     """.format(appointment["first_name"])
 
     #return """Hi {}, due to inclement weather, we’ve had to delay opening the testing location where you have registered to 12 pm. This may change depending on the weather. We apologize for the inconvenience this may cause. Please visit GoGetTested.com to register for a new appointment.
@@ -428,17 +428,16 @@ def get_appointments():
 
         sql = """
         SELECT 
-            p.first_name, p.phone_number, p.email
+            distinct(p.email), p.first_name, p.phone_number
         FROM
             appointments a
                 JOIN
             patients p ON a.patient_id = p.id
         WHERE
             location_id IN (
-                144
+                3495
                 )
-                AND scheduled_dt > '2021-09-17 00:00:00'
-                AND scheduled_dt < '2021-09-17 23:59:00'
+                AND scheduled_dt > '2021-09-27 00:00:00'
                 AND status = 'scheduled'
         """
 

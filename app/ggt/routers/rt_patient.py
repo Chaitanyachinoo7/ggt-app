@@ -15,7 +15,7 @@ from ggt.models.data_models.data_types import (
     InsurancePayersListRequest, SecondAvailableDate, FinalizeGGVRegistrationRequest, FinalizeGGVPreRegistrationRequest,
     PatientAppointmentLookup, VerificationToken, UpdateFirstAppointment, SecondSlotReschedule, UpdateSecondAppointment,
     LookupGGVCertificateRequest, LookupGGVWalletPassRequest, LookupGGVAddVaxCertRequest, PassVerificationRequest,
-    UpdateGroupCodeRequest,
+    UpdateGroupCodeRequest, AddVaxCertsRequest,
     UpdateAndroidPassRequest, ApplePassUpdateRequest, VaxPhoneRequest, VaxYesPayRequest
 )
 
@@ -41,7 +41,7 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
     get_ggv_schedule_times_available, ggv_finalize_pre_registration, cache_test, verify_verification_token,
     reschedule_first_appointment, get_second_slot_reschedule_dates, reschedule_second_appointment,
     get_ggv_schedule_dates_available, lookup_certificate, get_vax_certificate, get_wallet_pass, call_non_sms_phone, get_add_vax_certificate,
-    update_group_code,
+    update_group_code, add_vax_certificates,
     pass_verification, update_android_pass, vax_wallet_pass_apple_upadte, vax_wallet_pass_apple_upadte_serial, vax_wallet_get_new_pass,
     initiate_vax_verification_flow, vax_check_payment, vax_yes_payment,
     vax_yes_verify_payment
@@ -317,6 +317,9 @@ def api_call_non_sms_phone(phone_number):
 def api_add_vax_certificate(req: LookupGGVAddVaxCertRequest):
     return get_add_vax_certificate(req)
 
+@router.post("/add_vax_certificates")
+def api_add_vax_certificates(req: AddVaxCertsRequest):
+    return add_vax_certificates(req)
 
 @router.post("/update_group_code")
 def api_update_group_code(req: UpdateGroupCodeRequest):

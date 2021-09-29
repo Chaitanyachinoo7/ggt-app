@@ -554,6 +554,7 @@ def lookup_pkpass(phone_number, dob, first_name, last_name, token):
         )
     return None
 
+
 def lookup_pkpass_for_portal(phone_number, dob, first_name, last_name):
     try:
 
@@ -590,6 +591,7 @@ def lookup_pkpass_for_portal(phone_number, dob, first_name, last_name):
             error=err
         )
     return None
+
 
 def save_android_pass_details(id, classId, objectId):
     try:
@@ -875,9 +877,9 @@ def __format_pkpass_records(rows):
 
 
 def __get_brand(service_code):
-    if service_code == c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_1 or service_code == c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_2:
+    if service_code == c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_1 or service_code == c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_2 or service_code == c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_3:
         return "Pfizer"
-    elif service_code == c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_1 or service_code == c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_2:
+    elif service_code == c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_1 or service_code == c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_2 or service_code == c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_3:
         return "Moderna"
     elif service_code == c.SERVICE_CODE_COVID_19_VACCINE_JNJ:
         return "J & J"

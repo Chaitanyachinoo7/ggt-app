@@ -726,6 +726,71 @@ def bp_add_vax_certificate(request: VaxCertificate, booster=False):
     )
 
 
+def bp_add_vax_certificates(request):
+    return __process_vax_yes_records(
+        request
+    )
+
+
+def get_vaccine_brand_code(brand, index):
+    if(brand == "pfizer"):
+        if(index==0):
+            return c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_1
+        if(index==1):
+            return c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_2
+        if(index==2):
+            return c.SERVICE_CODE_COVID_19_VACCINE_PFIZER_3
+    elif(brand == "moderna"):
+        if(index==0):
+            return c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_1
+        if(index==1):
+            return c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_2
+        if(index==2):
+            return c.SERVICE_CODE_COVID_19_VACCINE_MODERNA_3
+    elif(brand == "janssen"):
+        if(index==0):
+            return c.SERVICE_CODE_COVID_19_VACCINE_JNJ
+    elif(brand == "novavax"):
+        if(index==0):
+            return c.SERVICE_CODE_COVID_19_VACCINE_NOVAVAX_1
+        if(index==1):
+            return c.SERVICE_CODE_COVID_19_VACCINE_NOVAVAX_2
+    elif(brand == "az"):
+        if(index==0):
+            return c.SERVICE_CODE_COVID_19_VACCINE_AZ_1
+        if(index==1):
+            return c.SERVICE_CODE_COVID_19_VACCINE_AZ_2
+
+
+def __process_vax_yes_records(req):
+    try:
+        active_certificates_available = False
+        patient_id = patients.create_vax_yes_patient(
+            req.first_name, req.last_name, req.phone_number, req.email, req.dob, req.group_code)
+        cert_ids = []
+        for index, cert in enumerate(req.vax_certs):
+            is_certificate_active = __is_certificate_active(
+                active_certificates_available, req.phone_number)
+            brand = get_vaccine_brand_code(cert.vax_type, index)
+            cert_id = patients.create_cert(
+                patient_id, cert.vax_dt, brand, cert.lot_number, is_certificate_active)
+            cert_ids.append(cert_id)
+        vax_card = upload_vax_card_image(req.vax_image, patient_id, cert_ids[0])
+        id_card = upload_vax_card_image(
+            req.id_image, patient_id, str(cert_ids[0]) + '_id_image')
+        return {
+            "patient_id": patient_id,
+            "cert_ids": cert_ids,
+            "active_certificates_available": active_certificates_available
+        }
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            function=whoami(),
+            error=err
+        )
+    return False
+
 def __process_vax_yes(first_name, last_name, phone_number, email, dob,
                       vax_type, vax_1_date, vax_2_date, lot_1, lot_2, image, id_image, group_code, booster=False):
     vax_code_1 = ""
@@ -918,7 +983,8 @@ def __process_vax_yes(first_name, last_name, phone_number, email, dob,
         send_ggv_certificate_level_1_email(
             first_name.title(), email, "1", phone_number=phone_number)
     elif booster:
-        send_ggv_certificate_level_1_sms(first_name.title(), phone_number, "booster")
+        send_ggv_certificate_level_1_sms(
+            first_name.title(), phone_number, "booster")
         send_ggv_certificate_level_1_email(
             first_name.title(), patient_row['email'], "BOOSTER", phone_number=phone_number)
         patient = get_patient_from_crt_number(cert_id)
