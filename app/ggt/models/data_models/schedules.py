@@ -482,15 +482,22 @@ def get_patient_by_id(id):
     return read_row(sql, vals)
 
 
+def get_wallet_pass_details_from_patient_id(id):
+    sql = """SELECT push_token FROM apple_passes where patient_id = %s"""
+    vals = (id,)
+    return read_row(sql, vals)
+
 def lookup_certificate(phone_number, dob, first_name, last_name, version=1, token=None, verification_level=None, limit=None,
                        offset=None, user=None, is_unverified=False):
     try:
         vals = ()
         where_statement = "gc.rejected = 0 AND gc.lock_time < NOW()"
         if is_unverified and version == 1:
-            where_statement = "{} AND date(p.create_dt) > '2021-05-25' AND p.phone_number LIKE '+1%'".format(where_statement)
+            where_statement = "{} AND date(p.create_dt) > '2021-05-25' AND p.phone_number LIKE '+1%'".format(
+                where_statement)
         if phone_number or phone_number != "":
-            where_statement = "{} AND p.phone_number LIKE %s".format(where_statement)
+            where_statement = "{} AND p.phone_number LIKE %s".format(
+                where_statement)
             vals += ('%{}%'.format(phone_number),)
         if dob or dob != "":
             where_statement = "{} AND date(p.dob) = %s".format(
@@ -518,7 +525,8 @@ def lookup_certificate(phone_number, dob, first_name, last_name, version=1, toke
                 where_statement)
 
         if limit and offset is not None:
-            where_statement = "{} ORDER BY p.id ASC LIMIT {} OFFSET {}".format(where_statement, limit, offset)
+            where_statement = "{} ORDER BY p.id ASC LIMIT {} OFFSET {}".format(
+                where_statement, limit, offset)
 
         sql = """SELECT 
                     gc.*,
@@ -729,7 +737,8 @@ def vax_yes_activity(certificate_id, phone_number):
     where_statement = "1=1"
     vals = ()
     if phone_number or phone_number != "":
-        where_statement = "{} AND p.phone_number LIKE %s".format(where_statement)
+        where_statement = "{} AND p.phone_number LIKE %s".format(
+            where_statement)
         vals += ('%{}%'.format(phone_number),)
     if certificate_id or certificate_id != "":
         where_statement = "{} AND gc.id = %s".format(where_statement)
@@ -1287,8 +1296,9 @@ def verify_certificate(cert_ids, verification_level):
     try:
         print(cert_ids)
         where_statement = """ id = {}""".format(cert_ids[0])
-        if len(cert_ids) >1:
-            where_statement = """{} OR id = {}""".format(where_statement, cert_ids[1])
+        if len(cert_ids) > 1:
+            where_statement = """{} OR id = {}""".format(
+                where_statement, cert_ids[1])
         sql = """UPDATE ggv_certificates SET
         verification_level = {}
         WHERE {}""".format(verification_level, where_statement)
@@ -1308,7 +1318,7 @@ def verify_certificate(cert_ids, verification_level):
 
 def get_patient_from_crt_number(cert_id):
     try:
-        sql = """select first_name, email, phone_number from patients p
+        sql = """select p.id, first_name, last_name, dob, email, phone_number from patients p
                 JOIN ggv_certificates certs ON p.id = certs.patient_id
                 where certs.id = %s"""
         vals = (cert_id,)
@@ -1352,11 +1362,14 @@ def __format_ggv_available_locations(res):
 
         if r['location_id'] in valid_next_available_dates.keys():
             if date in valid_next_available_dates[r['location_id']].keys():
-                valid_next_available_dates[r['location_id']][date].append(next_available_date)
+                valid_next_available_dates[r['location_id']][date].append(
+                    next_available_date)
             else:
-                valid_next_available_dates[r['location_id']][date] = [next_available_date]
+                valid_next_available_dates[r['location_id']][date] = [
+                    next_available_date]
         else:
-            valid_next_available_dates[r['location_id']] = {date: [next_available_date]}
+            valid_next_available_dates[r['location_id']] = {
+                date: [next_available_date]}
 
         if r['location_id'] in _locations.keys():
             pass
@@ -1725,7 +1738,8 @@ def __map_row_to_dtl(row):
         dtl.location.image_thumbnail = row['image_thumbnail']
         dtl.location.billing_type = row['billing_type']
         dtl.location.collect_insurance_info = True if row['collect_insurance_info'] else False
-        dtl.services_available = row['services'] if 'services' in row.keys() else None
+        dtl.services_available = row['services'] if 'services' in row.keys(
+        ) else None
         dtl.location.allow_insurance_skip = True if row['allow_insurance_skip'] else False
         dtl.location.collect_upfront_payment = True if row['collect_upfront_payment'] else False
 
@@ -1733,7 +1747,8 @@ def __map_row_to_dtl(row):
             'first_date_time_available'] if "first_date_time_available" in row.keys() else None
         dtl.average_processing_time = row[
             'average_processing_time'] if "average_processing_time" in row.keys() else None
-        dtl.slot_count = row['slot_count'] if "slot_count" in row.keys() else None
+        dtl.slot_count = row['slot_count'] if "slot_count" in row.keys(
+        ) else None
         dtl.location.services_available = list()
 
         # svc = GgtServiceCatalogItem()
@@ -1848,7 +1863,7 @@ def __format_vax_certificate_portal(rows, version, is_unverified):
                 for cert in selected_certificates:
                     cert_ids.append(cert['cert_id'])
                 __lock_record(cert_ids)
-                return [selected_patient,]
+                return [selected_patient, ]
             else:
                 return list(map.values())
 

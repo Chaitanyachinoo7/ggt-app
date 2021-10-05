@@ -53,6 +53,7 @@ stripe = "*"
 wallet-py3k = "*"
 pypdf2 = "*"
 mangum = "*"
-
+httpx = "*"
+h2 = "*"
 [requires]
 python_version = "3.7"

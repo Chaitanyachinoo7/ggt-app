@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Security, Request, Header
-
+import requests
 from cachetools import cached, LRUCache, TTLCache
 
 from ggt.lib.auth import authorize_user
@@ -15,6 +15,7 @@ from ggt.models.data_models.data_types import (
     InsurancePayersListRequest, SecondAvailableDate, FinalizeGGVRegistrationRequest, FinalizeGGVPreRegistrationRequest,
     PatientAppointmentLookup, VerificationToken, UpdateFirstAppointment, SecondSlotReschedule, UpdateSecondAppointment,
     LookupGGVCertificateRequest, LookupGGVWalletPassRequest, LookupGGVAddVaxCertRequest, PassVerificationRequest,
+    UpdateGroupCodeRequest, AddVaxCertsRequest,
     UpdateAndroidPassRequest, ApplePassUpdateRequest, VaxPhoneRequest, VaxYesPayRequest
 )
 
@@ -40,7 +41,9 @@ from ggt.models.workflow_models.patient_test_scheduling_flow import (
     get_ggv_schedule_times_available, ggv_finalize_pre_registration, cache_test, verify_verification_token,
     reschedule_first_appointment, get_second_slot_reschedule_dates, reschedule_second_appointment,
     get_ggv_schedule_dates_available, lookup_certificate, get_vax_certificate, get_wallet_pass, call_non_sms_phone, get_add_vax_certificate,
-    pass_verification, update_android_pass, vax_wallet_pass_apple_upadte, initiate_vax_verification_flow, vax_check_payment, vax_yes_payment,
+    update_group_code, add_vax_certificates,
+    pass_verification, update_android_pass, vax_wallet_pass_apple_upadte, vax_wallet_pass_apple_upadte_serial, vax_wallet_get_new_pass,
+    initiate_vax_verification_flow, vax_check_payment, vax_yes_payment,
     vax_yes_verify_payment
 )
 
@@ -314,10 +317,19 @@ def api_call_non_sms_phone(phone_number):
 def api_add_vax_certificate(req: LookupGGVAddVaxCertRequest):
     return get_add_vax_certificate(req)
 
+@router.post("/add_vax_certificates")
+def api_add_vax_certificates(req: AddVaxCertsRequest):
+    return add_vax_certificates(req)
+
+@router.post("/update_group_code")
+def api_update_group_code(req: UpdateGroupCodeRequest):
+    return update_group_code(req)
+
 
 @router.post("/add_booster_vax_certificate")
 def api_add_booster_vax_certificate(req: LookupGGVAddVaxCertRequest):
     return get_add_vax_certificate(req, booster=True)
+
 
 @router.post("/pass_verification/")
 def api_pass_verification(pass_verification_request: PassVerificationRequest):
@@ -334,6 +346,27 @@ def api_vax_wallet_pass_apple_upadte(device_id: str = None, pass_type: str = Non
     print(device_id, pass_type, serial_no,
           apple_pass_update_request.pushToken, Authorization)
     return vax_wallet_pass_apple_upadte(device_id, pass_type, serial_no, apple_pass_update_request.pushToken, Authorization)
+
+
+@router.get("/vax_wallet_pass_apple_upadte/v1/devices/{device_id}/registrations/{pass_type}")
+def api_vax_wallet_pass_apple_upadte_serial(request: Request, device_id: str = None, pass_type: str = None):
+    return vax_wallet_pass_apple_upadte_serial(device_id, pass_type)
+
+
+@router.delete("/vax_wallet_pass_apple_upadte/v1/devices/{device_id}/registrations/{pass_type}/{serial_no}")
+def api_vax_wallet_pass_apple_delete(device_id: str = None, pass_type: str = None, Authorization: str = Header(None)):
+    return True
+
+
+@router.post("/vax_wallet_pass_apple_upadte/v1/log")
+def api_vax_wallet_pass_log(request: Request):
+    print(request)
+    return True
+
+
+@router.get("/vax_wallet_pass_apple_upadte/v1/passes/{pass_type}/{serial_no}")
+def api_vax_wallet_get_new_pass(serial_no: str = None, pass_type: str = None, Authorization: str = Header(None)):
+    return vax_wallet_get_new_pass(serial_no, Authorization)
 
 
 @router.post("/vaxyes/check_payment/{phone_number}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])

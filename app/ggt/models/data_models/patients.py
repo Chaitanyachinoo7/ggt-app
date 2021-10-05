@@ -87,8 +87,53 @@ def create_patient_record(patient):
             patient.token,
             patient.country
         )
-
         return exec_insert(sql, vals)
+
+    except Exception as err:
+        log_generic(
+            type=ERROR,
+            vals=vals,
+            patient=patient,
+            function=whoami(),
+            error=err
+        )
+        return None
+
+
+def update_patient_record(patient, patient_id):
+    try:
+        sql = """
+            UPDATE patients SET
+                    middle_name = %s, 
+                    addr1 = %s, 
+                    city = %s, 
+                    st = %s, 
+                    zip = %s,
+                    gender = %s, 
+                    height_ft = %s, 
+                    weight_lb = %s, 
+                    ethnicity = %s, 
+                    race = %s,  
+                    country = %s
+            WHERE
+                    id = %s
+        """
+
+        vals = (
+            patient.middle_name,
+            patient.addr1,
+            patient.city,
+            patient.st,
+            patient.zip,
+            patient.gender,
+            patient.height_ft,
+            patient.weight_lb,
+            patient.ethnicity,
+            patient.race,
+            patient.country,
+            patient_id
+        )
+        return exec_update(sql, vals)
 
     except Exception as err:
         log_generic(
@@ -143,11 +188,12 @@ def create_pre_registration(patient_id, patient_questionnaire_id, group_code):
         return None
 
 
-def create_vax_yes_patient(first_name, last_name, phone, email, dob):
+def create_vax_yes_patient(first_name, last_name, phone, email, dob, group_code):
     import uuid
-    sql = """INSERT INTO patients (first_name, last_name, phone_number, email, dob, phone_number_verified, token) 
-    values (%s, %s, %s, %s, %s, %s, %s)"""
-    vals = (first_name, last_name, phone, email, dob, 1, str(uuid.uuid4()))
+    sql = """INSERT INTO patients (first_name, last_name, phone_number, email, dob, vax_yes_group_code, phone_number_verified, token) 
+    values (%s, %s, %s, %s, %s, %s, %s, %s)"""
+    vals = (first_name, last_name, phone, email,
+            dob, group_code, 1, str(uuid.uuid4()))
     return exec_insert(sql, vals)
 
 
@@ -641,6 +687,35 @@ def save_apple_wallet_updates(patient_id, device_id, pass_type, serial_no, pushT
             error=err
         )
         return None
+
+
+def get_serial_no(devide_id, pass_type):
+    sql = """SELECT serial_no FROM apple_passes where device_id = %s and pass_type = %s"""
+    vals = (devide_id,pass_type)
+    return replica_read_row(sql, vals)
+
+
+def update_group_code_for_existing_patient(req):
+    sql = """ UPDATE patients
+                  SET
+                      vax_yes_group_code=%s,
+                      update_dt=now()
+                  WHERE
+                    first_name = %s
+                     AND
+                    last_name = %s
+                    AND
+                    dob = %s
+                    AND
+                    phone_number = %s
+                    AND
+                    result_token = %s
+                    AND
+                    token_expire > NOW()
+            """
+    vals = (req.group_code, req.first_name,
+            req.last_name, req.dob, req.phone_number, req.token)
+    exec_update(sql, vals)
 
 
 def get_existing_vax_certificates(phone_number):

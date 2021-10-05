@@ -29,6 +29,7 @@ class ServiceCodesEnum(str, Enum):
     covid_19_vax_az_1 = 'COVID_19_VACCINE_AZ_1'
     covid_19_vax_az_2 = 'COVID_19_VACCINE_AZ_2'
 
+
 class LocationToServiceMap(BaseModel):
     location_id: str = None
     service_id: str = None
@@ -810,7 +811,32 @@ class LookupGGVAddVaxCertRequest(BaseModel):
     pristine: pristineObject = None
     vax_image: str
     id_image: str
+    group_code: str = None
 
+class VaxCertsRequest(BaseModel):
+    vax_type: str
+    vax_dt: str
+    lot_number: str
+    
+class AddVaxCertsRequest(BaseModel):
+    first_name: str
+    last_name: str
+    phone_number: str
+    email: str
+    dob: str
+    vax_certs: List[VaxCertsRequest]
+    pristine: pristineObject = None
+    vax_image: str
+    id_image: str
+    group_code: str = None
+
+class UpdateGroupCodeRequest(BaseModel):
+    group_code: str
+    first_name: str
+    last_name: str
+    dob: str
+    phone_number: str
+    token: str = None
 
 class NotificationEnum(str, Enum):
     relocate = 'relocate'
@@ -1077,6 +1103,7 @@ class ServiceCodes(BaseModel):
     covid_19_vax_novavax_2: bool = False
     covid_19_vax_az_1: bool = False
     covid_19_vax_az_2: bool = False
+
 
 class GgtBooking(BaseModel):
     token: str = None
@@ -1503,16 +1530,20 @@ class LabStatusUpdateRequest(BaseModel):
     remarks: str = None
     status_dt: datetime.datetime = None
 
+
 class PassVerificationRequest(BaseModel):
     query: str
     dob: str
+
 
 class UpdateAndroidPassRequest(BaseModel):
     objectResourcePayload: str
     classResourcePayload: str
 
+
 class ApplePassUpdateRequest(BaseModel):
     pushToken: str
+
 
 class FilterOrg(BaseModel):
     name: str
@@ -1700,4 +1731,3 @@ class DeleteCertificateRequest(BaseModel):
 class RejectCertificateRequest(BaseModel):
     cert_ids: List[str]
     notify_customer: bool = True
-

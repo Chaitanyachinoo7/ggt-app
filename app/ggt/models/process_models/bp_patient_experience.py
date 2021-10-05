@@ -14,6 +14,7 @@ from google.oauth2 import service_account
 from requests.auth import HTTPBasicAuth
 from starlette.responses import StreamingResponse
 from wallet.models import Pass, Barcode, Generic
+import httpx
 
 import ggt.lib.constants as c
 import ggt.models.process_models.jwt as jwt
@@ -46,7 +47,7 @@ from ggt.models.data_models.appointments import (
     create_appointment,
     update_appointment_with_confirmed_scheduled,
     update_appointment_with_receipt_token, release_ggv_slot, lock_ggv_slot, re_schedule_appointment, lookup_certificate,
-    lookup_pkpass, is_open_patient, update_appointment_with_payment_session, save_android_pass_details
+    lookup_pkpass, lookup_pkpass_for_portal, is_open_patient, update_appointment_with_payment_session, save_android_pass_details
 )
 from ggt.models.data_models.clinical_test_results import (
     get_test_result_by_token
@@ -63,11 +64,12 @@ from ggt.models.data_models.data_types import (
 )
 from ggt.models.data_models.data_types import LookupGGVAddVaxCertRequest
 from ggt.models.data_models.patients import (
-    create_patient_record,
+    create_patient_record, update_patient_record,
     get_patient_by_token, add_to_ggd_waiting_queue, create_pre_registration,
     get_existing_patients, unlock_patient_info_patients, is_un_available_slot,
     create_patient_insurance_record, get_insurance_record_by_id, get_patient_upfront_payment,
-    get_verification_level_from_patient_id, save_apple_wallet_updates,
+    get_verification_level_from_patient_id, save_apple_wallet_updates, get_serial_no,
+    update_group_code_for_existing_patient,
     get_existing_vax_certificates, get_active_certificates, save_vax_yes_payment_info,
     update_certificates_to_active, update_vax_yes_payment_status, get_patient_by_id,
     get_existing_patient
@@ -79,7 +81,7 @@ from ggt.models.data_models.schedules import (
     get_slot_information,
     update_slot_information, get_next_available_slot, book_slot, update_appointment, update_ocr, add_vax_yes_activity
 )
-from ggt.models.data_models.schedules import verify_certificate, get_patient_from_crt_number
+from ggt.models.data_models.schedules import verify_certificate, get_patient_from_crt_number 
 from ggt.models.data_models.signups import (
     get_group_info,
     create_pending_signup_record,
@@ -90,6 +92,7 @@ from ggt.models.data_models.wellpay import (
     WellpayCreateBillResponse
 )
 from ggt.models.process_models.bp_payment import bp_create_checkout_session, bp_get_checkout_session
+from ggt.lib.adapters.s3_adapter import read_file
 
 # from google.cloud import vision
 service_account_file = cfg('gcp.service_account_file')
@@ -101,7 +104,7 @@ cert_pem = "./app/ggt/configs/ios_certs/vaccine_wallet_crt.pem"
 key_pem = "./app/ggt/configs/ios_certs/key.pem"
 wwdr_pem = "./app/ggt/configs/ios_certs/WWDR.pem"
 key_pem_password = "ggtvaccine"
-
+ssl_key = "./app/ggt/configs/ios_certs/ssl.key"
 
 ########################################################################################################
 # [Public] functions
@@ -910,7 +913,22 @@ def bp_get_vax_certificate(patient_id, cert_id, pass_through=False):
         return None
 
 
-def bp_get_wallet_pass(pkpass_req):
+def bp_send_wallet_pass_update_to_apple(token):
+    try:
+        print(token)
+        print('https://api.push.apple.com/3/device/'+token)
+        cert = (cert_pem, ssl_key, key_pem_password)
+        client = httpx.Client(http2=True, cert=cert, headers={'apns-push-type': 'alert'})
+        r = client.post('https://api.push.apple.com/3/device/'+token, headers={
+            'apns-push-type': 'alert'}, data=json.dumps({"aps": {"alert": "GoGetDoc Pass Update"}}))
+        print(r.status_code)
+        return True
+    except Exception as err:
+        print(err)
+    return False
+
+
+def bp_get_wallet_pass(pkpass_req, portal=False):
     try:
         log_generic(
             type=c.INFO,
@@ -923,8 +941,12 @@ def bp_get_wallet_pass(pkpass_req):
             token=pkpass_req.token,
             req_type=pkpass_req.type
         )
-        patient = lookup_pkpass(pkpass_req.phone_number, pkpass_req.dob,
-                                pkpass_req.first_name, pkpass_req.last_name, pkpass_req.token)
+        if not portal:
+            patient = lookup_pkpass(pkpass_req.phone_number, pkpass_req.dob,
+                                    pkpass_req.first_name, pkpass_req.last_name, pkpass_req.token)
+        if portal:
+            patient = lookup_pkpass_for_portal(pkpass_req.phone_number, pkpass_req.dob,
+                                               pkpass_req.first_name, pkpass_req.last_name)
         print(patient)
         if patient:
             log_generic(
@@ -986,6 +1008,51 @@ def bp_vax_wallet_pass_apple_upadte(device_id, pass_type, serial_no, pushToken, 
             error=err
         )
     return False
+
+
+def bp_vax_wallet_pass_apple_upadte_serial(device_id, pass_type):
+    try:
+        serial = __get_serial(device_id, pass_type)
+        print("serial", serial)
+        print({
+            "lastUpdated": datetime.now(),
+            "serialNumbers": [serial['serial_no']]
+        })
+        return {
+            "lastUpdated": datetime.now(),
+            "serialNumbers": [serial['serial_no']]
+        }
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            device_id=device_id,
+            function=whoami(),
+            error=err
+        )
+    return False
+
+
+def bp_vax_wallet_get_new_pass(serial_no, auth):
+    patient_id = __get_patient_id(auth.replace('ApplePass ', ''))
+    print(patient_id)
+    if(patient_id):
+        blob = read_file('pkpass-prod', patient_id+'.pkpass')
+
+        def get_pkpass(b):
+            yield b
+        if blob:
+            return StreamingResponse(
+                get_pkpass(blob),
+                media_type="application/vnd.apple.pkpass",
+                headers={
+                    'LastModified': datetime.now().strftime(
+                        "%Y-%m-%d %H:%M:%S.%f")
+                }
+            )
+        else:
+            raise HTTPException(status_code=404, detail='Pass not found')
+    else:
+        raise HTTPException(status_code=404, detail='Pass not found')
 
 
 def bp_call_non_sms_phone(phone_number):
@@ -1303,6 +1370,43 @@ def bp_add_vax_certificate(req, booster=False):
         )
     return False
 
+def bp_add_vax_certificates(req):
+    try:
+        req = __sanitize_names(req)
+        pristine = req.pristine
+        from ggt.models.process_models.bp_portal_experience import bp_add_vax_certificates as add_vax_certificates
+        if pristine and pristine.dob == req.dob and pristine.first_name == req.first_name and \
+        pristine.last_name == req.last_name:
+            cert_details = add_vax_certificates(req)
+            show_payment_view = not cert_details['active_certificates_available']
+            return {
+                "level": 1,
+                "cert_ids": cert_details['cert_ids'],
+                "show_payment_view": show_payment_view
+            }
+    except Exception as err:
+        log_generic(
+            type=c.ERROR,
+            msg="PATIENT-CERTIFICATES-ADD-REQUEST-ERROR",
+            function=whoami(),
+            first_name=req.first_name,
+            last_name=req.last_name,
+            phone_number=req.phone_number,
+            email=req.email,
+            dob=req.dob,
+            pristine_dob=pristine.dob if pristine else None,
+            pristine_first_name=pristine.first_name if pristine else None,
+            pristine_last_name=pristine.last_name if pristine else None,
+            vax_image=1 if req.vax_image else 0,
+            id_image=1 if req.id_image else 0,
+            error=err
+        )
+    return False 
+
+def bp_update_group_code(req):
+    update_group_code_for_existing_patient(req)
+    return True
+
 
 def bp_pass_verification(req):
     try:
@@ -1376,6 +1480,10 @@ def bp_update_android_pass(req):
 # TODO: Prevent from looking up slots that are already assigned to an appointment
 # TODO, doesn't check if it's already booked
 # TEMP, not using fixed slots since operational conditions allow oversubscribing
+
+
+def __get_serial(devide_id, pass_type):
+    return get_serial_no(devide_id, pass_type)
 
 
 def __get_patient_id(query):
@@ -2880,7 +2988,7 @@ def send_ggv_certificate_level_1_email(first_name, email, level, phone_number=No
             first_name, level)
         if level == "BOOSTER":
             subject = "{}, Your VaxYes card now includes your booster record.".format(
-            first_name)
+                first_name)
 
         subject = render_from_string(
             subject,
@@ -3585,7 +3693,6 @@ def __create_patient_and_questionnaire(booking_req):
                 last_name=_patient.last_name,
                 dob=_patient.dob
             )
-
         if existing_patient is None:
             p = get_existing_patients(token=_patient.token)
             if p:
@@ -3597,6 +3704,8 @@ def __create_patient_and_questionnaire(booking_req):
             else:
                 booking_req.result_token = _patient.token
         else:
+            if existing_patient['gender'] is None:
+                update_patient_record(_patient, existing_patient['id'])
             patient_id = existing_patient['id']
             booking_req.result_token = unlock_patient_info_patients(
                 existing_patient['phone_number'])
