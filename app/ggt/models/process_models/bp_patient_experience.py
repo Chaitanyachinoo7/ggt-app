@@ -1734,12 +1734,12 @@ def __generate_wallet_pass(pkpass_req, patient, verification):
                 __generate_pk_pass(pkpass_req, temp_patient,
                                    verification, url_path, passes)
             elif(len(patient["certificates"]) > 1 and patient["certificates"][0]["brand"] == "J & J"):
-                temp_patient["certificates"] = patient["certificates"][:1]
+                temp_patient["certificates"] = temp_patient["certificates"][:1]
                 __generate_pk_pass(pkpass_req, temp_patient,
                                    verification, url_path, passes)
                 temp_patient["patient_id"] = str(
                     temp_patient["patient_id"]) + "_b"
-                temp_patient["certificates"] = patient["certificates"][1:2]
+                temp_patient["certificates"] = temp_patient["certificates"][1:2]
                 __generate_pk_pass(pkpass_req, temp_patient,
                                    verification, url_path, passes)
             else:
