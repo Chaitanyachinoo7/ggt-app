@@ -81,7 +81,7 @@ from ggt.models.data_models.schedules import (
     get_slot_information,
     update_slot_information, get_next_available_slot, book_slot, update_appointment, update_ocr, add_vax_yes_activity
 )
-from ggt.models.data_models.schedules import verify_certificate, get_patient_from_crt_number 
+from ggt.models.data_models.schedules import verify_certificate, get_patient_from_crt_number
 from ggt.models.data_models.signups import (
     get_group_info,
     create_pending_signup_record,
@@ -93,7 +93,7 @@ from ggt.models.data_models.wellpay import (
 )
 from ggt.models.process_models.bp_payment import bp_create_checkout_session, bp_get_checkout_session
 from ggt.lib.adapters.s3_adapter import read_file
-
+from copy import deepcopy
 # from google.cloud import vision
 service_account_file = cfg('gcp.service_account_file')
 # ios pkpass constants
@@ -918,7 +918,8 @@ def bp_send_wallet_pass_update_to_apple(token):
         print(token)
         print('https://api.push.apple.com/3/device/'+token)
         cert = (cert_pem, ssl_key, key_pem_password)
-        client = httpx.Client(http2=True, cert=cert, headers={'apns-push-type': 'alert'})
+        client = httpx.Client(http2=True, cert=cert, headers={
+                              'apns-push-type': 'alert'})
         r = client.post('https://api.push.apple.com/3/device/'+token, headers={
             'apns-push-type': 'alert'}, data=json.dumps({"aps": {"alert": "GoGetDoc Pass Update"}}))
         print(r.status_code)
@@ -1370,13 +1371,14 @@ def bp_add_vax_certificate(req, booster=False):
         )
     return False
 
+
 def bp_add_vax_certificates(req):
     try:
         req = __sanitize_names(req)
         pristine = req.pristine
         from ggt.models.process_models.bp_portal_experience import bp_add_vax_certificates as add_vax_certificates
         if pristine and pristine.dob == req.dob and pristine.first_name == req.first_name and \
-        pristine.last_name == req.last_name:
+                pristine.last_name == req.last_name:
             cert_details = add_vax_certificates(req)
             show_payment_view = not cert_details['active_certificates_available']
             return {
@@ -1401,7 +1403,8 @@ def bp_add_vax_certificates(req):
             id_image=1 if req.id_image else 0,
             error=err
         )
-    return False 
+    return False
+
 
 def bp_update_group_code(req):
     update_group_code_for_existing_patient(req)
@@ -1539,7 +1542,7 @@ def __get_vax_card_ocr(patient_id, cert_id):
 
 
 def __get_vax_card_ocr_gcp(content):
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = './ggt/configs/gpay/ggt-pfe-prod-e3201b1cc798.json'
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = './app/ggt/configs/gpay/ggt-pfe-prod-e3201b1cc798.json'
     client = vision.ImageAnnotatorClient()
     # import binascii
     # content1 = binascii.a2b_base64(content)
@@ -1718,23 +1721,30 @@ def __update_ocr_status(patient_id, first_name, last_name, vax_type, dob, cert1_
 def __generate_wallet_pass(pkpass_req, patient, verification):
     try:
         url_path = __get_barcode_string(pkpass_req.phone_number, patient)
+        passes = []
         if pkpass_req.type == 'i':
-            __generate_pk_pass(pkpass_req, patient, verification, url_path)
-            print("__generate_pk_pass execution complete")
-            print("uploading from: ",
-                  "/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"))
-            print("uploading as:", str(patient["patient_id"]) + ".pkpass")
-            print("uploading to:", "pkpass-prod")
-            uploaded = upload_file("/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"),
-                                   str(patient["patient_id"]) + ".pkpass", "pkpass-prod")
-            print("upload_file execution complete")
-            if uploaded:
-                return {
-                    "pkpass_url": get_temp_pkpass_url(
-                        str(patient["patient_id"]) + ".pkpass", "pkpass-prod")
-                }
+            temp_patient = deepcopy(patient)
+            if len(patient["certificates"]) > 2:
+                temp_patient["certificates"] = temp_patient["certificates"][:2]
+                __generate_pk_pass(pkpass_req, temp_patient,
+                                   verification, url_path, passes)
+                temp_patient["patient_id"] = str(
+                    temp_patient["patient_id"]) + "_b"
+                temp_patient["certificates"] = patient["certificates"][2:3]
+                __generate_pk_pass(pkpass_req, temp_patient,
+                                   verification, url_path, passes)
+            elif(len(patient["certificates"]) > 1 and patient["certificates"][0]["brand"] == "J & J"):
+                temp_patient["certificates"] = patient["certificates"][:1]
+                __generate_pk_pass(pkpass_req, temp_patient,
+                                   verification, url_path, passes)
+                temp_patient["patient_id"] = str(
+                    temp_patient["patient_id"]) + "_b"
+                temp_patient["certificates"] = patient["certificates"][1:2]
+                __generate_pk_pass(pkpass_req, temp_patient,
+                                   verification, url_path, passes)
             else:
-                return None
+                __generate_pk_pass(pkpass_req, patient, verification, url_path, passes)
+            return passes
         elif pkpass_req.type == 'a':
             return __generate_gpay_pass(pkpass_req, patient, verification, url_path, pkpass_req.phone_number)
 
@@ -2367,7 +2377,7 @@ def __makeEventTicketObjectResource(classId, objectId, patient, url_path):
         )
 
 
-def __generate_pk_pass(pkpass_req, patient, verification, url_path):
+def __generate_pk_pass(pkpass_req, patient, verification, url_path, passes):
     try:
         cardInfo = Generic()
         certs = patient["certificates"]
@@ -2455,6 +2465,19 @@ def __generate_pk_pass(pkpass_req, patient, verification, url_path):
                             "/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"))
         print("file was created at:",
               "/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"))
+        print("__generate_pk_pass execution complete")
+        print("uploading from: ",
+                "/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"))
+        print("uploading as:", str(patient["patient_id"]) + ".pkpass")
+        print("uploading to:", "pkpass-prod")
+        uploaded = upload_file("/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"),
+                                str(patient["patient_id"]) + ".pkpass", "pkpass-prod")
+        print("upload_file execution complete")
+        if uploaded:
+            passes.append(get_temp_pkpass_url(
+                    str(patient["patient_id"]) + ".pkpass", "pkpass-prod"))
+        else:
+            return None
         return _
     except Exception as err:
         log_generic(

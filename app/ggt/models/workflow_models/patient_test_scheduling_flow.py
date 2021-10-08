@@ -596,7 +596,7 @@ def cache_test(t_id):
 
 
 def get_wallet_pass(pkpass_request):
-    return x_response(
+    return y_response(
          bp_get_wallet_pass(pkpass_request)
     )
 def vax_wallet_pass_apple_upadte(device_id, pass_type, serial_no, pushToken, Authorization):
