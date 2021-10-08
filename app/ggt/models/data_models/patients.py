@@ -692,7 +692,7 @@ def save_apple_wallet_updates(patient_id, device_id, pass_type, serial_no, pushT
 def get_serial_no(devide_id, pass_type):
     sql = """SELECT serial_no FROM apple_passes where device_id = %s and pass_type = %s"""
     vals = (devide_id,pass_type)
-    return replica_read_row(sql, vals)
+    return replica_read_rows(sql, vals)
 
 
 def update_group_code_for_existing_patient(req):

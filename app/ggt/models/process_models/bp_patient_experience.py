@@ -1013,15 +1013,19 @@ def bp_vax_wallet_pass_apple_upadte(device_id, pass_type, serial_no, pushToken, 
 
 def bp_vax_wallet_pass_apple_upadte_serial(device_id, pass_type):
     try:
-        serial = __get_serial(device_id, pass_type)
+        serials = __get_serial(device_id, pass_type)
+        serial = []
+        for tdict in serials:
+            for key in tdict:
+                serial.append(tdict[key])
         print("serial", serial)
         print({
             "lastUpdated": datetime.now(),
-            "serialNumbers": [serial['serial_no']]
+            "serialNumbers": serial
         })
         return {
             "lastUpdated": datetime.now(),
-            "serialNumbers": [serial['serial_no']]
+            "serialNumbers": serial
         }
     except Exception as err:
         log_generic(
