@@ -100,11 +100,11 @@ service_account_file = cfg('gcp.service_account_file')
 pass_type_identifier = "pass.com.goget.vaccine"
 organization_name = "GoGet, Inc."
 team_identifier = "36PVVAHZQN"
-cert_pem = "./app/ggt/configs/ios_certs/vaccine_wallet_crt.pem"
-key_pem = "./app/ggt/configs/ios_certs/key.pem"
-wwdr_pem = "./app/ggt/configs/ios_certs/WWDR.pem"
+cert_pem = "./ggt/configs/ios_certs/vaccine_wallet_crt.pem"
+key_pem = "./ggt/configs/ios_certs/key.pem"
+wwdr_pem = "./ggt/configs/ios_certs/WWDR.pem"
 key_pem_password = "ggtvaccine"
-ssl_key = "./app/ggt/configs/ios_certs/ssl.key"
+ssl_key = "./ggt/configs/ios_certs/ssl.key"
 
 ########################################################################################################
 # [Public] functions
@@ -1728,12 +1728,12 @@ def __generate_wallet_pass(pkpass_req, patient, verification):
         passes = []
         if pkpass_req.type == 'i':
             temp_patient = deepcopy(patient)
+            temp_patient["patient_id"] = str(temp_patient["patient_id"])
             if len(patient["certificates"]) > 2:
                 temp_patient["certificates"] = temp_patient["certificates"][:2]
                 __generate_pk_pass(pkpass_req, temp_patient,
                                    verification, url_path, passes)
-                temp_patient["patient_id"] = str(
-                    temp_patient["patient_id"]) + "_b"
+                temp_patient["patient_id"] = temp_patient["patient_id"] + "_b"
                 temp_patient["certificates"] = patient["certificates"][2:3]
                 __generate_pk_pass(pkpass_req, temp_patient,
                                    verification, url_path, passes)
@@ -1741,8 +1741,7 @@ def __generate_wallet_pass(pkpass_req, patient, verification):
                 temp_patient["certificates"] = temp_patient["certificates"][:1]
                 __generate_pk_pass(pkpass_req, temp_patient,
                                    verification, url_path, passes)
-                temp_patient["patient_id"] = str(
-                    temp_patient["patient_id"]) + "_b"
+                temp_patient["patient_id"] = temp_patient["patient_id"] + "_b"
                 temp_patient["certificates"] = temp_patient["certificates"][1:2]
                 __generate_pk_pass(pkpass_req, temp_patient,
                                    verification, url_path, passes)
@@ -2416,7 +2415,10 @@ def __generate_pk_pass(pkpass_req, patient, verification, url_path, passes):
             cardInfo.addAuxiliaryField(
                 'DateVerified', patient["verfiedDate"], 'DATE VERIFIED')
         elif len(certs) > 0:
-            cardInfo.addSecondaryField('DOSE1', certs[0]["brand"], 'DOSE 1')
+            if(patient["patient_id"][-2:] == "_b"):
+                cardInfo.addSecondaryField('DOSE1', certs[0]["brand"], 'BOOSTER')
+            else:
+                cardInfo.addSecondaryField('DOSE1', certs[0]["brand"], 'DOSE 1')
             cardInfo.addSecondaryField(
                 'LOT1', certs[0]["lot_no"], 'LOT NUMBER')
             cardInfo.addSecondaryField(
@@ -2429,8 +2431,9 @@ def __generate_pk_pass(pkpass_req, patient, verification, url_path, passes):
                     'LOT2', certs[1]["lot_no"], 'LOT NUMBER')
                 cardInfo.addAuxiliaryField(
                     'DATE2', certs[1]["appointment_date"], 'DATE')
-            cardInfo.addAuxiliaryField(
-                'DateVerified', patient["verfiedDate"], 'DATE VERIFIED')
+            if(patient["patient_id"][-2:] != "_b"):
+                cardInfo.addAuxiliaryField(
+                    'DateVerified', patient["verfiedDate"], 'DATE VERIFIED')
 
         passfile = Pass(cardInfo,
                         passTypeIdentifier=pass_type_identifier,
@@ -2455,10 +2458,10 @@ def __generate_pk_pass(pkpass_req, patient, verification, url_path, passes):
         #     for filename in files:
         #         print(filename)
         passfile.addFile("icon.png", open(
-            "./app/ggt/configs/images/Asset 4x.png", "rb"))
+            "./ggt/configs/images/Asset 4x.png", "rb"))
         print("./app/ggt/configs/images/Asset 4x.png was found")
         passfile.addFile("logo.png", open(
-            "./app/ggt/configs/images/Asset 4x.png", "rb"))
+            "./ggt/configs/images/Asset 4x.png", "rb"))
         print("./app/ggt/configs/images/Asset 4x.png was found")
         print("pkpass temp path:",
               "/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"))
