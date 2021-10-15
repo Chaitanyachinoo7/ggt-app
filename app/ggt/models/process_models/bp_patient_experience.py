@@ -100,11 +100,11 @@ service_account_file = cfg('gcp.service_account_file')
 pass_type_identifier = "pass.com.goget.vaccine"
 organization_name = "GoGet, Inc."
 team_identifier = "36PVVAHZQN"
-cert_pem = "./ggt/configs/ios_certs/vaccine_wallet_crt.pem"
-key_pem = "./ggt/configs/ios_certs/key.pem"
-wwdr_pem = "./ggt/configs/ios_certs/WWDR.pem"
+cert_pem = "./app/ggt/configs/ios_certs/vaccine_wallet_crt.pem"
+key_pem = "./app/ggt/configs/ios_certs/key.pem"
+wwdr_pem = "./app/ggt/configs/ios_certs/WWDR.pem"
 key_pem_password = "ggtvaccine"
-ssl_key = "./ggt/configs/ios_certs/ssl.key"
+ssl_key = "./app/ggt/configs/ios_certs/ssl.key"
 
 ########################################################################################################
 # [Public] functions
@@ -2458,10 +2458,10 @@ def __generate_pk_pass(pkpass_req, patient, verification, url_path, passes):
         #     for filename in files:
         #         print(filename)
         passfile.addFile("icon.png", open(
-            "./ggt/configs/images/Asset 4x.png", "rb"))
+            "./app/ggt/configs/images/Asset 4x.png", "rb"))
         print("./app/ggt/configs/images/Asset 4x.png was found")
         passfile.addFile("logo.png", open(
-            "./ggt/configs/images/Asset 4x.png", "rb"))
+            "./app/ggt/configs/images/Asset 4x.png", "rb"))
         print("./app/ggt/configs/images/Asset 4x.png was found")
         print("pkpass temp path:",
               "/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"))
