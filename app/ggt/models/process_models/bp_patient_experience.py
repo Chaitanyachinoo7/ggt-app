@@ -1746,7 +1746,7 @@ def __generate_wallet_pass(pkpass_req, patient, verification):
                 __generate_pk_pass(pkpass_req, temp_patient,
                                    verification, url_path, passes)
             else:
-                __generate_pk_pass(pkpass_req, patient, verification, url_path, passes)
+                __generate_pk_pass(pkpass_req, temp_patient, verification, url_path, passes)
             return passes
         elif pkpass_req.type == 'a':
             return __generate_gpay_pass(pkpass_req, patient, verification, url_path, pkpass_req.phone_number)
