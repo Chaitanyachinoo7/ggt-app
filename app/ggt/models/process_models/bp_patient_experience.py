@@ -1730,7 +1730,6 @@ def __generate_wallet_pass(pkpass_req, patient, verification):
             temp_patient = deepcopy(patient)
             temp_patient["patient_id"] = str(temp_patient["patient_id"])
             if len(patient["certificates"]) > 2:
-                temp_patient["certificates"] = temp_patient["certificates"][:2]
                 __generate_pk_pass(pkpass_req, temp_patient,
                                    verification, url_path, passes)
                 temp_patient["patient_id"] = temp_patient["patient_id"] + "_b"
@@ -1738,7 +1737,6 @@ def __generate_wallet_pass(pkpass_req, patient, verification):
                 __generate_pk_pass(pkpass_req, temp_patient,
                                    verification, url_path, passes)
             elif(len(patient["certificates"]) > 1 and patient["certificates"][0]["brand"] == "J & J"):
-                temp_patient["certificates"] = temp_patient["certificates"][:1]
                 __generate_pk_pass(pkpass_req, temp_patient,
                                    verification, url_path, passes)
                 temp_patient["patient_id"] = temp_patient["patient_id"] + "_b"
@@ -2390,31 +2388,7 @@ def __generate_pk_pass(pkpass_req, patient, verification, url_path, passes):
             'header', 'Covid 19 | Level ' + patient["level"] + ' Verified ', 'STATUS')
         cardInfo.addPrimaryField(
             key='Name', value=patient["first_name"] + " " + patient["last_name"], label='NAME')
-        if len(certs) > 2:
-            cardInfo.addSecondaryField(
-                'InitialBrand', certs[1]["brand"], 'Initial Brand')
-            cardInfo.addSecondaryField(
-                'InitialDoseComplete', certs[1]["appointment_date"], 'Initial Dose Complete')
-            cardInfo.addSecondaryField('CRT', patient["certNo"], 'CERT.#')
-            cardInfo.addAuxiliaryField(
-                'BoosterBrand', certs[2]["brand"], 'Booster Brand')
-            cardInfo.addAuxiliaryField(
-                'BoosterDate', certs[2]["appointment_date"], 'Booster Date')
-            cardInfo.addAuxiliaryField(
-                'DateVerified', patient["verfiedDate"], 'DATE VERIFIED')
-        elif len(certs) > 1 and certs[0]["brand"] == "J & J":
-            cardInfo.addSecondaryField(
-                'InitialBrand', certs[0]["brand"], 'Initial Brand')
-            cardInfo.addSecondaryField(
-                'InitialDoseComplete', certs[0]["appointment_date"], 'Initial Dose Complete')
-            cardInfo.addSecondaryField('CRT', patient["certNo"], 'CERT.#')
-            cardInfo.addAuxiliaryField(
-                'BoosterBrand', certs[1]["brand"], 'Booster Brand')
-            cardInfo.addAuxiliaryField(
-                'BoosterDate', certs[1]["appointment_date"], 'Booster Date')
-            cardInfo.addAuxiliaryField(
-                'DateVerified', patient["verfiedDate"], 'DATE VERIFIED')
-        elif len(certs) > 0:
+
             if(patient["patient_id"][-2:] == "_b"):
                 cardInfo.addSecondaryField('DOSE1', certs[0]["brand"], 'BOOSTER')
             else:
@@ -2424,13 +2398,15 @@ def __generate_pk_pass(pkpass_req, patient, verification, url_path, passes):
             cardInfo.addSecondaryField(
                 'DATE1', certs[0]["appointment_date"], 'DATE')
             cardInfo.addSecondaryField('CRT', patient["certNo"], 'CERT.#')
-            if len(certs) > 1 and certs[0]["brand"] != "J & J":
+
+        if(len(certs) > 1 and certs[0]["brand"] != "J & J"):
                 cardInfo.addAuxiliaryField(
                     'DOSE2', certs[1]["brand"], 'DOSE 2')
                 cardInfo.addAuxiliaryField(
                     'LOT2', certs[1]["lot_no"], 'LOT NUMBER')
                 cardInfo.addAuxiliaryField(
                     'DATE2', certs[1]["appointment_date"], 'DATE')
+
             if(patient["patient_id"][-2:] != "_b"):
                 cardInfo.addAuxiliaryField(
                     'DateVerified', patient["verfiedDate"], 'DATE VERIFIED')
