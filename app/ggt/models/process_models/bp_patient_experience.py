@@ -2389,27 +2389,27 @@ def __generate_pk_pass(pkpass_req, patient, verification, url_path, passes):
         cardInfo.addPrimaryField(
             key='Name', value=patient["first_name"] + " " + patient["last_name"], label='NAME')
 
-            if(patient["patient_id"][-2:] == "_b"):
-                cardInfo.addSecondaryField('DOSE1', certs[0]["brand"], 'BOOSTER')
-            else:
-                cardInfo.addSecondaryField('DOSE1', certs[0]["brand"], 'DOSE 1')
-            cardInfo.addSecondaryField(
-                'LOT1', certs[0]["lot_no"], 'LOT NUMBER')
-            cardInfo.addSecondaryField(
-                'DATE1', certs[0]["appointment_date"], 'DATE')
-            cardInfo.addSecondaryField('CRT', patient["certNo"], 'CERT.#')
+        if(patient["patient_id"][-2:] == "_b"):
+            cardInfo.addSecondaryField('DOSE1', certs[0]["brand"], 'BOOSTER')
+        else:
+            cardInfo.addSecondaryField('DOSE1', certs[0]["brand"], 'DOSE 1')
+        cardInfo.addSecondaryField(
+            'LOT1', certs[0]["lot_no"], 'LOT NUMBER')
+        cardInfo.addSecondaryField(
+            'DATE1', certs[0]["appointment_date"], 'DATE')
+        cardInfo.addSecondaryField('CRT', patient["certNo"], 'CERT.#')
 
         if(len(certs) > 1 and certs[0]["brand"] != "J & J"):
-                cardInfo.addAuxiliaryField(
-                    'DOSE2', certs[1]["brand"], 'DOSE 2')
-                cardInfo.addAuxiliaryField(
-                    'LOT2', certs[1]["lot_no"], 'LOT NUMBER')
-                cardInfo.addAuxiliaryField(
-                    'DATE2', certs[1]["appointment_date"], 'DATE')
+            cardInfo.addAuxiliaryField(
+                'DOSE2', certs[1]["brand"], 'DOSE 2')
+            cardInfo.addAuxiliaryField(
+                'LOT2', certs[1]["lot_no"], 'LOT NUMBER')
+            cardInfo.addAuxiliaryField(
+                'DATE2', certs[1]["appointment_date"], 'DATE')
 
-            if(patient["patient_id"][-2:] != "_b"):
-                cardInfo.addAuxiliaryField(
-                    'DateVerified', patient["verfiedDate"], 'DATE VERIFIED')
+        if(patient["patient_id"][-2:] != "_b"):
+            cardInfo.addAuxiliaryField(
+                'DateVerified', patient["verfiedDate"], 'DATE VERIFIED')
 
         passfile = Pass(cardInfo,
                         passTypeIdentifier=pass_type_identifier,
