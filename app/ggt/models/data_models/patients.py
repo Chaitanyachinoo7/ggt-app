@@ -653,7 +653,8 @@ def get_verification_level_from_patient_id(id, dob):
                         JOIN patients p
                         ON p.id = gc.patient_id
                     WHERE 
-                        gc.patient_id = %s AND date(p.dob) = %s AND rejected = 0;"""
+                        gc.patient_id = %s AND date(p.dob) = %s AND rejected = 0 AND active = 1
+                    ORDER BY gc.id ASC;"""
         vals = (id, dob,)
         return read_rows(sql, vals)
     except Exception as err:

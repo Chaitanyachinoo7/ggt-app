@@ -1426,20 +1426,28 @@ def bp_pass_verification(req):
             __register_pass_verification_fail(patient_id)
 
         if("COVID_19_VACCINE_JNJ" not in certs[0]['service_code'] and certs[0]['verification_level'] > 1 and certs[1]['verification_level'] > 1):
-            return {
+            vaccines = {
                 "fully_vaccinated": True,
                 "level": certs[0]['verification_level'],
                 "image1": get_temp_pkpass_url(str(patient_id) + "/"+str(certs[0]['id']) + ".jpg", "ggt-vax-certificates"),
                 "image2": get_temp_pkpass_url(str(patient_id) + "/"+str(certs[1]['id']) + ".jpg", "ggt-vax-certificates")
             }
+            if(len(certs) > 2):
+                vaccines["image2"] = get_temp_pkpass_url(str(patient_id) + "/"+str(certs[2]['id']) + ".jpg", "ggt-vax-certificates")
+            return vaccines
+
         elif("COVID_19_VACCINE_JNJ" in certs[0]['service_code'] and certs[0]['verification_level'] > 1):
             print("I am here")
-            return {
+            vaccines = {
                 "fully_vaccinated": True,
                 "level": certs[0]['verification_level'],
                 "image1": get_temp_pkpass_url(str(patient_id) + "/"+str(certs[0]['id']) + ".jpg", "ggt-vax-certificates"),
                 "image2": None
             }
+            if(len(certs) > 1):
+                vaccines["image2"] = get_temp_pkpass_url(str(patient_id) + "/"+str(certs[1]['id']) + ".jpg", "ggt-vax-certificates")
+            return vaccines
+
         return {
             "fully_vaccinated": False,
             "level": certs[0]['verification_level'],
