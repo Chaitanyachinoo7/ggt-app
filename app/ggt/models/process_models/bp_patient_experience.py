@@ -3718,7 +3718,7 @@ def __create_patient_and_questionnaire(booking_req):
             else:
                 booking_req.result_token = _patient.token
         else:
-            if existing_patient['gender'] is None:
+            if existing_patient['gender'] is None or existing_patient['addr1'] != _patient.addr1:
                 update_patient_record(_patient, existing_patient['id'])
             patient_id = existing_patient['id']
             booking_req.result_token = unlock_patient_info_patients(
