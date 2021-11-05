@@ -1448,12 +1448,15 @@ def bp_pass_verification(req):
                 vaccines["image2"] = get_temp_pkpass_url(str(patient_id) + "/"+str(certs[1]['id']) + ".jpg", "ggt-vax-certificates")
             return vaccines
 
-        return {
+        vaccines = { 
             "fully_vaccinated": False,
             "level": certs[0]['verification_level'],
             "image1": get_temp_pkpass_url(str(patient_id) + "/"+str(certs[0]['id']) + ".jpg", "ggt-vax-certificates"),
-            "image2": get_temp_pkpass_url(str(patient_id) + "/"+str(certs[1]['id']) + ".jpg", "ggt-vax-certificates")
         }
+        if(len(certs) > 1):
+            vaccines["image2"] = get_temp_pkpass_url(str(patient_id) + "/"+str(certs[1]['id']) + ".jpg", "ggt-vax-certificates")
+        return vaccines
+
     except Exception as err:
         log_generic(
             type=c.ERROR,
