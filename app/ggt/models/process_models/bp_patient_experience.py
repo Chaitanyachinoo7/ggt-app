@@ -93,6 +93,7 @@ from ggt.models.data_models.wellpay import (
 )
 from ggt.models.process_models.bp_payment import bp_create_checkout_session, bp_get_checkout_session
 from ggt.lib.adapters.s3_adapter import read_file
+from ggt.lib.adapters.smartystreets import validate_us_address
 from copy import deepcopy
 # from google.cloud import vision
 service_account_file = cfg('gcp.service_account_file')
@@ -1433,7 +1434,8 @@ def bp_pass_verification(req):
                 "image2": get_temp_pkpass_url(str(patient_id) + "/"+str(certs[1]['id']) + ".jpg", "ggt-vax-certificates")
             }
             if(len(certs) > 2):
-                vaccines["image2"] = get_temp_pkpass_url(str(patient_id) + "/"+str(certs[2]['id']) + ".jpg", "ggt-vax-certificates")
+                vaccines["image2"] = get_temp_pkpass_url(
+                    str(patient_id) + "/"+str(certs[2]['id']) + ".jpg", "ggt-vax-certificates")
             return vaccines
 
         elif("COVID_19_VACCINE_JNJ" in certs[0]['service_code'] and certs[0]['verification_level'] > 1):
@@ -1445,16 +1447,18 @@ def bp_pass_verification(req):
                 "image2": None
             }
             if(len(certs) > 1):
-                vaccines["image2"] = get_temp_pkpass_url(str(patient_id) + "/"+str(certs[1]['id']) + ".jpg", "ggt-vax-certificates")
+                vaccines["image2"] = get_temp_pkpass_url(
+                    str(patient_id) + "/"+str(certs[1]['id']) + ".jpg", "ggt-vax-certificates")
             return vaccines
 
-        vaccines = { 
+        vaccines = {
             "fully_vaccinated": False,
             "level": certs[0]['verification_level'],
             "image1": get_temp_pkpass_url(str(patient_id) + "/"+str(certs[0]['id']) + ".jpg", "ggt-vax-certificates"),
         }
         if(len(certs) > 1):
-            vaccines["image2"] = get_temp_pkpass_url(str(patient_id) + "/"+str(certs[1]['id']) + ".jpg", "ggt-vax-certificates")
+            vaccines["image2"] = get_temp_pkpass_url(
+                str(patient_id) + "/"+str(certs[1]['id']) + ".jpg", "ggt-vax-certificates")
         return vaccines
 
     except Exception as err:
@@ -1755,7 +1759,8 @@ def __generate_wallet_pass(pkpass_req, patient, verification):
                 __generate_pk_pass(pkpass_req, temp_patient,
                                    verification, url_path, passes)
             else:
-                __generate_pk_pass(pkpass_req, temp_patient, verification, url_path, passes)
+                __generate_pk_pass(pkpass_req, temp_patient,
+                                   verification, url_path, passes)
             return passes
         elif pkpass_req.type == 'a':
             return __generate_gpay_pass(pkpass_req, patient, verification, url_path, pkpass_req.phone_number)
@@ -2461,15 +2466,15 @@ def __generate_pk_pass(pkpass_req, patient, verification, url_path, passes):
               "/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"))
         print("__generate_pk_pass execution complete")
         print("uploading from: ",
-                "/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"))
+              "/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"))
         print("uploading as:", str(patient["patient_id"]) + ".pkpass")
         print("uploading to:", "pkpass-prod")
         uploaded = upload_file("/tmp/{}.{}".format(str(patient["patient_id"]), "pkpass"),
-                                str(patient["patient_id"]) + ".pkpass", "pkpass-prod")
+                               str(patient["patient_id"]) + ".pkpass", "pkpass-prod")
         print("upload_file execution complete")
         if uploaded:
             passes.append(get_temp_pkpass_url(
-                    str(patient["patient_id"]) + ".pkpass", "pkpass-prod"))
+                str(patient["patient_id"]) + ".pkpass", "pkpass-prod"))
         else:
             return None
         return _
@@ -3699,6 +3704,11 @@ def __create_patient_and_questionnaire(booking_req):
 
         # create patient
         _patient = __extract_patient_from_booking_req(booking_req)
+        if _patient.country == "US" and not validate_us_address(_patient.addr1,
+                                                                _patient.city,
+                                                                _patient.st, 
+                                                                _patient.zip):
+            raise ValueError('Invalid Address')
         prev_token = _patient.token
 
         existing_patient = None
