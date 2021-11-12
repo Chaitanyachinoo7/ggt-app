@@ -1,9 +1,9 @@
 from ggt.lib.utils import get_config_val as cfg
 import requests
 
-# auth_id = cfg('vendors.smartystreets.auth_id')
-# auth_token = cfg('vendors.smartystreets.auth_token')
-# license = cfg('vendors.smartystreets.license')
+auth_id = cfg('vendors.smartystreets.auth_id')
+auth_token = cfg('vendors.smartystreets.auth_token')
+license = cfg('vendors.smartystreets.license')
 
 
 def validate_us_address(street, city, state, zipcode):
