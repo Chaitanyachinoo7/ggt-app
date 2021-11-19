@@ -198,15 +198,15 @@ async def api_lookup_appointment(req: LookupAppointmentRequest):
     )
 
 
-@router.post("/ggv/lookup_certificate", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
-async def api_lookup_certificate(req: LookupGGVCertificateRequest):
-    return lookup_certificate(
-        req.phone_number,
-        req.dob,
-        req.first_name,
-        req.last_name,
-        req.token
-    )
+# @router.post("/ggv/lookup_certificate", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+# async def api_lookup_certificate(req: LookupGGVCertificateRequest):
+#     return lookup_certificate(
+#         req.phone_number,
+#         req.dob,
+#         req.first_name,
+#         req.last_name,
+#         req.token
+#     )
 
 
 @router.get("/get_all_services", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
@@ -298,14 +298,14 @@ def api_verify_verification_token(toke_verification_request: VerificationToken):
     return verify_verification_token(toke_verification_request)
 
 
-@router.get("/vax_certificate/{patient_id}/{certificate_id}")
-def api_get_vax_certificate(patient_id: str, certificate_id: str):
-    return get_vax_certificate(patient_id, certificate_id)
+# @router.get("/vax_certificate/{patient_id}/{certificate_id}")
+# def api_get_vax_certificate(patient_id: str, certificate_id: str):
+#     return get_vax_certificate(patient_id, certificate_id)
 
 
-@router.post("/vax_wallet_pass")
-def api_wallet_pass(req: LookupGGVWalletPassRequest):
-    return get_wallet_pass(req)
+# @router.post("/vax_wallet_pass")
+# def api_wallet_pass(req: LookupGGVWalletPassRequest):
+#     return get_wallet_pass(req)
 
 
 @router.post("/call_non_sms_phone")
@@ -313,72 +313,72 @@ def api_call_non_sms_phone(phone_number):
     return call_non_sms_phone(phone_number)
 
 
-@router.post("/add_vax_certificate")
-def api_add_vax_certificate(req: LookupGGVAddVaxCertRequest):
-    return get_add_vax_certificate(req)
+# @router.post("/add_vax_certificate")
+# def api_add_vax_certificate(req: LookupGGVAddVaxCertRequest):
+#     return get_add_vax_certificate(req)
 
-@router.post("/add_vax_certificates")
-def api_add_vax_certificates(req: AddVaxCertsRequest):
-    return add_vax_certificates(req)
+# @router.post("/add_vax_certificates")
+# def api_add_vax_certificates(req: AddVaxCertsRequest):
+#     return add_vax_certificates(req)
 
-@router.post("/update_group_code")
-def api_update_group_code(req: UpdateGroupCodeRequest):
-    return update_group_code(req)
-
-
-@router.post("/add_booster_vax_certificate")
-def api_add_booster_vax_certificate(req: LookupGGVAddVaxCertRequest):
-    return get_add_vax_certificate(req, booster=True)
+# @router.post("/update_group_code")
+# def api_update_group_code(req: UpdateGroupCodeRequest):
+#     return update_group_code(req)
 
 
-@router.post("/pass_verification/")
-def api_pass_verification(pass_verification_request: PassVerificationRequest):
-    return pass_verification(pass_verification_request)
+# @router.post("/add_booster_vax_certificate")
+# def api_add_booster_vax_certificate(req: LookupGGVAddVaxCertRequest):
+#     return get_add_vax_certificate(req, booster=True)
+
+
+# @router.post("/pass_verification/")
+# def api_pass_verification(pass_verification_request: PassVerificationRequest):
+#     return pass_verification(pass_verification_request)
 
 # @router.post("/update_android_pass/")
 # def api_update_android_pass(update_android_pass_request: UpdateAndroidPassRequest):
 #     return update_android_pass(update_android_pass_request)
 
 
-@router.post("/vax_wallet_pass_apple_upadte/v1/devices/{device_id}/registrations/{pass_type}/{serial_no}")
-def api_vax_wallet_pass_apple_upadte(device_id: str = None, pass_type: str = None, serial_no: str = None,
-                                     apple_pass_update_request: ApplePassUpdateRequest = None, Authorization: str = Header(None)):
-    print(device_id, pass_type, serial_no,
-          apple_pass_update_request.pushToken, Authorization)
-    return vax_wallet_pass_apple_upadte(device_id, pass_type, serial_no, apple_pass_update_request.pushToken, Authorization)
+# @router.post("/vax_wallet_pass_apple_upadte/v1/devices/{device_id}/registrations/{pass_type}/{serial_no}")
+# def api_vax_wallet_pass_apple_upadte(device_id: str = None, pass_type: str = None, serial_no: str = None,
+#                                      apple_pass_update_request: ApplePassUpdateRequest = None, Authorization: str = Header(None)):
+#     print(device_id, pass_type, serial_no,
+#           apple_pass_update_request.pushToken, Authorization)
+#     return vax_wallet_pass_apple_upadte(device_id, pass_type, serial_no, apple_pass_update_request.pushToken, Authorization)
 
 
-@router.get("/vax_wallet_pass_apple_upadte/v1/devices/{device_id}/registrations/{pass_type}")
-def api_vax_wallet_pass_apple_upadte_serial(request: Request, device_id: str = None, pass_type: str = None):
-    return vax_wallet_pass_apple_upadte_serial(device_id, pass_type)
+# @router.get("/vax_wallet_pass_apple_upadte/v1/devices/{device_id}/registrations/{pass_type}")
+# def api_vax_wallet_pass_apple_upadte_serial(request: Request, device_id: str = None, pass_type: str = None):
+#     return vax_wallet_pass_apple_upadte_serial(device_id, pass_type)
 
 
-@router.delete("/vax_wallet_pass_apple_upadte/v1/devices/{device_id}/registrations/{pass_type}/{serial_no}")
-def api_vax_wallet_pass_apple_delete(device_id: str = None, pass_type: str = None, Authorization: str = Header(None)):
-    return True
+# @router.delete("/vax_wallet_pass_apple_upadte/v1/devices/{device_id}/registrations/{pass_type}/{serial_no}")
+# def api_vax_wallet_pass_apple_delete(device_id: str = None, pass_type: str = None, Authorization: str = Header(None)):
+#     return True
 
 
-@router.post("/vax_wallet_pass_apple_upadte/v1/log")
-def api_vax_wallet_pass_log(request: Request):
-    print(request)
-    return True
+# @router.post("/vax_wallet_pass_apple_upadte/v1/log")
+# def api_vax_wallet_pass_log(request: Request):
+#     print(request)
+#     return True
 
 
-@router.get("/vax_wallet_pass_apple_upadte/v1/passes/{pass_type}/{serial_no}")
-def api_vax_wallet_get_new_pass(serial_no: str = None, pass_type: str = None, Authorization: str = Header(None)):
-    return vax_wallet_get_new_pass(serial_no, Authorization)
+# @router.get("/vax_wallet_pass_apple_upadte/v1/passes/{pass_type}/{serial_no}")
+# def api_vax_wallet_get_new_pass(serial_no: str = None, pass_type: str = None, Authorization: str = Header(None)):
+#     return vax_wallet_get_new_pass(serial_no, Authorization)
 
 
-@router.post("/vaxyes/check_payment/{phone_number}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
-async def api_vax_check_payment(phone_number: str = None):
-    return vax_check_payment(phone_number)
+# @router.post("/vaxyes/check_payment/{phone_number}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+# async def api_vax_check_payment(phone_number: str = None):
+#     return vax_check_payment(phone_number)
 
 
-@router.post("/vax_pay", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
-def api_vax_yes_pay(req: VaxYesPayRequest):
-    return vax_yes_payment(req)
+# @router.post("/vax_pay", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+# def api_vax_yes_pay(req: VaxYesPayRequest):
+#     return vax_yes_payment(req)
 
 
-@router.get("/vax_verify_pay/{session_id}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
-def api_vax_yes_verify_pay(session_id: str):
-    return vax_yes_verify_payment(session_id)
+# @router.get("/vax_verify_pay/{session_id}", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+# def api_vax_yes_verify_pay(session_id: str):
+#     return vax_yes_verify_payment(session_id)
