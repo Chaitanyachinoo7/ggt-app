@@ -3704,11 +3704,11 @@ def __create_patient_and_questionnaire(booking_req):
 
         # create patient
         _patient = __extract_patient_from_booking_req(booking_req)
-        if _patient.country == "US" and not validate_us_address(_patient.addr1,
-                                                                _patient.city,
-                                                                _patient.st, 
-                                                                _patient.zip):
-            raise ValueError('Invalid Address')
+        # if _patient.country == "US" and not validate_us_address(_patient.addr1,
+        #                                                         _patient.city,
+        #                                                         _patient.st, 
+        #                                                         _patient.zip):
+        #     raise ValueError('Invalid Address')
         prev_token = _patient.token
 
         existing_patient = None
