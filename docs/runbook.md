@@ -11,6 +11,12 @@ This runbook walks through running the GGT API locally and in Docker, plus how t
 - DB adapter: [app/ggt/lib/adapters/mysql_adapter.py](file:///workspace/app/ggt/lib/adapters/mysql_adapter.py)
 - DB schema dump: [docs/db_init.sql](file:///workspace/docs/db_init.sql)
 
+## Operational endpoints
+
+- Health: `GET /healthz`
+- Readiness: `GET /readyz` (set `READYZ_CHECK_DB=1` to enable a lightweight MySQL check)
+- Request tracing: every response includes `X-Request-Id` (client can supply one and it will be echoed back)
+
 ## Prerequisites
 
 ### Local machine tools

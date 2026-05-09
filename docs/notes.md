@@ -9,8 +9,15 @@ Activate Virtual enviornment:
 Adding a new Package
 `pipenv install pytest --dev`
 
-Launch Server with
-`uvicorn main:app --reload`
+Launch API (local dev)
+`cd app && ./run.sh`
+
+Health checks
+`curl http://localhost:<port>/healthz`
+`curl http://localhost:<port>/readyz`
+
+Deploy Modal compute (optional)
+`pip install modal && modal deploy app/ggt/modal_app.py`
 
 
 `docker run --name myadmin -d -e PMA_HOST=wh-mobile-test-1.clwbkkblucao.us-east-1.rds.amazonaws.com -p 8080:80 phpmyadmin/phpmyadmin`
@@ -49,15 +56,6 @@ delete a file
 
 countobject in a GS bucket
 `gsutil ls -lR gs://ggt-insurance-cards-prod | tail -n 1`
-
-
-HzcC1Rd20Q0N0EPd1Q0VE5utukx7FSjR
-UUcY4XjLSLeTXUZu8p9iEQstrOJ5qQgikcqUUOjOycUYMlot_lV_0oG3LZoSCOXO
-
-siteadmin@test.com
-Test11@@
-
-
 
 
 Local Processing
@@ -124,5 +122,3 @@ View Events:
 Delete Event:
 ========================
 `DROP EVENT IF EXISTS basic_scheduled_event`
-
-

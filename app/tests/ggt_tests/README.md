@@ -43,6 +43,14 @@ export PYTHONPATH="${PYTHONPATH}:<ggt_project_directory>/app"
 python -m unittest discover -v  app/tests/ggt_tests
 ```
 
+### Pytest (repository helper)
+
+From repo root:
+
+```shell
+./test.sh
+```
+
 ### Pycharm
 
 - Open the Run/Debug configuration window

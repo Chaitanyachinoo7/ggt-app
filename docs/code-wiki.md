@@ -37,6 +37,9 @@ This repository contains a Python FastAPI backend (the “GGT API”) that suppo
 
 - **ASGI server**: runs the FastAPI app with Uvicorn in dev ([run.sh](file:///workspace/app/run.sh#L1)) or Gunicorn/Uvicorn in Docker ([Dockerfile](file:///workspace/Dockerfile#L1-L13)).
 - **AWS Lambda**: exports `handler = Mangum(app=app)` ([main.py](file:///workspace/app/main.py#L195-L196)); Lambda container entrypoint is [lambda/Dockerfile](file:///workspace/lambda/Dockerfile#L1-L16).
+- **Modal compute**: runs heavy jobs and exposes a Modal-hosted HTTP API for triggering compute remotely:
+  - Modal app + job wrappers: [modal_app.py](file:///workspace/app/ggt/modal_app.py)
+  - FastAPI → Modal bridge helper: [modal_compute.py](file:///workspace/app/ggt/lib/modal_compute.py)
 - **Multi-port launchers**: convenience entrypoints that run the same app on different ports (likely for distinct processor deployments):
   - inbound processor: [launch1.py](file:///workspace/app/launch1.py#L1-L15)
   - SMS queue processor: [launch2.py](file:///workspace/app/launch2.py#L1-L15)
@@ -72,7 +75,8 @@ This repository contains a Python FastAPI backend (the “GGT API”) that suppo
 ### app/main.py (application assembly)
 
 - Creates FastAPI app with config-controlled docs paths ([main.py](file:///workspace/app/main.py#L33-L40)).
-- Adds CORS + GZip middleware ([main.py](file:///workspace/app/main.py#L42-L54)).
+- Adds CORS + GZip middleware plus request-id middleware ([main.py](file:///workspace/app/main.py#L42-L92)).
+- Exposes health endpoints: `/healthz` and `/readyz` ([main.py](file:///workspace/app/main.py)).
 - Registers the router set for each functional domain (patient, portal, billing, etc.) ([main.py](file:///workspace/app/main.py#L56-L181)).
 - Exposes Lambda handler using Mangum ([main.py](file:///workspace/app/main.py#L195-L196)).
 
@@ -258,6 +262,18 @@ If you are running locally without AWS access, you will need to provide a full c
    - `cd app`
    - `./run.sh`
 4. Open API docs:
+
+### Operational environment variables (common)
+
+- `MODAL_APP_NAME`: Modal app name for function lookup (default `ggt-compute`).
+- `MODAL_SECRET_NAME`: Modal Secret name injected into Modal jobs (default `ggt-env`).
+- `MODAL_WEB_BASE_URL`: If set, FastAPI triggers Modal jobs via HTTP calls to the deployed Modal endpoint; if unset, it uses Modal SDK lookup.
+- `READYZ_CHECK_DB=1`: Make `/readyz` perform a lightweight MySQL check.
+- `STRICT_CONFIG=1`: Fail startup if required config keys are missing.
+
+### Request tracing
+
+- Every HTTP response includes `X-Request-Id`. If a request provides `X-Request-Id`, the server reuses it; otherwise it generates one.
    - The docs endpoints (`docs_url`, `redoc_url`) are read from config in [main.py](file:///workspace/app/main.py#L33-L40).
 
 ### Docker (service container)
@@ -285,4 +301,3 @@ This image runs the Lambda handler `app/main.handler` as defined in [lambda/Dock
 The repo includes pytest tests under [app/tests](file:///workspace/app/tests). The helper script [test.sh](file:///workspace/test.sh#L12-L16) regenerates requirements, copies a test config pointer, and runs pytest.
 
 Note: tests still require a working configuration and likely access to backing services (MySQL and other integrations), depending on the test suite’s scope.
-
