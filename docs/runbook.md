@@ -183,6 +183,41 @@ docker build -t ggt-api-lambda -f lambda/Dockerfile .
 
 Running a Lambda container locally typically requires AWS’s Lambda Runtime Interface Emulator; this repo does not include that wiring by default, so treat this mode primarily as a deployment artifact unless you add local RIE support.
 
+### Mode E — Modal compute (deploy + endpoint URL)
+
+This repo includes a Modal compute service at [app/ggt/modal_app.py](file:///workspace/app/ggt/modal_app.py). Deploying it gives you an HTTPS endpoint URL that FastAPI can call when `MODAL_WEB_BASE_URL` is set.
+
+Prereqs:
+
+- A Modal account and local auth (`modal setup`)
+- A Modal Secret containing the environment variables your jobs require (DB creds, vendor keys, etc.)
+
+Deploy (recommended, host machine):
+
+```bash
+pip install modal
+export MODAL_APP_NAME=ggt-compute
+export MODAL_SECRET_NAME=ggt-env
+modal deploy app/ggt/modal_app.py
+```
+
+Deploy using Docker (runs Modal CLI in a container):
+
+```bash
+docker run --rm \
+  -v "$PWD:/workspace" \
+  -v "$HOME/.modal:/root/.modal" \
+  -w /workspace \
+  python:3.11-slim \
+  bash -lc "pip install -q modal && MODAL_APP_NAME=ggt-compute MODAL_SECRET_NAME=ggt-env modal deploy app/ggt/modal_app.py"
+```
+
+Notes:
+
+- The `-v "$HOME/.modal:/root/.modal"` mount reuses the Modal auth created by `modal setup` on your host.
+- After deploy, Modal prints the public web endpoint URL. Set it on the API runtime as `MODAL_WEB_BASE_URL=<that_base_url>`.
+- Health check on the Modal endpoint: `GET /health`
+
 ## Database setup (MySQL)
 
 1. Provision a MySQL instance (local container or cloud-managed).
@@ -341,4 +376,3 @@ Fix:
 - Point DB config to a reachable MySQL instance initialized with [docs/db_init.sql](file:///workspace/docs/db_init.sql)
 - Start server with [run.sh](file:///workspace/app/run.sh)
 - Validate a simple anonymous endpoint from [rt_patient.py](file:///workspace/app/ggt/routers/rt_patient.py)
-
