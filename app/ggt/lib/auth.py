@@ -109,7 +109,6 @@ def get_rsa_key_auth0(token):
             "token": token,
             "jsonurl": "https://" + get_config_val('vendors.auth0.auth0_domain') + "/.well-known/jwks.json"
         }
-        print(x)
         log_generic(
             type=c.ERROR,
             function=whoami(),

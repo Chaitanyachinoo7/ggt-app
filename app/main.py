@@ -1,11 +1,15 @@
 # system
+import logging
+import uuid
 import uvicorn
 from mangum import Mangum
 
 # third party
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
 
 # local
 import ggt.lib.constants as c
@@ -30,6 +34,21 @@ from ggt.routers import (
     rt_payment,
 )
 
+logging.basicConfig(level=logging.INFO)
+
+_env_val = str(cfg('env'))
+_is_local_env = "LOCAL" in _env_val
+
+
+class RequestIdMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        request_id = request.headers.get("X-Request-Id") or str(uuid.uuid4())
+        request.state.request_id = request_id
+        response = await call_next(request)
+        response.headers["X-Request-Id"] = request_id
+        return response
+
+
 # app_init()
 app = FastAPI(
     title="GGT",
@@ -42,7 +61,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cfg('origins'),
-    allow_origin_regex='https?://.*',
+    allow_origin_regex='https?://.*' if _is_local_env else None,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -52,6 +71,78 @@ app.add_middleware(
     GZipMiddleware,
     minimum_size=512
 )
+
+app.add_middleware(RequestIdMiddleware)
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    request_id = getattr(request.state, "request_id", "")
+    logging.exception("Unhandled exception", extra={"request_id": request_id})
+    return JSONResponse(
+        status_code=500,
+        content={
+            c.STATUS: c.FAILED,
+            c.DESCRIPTION: "Internal Server Error",
+            "request_id": request_id,
+        },
+    )
+
+
+@app.on_event("startup")
+async def validate_startup_config():
+    required_keys = [
+        "env",
+        "server.host",
+        "server.port",
+        "origins",
+        "docs.swagger_url",
+        "docs.redoc_url",
+    ]
+    missing = []
+    for k in required_keys:
+        try:
+            cfg(k)
+        except Exception:
+            missing.append(k)
+    if missing:
+        logging.error("Missing config keys: %s", ",".join(missing))
+        if os.getenv("STRICT_CONFIG") == "1":
+            raise RuntimeError("Missing config keys: {}".format(",".join(missing)))
+
+
+@app.get("/healthz")
+async def healthz():
+    return {c.STATUS: c.SUCCESS}
+
+
+@app.get("/readyz")
+async def readyz():
+    if os.getenv("READYZ_CHECK_DB") == "1":
+        try:
+            import mysql.connector
+
+            cnx = mysql.connector.connect(
+                user=cfg("databases.mysql.username"),
+                password=cfg("databases.mysql.password"),
+                host=cfg("databases.mysql.host"),
+                database=cfg("databases.mysql.db"),
+                use_pure=False,
+                autocommit=True,
+            )
+            cur = cnx.cursor()
+            cur.execute("SELECT 1")
+            cur.fetchone()
+            cur.close()
+            cnx.close()
+        except Exception:
+            logging.exception("Readiness DB check failed")
+            return JSONResponse(
+                status_code=503,
+                content={c.STATUS: c.FAILED, c.DESCRIPTION: "Not Ready"},
+            )
+    return {c.STATUS: c.SUCCESS}
+
 
 app.include_router(
     rt_redirect.router,
