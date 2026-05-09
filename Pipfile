@@ -55,5 +55,6 @@ pypdf2 = "*"
 mangum = "*"
 httpx = "*"
 h2 = "*"
+modal = "*"
 [requires]
 python_version = "3.7"

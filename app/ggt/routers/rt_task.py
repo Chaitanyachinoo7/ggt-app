@@ -1,5 +1,6 @@
 import ujson
 
+import os
 import requests
 from fastapi import (
     APIRouter,
@@ -49,7 +50,18 @@ from ggt.tasks.sms_queue_processor import task_process_sms_queue
 from ggt.tasks.update_stripe_payments_processor import update_stripe_payments
 from ggt.tasks.appsheet_thirdparty_group_codes_processor import add_new_groups
 from ggt.tasks.vaxyes_ocr import run_ocr_on_vax_yes_cards
+from ggt.lib.modal_compute import modal_remote, modal_web_get, modal_web_post
 router = APIRouter()
+
+
+def _use_modal_web():
+    return bool(os.getenv("MODAL_WEB_BASE_URL"))
+
+
+def _modal_run(function_name, path, payload=None, args=None):
+    if _use_modal_web():
+        return modal_web_post(path, payload=payload)
+    return modal_remote(function_name, *(args or []))
 
 
 @router.post("/background_process_inbound_lab_reports", dependencies=[Security(authorize_user, scopes=[p.PROCESS_INBOUND_LAB_REPORTS])])
@@ -147,10 +159,84 @@ async def api_process_sms_queue(batch_size: int=10000, offset: int=0):
     task_process_sms_queue(batch_size, offset)
     return {STATUS: SUCCESS}
 
+
+@router.get("/modal/ping", dependencies=[Security(authorize_user, scopes=[p.ANONYMOUS])])
+async def api_modal_ping():
+    if _use_modal_web():
+        result = modal_web_get("/health")
+    else:
+        result = modal_remote("ping")
+    return {STATUS: SUCCESS, "result": result}
+
+
+@router.get("/modal/process_email_queue/{batch_size}/{offset}", dependencies=[Security(authorize_user, scopes=[p.PROCESS_EMAIL_QUEUE])])
+async def api_modal_process_email_queue(batch_size: int=10000, offset: int=0):
+    result = _modal_run(
+        "process_email_queue",
+        "/tasks/process_email_queue",
+        payload={"batch_size": batch_size, "offset": offset},
+        args=[batch_size, offset],
+    )
+    return {STATUS: SUCCESS, "result": result}
+
+
+@router.get("/modal/process_sms_queue/{batch_size}/{offset}", dependencies=[Security(authorize_user, scopes=[p.PROCESS_SMS_QUEUE])])
+async def api_modal_process_sms_queue(batch_size: int=10000, offset: int=0):
+    result = _modal_run(
+        "process_sms_queue",
+        "/tasks/process_sms_queue",
+        payload={"batch_size": batch_size, "offset": offset},
+        args=[batch_size, offset],
+    )
+    return {STATUS: SUCCESS, "result": result}
+
+
+@router.post("/modal/process_inbound_lab_reports", dependencies=[Security(authorize_user, scopes=[p.PROCESS_INBOUND_LAB_REPORTS])])
+async def api_modal_process_inbound_lab_reports():
+    result = _modal_run(
+        "process_inbound_lab_reports",
+        "/tasks/process_inbound_lab_reports",
+        payload={},
+        args=[],
+    )
+    return {STATUS: SUCCESS, "result": result}
+
+
+@router.post("/modal/process_outbound_lab_orders", dependencies=[Security(authorize_user, scopes=[p.PROCESS_PROCESS_OUTBOUND_LAB_ORDERS])])
+async def api_modal_process_outbound_lab_orders():
+    result = _modal_run(
+        "process_outbound_lab_orders",
+        "/tasks/process_outbound_lab_orders",
+        payload={},
+        args=[],
+    )
+    return {STATUS: SUCCESS, "result": result}
+
+
+@router.post("/modal/process_hl7_lab_orders", dependencies=[Security(authorize_user, scopes=[p.PROCESS_PROCESS_OUTBOUND_LAB_ORDERS])])
+async def api_modal_process_hl7_lab_orders():
+    result = _modal_run(
+        "process_hl7_lab_orders",
+        "/tasks/process_hl7_lab_orders",
+        payload={},
+        args=[],
+    )
+    return {STATUS: SUCCESS, "result": result}
+
+
+@router.post("/modal/process_crl_lab_orders", dependencies=[Security(authorize_user, scopes=[p.PROCESS_PROCESS_OUTBOUND_LAB_ORDERS])])
+async def api_modal_process_crl_lab_orders():
+    result = _modal_run(
+        "process_crl_lab_orders",
+        "/tasks/process_crl_lab_orders",
+        payload={},
+        args=[],
+    )
+    return {STATUS: SUCCESS, "result": result}
+
 '''
 @router.get("/process_email_queue/{batch_size}/{offset}", dependencies=[Security(authorize_user, scopes=[p.PROCESS_EMAIL_QUEUE])])
 async def api_process_email_queue(background_tasks: BackgroundTasks, batch_size: int = 10000, offset: int = 0):
-    background_tasks.add_task(task_process_email_queue, batch_size, offset)
     return {
         STATUS: SUCCESS,
         DESCRIPTION: BACKGROUND_TASK_INITIATE_MESSAGE

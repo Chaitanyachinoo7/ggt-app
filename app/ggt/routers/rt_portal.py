@@ -7,11 +7,13 @@ from fastapi import (
     Security
 )
 
+import os
 from ggt.lib.auth import (
     verify_google_idtoken,
     authorize_user
 )
 import ggt.lib.constants as c
+from ggt.lib.modal_compute import modal_remote, modal_web_post
 
 from ggt.models.data_models.data_types import (
     PortalUserRoleRequest,
@@ -74,6 +76,10 @@ from ggt.models.workflow_models.clinical_test_site_admin_flow import (
 )
 
 router = APIRouter()
+
+
+def _use_modal_web():
+    return bool(os.getenv("MODAL_WEB_BASE_URL"))
 
 
 # TODO review after Auth0 implementation
@@ -221,6 +227,15 @@ async def api_generate_schedule(location_id: str, background_tasks: BackgroundTa
     }
 
 
+@router.get("/site-admin/modal_generate_schedule/{location_id}", dependencies=[Security(authorize_user, scopes=[p.GENERATE_SCHEDULE])])
+async def api_modal_generate_schedule(location_id: str):
+    if _use_modal_web():
+        result = modal_web_post("/tasks/generate_schedule", payload={"location_id": location_id})
+    else:
+        result = modal_remote("generate_schedule", location_id)
+    return {c.STATUS: c.SUCCESS, "result": result}
+
+
 @router.post("/site-admin/generate_all_schedules", dependencies=[Security(authorize_user, scopes=[p.GENERATE_ALL_SCHEDULES])])
 async def api_generate_all_schedules(background_tasks: BackgroundTasks):
     background_tasks.add_task(generate_all_schedules)
@@ -228,6 +243,15 @@ async def api_generate_all_schedules(background_tasks: BackgroundTasks):
         c.STATUS: c.SUCCESS,
         c.DESCRIPTION: c.BACKGROUND_TASK_INITIATE_MESSAGE
     }
+
+
+@router.post("/site-admin/modal_generate_all_schedules", dependencies=[Security(authorize_user, scopes=[p.GENERATE_ALL_SCHEDULES])])
+async def api_modal_generate_all_schedules():
+    if _use_modal_web():
+        result = modal_web_post("/tasks/generate_all_schedules", payload={})
+    else:
+        result = modal_remote("generate_all_schedules")
+    return {c.STATUS: c.SUCCESS, "result": result}
 
 
 @router.post("/site-admin/location_search")

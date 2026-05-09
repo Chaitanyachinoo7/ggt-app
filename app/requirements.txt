@@ -55,6 +55,7 @@ mangum==0.12.3
 markupsafe==2.0.1; python_version >= '3.6'
 msgpack==1.0.2
 multidict==5.2.0; python_version >= '3.6'
+modal
 mysql-connector-python==8.0.23
 nest-asyncio==1.5.1
 oauth2client==4.1.3
